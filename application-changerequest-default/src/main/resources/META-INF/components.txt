@@ -1,0 +1,8 @@
+org.xwiki.contrib.changerequest.internal.ChangeRequestReferenceResolver
+org.xwiki.contrib.changerequest.internal.ChangeRequestResourceHandler
+org.xwiki.contrib.changerequest.internal.storage.DefaultChangeRequestStorageManager
+org.xwiki.contrib.changerequest.internal.storage.DefaultFileChangeStorageManager
+org.xwiki.contrib.changerequest.internal.handlers.CreateChangeRequestHandler
+org.xwiki.contrib.changerequest.internal.UserReferenceConverter
+org.xwiki.contrib.changerequest.internal.ChangeRequestDocumentReferenceResolver
+org.xwiki.contrib.changerequest.internal.EditChangeRequestAction
