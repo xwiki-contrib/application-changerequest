@@ -110,11 +110,31 @@ public class ChangeRequest
     }
 
     /**
+     * @param title the title of this change request.
+     * @return the current instance.
+     */
+    public ChangeRequest setTitle(String title)
+    {
+        this.title = title;
+        return this;
+    }
+
+    /**
      * @return a description of this change request.
      */
     public String getDescription()
     {
         return description;
+    }
+
+    /**
+     * @param description a description of this change request.
+     * @return the current instance.
+     */
+    public ChangeRequest setDescription(String description)
+    {
+        this.description = description;
+        return this;
     }
 
     /**

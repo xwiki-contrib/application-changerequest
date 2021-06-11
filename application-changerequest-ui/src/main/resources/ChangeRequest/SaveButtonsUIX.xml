@@ -36,7 +36,66 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content/>
+  <content>{{velocity}}
+#if ($request.get('getmodal') == 1)
+&lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
+  &lt;div class="modal-dialog modal-lg"&gt;
+    &lt;div class="modal-content"&gt;
+      &lt;div class="modal-header"&gt;
+        &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
+        &lt;div class="modal-title" id="changeRequestModalTitle"&gt;Save as change request&lt;/div&gt;
+        &lt;hr /&gt;
+        &lt;div class="xHint"&gt;
+          Provide some information to save your changes in a new or existing change request.
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="modal-body"&gt;
+        &lt;div class="panel-group" id="changeRequestChoiceGroup" role="tablist" aria-multiselectable="false"&gt;
+          &lt;div class="panel"&gt;
+            &lt;div class="panel-radio"&gt;
+              &lt;input type="radio" id="newChangeRequest" name="changeRequestChoice" value="create" checked="checked" /&gt;
+            &lt;/div&gt;
+            &lt;div class="panel-heading"&gt;
+              &lt;label class="panel-title panel-primary"&gt;Create new change request&lt;/label&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="panel"&gt;
+            &lt;div class="panel-radio"&gt;
+              &lt;input type="radio" id="addToExistingChangeRequest" name="changeRequestChoice" value="edit" /&gt;
+            &lt;/div&gt;
+            &lt;div class="panel-heading"&gt;
+              &lt;label class="panel-title panel-default"&gt;Add changes to existing change request&lt;/label&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;form id="saveChangeRequestForm"&gt;
+        &lt;div class="panel hidden" id="editCRPanel"&gt;
+          &lt;div class="form-group"&gt;
+            &lt;label for="existingCRSelector"&gt;Chose an existing change request&lt;/label&gt;
+            &lt;input type="text" class="form-control" id="existingCRSelector" /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="panel" id="createCRPanel"&gt;
+          &lt;div class="form-group"&gt;
+            &lt;label for="crTitle"&gt;Title of the Change request&lt;/label&gt;
+            &lt;input type="text" class="form-control" id="crTitle" /&gt;
+          &lt;/div&gt;
+          &lt;div class="form-group"&gt;
+            &lt;label for="crDescription"&gt;Description of the Change request&lt;/label&gt;
+            &lt;textarea class="form-control" rows="3" id="crDescription"&gt;&lt;/textarea&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+      &lt;div class="modal-footer"&gt;
+        &lt;input type="button" id="saveChangeRequest" class="btn btn-primary" value="$services.localization.render('save')" /&gt;
+        &lt;input type="button" id="cancelChangeRequest" class="btn btn-default" value="$services.localization.render('cancel')" data-dismiss="modal" aria-hidden="true" /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+#end
+{{/velocity}}</content>
   <object>
     <name>ChangeRequest.SaveButtonsUIX</name>
     <number>0</number>
@@ -125,6 +184,52 @@
     </property>
     <property>
       <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var saveChangeRequest = function () {
+    var isNewCR = $('input[name=changeRequestChoice]:checked').val() == "create";
+    var form = $('#save_changerequest').parents('form');
+    
+    var actionURL;
+    if (isNewCR) {
+      var crTitleField = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'crTitle',
+        'value': $('#crTitle').val()
+      });
+      form.append(crTitleField);
+      
+      var crDescriptionField = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'crDescription',
+        'value': $('#crDescription').val()
+      });
+      form.append(crDescriptionField);
+      actionURL = '/xwiki/changerequest/create';
+    } else {
+      actionURL = '/xwiki/changerequest/addchanges/' + $('#existingCRSelector').val();
+    }
+    form.attr('action', actionURL);
+    var docField = $("&lt;input&gt;", {
+      'type': 'hidden',
+      'name': 'docReference',
+      'value': xm.documentReference
+    });
+    form.append(docField);
+    form.submit();
+  };
+  
+  var createChangeRequestModal = function () {
+    var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
+    $.get(modalURL.getURL('get', 'getmodal=1&amp;outputSyntax=plain')).done(function (data) {
+      console.log(data);
+      $('body').append(data);
+      $('#changeRequestModal').modal('show');
+      $('#saveChangeRequest').on('click', saveChangeRequest);
+    }).fail(function (data) {
+      console.log(data);
+      new XWiki.widgets.Notification("Error while saving the change request:" + data, 'error')
+    });
+  };
+  
   var attachButtons = function () {
     var button = $("&lt;input&gt;", {
       'type': 'button',
@@ -142,15 +247,7 @@
     }
 
     button.on('click', function() {
-      var form = $(this).parents('form');
-      form.attr('action', '/xwiki/changerequest/create');
-      var docField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'docReference',
-        'value': xm.documentReference
-      });
-      form.append(docField);
-      form.submit();
+      createChangeRequestModal();
     });
   }
   

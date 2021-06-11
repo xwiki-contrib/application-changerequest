@@ -20,7 +20,10 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -28,6 +31,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -39,6 +43,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
+import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.EditForm;
@@ -53,6 +58,8 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class CreateChangeRequestHandler
 {
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmssZ");
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -61,6 +68,9 @@ public class CreateChangeRequestHandler
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
+
+    @Inject
+    private UserReferenceSerializer<String> userReferenceSerializer;
 
     @Inject
     private DocumentReferenceResolver<String> documentReferenceResolver;
@@ -82,10 +92,16 @@ public class CreateChangeRequestHandler
         editForm.readRequest();
         String serializedDocReference = request.getParameter("docReference");
         DocumentReference documentReference = this.documentReferenceResolver.resolve(serializedDocReference);
+        String title = request.getParameter("crTitle");
+        String description = request.getParameter("crDescription");
 
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        ChangeRequest changeRequest = new ChangeRequest(UUID.randomUUID().toString());
-        FileChange fileChange = new FileChange(UUID.randomUUID().toString());
+        ChangeRequest changeRequest = new ChangeRequest(String.format("%s-%s", title, UUID.randomUUID()));
+        String fileChangeId = String.format("%s-%s-%s",
+            serializedDocReference,
+            this.userReferenceSerializer.serialize(currentUser),
+            DATE_FORMAT.format(new Date()));
+        FileChange fileChange = new FileChange(fileChangeId);
         fileChange
             .setAuthor(currentUser)
             .setTargetEntity(documentReference)
@@ -93,6 +109,8 @@ public class CreateChangeRequestHandler
             .setContentChange(editForm.getContent());
 
         changeRequest
+            .setTitle(title)
+            .setDescription(description)
             .setCreator(currentUser)
             .setFileChanges(Collections.singletonList(fileChange))
             .setImpactedFiles(Collections.singletonList(documentReference));

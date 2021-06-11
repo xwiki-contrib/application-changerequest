@@ -32,11 +32,13 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.LocalDocumentReference;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
 
 /**
  * Default implementation of {@link ChangeRequestStorageManager}.
@@ -49,6 +51,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DefaultChangeRequestStorageManager implements ChangeRequestStorageManager
 {
+    private static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
+        new LocalDocumentReference("ChangeRequest", "ChangeRequestClass");
     @Inject
     private UserReferenceConverter userReferenceConverter;
 
@@ -72,6 +76,8 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             document.setTitle(changeRequest.getTitle());
             document.setContent(changeRequest.getDescription());
             document.setContentAuthorReference(this.userReferenceConverter.convert(changeRequest.getCreator()));
+            BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
+            xObject.set("status", "draft", context);
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getFileChanges()) {
                 this.fileChangeStorageManager.saveFileChange(changeRequest, fileChange);
