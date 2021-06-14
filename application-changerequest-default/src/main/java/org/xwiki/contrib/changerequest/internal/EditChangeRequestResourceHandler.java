@@ -51,11 +51,20 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
 import com.xpn.xwiki.web.Utils;
 
+/**
+ * Default handler for managing URLs such as {@code basewiki/editcr/Space/Page}.
+ * Those URls allow to edit a page without edit rights in order to create a new change request.
+ *
+ * @version $Id$
+ * @since 0.1-SNAPSHOT
+ */
 @Component
 @Named("editcr")
 @Singleton
 public class EditChangeRequestResourceHandler extends AbstractResourceReferenceHandler<EntityResourceAction>
 {
+    private static final String TDOC = "tdoc";
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -195,7 +204,7 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
      * <ul>
      * <li>editing or creating the original translation (for the default language)</li>
      * <li>editing an existing document translation</li>
-     * <li>creating a new translation.</i>
+     * <li>creating a new translation.</li>
      * </ul>
      * Most of the code deals with the really bad way the default language can be specified (empty string, 'default' or
      * a real language code).
@@ -207,7 +216,7 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
     private XWikiDocument getEditedDocument(XWikiContext context) throws XWikiException
     {
         XWikiDocument doc = context.getDoc();
-        boolean hasTranslation = doc != context.get("tdoc");
+        boolean hasTranslation = doc != context.get(TDOC);
 
         // We have to clone the context document because it is cached and the changes we are going to make are valid
         // only for the duration of the current request.
@@ -264,7 +273,7 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         } else {
             // Edit an existing translation. Clone the translated document object to be sure that the changes we are
             // going to make will last only for the duration of the current request.
-            tdoc = ((XWikiDocument) context.get("tdoc")).clone();
+            tdoc = ((XWikiDocument) context.get(TDOC)).clone();
         }
 
         return tdoc;
@@ -326,9 +335,9 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
      */
     private void putDocumentOnContext(XWikiDocument document, XWikiContext context)
     {
-        context.put("tdoc", document);
+        context.put(TDOC, document);
         // Old XWiki applications that are still using the inline action might expect the cdoc (content document) to be
         // properly set on the context. Let's expose the given document also as cdoc for backward compatibility.
-        context.put("cdoc", context.get("tdoc"));
+        context.put("cdoc", context.get(TDOC));
     }
 }

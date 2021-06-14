@@ -11,4 +11,4 @@ Application allowing to request changes on a wiki without publishing directly th
 * License: LGPL 2.1
 * Translations: N/A
 * Sonar Dashboard: N/A
-* Continuous Integration Status: [![Build Status](https://ci.xwiki.org/buildStatus/icon?job=XWiki+Contrib%2Fapplication-changerequest%2Fmaster)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-changerequest/job/master/)
+* Continuous Integration Status: [![Build Status](https://ci.xwiki.org/buildStatus/icon?job=XWiki+Contrib%2Fapplication-changerequest%2Fmain)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-changerequest/job/main/)

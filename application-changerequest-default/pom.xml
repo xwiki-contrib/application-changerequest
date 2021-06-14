@@ -34,6 +34,7 @@
   <properties>
     <!-- The module should only be installed at farm level so it can handle the URLs -->
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
+    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
   </properties>
   <dependencies>
     <dependency>
