@@ -31,8 +31,9 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.internal.handlers.CreateChangeRequestHandler;
+import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageException;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.resource.AbstractResourceReferenceHandler;
 import org.xwiki.resource.ResourceReference;
 import org.xwiki.resource.ResourceReferenceHandlerChain;
@@ -66,6 +67,7 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
     {
         try {
             this.authorizationManager.register(ChangeRequestRight.INSTANCE);
+            this.authorizationManager.register(ChangeRequestApproveRight.INSTANCE);
         } catch (UnableToRegisterRightException e) {
             e.printStackTrace();
         }
@@ -85,7 +87,7 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
         if (changeRequestReference.getAction() == ChangeRequestReference.ChangeRequestAction.CREATE) {
             try {
                 this.createChangeRequestHandler.handle(changeRequestReference);
-            } catch (ChangeRequestStorageException e) {
+            } catch (ChangeRequestException e) {
                 e.printStackTrace();
             }
         }

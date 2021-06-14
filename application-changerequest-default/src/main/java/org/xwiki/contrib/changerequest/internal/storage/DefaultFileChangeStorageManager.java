@@ -27,10 +27,12 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.suigeneris.jrcs.rcs.Version;
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -38,6 +40,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.DocumentRevisionProvider;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiAttachmentContent;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -62,6 +65,16 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
+    @Inject
+    private DocumentRevisionProvider documentRevisionProvider;
+
+    private enum DocumentVersion
+    {
+        OLD,
+        CURRENT,
+        FILECHANGE
+    }
+
     private XWikiDocument getChangeRequestDocument(ChangeRequest changeRequest) throws XWikiException
     {
         XWikiContext context = this.contextProvider.get();
@@ -70,7 +83,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     }
 
     @Override
-    public void saveFileChange(ChangeRequest changeRequest, FileChange fileChange)
+    public void saveFileChange(FileChange fileChange) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
@@ -85,7 +98,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             document.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
 
             String filename = fileChange.getId() + ".xml";
-            XWikiDocument changeRequestDocument = this.getChangeRequestDocument(changeRequest);
+            XWikiDocument changeRequestDocument = this.getChangeRequestDocument(fileChange.getChangeRequest());
             XWikiAttachment attachment = new XWikiAttachment(changeRequestDocument, filename);
             attachment.setContentStore(wiki.getDefaultAttachmentContentStore().getHint());
             XWikiAttachmentContent attachmentContent = new XWikiAttachmentContent(attachment);
@@ -99,7 +112,52 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             changeRequestDocument.setContentDirty(true);
             wiki.saveDocument(changeRequestDocument, context);
         } catch (XWikiException | IOException e) {
-            e.printStackTrace();
+            throw new ChangeRequestException(
+                String.format("Error while storing filechange [%s]", fileChange));
         }
+    }
+
+    private DocumentModelBridge getDocumentFromFileChange(FileChange fileChange, DocumentVersion version)
+        throws ChangeRequestException
+    {
+        XWikiDocument result;
+        try {
+            if (version == DocumentVersion.CURRENT) {
+                XWikiContext context = contextProvider.get();
+                result = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
+            } else {
+                result = this.documentRevisionProvider.getRevision(fileChange.getTargetEntity(),
+                    fileChange.getSourceVersion());
+            }
+            if (version == DocumentVersion.FILECHANGE) {
+                result.setVersion("merged");
+                result.setContent(fileChange.getContentChange());
+            }
+            return result;
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while loading the document corresponding to the file change [{}]", fileChange));
+        }
+    }
+
+    @Override
+    public DocumentModelBridge getModifiedDocumentFromFileChange(FileChange fileChange)
+        throws ChangeRequestException
+    {
+        return getDocumentFromFileChange(fileChange, DocumentVersion.FILECHANGE);
+    }
+
+    @Override
+    public DocumentModelBridge getCurrentDocumentFromFileChange(FileChange fileChange)
+        throws ChangeRequestException
+    {
+        return getDocumentFromFileChange(fileChange, DocumentVersion.CURRENT);
+    }
+
+    @Override
+    public DocumentModelBridge getPreviousDocumentFromFileChange(FileChange fileChange)
+        throws ChangeRequestException
+    {
+        return getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
     }
 }

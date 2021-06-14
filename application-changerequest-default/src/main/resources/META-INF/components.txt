@@ -6,3 +6,6 @@ org.xwiki.contrib.changerequest.internal.handlers.CreateChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.UserReferenceConverter
 org.xwiki.contrib.changerequest.internal.ChangeRequestDocumentReferenceResolver
 org.xwiki.contrib.changerequest.internal.EditChangeRequestResourceHandler
+org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrategy
+org.xwiki.contrib.changerequest.internal.DefaultChangeRequestConfiguration
+org.xwiki.contrib.changerequest.internal.DefaultChangeRequestManager

@@ -17,26 +17,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.storage;
+package org.xwiki.contrib.changerequest;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.stability.Unstable;
+
 /**
- * Define the API for the storage manager of change request.
+ * Define the strategies to use for merging a change request.
+ * A strategy can be, for example, to only allow merging whenever a number of approvals are been made, or when there's
+ * at least one approval.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.1-SNAPSHOT
  */
-@Role
 @Unstable
-public interface ChangeRequestStorageManager
+@Role
+public interface MergeApprovalStrategy
 {
     /**
-     * Save the given change request and all the related {@link org.xwiki.contrib.changerequest.FileChange}.
-     * @param changeRequest the change request to save.
-     * @throws ChangeRequestException in case of problem during the save.
+     * Check if the given change request can be merged, based on the current strategy.
+     *
+     * @param changeRequest the change request to check for merging.
+     * @return {@code true} if the change request can be merged, based on the current strategy.
      */
-    void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException;
+    boolean canBeMerged(ChangeRequest changeRequest);
 }

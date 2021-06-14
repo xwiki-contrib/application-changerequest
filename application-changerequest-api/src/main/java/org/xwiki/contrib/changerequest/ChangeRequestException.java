@@ -17,24 +17,24 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.storage;
+package org.xwiki.contrib.changerequest;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * Default exception class when using {@link ChangeRequestStorageManager}.
+ * Default exception class for change request application.
  *
  * @version $Id$
  * @since 0.1
  */
 @Unstable
-public class ChangeRequestStorageException extends Exception
+public class ChangeRequestException extends Exception
 {
     /**
      * Constructor with simple message.
      * @param msg the message of the exception.
      */
-    public ChangeRequestStorageException(String msg)
+    public ChangeRequestException(String msg)
     {
         super(msg);
     }
@@ -45,7 +45,7 @@ public class ChangeRequestStorageException extends Exception
      * @param msg the message.
      * @param e the original exception.
      */
-    public ChangeRequestStorageException(String msg, Throwable e)
+    public ChangeRequestException(String msg, Throwable e)
     {
         super(msg, e);
     }

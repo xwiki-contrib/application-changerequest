@@ -35,7 +35,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageException;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -80,9 +80,9 @@ public class CreateChangeRequestHandler
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
      * @param changeRequestReference the request reference leading to this.
-     * @throws ChangeRequestStorageException in case of errors.
+     * @throws ChangeRequestException in case of errors.
      */
-    public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestStorageException
+    public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         HttpServletRequest request = context.getRequest();
@@ -100,7 +100,7 @@ public class CreateChangeRequestHandler
             serializedDocReference,
             this.userReferenceSerializer.serialize(currentUser),
             DATE_FORMAT.format(new Date()));
-        FileChange fileChange = new FileChange(fileChangeId);
+        FileChange fileChange = new FileChange(changeRequest, fileChangeId);
         fileChange
             .setAuthor(currentUser)
             .setTargetEntity(documentReference)
@@ -122,7 +122,7 @@ public class CreateChangeRequestHandler
         try {
             context.getResponse().sendRedirect(url);
         } catch (IOException e) {
-            throw new ChangeRequestStorageException("Error while redirecting to the created change request.", e);
+            throw new ChangeRequestException("Error while redirecting to the created change request.", e);
         }
     }
 }

@@ -27,7 +27,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageException;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -66,7 +66,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Override
-    public void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestStorageException
+    public void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
@@ -80,7 +80,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             xObject.set("status", "draft", context);
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getFileChanges()) {
-                this.fileChangeStorageManager.saveFileChange(changeRequest, fileChange);
+                this.fileChangeStorageManager.saveFileChange(fileChange);
             }
         } catch (XWikiException e) {
             e.printStackTrace();

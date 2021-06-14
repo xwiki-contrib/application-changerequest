@@ -17,26 +17,23 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.storage;
+package org.xwiki.contrib.changerequest;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.stability.Unstable;
+
 /**
- * Define the API for the storage manager of change request.
+ * Available configuration for change request application.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.1-SNAPSHOT
  */
 @Role
 @Unstable
-public interface ChangeRequestStorageManager
+public interface ChangeRequestConfiguration
 {
     /**
-     * Save the given change request and all the related {@link org.xwiki.contrib.changerequest.FileChange}.
-     * @param changeRequest the change request to save.
-     * @throws ChangeRequestException in case of problem during the save.
+     * @return the hint of the {@link MergeApprovalStrategy} to use.
      */
-    void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException;
+    String getMergeApprovalStrategy();
 }

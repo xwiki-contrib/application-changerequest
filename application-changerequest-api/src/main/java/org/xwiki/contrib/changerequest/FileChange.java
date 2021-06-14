@@ -21,7 +21,7 @@ package org.xwiki.contrib.changerequest;
 
 import java.util.Date;
 
-import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
 
@@ -36,7 +36,8 @@ import org.xwiki.user.UserReference;
 public class FileChange
 {
     private String id;
-    private EntityReference targetEntity;
+    private ChangeRequest changeRequest;
+    private DocumentReference targetEntity;
     private String sourceVersion;
     private UserReference author;
     private Date creationDate;
@@ -44,11 +45,14 @@ public class FileChange
 
     /**
      * Default constructor.
+     *
+     * @param changeRequest the change request this file change belongs to.
      * @param id the unique identifier of this file change.
      */
-    public FileChange(String id)
+    public FileChange(ChangeRequest changeRequest, String id)
     {
         this.id = id;
+        this.changeRequest = changeRequest;
         this.creationDate = new Date();
     }
 
@@ -63,7 +67,7 @@ public class FileChange
     /**
      * @return the entity that is subject of the modification made in this file change.
      */
-    public EntityReference getTargetEntity()
+    public DocumentReference getTargetEntity()
     {
         return targetEntity;
     }
@@ -72,7 +76,7 @@ public class FileChange
      * @param targetEntity the entity that is subject of the modification made in this file change.
      * @return the current instance.
      */
-    public FileChange setTargetEntity(EntityReference targetEntity)
+    public FileChange setTargetEntity(DocumentReference targetEntity)
     {
         this.targetEntity = targetEntity;
         return this;
@@ -130,5 +134,13 @@ public class FileChange
     {
         this.contentChange = contentChange;
         return this;
+    }
+
+    /**
+     * @return the change request this file change belongs to.
+     */
+    public ChangeRequest getChangeRequest()
+    {
+        return changeRequest;
     }
 }

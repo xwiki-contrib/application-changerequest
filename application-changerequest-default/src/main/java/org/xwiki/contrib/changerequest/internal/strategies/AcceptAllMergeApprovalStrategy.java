@@ -17,26 +17,35 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.storage;
+package org.xwiki.contrib.changerequest.internal.strategies;
 
-import org.xwiki.component.annotation.Role;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.stability.Unstable;
+import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+
 /**
- * Define the API for the storage manager of change request.
+ * A dumb {@link MergeApprovalStrategy} that allows to merge any change request.
+ * Mainly used for tests.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.1-SNAPSHOT
  */
-@Role
-@Unstable
-public interface ChangeRequestStorageManager
+@Component
+@Named(AcceptAllMergeApprovalStrategy.NAME)
+@Singleton
+public class AcceptAllMergeApprovalStrategy implements MergeApprovalStrategy
 {
     /**
-     * Save the given change request and all the related {@link org.xwiki.contrib.changerequest.FileChange}.
-     * @param changeRequest the change request to save.
-     * @throws ChangeRequestException in case of problem during the save.
+     * Name of the strategy.
      */
-    void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException;
+    public static final String NAME = "acceptall";
+
+    @Override
+    public boolean canBeMerged(ChangeRequest changeRequest)
+    {
+        return true;
+    }
 }

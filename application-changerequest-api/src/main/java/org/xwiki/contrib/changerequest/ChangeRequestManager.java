@@ -17,26 +17,36 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.storage;
+package org.xwiki.contrib.changerequest;
+
+import java.util.Optional;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.stability.Unstable;
+
 /**
- * Define the API for the storage manager of change request.
+ * Component responsible to perform business operations on change requests.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.1-SNAPSHOT
  */
 @Role
 @Unstable
-public interface ChangeRequestStorageManager
+public interface ChangeRequestManager
 {
     /**
-     * Save the given change request and all the related {@link org.xwiki.contrib.changerequest.FileChange}.
-     * @param changeRequest the change request to save.
-     * @throws ChangeRequestException in case of problem during the save.
+     * Retrieve the change request identified by the provided identifier.
+     * @param id the identifier used to retrieve a change request.
+     * @return {@link Optional#empty()} if the change request cannot be found, else an optional containing an instance
+     *          of {@link ChangeRequest} for the given identifier.
      */
-    void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException;
+    Optional<ChangeRequest> getChangeRequest(String id);
+
+    /**
+     * Check if the given file change expose conflicts with the current version of the documents.
+     *
+     * @param fileChange the change to be checked for conflicts.
+     * @return {@code true} if it contains conflicts, {@code false} otherwise.
+     */
+    boolean hasConflicts(FileChange fileChange) throws ChangeRequestException;
 }

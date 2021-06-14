@@ -50,7 +50,12 @@ public class ChangeRequestReference extends AbstractResourceReference
          * For creating a new change request.
          * Note that for this action, the id of the reference should be null, since the id is created later.
          */
-        CREATE
+        CREATE,
+
+        /**
+         * For merging a change request.
+         */
+        MERGE
     }
 
     private ChangeRequestAction action;
