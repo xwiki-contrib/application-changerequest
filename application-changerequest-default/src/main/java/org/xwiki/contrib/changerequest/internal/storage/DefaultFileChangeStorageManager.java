@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -86,6 +87,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private DocumentRevisionProvider documentRevisionProvider;
 
     @Inject
+    @Named("document")
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
     @Inject

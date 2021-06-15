@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -74,6 +75,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
+    @Named("document")
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
     @Override

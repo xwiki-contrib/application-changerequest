@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 import java.util.Optional;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -32,11 +31,9 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
-
-import com.xpn.xwiki.XWikiContext;
 
 /**
  * Component responsible to handle a merge request.
@@ -55,10 +52,7 @@ public class MergeChangeRequestHandler
     private ChangeRequestStorageManager changeRequestStorageManager;
 
     @Inject
-    private UserReferenceResolver<DocumentReference> userReferenceResolver;
-
-    @Inject
-    private Provider<XWikiContext> contextProvider;
+    private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
     private Logger logger;
@@ -75,9 +69,8 @@ public class MergeChangeRequestHandler
             .load(changeRequestReference.getId());
         if (changeRequestOpt.isPresent()) {
             ChangeRequest changeRequest = changeRequestOpt.get();
-            DocumentReference userDocReference = this.contextProvider.get().getUserReference();
-            UserReference userReference = this.userReferenceResolver.resolve(userDocReference);
-            if (this.changeRequestManager.isAuthorizedToMerge(userReference, changeRequest)
+            UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+            if (this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)
                 && this.changeRequestManager.canBeMerged(changeRequest)) {
                 this.changeRequestStorageManager.merge(changeRequest);
             } else {

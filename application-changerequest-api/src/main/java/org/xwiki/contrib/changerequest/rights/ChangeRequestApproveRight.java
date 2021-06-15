@@ -33,7 +33,7 @@ import org.xwiki.stability.Unstable;
  * Only  the people with approver rights are able to merge a change request.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Unstable
 public final class ChangeRequestApproveRight implements RightDescription
