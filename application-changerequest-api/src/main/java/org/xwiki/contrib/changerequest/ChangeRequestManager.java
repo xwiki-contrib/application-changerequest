@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
+import org.xwiki.user.UserReference;
 
 /**
  * Component responsible to perform business operations on change requests.
@@ -49,4 +50,24 @@ public interface ChangeRequestManager
      * @return {@code true} if it contains conflicts, {@code false} otherwise.
      */
     boolean hasConflicts(FileChange fileChange) throws ChangeRequestException;
+
+    /**
+     * Check if the given user is authorized to merge the given change request.
+     *
+     * @param userReference the user for which to check the authorizations
+     * @param changeRequest the change request to check
+     * @return {@code true} if the user has the appropriate rights to perform the merge.
+     */
+    boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest);
+
+    /**
+     * Check if all conditions are met so that a change request can be merged.
+     * This method checks in particular if there's no conflict in the change request, if it's status allows is to be
+     * merged, and if the approval strategy is met.
+     *
+     * @param changeRequest the change request to check for merging.
+     * @return {@code true} if the change request can be merged.
+     * @throws ChangeRequestException in case of problems during one of the check.
+     */
+    boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException;
 }

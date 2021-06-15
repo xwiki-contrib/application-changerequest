@@ -19,12 +19,18 @@
  */
 package org.xwiki.contrib.changerequest.internal.storage;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -33,10 +39,12 @@ import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
@@ -65,11 +73,15 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
+    @Inject
+    private UserReferenceResolver<DocumentReference> userReferenceResolver;
+
     @Override
-    public void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException
+    public void save(ChangeRequest changeRequest) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
+        changeRequest.setId(UUID.randomUUID().toString());
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         try {
             XWikiDocument document = wiki.getDocument(reference, context);
@@ -80,10 +92,63 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             xObject.set("status", "draft", context);
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getFileChanges()) {
-                this.fileChangeStorageManager.saveFileChange(fileChange);
+                this.fileChangeStorageManager.save(fileChange);
             }
         } catch (XWikiException e) {
-            e.printStackTrace();
+            throw new ChangeRequestException(
+                String.format("Error while saving the change request [%s]", changeRequest), e);
         }
+    }
+
+    @Override
+    public Optional<ChangeRequest> load(String changeRequestId) throws ChangeRequestException
+    {
+        Optional<ChangeRequest> result = Optional.empty();
+        ChangeRequest changeRequest = new ChangeRequest();
+        changeRequest.setId(changeRequestId);
+        DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        XWikiContext context = this.contextProvider.get();
+        XWiki wiki = context.getWiki();
+        try {
+            XWikiDocument document = wiki.getDocument(reference, context);
+            BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS);
+            if (!document.isNew() && xObject != null) {
+                List<XWikiAttachment> attachmentList = document.getAttachmentList();
+                List<FileChange> fileChanges = new ArrayList<>();
+                for (XWikiAttachment attachment : attachmentList) {
+                    String filename = attachment.getFilename();
+                    if (filename.endsWith(".xml")) {
+                        String filechangeId = filename.substring(0, filename.length() - 4);
+                        Optional<FileChange> fileChange =
+                            this.fileChangeStorageManager.load(changeRequest, filechangeId);
+                        if (fileChange.isPresent()) {
+                            fileChanges.add(fileChange.get());
+                        }
+                    }
+                }
+                changeRequest
+                    .setFileChanges(fileChanges)
+                    .setTitle(document.getTitle())
+                    .setDescription(document.getContent())
+                    .setCreator(this.userReferenceResolver.resolve(document.getAuthorReference()));
+                result = Optional.of(changeRequest);
+            }
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while trying to load change request of id [%s]", changeRequestId), e);
+        }
+        return result;
+    }
+
+    @Override
+    public void merge(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        // FIXME: we should maybe have a way to rollback if a merge has been only partially done?
+        for (FileChange fileChange : changeRequest.getFileChanges()) {
+            this.fileChangeStorageManager.merge(fileChange);
+        }
+        // FIXME: this change should be saved, but we need to only save what's needed.
+        // So we'll need a way to declare a state for the filechanges that needs to be saved.
+        changeRequest.setStatus(ChangeRequestStatus.MERGED);
     }
 }

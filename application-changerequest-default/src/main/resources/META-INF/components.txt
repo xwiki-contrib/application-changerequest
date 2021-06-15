@@ -9,3 +9,4 @@ org.xwiki.contrib.changerequest.internal.EditChangeRequestResourceHandler
 org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrategy
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestConfiguration
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestManager
+org.xwiki.contrib.changerequest.internal.handlers.MergeChangeRequestHandler

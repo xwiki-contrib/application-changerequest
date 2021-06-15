@@ -31,6 +31,7 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.internal.handlers.CreateChangeRequestHandler;
+import org.xwiki.contrib.changerequest.internal.handlers.MergeChangeRequestHandler;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -56,8 +57,12 @@ import org.xwiki.security.authorization.UnableToRegisterRightException;
 public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandler<ResourceType>
     implements Initializable
 {
+    // TODO: we should look for the component based on the action.
     @Inject
     private CreateChangeRequestHandler createChangeRequestHandler;
+
+    @Inject
+    private MergeChangeRequestHandler mergeChangeRequestHandler;
 
     @Inject
     private AuthorizationManager authorizationManager;
@@ -69,7 +74,7 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
             this.authorizationManager.register(ChangeRequestRight.INSTANCE);
             this.authorizationManager.register(ChangeRequestApproveRight.INSTANCE);
         } catch (UnableToRegisterRightException e) {
-            e.printStackTrace();
+            throw new InitializationException("Error when trying to register the custom rights", e);
         }
     }
 
@@ -84,13 +89,25 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
         throws ResourceReferenceHandlerException
     {
         ChangeRequestReference changeRequestReference = (ChangeRequestReference) reference;
-        if (changeRequestReference.getAction() == ChangeRequestReference.ChangeRequestAction.CREATE) {
-            try {
-                this.createChangeRequestHandler.handle(changeRequestReference);
-            } catch (ChangeRequestException e) {
-                e.printStackTrace();
+        try {
+            switch (changeRequestReference.getAction()) {
+                case CREATE:
+                    this.createChangeRequestHandler.handle(changeRequestReference);
+                    break;
+
+                case MERGE:
+                    this.mergeChangeRequestHandler.handle(changeRequestReference);
+                    break;
+
+                default:
+                    throw new ResourceReferenceHandlerException(
+                        String.format("The action [%s] is not implemented.", changeRequestReference.getAction()));
             }
+        } catch (ChangeRequestException e) {
+            throw new ResourceReferenceHandlerException(
+                String.format("Error while trying to handle the reference [%s]", reference), e);
         }
+
         chain.handleNext(reference);
     }
 }

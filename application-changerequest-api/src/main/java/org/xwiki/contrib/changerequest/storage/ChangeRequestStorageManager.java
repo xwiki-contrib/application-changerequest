@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.storage;
 
+import java.util.Optional;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -38,5 +40,22 @@ public interface ChangeRequestStorageManager
      * @param changeRequest the change request to save.
      * @throws ChangeRequestException in case of problem during the save.
      */
-    void saveChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException;
+    void save(ChangeRequest changeRequest) throws ChangeRequestException;
+
+    /**
+     * Load a change request based on the given identifier.
+     *
+     * @param changeRequestId the id of a change request to find.
+     * @return a change request instance or an empty optional if it cannot be found.
+     * @throws ChangeRequestException in case of errors while loading.
+     */
+    Optional<ChangeRequest> load(String changeRequestId) throws ChangeRequestException;
+
+    /**
+     * Merge the given change request changes.
+     *
+     * @param changeRequest the change request to merge.
+     * @throws ChangeRequestException in case of errors during the merge.
+     */
+    void merge(ChangeRequest changeRequest) throws ChangeRequestException;
 }

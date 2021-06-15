@@ -35,7 +35,7 @@
     <dependency>
       <groupId>org.xwiki.contrib.changerequest</groupId>
       <artifactId>application-changerequest-default</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

@@ -28,12 +28,9 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
-import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
@@ -50,42 +47,30 @@ import org.xwiki.stability.Unstable;
 public class ChangeRequestScriptService implements ScriptService
 {
     @Inject
-    @Named("context")
-    private ComponentManager componentManager;
-
-    @Inject
-    private ChangeRequestConfiguration configuration;
-
-    @Inject
     private ChangeRequestManager changeRequestManager;
 
     @Inject
     private Logger logger;
 
-    private MergeApprovalStrategy getMergeApprovalStrategy() throws ComponentLookupException
-    {
-        return this.componentManager.getInstance(MergeApprovalStrategy.class,
-           this.configuration.getMergeApprovalStrategy());
-    }
-
     /**
      * Retrieve the change request identified with the given id and check if it can be merged.
+     * This method checks if the approval strategy is reached, if the current user is authorized to perform the merge,
+     * and if the change request has conflicts.
      *
      * @param changeRequestId the identifier of the change request to check.
-     * @return {@code true} if a change request matching the id is found and can be merged,
-     *         {@code false} in all other cases.
+     * @return {@code true} if a change request matching the id is found and can be merged (i.e. the approval strategy
+     *          allows it, the user is authorized to do it, and the change request does not have conflicts).
      */
     public boolean canBeMerged(String changeRequestId)
     {
-        Optional<ChangeRequest> changeRequest = this.changeRequestManager.getChangeRequest(changeRequestId);
+        Optional<ChangeRequest> changeRequestOpt = this.changeRequestManager.getChangeRequest(changeRequestId);
         boolean result = false;
-        if (changeRequest.isPresent()) {
+        if (changeRequestOpt.isPresent()) {
             try {
-                MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
-                result = mergeApprovalStrategy.canBeMerged(changeRequest.get());
-            } catch (ComponentLookupException e) {
-                this.logger.warn("Error when getting the merge approval strategy: [{}]",
-                    ExceptionUtils.getRootCauseMessage(e));
+                result = this.changeRequestManager.canBeMerged(changeRequestOpt.get());
+            } catch (ChangeRequestException e) {
+                this.logger.warn("Error while checking if the change request [{}] can be merged: [{}]",
+                    changeRequestId, ExceptionUtils.getRootCauseMessage(e));
             }
         } else {
             this.logger.warn("Cannot find change request with id [{}].", changeRequestId);

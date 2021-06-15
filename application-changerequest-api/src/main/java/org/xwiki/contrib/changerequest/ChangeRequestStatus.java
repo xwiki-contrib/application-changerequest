@@ -33,5 +33,10 @@ public enum ChangeRequestStatus
     /**
      * When the change request is still a draft and cannot be merged.
      */
-    DRAFT
+    DRAFT,
+
+    /**
+     * When the change request has been merged.
+     */
+    MERGED
 }

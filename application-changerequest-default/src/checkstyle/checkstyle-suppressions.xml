@@ -31,4 +31,8 @@
   since it avoids extending an old XWikiAction. -->
   <suppress checks="NPathComplexity" files="EditChangeRequestResourceHandler.java"/>
   <suppress checks="CyclomaticComplexity" files="EditChangeRequestResourceHandler.java"/>
+
+  <!-- FIXME: this should be improved in the future -->
+  <suppress checks="ClassFanOutComplexity" files="DefaultFileChangeStorageManager.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestManager.java"/>
 </suppressions>

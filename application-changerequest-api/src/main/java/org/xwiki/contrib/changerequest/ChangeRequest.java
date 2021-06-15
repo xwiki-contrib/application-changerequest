@@ -46,11 +46,9 @@ public class ChangeRequest
 
     /**
      * Default constructor.
-     * @param id the unique identifier of the request change.
      */
-    public ChangeRequest(String id)
+    public ChangeRequest()
     {
-        this.id = id;
         this.creationDate = new Date();
         this.status = ChangeRequestStatus.DRAFT;
     }
@@ -61,6 +59,16 @@ public class ChangeRequest
     public String getId()
     {
         return id;
+    }
+
+    /**
+     * @param id the identifier of the change request.
+     * @return the current instance.
+     */
+    public ChangeRequest setId(String id)
+    {
+        this.id = id;
+        return this;
     }
 
     /**
@@ -143,5 +151,23 @@ public class ChangeRequest
     public List<FileChange> getFileChanges()
     {
         return fileChanges;
+    }
+
+    /**
+     * @param status the current status of the change request.
+     * @return the current instance.
+     */
+    public ChangeRequest setStatus(ChangeRequestStatus status)
+    {
+        this.status = status;
+        return this;
+    }
+
+    /**
+     * @return the current status of the change request.
+     */
+    public ChangeRequestStatus getStatus()
+    {
+        return status;
     }
 }

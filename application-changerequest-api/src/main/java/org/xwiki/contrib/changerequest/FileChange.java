@@ -47,11 +47,9 @@ public class FileChange
      * Default constructor.
      *
      * @param changeRequest the change request this file change belongs to.
-     * @param id the unique identifier of this file change.
      */
-    public FileChange(ChangeRequest changeRequest, String id)
+    public FileChange(ChangeRequest changeRequest)
     {
-        this.id = id;
         this.changeRequest = changeRequest;
         this.creationDate = new Date();
     }
@@ -62,6 +60,16 @@ public class FileChange
     public String getId()
     {
         return id;
+    }
+
+    /**
+     * @param id the identifier of the file change.
+     * @return the current instance.
+     */
+    public FileChange setId(String id)
+    {
+        this.id = id;
+        return this;
     }
 
     /**
@@ -142,5 +150,15 @@ public class FileChange
     public ChangeRequest getChangeRequest()
     {
         return changeRequest;
+    }
+
+    /**
+     * @param creationDate the date of the creation of the file change.
+     * @return the current instance.
+     */
+    public FileChange setCreationDate(Date creationDate)
+    {
+        this.creationDate = creationDate;
+        return this;
     }
 }

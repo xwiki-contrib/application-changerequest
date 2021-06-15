@@ -21,6 +21,11 @@ package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -36,6 +41,9 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.user.UserReferenceResolver;
+import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -56,6 +64,15 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 {
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmssZ");
+
+    private static final String FILE_CHANGE_CONSTANT_NAME = "filechange";
+
+    private static final Pattern FILE_CHANGE_NAME_PATTERN =
+        Pattern.compile(String.format("^%s-.+-.+-[0-9]{12}Z$", FILE_CHANGE_CONSTANT_NAME));
+
+    private static final String ATTACHMENT_EXTENSION = ".xml";
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -67,6 +84,18 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     @Inject
     private DocumentRevisionProvider documentRevisionProvider;
+
+    @Inject
+    private UserReferenceResolver<DocumentReference> userReferenceResolver;
+
+    @Inject
+    private UserReferenceConverter userReferenceConverter;
+
+    @Inject
+    private UserReferenceSerializer<String> userReferenceSerializer;
+
+    @Inject
+    private EntityReferenceSerializer<String> entityReferenceSerializer;
 
     private enum DocumentVersion
     {
@@ -83,7 +112,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     }
 
     @Override
-    public void saveFileChange(FileChange fileChange) throws ChangeRequestException
+    public void save(FileChange fileChange) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
@@ -97,7 +126,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             document.setVersion(next.toString());
             document.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
 
-            String filename = fileChange.getId() + ".xml";
+            String fileChangeId = String.format("%s-%s-%s-%s",
+                FILE_CHANGE_CONSTANT_NAME,
+                this.entityReferenceSerializer.serialize(fileChange.getTargetEntity()),
+                this.userReferenceSerializer.serialize(fileChange.getAuthor()),
+                DATE_FORMAT.format(new Date()));
+            fileChange.setId(fileChangeId);
+            String filename = fileChange.getId() + ATTACHMENT_EXTENSION;
             XWikiDocument changeRequestDocument = this.getChangeRequestDocument(fileChange.getChangeRequest());
             XWikiAttachment attachment = new XWikiAttachment(changeRequestDocument, filename);
             attachment.setContentStore(wiki.getDefaultAttachmentContentStore().getHint());
@@ -114,6 +149,54 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         } catch (XWikiException | IOException e) {
             throw new ChangeRequestException(
                 String.format("Error while storing filechange [%s]", fileChange));
+        }
+    }
+
+    @Override
+    public Optional<FileChange> load(ChangeRequest changeRequest, String fileChangeId)
+        throws ChangeRequestException
+    {
+        Optional<FileChange> result = Optional.empty();
+        if (FILE_CHANGE_NAME_PATTERN.matcher(fileChangeId).matches()) {
+            try {
+                XWikiDocument changeRequestDocument = this.getChangeRequestDocument(changeRequest);
+                String filename = fileChangeId + ATTACHMENT_EXTENSION;
+                XWikiAttachment attachment = changeRequestDocument.getAttachment(filename);
+                if (attachment != null) {
+                    FileChange fileChange = new FileChange(changeRequest);
+                    XWikiDocument document = new XWikiDocument(null);
+                    document.fromXML(attachment.getContentInputStream(contextProvider.get()));
+                    fileChange
+                        .setId(fileChangeId)
+                        .setTargetEntity(document.getDocumentReferenceWithLocale())
+                        .setContentChange(document.getContent())
+                        .setSourceVersion(document.getVersion())
+                        .setAuthor(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
+                        .setCreationDate(document.getContentUpdateDate());
+                    result = Optional.of(fileChange);
+                }
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Error while loading file change with id [%s]", fileChangeId), e);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void merge(FileChange fileChange) throws ChangeRequestException
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki wiki = context.getWiki();
+        try {
+            XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
+            document.setContent(fileChange.getContentChange());
+            document.setContentAuthorReference(this.userReferenceConverter.convert(fileChange.getAuthor()));
+            String saveMessage = "Save after change request merge";
+            wiki.saveDocument(document, saveMessage, context);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while merging the file change [%s]", fileChange), e);
         }
     }
 
@@ -136,7 +219,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             return result;
         } catch (XWikiException e) {
             throw new ChangeRequestException(
-                String.format("Error while loading the document corresponding to the file change [{}]", fileChange));
+                String.format("Error while loading the document corresponding to the file change [%s]", fileChange));
         }
     }
 

@@ -88,4 +88,15 @@ public final class ChangeRequestApproveRight implements RightDescription
     {
         return false;
     }
+
+    /**
+     * Retrieve the actual right corresponding to this right description.
+     * Note that this method can only be called after the right has been registered.
+     *
+     * @return the right corresponding to this description.
+     */
+    public static Right getRight()
+    {
+        return Right.toRight(INSTANCE.getName());
+    }
 }
