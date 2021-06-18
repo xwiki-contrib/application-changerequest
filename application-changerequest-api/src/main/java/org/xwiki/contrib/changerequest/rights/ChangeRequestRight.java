@@ -67,19 +67,19 @@ public final class ChangeRequestRight implements RightDescription
     @Override
     public boolean getInheritanceOverridePolicy()
     {
-        return false;
+        return true;
     }
 
     @Override
     public Set<Right> getImpliedRights()
     {
-        return Collections.singleton(Right.VIEW);
+        return Collections.emptySet();
     }
 
     @Override
     public Set<EntityType> getTargetedEntityType()
     {
-        return Collections.singleton(EntityType.DOCUMENT);
+        return Right.WIKI_SPACE_DOCUMENT;
     }
 
     @Override

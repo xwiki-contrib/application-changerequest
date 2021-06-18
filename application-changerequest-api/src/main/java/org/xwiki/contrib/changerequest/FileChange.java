@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest;
 
 import java.util.Date;
 
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
@@ -41,7 +42,7 @@ public class FileChange
     private String sourceVersion;
     private UserReference author;
     private Date creationDate;
-    private String contentChange;
+    private DocumentModelBridge modifiedDocument;
 
     /**
      * Default constructor.
@@ -127,20 +128,20 @@ public class FileChange
     }
 
     /**
-     * @return the actual content of the change.
+     * @return an instance of the document with the changes.
      */
-    public String getContentChange()
+    public DocumentModelBridge getModifiedDocument()
     {
-        return contentChange;
+        return modifiedDocument;
     }
 
     /**
-     * @param contentChange the actual content of the change.
+     * @param modifiedDocument an instance of the document with the changes.
      * @return the current instance.
      */
-    public FileChange setContentChange(String contentChange)
+    public FileChange setModifiedDocument(DocumentModelBridge modifiedDocument)
     {
-        this.contentChange = contentChange;
+        this.modifiedDocument = modifiedDocument;
         return this;
     }
 

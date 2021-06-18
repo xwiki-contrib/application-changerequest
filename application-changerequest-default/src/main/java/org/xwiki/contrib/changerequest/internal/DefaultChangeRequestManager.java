@@ -19,8 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -84,12 +82,6 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
 
     @Inject
     private ChangeRequestConfiguration configuration;
-
-    @Override
-    public Optional<ChangeRequest> getChangeRequest(String id)
-    {
-        return Optional.empty();
-    }
 
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException

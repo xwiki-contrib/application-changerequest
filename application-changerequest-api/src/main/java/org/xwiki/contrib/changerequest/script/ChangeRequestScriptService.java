@@ -31,8 +31,12 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
+import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
 
 /**
  * Script service for change request.
@@ -50,6 +54,12 @@ public class ChangeRequestScriptService implements ScriptService
     private ChangeRequestManager changeRequestManager;
 
     @Inject
+    private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -63,17 +73,20 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public boolean canBeMerged(String changeRequestId)
     {
-        Optional<ChangeRequest> changeRequestOpt = this.changeRequestManager.getChangeRequest(changeRequestId);
         boolean result = false;
-        if (changeRequestOpt.isPresent()) {
-            try {
-                result = this.changeRequestManager.canBeMerged(changeRequestOpt.get());
-            } catch (ChangeRequestException e) {
-                this.logger.warn("Error while checking if the change request [{}] can be merged: [{}]",
-                    changeRequestId, ExceptionUtils.getRootCauseMessage(e));
+        try {
+            Optional<ChangeRequest> changeRequestOpt = this.changeRequestStorageManager.load(changeRequestId);
+            if (changeRequestOpt.isPresent()) {
+                UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+                ChangeRequest changeRequest = changeRequestOpt.get();
+                result = this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)
+                    && this.changeRequestManager.canBeMerged(changeRequest);
+            } else {
+                this.logger.warn("Cannot find change request with id [{}].", changeRequestId);
             }
-        } else {
-            this.logger.warn("Cannot find change request with id [{}].", changeRequestId);
+        } catch (ChangeRequestException e) {
+            this.logger.warn("Error while checking if the change request [{}] can be merged: [{}]",
+                changeRequestId, ExceptionUtils.getRootCauseMessage(e));
         }
         return result;
     }

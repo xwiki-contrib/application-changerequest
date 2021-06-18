@@ -39,5 +39,9 @@
   <content>{{velocity}}
 #set ($discard = $doc.use('ChangeRequest.ChangeRequestClass'))
 Status: $doc.display('status')
+#set ($changeRequestId = $doc.documentReference.name)
+Change request ID: $changeRequestId
+#set ($canBeMerged = $services.changerequest.canBeMerged($changeRequestId))
+Can be merged: $canBeMerged
 {{/velocity}}</content>
 </xwikidoc>

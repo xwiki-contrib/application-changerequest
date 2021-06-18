@@ -19,8 +19,6 @@
  */
 package org.xwiki.contrib.changerequest;
 
-import java.util.Optional;
-
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
@@ -35,14 +33,6 @@ import org.xwiki.user.UserReference;
 @Unstable
 public interface ChangeRequestManager
 {
-    /**
-     * Retrieve the change request identified by the provided identifier.
-     * @param id the identifier used to retrieve a change request.
-     * @return {@link Optional#empty()} if the change request cannot be found, else an optional containing an instance
-     *          of {@link ChangeRequest} for the given identifier.
-     */
-    Optional<ChangeRequest> getChangeRequest(String id);
-
     /**
      * Check if the given file change expose conflicts with the current version of the documents.
      *

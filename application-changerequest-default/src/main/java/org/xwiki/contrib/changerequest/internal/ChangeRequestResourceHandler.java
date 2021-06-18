@@ -27,6 +27,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLifecycleException;
+import org.xwiki.component.phase.Disposable;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -55,7 +57,7 @@ import org.xwiki.security.authorization.UnableToRegisterRightException;
 @Named("changerequest")
 @Authenticate
 public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandler<ResourceType>
-    implements Initializable
+    implements Initializable, Disposable
 {
     // TODO: we should look for the component based on the action.
     @Inject
@@ -76,6 +78,12 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
         } catch (UnableToRegisterRightException e) {
             throw new InitializationException("Error when trying to register the custom rights", e);
         }
+    }
+
+    @Override
+    public void dispose() throws ComponentLifecycleException
+    {
+        // FIXME: ensure to unregister rights
     }
 
     @Override

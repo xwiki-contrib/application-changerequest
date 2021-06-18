@@ -32,7 +32,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -70,7 +69,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private static final String FILE_CHANGE_CONSTANT_NAME = "filechange";
 
     private static final Pattern FILE_CHANGE_NAME_PATTERN =
-        Pattern.compile(String.format("^%s-.+-.+-[0-9]{12}Z$", FILE_CHANGE_CONSTANT_NAME));
+        Pattern.compile(String.format("^%s-.+-.+-[0-9]{12}[\\+\\-][0-9]{4}$", FILE_CHANGE_CONSTANT_NAME));
 
     private static final String ATTACHMENT_EXTENSION = ".xml";
 
@@ -120,12 +119,14 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWiki wiki = context.getWiki();
         try {
             XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
+            XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
             // We need to clone the document, else the change we perform are kept in cache and we don't want that.
             document = document.clone();
-            document.setContent(fileChange.getContentChange());
-            Version version = new Version(fileChange.getSourceVersion());
-            Version next = version.next();
-            document.setVersion(next.toString());
+            // FIXME: we should also set the xobjects/xclass/attachments etc
+            document.setContent(modifiedDocument.getContent());
+            // We keep the source version inside the xml since that's what we'll use to find back
+            // the version of the document.
+            document.setVersion(fileChange.getSourceVersion());
             document.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
 
             String fileChangeId = String.format("%s-%s-%s-%s",
@@ -171,7 +172,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     fileChange
                         .setId(fileChangeId)
                         .setTargetEntity(document.getDocumentReferenceWithLocale())
-                        .setContentChange(document.getContent())
+                        .setModifiedDocument(document)
                         .setSourceVersion(document.getVersion())
                         .setAuthor(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
                         .setCreationDate(document.getContentUpdateDate());
@@ -192,7 +193,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWiki wiki = context.getWiki();
         try {
             XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
-            document.setContent(fileChange.getContentChange());
+            XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
+            // FIXME: we should also set the xclass/xobjects etc
+            document.setContent(modifiedDocument.getContent());
             document.setContentAuthorReference(this.userReferenceConverter.convert(fileChange.getAuthor()));
             String saveMessage = "Save after change request merge";
             wiki.saveDocument(document, saveMessage, context);
@@ -205,19 +208,26 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private DocumentModelBridge getDocumentFromFileChange(FileChange fileChange, DocumentVersion version)
         throws ChangeRequestException
     {
+        XWikiContext context = contextProvider.get();
         XWikiDocument result;
         try {
-            if (version == DocumentVersion.CURRENT) {
-                XWikiContext context = contextProvider.get();
-                result = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
-            } else {
-                result = this.documentRevisionProvider.getRevision(fileChange.getTargetEntity(),
-                    fileChange.getSourceVersion());
+            XWikiDocument currentDocument = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
+            switch (version) {
+                case OLD:
+                    // TODO: we'll need a fallback if the source version has been deleted for some reason.
+                    result = this.documentRevisionProvider.getRevision(fileChange.getTargetEntity(),
+                        fileChange.getSourceVersion());
+                    break;
+
+                case FILECHANGE:
+                    result = (XWikiDocument) fileChange.getModifiedDocument();
+                    break;
+
+                case CURRENT:
+                default:
+                    result = currentDocument;
             }
-            if (version == DocumentVersion.FILECHANGE) {
-                result.setVersion("merged");
-                result.setContent(fileChange.getContentChange());
-            }
+
             return result;
         } catch (XWikiException e) {
             throw new ChangeRequestException(
