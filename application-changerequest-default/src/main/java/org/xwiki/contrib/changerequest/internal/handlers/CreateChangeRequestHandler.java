@@ -40,6 +40,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
+import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -71,6 +72,9 @@ public class CreateChangeRequestHandler
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
+    @Inject
+    private RequestParameterConverter requestParameterConverter;
+
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
      * @param changeRequestReference the request reference leading to this.
@@ -81,6 +85,11 @@ public class CreateChangeRequestHandler
         // FIXME: We're missing a call to perform the conversion filter (see XWIKI-18773)
         XWikiContext context = this.contextProvider.get();
         HttpServletRequest request = context.getRequest();
+        try {
+            request = (HttpServletRequest) this.requestParameterConverter.convert(request, context.getResponse()).get();
+        } catch (IOException e) {
+            throw new ChangeRequestException("Error while converting request", e);
+        }
         EditForm editForm = new EditForm();
         editForm.setRequest(request);
         editForm.readRequest();
@@ -121,8 +130,7 @@ public class CreateChangeRequestHandler
             .setTitle(title)
             .setDescription(description)
             .setCreator(currentUser)
-            .setFileChanges(Collections.singletonList(fileChange))
-            .setImpactedFiles(Collections.singletonList(documentReference));
+            .setFileChanges(Collections.singletonList(fileChange));
 
         this.storageManager.save(changeRequest);
 

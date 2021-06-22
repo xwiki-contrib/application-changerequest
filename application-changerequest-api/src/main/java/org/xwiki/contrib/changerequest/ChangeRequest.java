@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest;
 import java.util.Date;
 import java.util.List;
 
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
 
@@ -41,7 +40,6 @@ public class ChangeRequest
     private UserReference creator;
     private Date creationDate;
     private ChangeRequestStatus status;
-    private List<DocumentReference> impactedFiles;
     private List<FileChange> fileChanges;
 
     /**
@@ -86,16 +84,6 @@ public class ChangeRequest
     public ChangeRequest setCreator(UserReference creator)
     {
         this.creator = creator;
-        return this;
-    }
-
-    /**
-     * @param impactedFiles the files that are modified in this change request.
-     * @return the current instance.
-     */
-    public ChangeRequest setImpactedFiles(List<DocumentReference> impactedFiles)
-    {
-        this.impactedFiles = impactedFiles;
         return this;
     }
 

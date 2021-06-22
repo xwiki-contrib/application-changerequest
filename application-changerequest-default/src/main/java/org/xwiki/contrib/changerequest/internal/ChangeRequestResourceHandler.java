@@ -43,6 +43,7 @@ import org.xwiki.resource.ResourceReferenceHandlerChain;
 import org.xwiki.resource.ResourceReferenceHandlerException;
 import org.xwiki.resource.ResourceType;
 import org.xwiki.resource.annotations.Authenticate;
+import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.UnableToRegisterRightException;
 
@@ -83,7 +84,12 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
     @Override
     public void dispose() throws ComponentLifecycleException
     {
-        // FIXME: ensure to unregister rights
+        try {
+            this.authorizationManager.unregister(ChangeRequestRight.getRight());
+            this.authorizationManager.unregister(ChangeRequestApproveRight.getRight());
+        } catch (AuthorizationException e) {
+            throw new ComponentLifecycleException("Error while unregistering rights", e);
+        }
     }
 
     @Override

@@ -115,43 +115,46 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     @Override
     public void save(FileChange fileChange) throws ChangeRequestException
     {
-        XWikiContext context = this.contextProvider.get();
-        XWiki wiki = context.getWiki();
-        try {
-            XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
-            XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
-            // We need to clone the document, else the change we perform are kept in cache and we don't want that.
-            document = document.clone();
-            // FIXME: we should also set the xobjects/xclass/attachments etc
-            document.setContent(modifiedDocument.getContent());
-            // We keep the source version inside the xml since that's what we'll use to find back
-            // the version of the document.
-            document.setVersion(fileChange.getSourceVersion());
-            document.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
+        if (!fileChange.isSaved()) {
+            XWikiContext context = this.contextProvider.get();
+            XWiki wiki = context.getWiki();
+            try {
+                XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
+                XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
+                // We need to clone the document, else the change we perform are kept in cache and we don't want that.
+                document = document.clone();
+                // FIXME: we should also set the xobjects/xclass/attachments etc
+                document.setContent(modifiedDocument.getContent());
+                // We keep the source version inside the xml since that's what we'll use to find back
+                // the version of the document.
+                document.setVersion(fileChange.getSourceVersion());
+                document.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
 
-            String fileChangeId = String.format("%s-%s-%s-%s",
-                FILE_CHANGE_CONSTANT_NAME,
-                this.entityReferenceSerializer.serialize(fileChange.getTargetEntity()),
-                this.userReferenceSerializer.serialize(fileChange.getAuthor()),
-                DATE_FORMAT.format(new Date()));
-            fileChange.setId(fileChangeId);
-            String filename = fileChange.getId() + ATTACHMENT_EXTENSION;
-            XWikiDocument changeRequestDocument = this.getChangeRequestDocument(fileChange.getChangeRequest());
-            XWikiAttachment attachment = new XWikiAttachment(changeRequestDocument, filename);
-            attachment.setContentStore(wiki.getDefaultAttachmentContentStore().getHint());
-            XWikiAttachmentContent attachmentContent = new XWikiAttachmentContent(attachment);
+                String fileChangeId = String.format("%s-%s-%s-%s",
+                    FILE_CHANGE_CONSTANT_NAME,
+                    this.entityReferenceSerializer.serialize(fileChange.getTargetEntity()),
+                    this.userReferenceSerializer.serialize(fileChange.getAuthor()),
+                    DATE_FORMAT.format(new Date()));
+                fileChange.setId(fileChangeId);
+                String filename = fileChange.getId() + ATTACHMENT_EXTENSION;
+                XWikiDocument changeRequestDocument = this.getChangeRequestDocument(fileChange.getChangeRequest());
+                XWikiAttachment attachment = new XWikiAttachment(changeRequestDocument, filename);
+                attachment.setContentStore(wiki.getDefaultAttachmentContentStore().getHint());
+                XWikiAttachmentContent attachmentContent = new XWikiAttachmentContent(attachment);
 
-            OutputStream contentOutputStream = attachmentContent.getContentOutputStream();
-            document.toXML(contentOutputStream, true, true, true, false, context);
-            contentOutputStream.close();
-            attachment.setAttachment_content(attachmentContent);
-            attachment.setMetaDataDirty(true);
-            changeRequestDocument.setAttachment(attachment);
-            changeRequestDocument.setContentDirty(true);
-            wiki.saveDocument(changeRequestDocument, context);
-        } catch (XWikiException | IOException e) {
-            throw new ChangeRequestException(
-                String.format("Error while storing filechange [%s]", fileChange));
+                OutputStream contentOutputStream = attachmentContent.getContentOutputStream();
+                document.toXML(contentOutputStream, true, true, true, false, context);
+                contentOutputStream.close();
+                attachment.setAttachment_content(attachmentContent);
+                attachment.setMetaDataDirty(true);
+                changeRequestDocument.setAttachment(attachment);
+                changeRequestDocument.setContentDirty(true);
+                wiki.saveDocument(changeRequestDocument, context);
+                fileChange.setSaved(true);
+            } catch (XWikiException | IOException e) {
+                throw new ChangeRequestException(
+                    String.format("Error while storing filechange [%s]", fileChange));
+            }
         }
     }
 
@@ -175,7 +178,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                         .setModifiedDocument(document)
                         .setSourceVersion(document.getVersion())
                         .setAuthor(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
-                        .setCreationDate(document.getContentUpdateDate());
+                        .setCreationDate(document.getContentUpdateDate())
+                        .setSaved(true);
                     result = Optional.of(fileChange);
                 }
             } catch (XWikiException e) {

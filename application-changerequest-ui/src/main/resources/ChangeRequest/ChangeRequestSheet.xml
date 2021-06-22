@@ -41,7 +41,36 @@
 Status: $doc.display('status')
 #set ($changeRequestId = $doc.documentReference.name)
 Change request ID: $changeRequestId
-#set ($canBeMerged = $services.changerequest.canBeMerged($changeRequestId))
+#set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
+#if ($changeRequestOpt.isPresent())
+#set ($changeRequest = $changeRequestOpt.get())
+#set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
 Can be merged: $canBeMerged
+#if ($canBeMerged)
+[[Merge link>>http://localhost:8080/xwiki/changerequest/merge/$changeRequestId]]
+#end
+
+#set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
+Impacted file:
+#foreach ($ref in $modifiedFiles)
+   * $ref
+#end
+
+{{html clean="false"}}
+#template('diff_macros.vm')
+Global diff:
+#foreach ($ref in $modifiedFiles)
+  #set ($modifiedDocOpt = $services.changerequest.getModifiedDocument($changeRequest, $ref))
+  #if ($modifiedDocOpt.isPresent())
+    #set ($modifiedDoc = $modifiedDocOpt.get())
+    #set ($currentDoc = $xwiki.getDocument($ref))
+    Diff of $ref:
+    #displayDocumentRawChanges($currentDoc, $modifiedDoc, $null)
+  #end
+{{/html}}
+#end
+#else
+    No change request corresponding to the current id.
+#end
 {{/velocity}}</content>
 </xwikidoc>

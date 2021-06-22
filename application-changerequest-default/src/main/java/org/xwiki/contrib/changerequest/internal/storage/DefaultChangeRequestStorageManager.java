@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -91,7 +92,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             document.setContent(changeRequest.getDescription());
             document.setContentAuthorReference(this.userReferenceConverter.convert(changeRequest.getCreator()));
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
-            xObject.set("status", "draft", context);
+            xObject.set("status", changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);
@@ -149,8 +150,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         for (FileChange fileChange : changeRequest.getFileChanges()) {
             this.fileChangeStorageManager.merge(fileChange);
         }
-        // FIXME: this change should be saved, but we need to only save what's needed.
-        // So we'll need a way to declare a state for the filechanges that needs to be saved.
         changeRequest.setStatus(ChangeRequestStatus.MERGED);
+        this.save(changeRequest);
     }
 }

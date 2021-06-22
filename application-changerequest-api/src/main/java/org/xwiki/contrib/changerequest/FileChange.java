@@ -43,6 +43,7 @@ public class FileChange
     private UserReference author;
     private Date creationDate;
     private DocumentModelBridge modifiedDocument;
+    private boolean saved;
 
     /**
      * Default constructor.
@@ -160,6 +161,24 @@ public class FileChange
     public FileChange setCreationDate(Date creationDate)
     {
         this.creationDate = creationDate;
+        return this;
+    }
+
+    /**
+     * @return {@code true} if the changes has already been saved, {@code false otherwise}.
+     */
+    public boolean isSaved()
+    {
+        return saved;
+    }
+
+    /**
+     * @param saved should be set to {@code true} if this file change requires to be saved.
+     * @return the current instance.
+     */
+    public FileChange setSaved(boolean saved)
+    {
+        this.saved = saved;
         return this;
     }
 }
