@@ -84,7 +84,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
-        changeRequest.setId(UUID.randomUUID().toString());
+        if (changeRequest.getId() == null) {
+            changeRequest.setId(UUID.randomUUID().toString());
+        }
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         try {
             XWikiDocument document = wiki.getDocument(reference, context);

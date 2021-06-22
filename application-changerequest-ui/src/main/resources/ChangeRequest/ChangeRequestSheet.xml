@@ -64,6 +64,8 @@ Global diff:
   #if ($modifiedDocOpt.isPresent())
     #set ($modifiedDoc = $modifiedDocOpt.get())
     #set ($currentDoc = $xwiki.getDocument($ref))
+    #set ($documentVersion = $modifiedDoc.getRCSVersion())
+    #set ($discard = $modifiedDoc.setRCSVersion($documentVersion.next()))
     Diff of $ref:
     #displayDocumentRawChanges($currentDoc, $modifiedDoc, $null)
   #end

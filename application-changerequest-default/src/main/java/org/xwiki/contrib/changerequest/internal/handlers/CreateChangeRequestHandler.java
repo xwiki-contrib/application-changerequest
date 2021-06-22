@@ -109,7 +109,8 @@ public class CreateChangeRequestHandler
         XWikiDocument modifiedDocument = null;
         try {
             modifiedDocument = context.getWiki().getDocument(documentReference, context);
-
+            // cloning the document to ensure we don't impact the document in cache.
+            modifiedDocument = modifiedDocument.clone();
             if (editForm.isConvertSyntax()
                 && !modifiedDocument.getSyntax().toIdString().equals(editForm.getSyntaxId())) {
                 convertSyntax(modifiedDocument, editForm.getSyntaxId(), context);
