@@ -31,6 +31,7 @@
   <artifactId>application-changerequest</artifactId>
   <version>0.1-SNAPSHOT</version>
   <name>Application Change Request - Parent</name>
+  <description>Allow to request changes in pages that needs approval to be published.</description>
   <packaging>pom</packaging>
   <developers>
     <developer>
@@ -63,5 +64,6 @@
     <module>application-changerequest-api</module>
     <module>application-changerequest-default</module>
     <module>application-changerequest-ui</module>
+    <module>application-changerequest-notifications</module>
   </modules>
 </project>

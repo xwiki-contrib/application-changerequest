@@ -1,0 +1,2 @@
+org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestCreatedEventDescriptor
+org.xwiki.contrib.changerequest.internal.ChangeRequestEventsListener

@@ -41,6 +41,7 @@
 Status: $doc.display('status')
 #set ($changeRequestId = $doc.documentReference.name)
 Change request ID: $changeRequestId
+Description: $doc.content
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())

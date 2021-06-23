@@ -34,9 +34,11 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -75,6 +77,9 @@ public class CreateChangeRequestHandler
     @Inject
     private RequestParameterConverter requestParameterConverter;
 
+    @Inject
+    private ObservationManager observationManager;
+
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
      * @param changeRequestReference the request reference leading to this.
@@ -102,10 +107,6 @@ public class CreateChangeRequestHandler
         ChangeRequest changeRequest = new ChangeRequest();
         FileChange fileChange = new FileChange(changeRequest);
 
-
-
-        // TODO: We can actually read a whole document from the form, with XWikiDocument#readFromForm
-        // it would allow to directly get all the changes performed, instead of just getting part of it.
         XWikiDocument modifiedDocument = null;
         try {
             modifiedDocument = context.getWiki().getDocument(documentReference, context);
@@ -135,6 +136,7 @@ public class CreateChangeRequestHandler
 
         this.storageManager.save(changeRequest);
 
+        this.observationManager.notify(new ChangeRequestCreatedEvent(), documentReference, changeRequest);
         DocumentReference changeRequestDocumentReference =
             this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         String url = context.getWiki().getURL(changeRequestDocumentReference, context);
