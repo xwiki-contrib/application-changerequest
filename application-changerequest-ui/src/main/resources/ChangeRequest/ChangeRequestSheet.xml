@@ -48,7 +48,7 @@ Description: $doc.content
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
 Can be merged: $canBeMerged
 #if ($canBeMerged)
-[[Merge link>>http://localhost:8080/xwiki/changerequest/merge/$changeRequestId]]
+[[Merge link&gt;&gt;http://localhost:8080/xwiki/changerequest/merge/$changeRequestId]]
 #end
 
 #set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))

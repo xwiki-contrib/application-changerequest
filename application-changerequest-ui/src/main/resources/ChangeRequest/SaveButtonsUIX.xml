@@ -59,7 +59,7 @@
               &lt;label class="panel-title panel-primary"&gt;Create new change request&lt;/label&gt;
             &lt;/div&gt;
           &lt;/div&gt;
-          &lt;div class="panel"&gt;
+          &lt;div class="panel hidden"&gt;
             &lt;div class="panel-radio"&gt;
               &lt;input type="radio" id="addToExistingChangeRequest" name="changeRequestChoice" value="edit" /&gt;
             &lt;/div&gt;
