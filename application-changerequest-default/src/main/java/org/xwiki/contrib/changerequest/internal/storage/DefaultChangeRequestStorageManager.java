@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,6 +35,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -79,13 +79,17 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Named("document")
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
+    @Inject
+    @Named("title")
+    private ChangeRequestIDGenerator idGenerator;
+
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
         if (changeRequest.getId() == null) {
-            changeRequest.setId(UUID.randomUUID().toString());
+            changeRequest.setId(this.idGenerator.generateId(changeRequest));
         }
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         try {

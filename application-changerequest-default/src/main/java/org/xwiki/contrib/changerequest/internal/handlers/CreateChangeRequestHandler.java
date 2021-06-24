@@ -21,8 +21,6 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Locale;
-import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -87,19 +85,15 @@ public class CreateChangeRequestHandler
      */
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException
     {
-        // FIXME: We're missing a call to perform the conversion filter (see XWIKI-18773)
         XWikiContext context = this.contextProvider.get();
-        HttpServletRequest request = context.getRequest();
-        try {
-            request = (HttpServletRequest) this.requestParameterConverter.convert(request, context.getResponse()).get();
-        } catch (IOException e) {
-            throw new ChangeRequestException("Error while converting request", e);
-        }
-        EditForm editForm = new EditForm();
-        editForm.setRequest(request);
-        editForm.readRequest();
+        HttpServletRequest request = this.prepareRequest(context);
+        EditForm editForm = this.prepareForm(request);
+
         String serializedDocReference = request.getParameter("docReference");
         DocumentReference documentReference = this.documentReferenceResolver.resolve(serializedDocReference);
+        XWikiDocument modifiedDocument =
+            this.prepareDocument(documentReference, context, editForm, serializedDocReference);
+
         String title = request.getParameter("crTitle");
         String description = request.getParameter("crDescription");
 
@@ -107,21 +101,6 @@ public class CreateChangeRequestHandler
         ChangeRequest changeRequest = new ChangeRequest();
         FileChange fileChange = new FileChange(changeRequest);
 
-        XWikiDocument modifiedDocument = null;
-        try {
-            modifiedDocument = context.getWiki().getDocument(documentReference, context);
-            // cloning the document to ensure we don't impact the document in cache.
-            modifiedDocument = modifiedDocument.clone();
-            if (editForm.isConvertSyntax()
-                && !modifiedDocument.getSyntax().toIdString().equals(editForm.getSyntaxId())) {
-                convertSyntax(modifiedDocument, editForm.getSyntaxId(), context);
-            }
-            modifiedDocument.readFromForm(editForm, context);
-            modifiedDocument.setRCSVersion(modifiedDocument.getRCSVersion().next());
-        } catch (XWikiException e) {
-            throw new ChangeRequestException(
-                String.format("Cannot read document [%s]", serializedDocReference), e);
-        }
         fileChange
             .setAuthor(currentUser)
             .setTargetEntity(documentReference)
@@ -147,25 +126,37 @@ public class CreateChangeRequestHandler
         }
     }
 
-    private void convertSyntax(XWikiDocument doc, String targetSyntaxId, XWikiContext xcontext) throws XWikiException
+    private HttpServletRequest prepareRequest(XWikiContext context) throws ChangeRequestException
     {
-        // Convert the syntax without saving. The syntax conversion will be saved later along with the other changes.
-        doc.convertSyntax(targetSyntaxId, xcontext);
+        HttpServletRequest request = context.getRequest();
+        try {
+            return (HttpServletRequest) this.requestParameterConverter.convert(request, context.getResponse()).get();
+        } catch (IOException e) {
+            throw new ChangeRequestException("Error while converting request", e);
+        }
+    }
 
-        for (Locale locale : doc.getTranslationLocales(xcontext)) {
-            // Skip the edited translation because we handle it separately.
-            if (!Objects.equals(locale, doc.getLocale())) {
-                XWikiDocument tdoc = doc.getTranslatedDocument(locale, xcontext);
-                // Double check if the syntax has changed because each document translation can have a different syntax.
-                if (!tdoc.getSyntax().toIdString().equals(targetSyntaxId)) {
-                    // Convert the syntax and save the changes.
-                    tdoc.convertSyntax(targetSyntaxId, xcontext);
-                    xcontext.getWiki().saveDocument(tdoc,
-                        String.format("Document converted from syntax %s to syntax %s", tdoc.getSyntax().toIdString(),
-                            targetSyntaxId),
-                        xcontext);
-                }
-            }
+    private EditForm prepareForm(HttpServletRequest request)
+    {
+        EditForm editForm = new EditForm();
+        editForm.setRequest(request);
+        editForm.readRequest();
+        return editForm;
+    }
+
+    private XWikiDocument prepareDocument(DocumentReference documentReference, XWikiContext context, EditForm editForm,
+        String serializedDocReference) throws ChangeRequestException
+    {
+        try {
+            XWikiDocument modifiedDocument = context.getWiki().getDocument(documentReference, context);
+            // cloning the document to ensure we don't impact the document in cache.
+            modifiedDocument = modifiedDocument.clone();
+            modifiedDocument.readFromForm(editForm, context);
+            modifiedDocument.setRCSVersion(modifiedDocument.getRCSVersion().next());
+            return modifiedDocument;
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Cannot read document [%s]", serializedDocReference), e);
         }
     }
 }
