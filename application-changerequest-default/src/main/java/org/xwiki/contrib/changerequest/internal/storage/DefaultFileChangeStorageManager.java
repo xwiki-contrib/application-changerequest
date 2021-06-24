@@ -119,16 +119,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             XWikiContext context = this.contextProvider.get();
             XWiki wiki = context.getWiki();
             try {
-                XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
                 XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
-                // We need to clone the document, else the change we perform are kept in cache and we don't want that.
-                document = document.clone();
-                // FIXME: we should also set the xobjects/xclass/attachments etc
-                document.setContent(modifiedDocument.getContent());
-                // We keep the source version inside the xml since that's what we'll use to find back
-                // the version of the document.
-                document.setVersion(fileChange.getSourceVersion());
-                document.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
+                modifiedDocument.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
 
                 String fileChangeId = String.format("%s-%s-%s-%s",
                     FILE_CHANGE_CONSTANT_NAME,
@@ -143,7 +135,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 XWikiAttachmentContent attachmentContent = new XWikiAttachmentContent(attachment);
 
                 OutputStream contentOutputStream = attachmentContent.getContentOutputStream();
-                document.toXML(contentOutputStream, true, true, true, false, context);
+                modifiedDocument.toXML(contentOutputStream, true, true, true, false, context);
                 contentOutputStream.close();
                 attachment.setAttachment_content(attachmentContent);
                 attachment.setMetaDataDirty(true);
