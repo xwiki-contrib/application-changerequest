@@ -28,7 +28,7 @@ import org.xwiki.stability.Unstable;
  * at least one approval.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Unstable
 @Role

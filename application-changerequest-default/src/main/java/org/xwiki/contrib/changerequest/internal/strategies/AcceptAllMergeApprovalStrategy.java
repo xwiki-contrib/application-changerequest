@@ -31,7 +31,7 @@ import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
  * Mainly used for tests.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Component
 @Named(AcceptAllMergeApprovalStrategy.NAME)

@@ -20,13 +20,14 @@
 package org.xwiki.contrib.changerequest;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
 
 /**
  * Available configuration for change request application.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Role
 @Unstable
@@ -36,4 +37,9 @@ public interface ChangeRequestConfiguration
      * @return the hint of the {@link MergeApprovalStrategy} to use.
      */
     String getMergeApprovalStrategy();
+
+    /**
+     * @return the location where to store the change requests.
+     */
+    SpaceReference getChangeRequestSpaceLocation();
 }

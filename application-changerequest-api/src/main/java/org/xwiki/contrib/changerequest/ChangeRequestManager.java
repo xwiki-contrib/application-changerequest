@@ -27,7 +27,7 @@ import org.xwiki.user.UserReference;
  * Component responsible to perform business operations on change requests.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Role
 @Unstable

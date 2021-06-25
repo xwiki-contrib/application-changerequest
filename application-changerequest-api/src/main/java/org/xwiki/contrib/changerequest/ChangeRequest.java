@@ -22,6 +22,9 @@ package org.xwiki.contrib.changerequest;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
 
@@ -157,5 +160,66 @@ public class ChangeRequest
     public ChangeRequestStatus getStatus()
     {
         return status;
+    }
+
+    /**
+     * @param creationDate the date of the creation of the change request.
+     * @return the current instance.
+     */
+    public ChangeRequest setCreationDate(Date creationDate)
+    {
+        this.creationDate = creationDate;
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ChangeRequest that = (ChangeRequest) o;
+
+        return new EqualsBuilder()
+            .append(id, that.id)
+            .append(title, that.title)
+            .append(description, that.description)
+            .append(creator, that.creator)
+            .append(creationDate, that.creationDate)
+            .append(status, that.status)
+            .append(fileChanges, that.fileChanges)
+            .isEquals();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder(17, 37)
+            .append(id).append(title)
+            .append(description)
+            .append(creator)
+            .append(creationDate)
+            .append(status)
+            .append(fileChanges)
+            .toHashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return new ToStringBuilder(this)
+            .append("id", id)
+            .append("title", title)
+            .append("description", description)
+            .append("creator", creator)
+            .append("creationDate", creationDate)
+            .append("status", status)
+            .append("fileChanges", fileChanges)
+            .toString();
     }
 }

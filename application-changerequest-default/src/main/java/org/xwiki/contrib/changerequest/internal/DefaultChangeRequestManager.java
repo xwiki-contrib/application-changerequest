@@ -36,7 +36,6 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.security.authorization.AuthorizationManager;
@@ -52,15 +51,12 @@ import com.xpn.xwiki.doc.merge.MergeConfiguration;
  * Default implementation of {@link ChangeRequestManager}.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Component
 @Singleton
 public class DefaultChangeRequestManager implements ChangeRequestManager
 {
-    @Inject
-    private ChangeRequestStorageManager changeRequestStorageManager;
-
     @Inject
     private FileChangeStorageManager fileChangeStorageManager;
 

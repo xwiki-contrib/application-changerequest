@@ -19,32 +19,43 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import org.xwiki.component.annotation.Component;
+import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- * Specific resolver to resolve a {@link ChangeRequest} as a {@link DocumentReference} since they are stored as
- * document.
+ * Tests for {@link ChangeRequestDocumentReferenceResolver}.
  *
  * @version $Id$
  * @since 0.1
  */
-@Component
-@Singleton
-public class ChangeRequestDocumentReferenceResolver implements DocumentReferenceResolver<ChangeRequest>
+@ComponentTest
+class ChangeRequestDocumentReferenceResolverTest
 {
-    @Inject
+    @InjectMockComponents
+    private ChangeRequestDocumentReferenceResolver resolver;
+
+    @MockComponent
     private ChangeRequestConfiguration configuration;
 
-    @Override
-    public DocumentReference resolve(ChangeRequest changeRequest, Object... parameters)
+    @Test
+    void resolve()
     {
-        return new DocumentReference(changeRequest.getId(), this.configuration.getChangeRequestSpaceLocation());
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(changeRequest.getId()).thenReturn("foo");
+
+        SpaceReference spaceReference = new SpaceReference("mywiki", "MySpace", "Something");
+        when(configuration.getChangeRequestSpaceLocation()).thenReturn(spaceReference);
+        DocumentReference expectedReference = new DocumentReference("foo", spaceReference);
+        assertEquals(expectedReference, this.resolver.resolve(changeRequest));
     }
 }

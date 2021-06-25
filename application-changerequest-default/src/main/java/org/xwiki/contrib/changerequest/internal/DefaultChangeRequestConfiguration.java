@@ -19,26 +19,46 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.Arrays;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrategy;
+import org.xwiki.model.reference.SpaceReference;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Default implementation of {@link ChangeRequestConfiguration}.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Component
 @Singleton
 public class DefaultChangeRequestConfiguration implements ChangeRequestConfiguration
 {
+    private static final List<String> CHANGE_REQUEST_SPACE_LOCATION = Arrays.asList("XWiki", "ChangeRequest");
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
+
     // FIXME: This needs to be replaced by a proper configuration from a doc.
     @Override
     public String getMergeApprovalStrategy()
     {
         return AcceptAllMergeApprovalStrategy.NAME;
+    }
+
+    @Override
+    public SpaceReference getChangeRequestSpaceLocation()
+    {
+        return new SpaceReference(this.contextProvider.get().getWikiReference().getName(),
+            CHANGE_REQUEST_SPACE_LOCATION);
     }
 }

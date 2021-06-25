@@ -39,7 +39,7 @@ import org.xwiki.user.UserReferenceResolver;
  * Component responsible to handle a merge request.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Component(roles = MergeChangeRequestHandler.class)
 @Singleton

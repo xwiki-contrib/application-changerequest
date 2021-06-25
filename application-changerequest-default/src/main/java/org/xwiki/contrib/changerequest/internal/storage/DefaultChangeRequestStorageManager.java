@@ -61,8 +61,11 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class DefaultChangeRequestStorageManager implements ChangeRequestStorageManager
 {
-    private static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
+    static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
         new LocalDocumentReference("ChangeRequest", "ChangeRequestClass");
+
+    private static final String STATUS_PROPERTY = "status";
+
     @Inject
     private UserReferenceConverter userReferenceConverter;
 
@@ -98,7 +101,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             document.setContent(changeRequest.getDescription());
             document.setContentAuthorReference(this.userReferenceConverter.convert(changeRequest.getCreator()));
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
-            xObject.set("status", changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
+            xObject.set(STATUS_PROPERTY, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);
@@ -130,16 +133,18 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                         String filechangeId = filename.substring(0, filename.length() - 4);
                         Optional<FileChange> fileChange =
                             this.fileChangeStorageManager.load(changeRequest, filechangeId);
-                        if (fileChange.isPresent()) {
-                            fileChanges.add(fileChange.get());
-                        }
+                        fileChange.ifPresent(fileChanges::add);
                     }
                 }
+                ChangeRequestStatus status =
+                    ChangeRequestStatus.valueOf(xObject.getStringValue(STATUS_PROPERTY).toUpperCase());
                 changeRequest
                     .setFileChanges(fileChanges)
                     .setTitle(document.getTitle())
                     .setDescription(document.getContent())
-                    .setCreator(this.userReferenceResolver.resolve(document.getAuthorReference()));
+                    .setCreator(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
+                    .setStatus(status)
+                    .setCreationDate(document.getCreationDate());
                 result = Optional.of(changeRequest);
             }
         } catch (XWikiException e) {

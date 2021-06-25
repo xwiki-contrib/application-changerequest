@@ -47,7 +47,7 @@ import org.xwiki.user.UserReferenceResolver;
  * Script service for change request.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Unstable
 @Component

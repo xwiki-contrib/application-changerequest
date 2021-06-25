@@ -56,7 +56,7 @@ import com.xpn.xwiki.web.Utils;
  * Those URls allow to edit a page without edit rights in order to create a new change request.
  *
  * @version $Id$
- * @since 0.1-SNAPSHOT
+ * @since 0.1
  */
 @Component
 @Named("editcr")
