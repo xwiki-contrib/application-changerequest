@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -64,9 +63,9 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 {
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmssZ");
+    static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmssZ");
 
-    private static final String FILE_CHANGE_CONSTANT_NAME = "filechange";
+    static final String FILE_CHANGE_CONSTANT_NAME = "filechange";
 
     private static final Pattern FILE_CHANGE_NAME_PATTERN =
         Pattern.compile(String.format("^%s-.+-.+-[0-9]{12}[\\+\\-][0-9]{4}$", FILE_CHANGE_CONSTANT_NAME));
@@ -121,12 +120,12 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             try {
                 XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
                 modifiedDocument.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
-
+                modifiedDocument.setContentUpdateDate(fileChange.getCreationDate());
                 String fileChangeId = String.format("%s-%s-%s-%s",
                     FILE_CHANGE_CONSTANT_NAME,
                     this.entityReferenceSerializer.serialize(fileChange.getTargetEntity()),
                     this.userReferenceSerializer.serialize(fileChange.getAuthor()),
-                    DATE_FORMAT.format(new Date()));
+                    DATE_FORMAT.format(fileChange.getCreationDate()));
                 fileChange.setId(fileChangeId);
                 String filename = fileChange.getId() + ATTACHMENT_EXTENSION;
                 XWikiDocument changeRequestDocument = this.getChangeRequestDocument(fileChange.getChangeRequest());
@@ -207,7 +206,6 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWikiContext context = contextProvider.get();
         XWikiDocument result;
         try {
-            XWikiDocument currentDocument = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
             switch (version) {
                 case OLD:
                     // TODO: we'll need a fallback if the source version has been deleted for some reason.
@@ -221,7 +219,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
                 case CURRENT:
                 default:
-                    result = currentDocument;
+                    result = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
             }
 
             return result;

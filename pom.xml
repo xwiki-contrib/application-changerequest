@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-platform</artifactId>
-    <version>13.4</version>
+    <version>13.5</version>
   </parent>
   <groupId>org.xwiki.contrib.changerequest</groupId>
   <artifactId>application-changerequest</artifactId>
@@ -57,8 +57,6 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <platform.version>13.5-SNAPSHOT</platform.version>
-    <xwiki.enforcer.skip>true</xwiki.enforcer.skip>
   </properties>
   <modules>
     <module>application-changerequest-api</module>

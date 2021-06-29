@@ -21,6 +21,9 @@ package org.xwiki.contrib.changerequest;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
@@ -180,5 +183,66 @@ public class FileChange
     {
         this.saved = saved;
         return this;
+    }
+
+    /**
+     * @return the creation date of this file change.
+     */
+    public Date getCreationDate()
+    {
+        return creationDate;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        FileChange that = (FileChange) o;
+
+        return new EqualsBuilder()
+            .append(saved, that.saved)
+            .append(id, that.id)
+            .append(changeRequest, that.changeRequest)
+            .append(targetEntity, that.targetEntity)
+            .append(sourceVersion, that.sourceVersion)
+            .append(author, that.author)
+            .append(creationDate, that.creationDate)
+            .append(modifiedDocument, that.modifiedDocument)
+            .isEquals();
+    }
+
+    @Override public int hashCode()
+    {
+        return new HashCodeBuilder(15, 13)
+            .append(id).append(changeRequest)
+            .append(targetEntity)
+            .append(sourceVersion)
+            .append(author)
+            .append(creationDate)
+            .append(modifiedDocument)
+            .append(saved)
+            .toHashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return new ToStringBuilder(this)
+            .append("id", id)
+            .append("changeRequest", changeRequest)
+            .append("targetEntity", targetEntity)
+            .append("sourceVersion", sourceVersion)
+            .append("author", author)
+            .append("creationDate", creationDate)
+            .append("modifiedDocument", modifiedDocument)
+            .append("saved", saved)
+            .toString();
     }
 }
