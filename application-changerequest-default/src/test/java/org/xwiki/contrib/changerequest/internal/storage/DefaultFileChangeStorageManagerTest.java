@@ -30,6 +30,7 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.context.Execution;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -57,6 +58,8 @@ import org.xwiki.properties.internal.converter.EnumConverter;
 import org.xwiki.properties.internal.converter.LocaleConverter;
 import org.xwiki.properties.internal.converter.TypeConverter;
 import org.xwiki.rendering.internal.transformation.DefaultRenderingContext;
+import org.xwiki.store.merge.MergeDocumentResult;
+import org.xwiki.store.merge.MergeManager;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -71,9 +74,11 @@ import org.xwiki.xar.internal.property.DefaultXarObjectPropertySerializer;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.DocumentRevisionProvider;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.merge.MergeConfiguration;
 import com.xpn.xwiki.internal.ReadOnlyXWikiContextProvider;
 import com.xpn.xwiki.internal.filter.XWikiDocumentFilterUtils;
 import com.xpn.xwiki.internal.filter.output.BaseClassOutputFilterStream;
@@ -88,8 +93,10 @@ import com.xpn.xwiki.test.reference.ReferenceComponentList;
 import com.xpn.xwiki.web.Utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -168,6 +175,9 @@ public class DefaultFileChangeStorageManagerTest
     @MockComponent
     private Execution execution;
 
+    @MockComponent
+    private MergeManager mergeManager;
+
     private XWikiContext context;
 
     private XWiki xWiki;
@@ -197,7 +207,9 @@ public class DefaultFileChangeStorageManagerTest
         FileChange fileChange = mock(FileChange.class);
         XWikiDocument document = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(document);
+        when(document.getRCSVersion()).thenReturn(new Version("2.1"));
         assertEquals(document, this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange));
+        verify(document).setRCSVersion(new Version("2.1").next());
     }
 
     @Test
@@ -319,5 +331,56 @@ public class DefaultFileChangeStorageManagerTest
         expected.setModifiedDocument(fileChange.getModifiedDocument());
 
         assertEquals(expected, fileChange);
+    }
+
+    @Test
+    void merge() throws Exception
+    {
+        FileChange fileChange = mock(FileChange.class);
+        XWikiDocument modifiedDocument = mock(XWikiDocument.class);
+        when(fileChange.getModifiedDocument()).thenReturn(modifiedDocument);
+        when(modifiedDocument.getRCSVersion()).thenReturn(new Version("2.1"));
+
+        DocumentReference targetEntity = mock(DocumentReference.class);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+        XWikiDocument previousDocument = mock(XWikiDocument.class);
+        when(fileChange.getSourceVersion()).thenReturn("1.3");
+        when(this.documentRevisionProvider.getRevision(targetEntity, "1.3")).thenReturn(previousDocument);
+
+        XWikiDocument currentDocument = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(targetEntity, this.context)).thenReturn(currentDocument);
+
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        when(context.getUserReference()).thenReturn(userDocReference);
+        when(modifiedDocument.getDocumentReference()).thenReturn(targetEntity);
+
+        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
+        when(mergeManager.mergeDocument(eq(previousDocument), eq(modifiedDocument), eq(currentDocument), any()))
+            .then(invocationOnMock -> {
+                MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
+                assertEquals(userDocReference, mergeConfiguration.getUserReference());
+                assertEquals(targetEntity, mergeConfiguration.getConcernedDocument());
+                assertTrue(mergeConfiguration.isProvidedVersionsModifiables());
+                return mergeDocumentResult;
+            });
+        when(mergeDocumentResult.hasConflicts()).thenReturn(true);
+        ChangeRequestException changeRequestException =
+            assertThrows(ChangeRequestException.class, () -> this.fileChangeStorageManager.merge(fileChange));
+        assertEquals("Cannot merge the file change since it has conflicts.", changeRequestException.getMessage());
+        verify(this.xWiki, never()).saveDocument(any(XWikiDocument.class), anyString(), any());
+
+        when(mergeDocumentResult.hasConflicts()).thenReturn(false);
+        when(mergeDocumentResult.isModified()).thenReturn(false);
+        this.fileChangeStorageManager.merge(fileChange);
+        verify(this.xWiki, never()).saveDocument(any(XWikiDocument.class), anyString(), any());
+
+        when(mergeDocumentResult.isModified()).thenReturn(true);
+        when(mergeDocumentResult.getMergeResult()).thenReturn(currentDocument);
+        UserReference author = mock(UserReference.class);
+        when(fileChange.getAuthor()).thenReturn(author);
+        when(this.userReferenceConverter.convert(author)).thenReturn(userDocReference);
+        this.fileChangeStorageManager.merge(fileChange);
+        verify(currentDocument).setContentAuthorReference(userDocReference);
+        verify(this.xWiki).saveDocument(currentDocument, "Save after change request merge", this.context);
     }
 }

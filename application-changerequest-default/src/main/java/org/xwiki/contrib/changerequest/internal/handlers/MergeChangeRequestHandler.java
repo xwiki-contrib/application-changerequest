@@ -19,9 +19,11 @@
  */
 package org.xwiki.contrib.changerequest.internal.handlers;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -31,9 +33,13 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Component responsible to handle a merge request.
@@ -55,6 +61,12 @@ public class MergeChangeRequestHandler
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
+    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -73,6 +85,15 @@ public class MergeChangeRequestHandler
             if (this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)
                 && this.changeRequestManager.canBeMerged(changeRequest)) {
                 this.changeRequestStorageManager.merge(changeRequest);
+                DocumentReference changeRequestDocumentReference =
+                    this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+                XWikiContext context = this.contextProvider.get();
+                String url = context.getWiki().getURL(changeRequestDocumentReference, context);
+                try {
+                    context.getResponse().sendRedirect(url);
+                } catch (IOException e) {
+                    throw new ChangeRequestException("Error while redirecting to the created change request.", e);
+                }
             } else {
                 this.logger.warn("The change request [{}] cannot be merged.", changeRequestReference.getId());
             }

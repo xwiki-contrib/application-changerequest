@@ -99,7 +99,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
 
         // The modified doc is actually the one we should save, so it's ok to modify it directly
         // and better for performance.
-        mergeConfiguration.setProvidedVersionsModifiables(true);
+        mergeConfiguration.setProvidedVersionsModifiables(false);
 
         MergeDocumentResult mergeDocumentResult =
             mergeManager.mergeDocument(previousDoc, originalDoc, modifiedDoc, mergeConfiguration);

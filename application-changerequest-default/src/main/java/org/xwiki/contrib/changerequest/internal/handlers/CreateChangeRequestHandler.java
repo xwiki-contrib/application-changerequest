@@ -152,7 +152,6 @@ public class CreateChangeRequestHandler
             // cloning the document to ensure we don't impact the document in cache.
             modifiedDocument = modifiedDocument.clone();
             modifiedDocument.readFromForm(editForm, context);
-            modifiedDocument.setRCSVersion(modifiedDocument.getRCSVersion().next());
             return modifiedDocument;
         } catch (XWikiException e) {
             throw new ChangeRequestException(

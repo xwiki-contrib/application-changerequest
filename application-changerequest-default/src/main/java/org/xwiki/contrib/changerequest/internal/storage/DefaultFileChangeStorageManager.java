@@ -41,6 +41,8 @@ import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.store.merge.MergeDocumentResult;
+import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
 
@@ -51,6 +53,7 @@ import com.xpn.xwiki.doc.DocumentRevisionProvider;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiAttachmentContent;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.merge.MergeConfiguration;
 
 /**
  * Default implementation of {@link FileChangeStorageManager}.
@@ -96,6 +99,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     @Inject
     private EntityReferenceSerializer<String> entityReferenceSerializer;
+
+    @Inject
+    private MergeManager mergeManager;
 
     private enum DocumentVersion
     {
@@ -187,13 +193,34 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWikiContext context = contextProvider.get();
         XWiki wiki = context.getWiki();
         try {
-            XWikiDocument document = wiki.getDocument(fileChange.getTargetEntity(), context);
-            XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
-            // FIXME: we should also set the xclass/xobjects etc
-            document.setContent(modifiedDocument.getContent());
-            document.setContentAuthorReference(this.userReferenceConverter.convert(fileChange.getAuthor()));
-            String saveMessage = "Save after change request merge";
-            wiki.saveDocument(document, saveMessage, context);
+            DocumentModelBridge modifiedDoc =
+                this.getModifiedDocumentFromFileChange(fileChange);
+            DocumentModelBridge previousDoc =
+                this.getPreviousDocumentFromFileChange(fileChange);
+            DocumentModelBridge originalDoc =
+                this.getCurrentDocumentFromFileChange(fileChange);
+            MergeConfiguration mergeConfiguration = new MergeConfiguration();
+
+            // We need the reference of the user and the document in the config to retrieve
+            // the conflict decision in the MergeManager.
+            mergeConfiguration.setUserReference(context.getUserReference());
+            mergeConfiguration.setConcernedDocument(modifiedDoc.getDocumentReference());
+
+            // The modified doc is actually the one we should save
+            mergeConfiguration.setProvidedVersionsModifiables(true);
+
+            MergeDocumentResult mergeDocumentResult =
+                mergeManager.mergeDocument(previousDoc, modifiedDoc, originalDoc, mergeConfiguration);
+
+            if (mergeDocumentResult.hasConflicts()) {
+                throw new ChangeRequestException("Cannot merge the file change since it has conflicts.");
+            }
+            if (mergeDocumentResult.isModified()) {
+                XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
+                document.setContentAuthorReference(this.userReferenceConverter.convert(fileChange.getAuthor()));
+                String saveMessage = "Save after change request merge";
+                wiki.saveDocument(document, saveMessage, context);
+            }
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while merging the file change [%s]", fileChange), e);
@@ -215,6 +242,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
                 case FILECHANGE:
                     result = (XWikiDocument) fileChange.getModifiedDocument();
+                    // we ensure to update the RCS version to not compare with the same version as previous version.
+                    result.setRCSVersion(result.getRCSVersion().next());
                     break;
 
                 case CURRENT:

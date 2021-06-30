@@ -136,7 +136,7 @@ class DefaultChangeRequestManagerTest
             MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
             assertEquals(modifiedDocReference, mergeConfiguration.getConcernedDocument());
             assertEquals(userDocReference, mergeConfiguration.getUserReference());
-            assertTrue(mergeConfiguration.isProvidedVersionsModifiables());
+            assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
             return mergeDocumentResult;
         });
 
