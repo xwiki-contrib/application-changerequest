@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.id;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -39,11 +40,12 @@ import org.xwiki.model.validation.EntityNameValidationManager;
 public class TitleChangeRequestIDGenerator implements ChangeRequestIDGenerator
 {
     @Inject
-    private EntityNameValidationManager entityNameValidationManager;
+    private Provider<EntityNameValidationManager> entityNameValidationManagerProvider;
 
     @Override
     public String generateId(ChangeRequest changeRequest)
     {
-        return this.entityNameValidationManager.getEntityReferenceNameStrategy().transform(changeRequest.getTitle());
+        return this.entityNameValidationManagerProvider.get()
+            .getEntityReferenceNameStrategy().transform(changeRequest.getTitle());
     }
 }
