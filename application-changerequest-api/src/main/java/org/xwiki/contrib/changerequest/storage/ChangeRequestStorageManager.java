@@ -19,11 +19,14 @@
  */
 package org.xwiki.contrib.changerequest.storage;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 /**
  * Define the API for the storage manager of change request.
@@ -58,4 +61,18 @@ public interface ChangeRequestStorageManager
      * @throws ChangeRequestException in case of errors during the merge.
      */
     void merge(ChangeRequest changeRequest) throws ChangeRequestException;
+
+    /**
+     * Find all change requests that contains a file change for the given reference.
+     *
+     * @param documentReference the file targeted by a change request.
+     * @return a list of change request.
+     * @throws ChangeRequestException in case of problem to find the change requests.
+     * @since 0.3
+     */
+    default List<ChangeRequest> findChangeRequestTargeting(DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
 }

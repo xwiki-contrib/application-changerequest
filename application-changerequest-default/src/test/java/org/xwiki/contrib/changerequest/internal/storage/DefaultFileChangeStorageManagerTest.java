@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
@@ -56,7 +57,6 @@ import org.xwiki.properties.internal.DefaultConverterManager;
 import org.xwiki.properties.internal.converter.ConvertUtilsConverter;
 import org.xwiki.properties.internal.converter.EnumConverter;
 import org.xwiki.properties.internal.converter.LocaleConverter;
-import org.xwiki.properties.internal.converter.TypeConverter;
 import org.xwiki.rendering.internal.transformation.DefaultRenderingContext;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
@@ -74,7 +74,6 @@ import org.xwiki.xar.internal.property.DefaultXarObjectPropertySerializer;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.DocumentRevisionProvider;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;

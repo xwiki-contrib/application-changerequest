@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -133,5 +134,23 @@ public class ChangeRequestScriptService implements ScriptService
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Retrieve all change requests that contain a change for the given document.
+     *
+     * @param documentReference the reference to look for in the change requests.
+     * @return the list of all change requests containing a change for the given document.
+     * @since 0.3
+     */
+    public List<ChangeRequest> getChangeRequestWithChangesFor(DocumentReference documentReference)
+    {
+        try {
+            return this.changeRequestStorageManager.findChangeRequestTargeting(documentReference);
+        } catch (ChangeRequestException e) {
+            logger.warn("Error while getting change requests for document [{}]: [{}]", documentReference,
+                ExceptionUtils.getRootCauseMessage(e));
+        }
+        return Collections.emptyList();
     }
 }

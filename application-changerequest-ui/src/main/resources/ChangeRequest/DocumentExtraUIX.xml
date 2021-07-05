@@ -20,43 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.WebHome" locale="">
+<xwikidoc version="1.4" reference="ChangeRequest.DocumentExtraUIX" locale="">
   <web>ChangeRequest</web>
-  <name>WebHome</name>
+  <name>DocumentExtraUIX</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Main.WebHome</parent>
+  <parent>ChangeRequest.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>ChangeRequest</title>
+  <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
-#set ($id = "all-changerequests-livetable")
-#set ($columns = ["doc.name", "authors", "status", "changedDocuments"])
-#set($columnsProperties = {
-   "doc.name" : { "type" : "text", "link" : "view" },
-   "authors": { "type": "suggest", "html": "true" },
-   "status" : { "type" : "text" },
-   "changedDocuments" : { "type": "suggest", "html": "true"}
-})
-#set($options = { 
-   "className":"ChangeRequest.ChangeRequestClass",
-   "rowCount": 10,
-   "translationPrefix": "changerequest.livetable."
-})
-#livetable($id $columns $columnsProperties $options)
-{{/velocity}}</content>
+  <content/>
   <object>
-    <name>ChangeRequest.WebHome</name>
+    <name>ChangeRequest.DocumentExtraUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
-    <guid>e1fd95c1-745d-4499-a91c-62e615445210</guid>
+    <guid>25d7f573-abf6-4f3c-b9c3-febe506bb82e</guid>
     <class>
       <name>XWiki.UIExtensionClass</name>
       <customClass/>
@@ -167,27 +152,47 @@
       </scope>
     </class>
     <property>
-      <async_cached>1</async_cached>
+      <async_cached>0</async_cached>
     </property>
     <property>
       <async_context/>
     </property>
     <property>
-      <async_enabled>1</async_enabled>
+      <async_enabled>0</async_enabled>
     </property>
     <property>
-      <content/>
+      <content>{{velocity}}
+#set ($id = "changerequest-livetable")
+#set ($columns = ["doc.name", "authors", "status", "changedDocuments"])
+#set($columnsProperties = {
+   "doc.name" : { "type" : "text", "link" : "view" },
+   "authors": { "type": "suggest", "html": "true" },
+   "status" : { "type" : "text" },
+   "changedDocuments" : { "type": "hidden", "filterable": "false"}
+})
+#set ($currentDocCompactSerialization = $services.model.serialize($tdoc.documentReference, "compactwiki"))
+#set($options = { 
+   "className":"ChangeRequest.ChangeRequestClass",
+   "extraParams": "changedDocuments=$currentDocCompactSerialization",
+   "rowCount": 10,
+   "translationPrefix": "changerequest.livetable."
+})
+#livetable($id $columns $columnsProperties $options)
+{{/velocity}}</content>
     </property>
     <property>
-      <extensionPointId>org.xwiki.platform.panels.Applications</extensionPointId>
+      <extensionPointId>org.xwiki.plaftorm.template.docextra</extensionPointId>
     </property>
     <property>
-      <name>org.xwiki.contrib.changerequest.application</name>
+      <name>org.xwiki.contrib.changerequest.docextra</name>
     </property>
     <property>
-      <parameters>label=$services.localization.render('changerequest.application.label')
-target=ChangeRequest.WebHome
-icon=icon:branch</parameters>
+      <parameters>show=true
+title=$services.localization.render('changerequest.docextra.title')
+itemnumber=-1
+name=cr
+shortcut=alt+t
+order=1000</parameters>
     </property>
     <property>
       <scope>wiki</scope>

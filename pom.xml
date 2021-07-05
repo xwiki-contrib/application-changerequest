@@ -57,6 +57,9 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
+    <!-- FIXME: to be removed once 13.6 is released -->
+    <platform.version>13.6-SNAPSHOT</platform.version>
+    <xwiki.enforcer.skip>true</xwiki.enforcer.skip>
   </properties>
   <modules>
     <module>application-changerequest-api</module>

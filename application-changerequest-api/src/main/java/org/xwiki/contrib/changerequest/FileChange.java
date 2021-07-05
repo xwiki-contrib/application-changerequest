@@ -236,7 +236,6 @@ public class FileChange
     {
         return new ToStringBuilder(this)
             .append("id", id)
-            .append("changeRequest", changeRequest)
             .append("targetEntity", targetEntity)
             .append("sourceVersion", sourceVersion)
             .append("author", author)

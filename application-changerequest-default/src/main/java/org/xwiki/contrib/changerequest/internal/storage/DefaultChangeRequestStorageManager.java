@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,6 +32,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
@@ -40,8 +42,14 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 import org.xwiki.user.UserReferenceResolver;
+import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -65,6 +73,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         new LocalDocumentReference("ChangeRequest", "ChangeRequestClass");
 
     private static final String STATUS_PROPERTY = "status";
+    private static final String CHANGED_DOCUMENTS_PROPERTY = "changedDocuments";
 
     @Inject
     private UserReferenceConverter userReferenceConverter;
@@ -83,8 +92,27 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
     @Inject
+    private EntityReferenceSerializer<String> entityReferenceSerializer;
+
+    @Inject
+    @Named("compactwiki")
+    private EntityReferenceSerializer<String> localEntityReferenceSerializer;
+
+    @Inject
+    private DocumentReferenceResolver<String> documentReferenceResolver;
+
+    @Inject
+    private UserReferenceSerializer<String> userReferenceSerializer;
+
+    @Inject
     @Named("title")
     private ChangeRequestIDGenerator idGenerator;
+
+    @Inject
+    private QueryManager queryManager;
+
+    @Inject
+    private ChangeRequestConfiguration configuration;
 
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
@@ -102,6 +130,20 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             document.setContentAuthorReference(this.userReferenceConverter.convert(changeRequest.getCreator()));
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
             xObject.set(STATUS_PROPERTY, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
+
+            List<String> serializedReferences = changeRequest.getFileChanges().stream()
+                .map(FileChange::getTargetEntity)
+                .map(target -> this.localEntityReferenceSerializer.serialize(target))
+                .collect(Collectors.toList());
+            xObject.set(CHANGED_DOCUMENTS_PROPERTY, serializedReferences, context);
+
+            List<String> serializedAuthors = changeRequest.getFileChanges().stream()
+                .map(FileChange::getAuthor)
+                .map(target -> this.userReferenceSerializer.serialize(target))
+                .collect(Collectors.toList());
+
+            xObject.set("authors", serializedAuthors, context);
+
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);
@@ -163,5 +205,31 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         }
         changeRequest.setStatus(ChangeRequestStatus.MERGED);
         this.save(changeRequest);
+    }
+
+    @Override
+    public List<ChangeRequest> findChangeRequestTargeting(DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        List<ChangeRequest> result = new ArrayList<>();
+        SpaceReference changeRequestSpaceLocation = this.configuration.getChangeRequestSpaceLocation();
+        String statement = String.format("where doc.space like :space and doc.object(%s).%s like :reference",
+            this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_PROPERTY);
+        try {
+            Query query = this.queryManager.createQuery(statement, Query.XWQL);
+            query.bindValue("space", this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation));
+            query.bindValue("reference", String.format("%%%s%%",
+                this.localEntityReferenceSerializer.serialize(documentReference)));
+            List<String> changeRequestDocuments = query.execute();
+            for (String changeRequestDocument : changeRequestDocuments) {
+                DocumentReference crReference = this.documentReferenceResolver.resolve(changeRequestDocument);
+                this.load(crReference.getName()).ifPresent(result::add);
+            }
+        } catch (QueryException e) {
+            throw new ChangeRequestException(
+                String.format("Error while trying to get change request for document [%s]", documentReference), e);
+        }
+
+        return result;
     }
 }
