@@ -55,7 +55,12 @@ public class ChangeRequestReference extends AbstractResourceReference
         /**
          * For merging a change request.
          */
-        MERGE
+        MERGE,
+
+        /**
+         * For adding new changes to an existing change request.
+         */
+        ADDCHANGES
     }
 
     private ChangeRequestAction action;

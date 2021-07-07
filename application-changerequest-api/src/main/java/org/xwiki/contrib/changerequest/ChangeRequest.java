@@ -19,12 +19,20 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
 
@@ -43,7 +51,8 @@ public class ChangeRequest
     private UserReference creator;
     private Date creationDate;
     private ChangeRequestStatus status;
-    private List<FileChange> fileChanges;
+    private final Map<DocumentReference, Deque<FileChange>> fileChanges;
+    private Set<UserReference> authors;
 
     /**
      * Default constructor.
@@ -52,6 +61,8 @@ public class ChangeRequest
     {
         this.creationDate = new Date();
         this.status = ChangeRequestStatus.DRAFT;
+        this.fileChanges = new HashMap<>();
+        this.authors = new HashSet<>();
     }
 
     /**
@@ -91,13 +102,48 @@ public class ChangeRequest
     }
 
     /**
-     * @param fileChanges the actual file changes that have been done as part of this change request.
+     * Insert the given file change in the map of file changes.
+     *
+     * @param fileChange a file change that have been done as part of this change request.
      * @return the current instance.
      */
-    public ChangeRequest setFileChanges(List<FileChange> fileChanges)
+    public ChangeRequest addFileChange(FileChange fileChange)
     {
-        this.fileChanges = fileChanges;
+        DocumentReference documentReference = fileChange.getTargetEntity();
+        synchronized (this.fileChanges) {
+            Deque<FileChange> fileChangeList;
+            if (this.fileChanges.containsKey(documentReference)) {
+                fileChangeList = this.fileChanges.get(documentReference);
+            } else {
+                fileChangeList = new LinkedList<>();
+                this.fileChanges.put(documentReference, fileChangeList);
+            }
+            this.authors.add(fileChange.getAuthor());
+            fileChangeList.add(fileChange);
+        }
         return this;
+    }
+
+    /**
+     * @return all file changes of the current change request.
+     */
+    public List<FileChange> getAllFileChanges()
+    {
+        return new ArrayList<>(this.fileChanges
+            .values()
+            .stream()
+            .reduce(new LinkedList<>(), (list1, list2) -> {
+                list1.addAll(list2);
+                return list1;
+            }));
+    }
+
+    /**
+     * @return all authors who were involved in the current change request.
+     */
+    public Set<UserReference> getAuthors()
+    {
+        return authors;
     }
 
     /**
@@ -139,7 +185,7 @@ public class ChangeRequest
     /**
      * @return the actual file changes that have been done as part of this change request.
      */
-    public List<FileChange> getFileChanges()
+    public Map<DocumentReference, Deque<FileChange>> getFileChanges()
     {
         return fileChanges;
     }

@@ -19,8 +19,10 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,12 +30,13 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLifecycleException;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Disposable;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.internal.handlers.CreateChangeRequestHandler;
-import org.xwiki.contrib.changerequest.internal.handlers.MergeChangeRequestHandler;
+import org.xwiki.contrib.changerequest.internal.handlers.ChangeRequestActionHandler;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -60,12 +63,9 @@ import org.xwiki.security.authorization.UnableToRegisterRightException;
 public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandler<ResourceType>
     implements Initializable, Disposable
 {
-    // TODO: we should look for the component based on the action.
     @Inject
-    private CreateChangeRequestHandler createChangeRequestHandler;
-
-    @Inject
-    private MergeChangeRequestHandler mergeChangeRequestHandler;
+    @Named("context")
+    private ComponentManager componentManager;
 
     @Inject
     private AuthorizationManager authorizationManager;
@@ -103,23 +103,25 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
         throws ResourceReferenceHandlerException
     {
         ChangeRequestReference changeRequestReference = (ChangeRequestReference) reference;
+        String actionHint = changeRequestReference.getAction().name().toLowerCase(Locale.ROOT);
+
         try {
-            switch (changeRequestReference.getAction()) {
-                case CREATE:
-                    this.createChangeRequestHandler.handle(changeRequestReference);
-                    break;
-
-                case MERGE:
-                    this.mergeChangeRequestHandler.handle(changeRequestReference);
-                    break;
-
-                default:
-                    throw new ResourceReferenceHandlerException(
-                        String.format("The action [%s] is not implemented.", changeRequestReference.getAction()));
+            if (this.componentManager.hasComponent(ChangeRequestActionHandler.class, actionHint)) {
+                ChangeRequestActionHandler actionHandler =
+                    this.componentManager.getInstance(ChangeRequestActionHandler.class, actionHint);
+                actionHandler.handle(changeRequestReference);
+            } else {
+                throw new ResourceReferenceHandlerException(
+                    String.format("The action [%s] is not implemented.", actionHint));
             }
         } catch (ChangeRequestException e) {
             throw new ResourceReferenceHandlerException(
                 String.format("Error while trying to handle the reference [%s]", reference), e);
+        } catch (ComponentLookupException e) {
+            throw new ResourceReferenceHandlerException(
+                String.format("Error while initializing action handler for the reference [%s]", reference), e);
+        } catch (IOException e) {
+            throw new ResourceReferenceHandlerException("Error while writing response", e);
         }
 
         chain.handleNext(reference);

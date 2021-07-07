@@ -41,7 +41,9 @@ changerequest.livetable.status=Status
 changerequest.livetable.changedDocuments=Concerned documents
 changerequest.livetable.authors=Authors
 changerequest.docextra.title=Change Requests
-changerequest.application.label=Change Request</content>
+changerequest.application.label=Change Request
+changerequest.picker.placeholder=Type a change request name
+  </content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

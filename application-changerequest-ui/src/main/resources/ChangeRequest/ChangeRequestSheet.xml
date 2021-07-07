@@ -70,8 +70,8 @@ Global diff:
     Diff of $ref:
     #displayDocumentRawChanges($currentDoc, $modifiedDoc, $null)
   #end
-{{/html}}
 #end
+{{/html}}
 #else
     No change request corresponding to the current id.
 #end

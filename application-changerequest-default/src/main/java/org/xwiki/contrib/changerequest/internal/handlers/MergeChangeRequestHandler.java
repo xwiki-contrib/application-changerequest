@@ -20,26 +20,19 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
-
-import com.xpn.xwiki.XWikiContext;
 
 /**
  * Component responsible to handle a merge request.
@@ -47,27 +40,16 @@ import com.xpn.xwiki.XWikiContext;
  * @version $Id$
  * @since 0.1
  */
-@Component(roles = MergeChangeRequestHandler.class)
+@Component
+@Named("merge")
 @Singleton
-public class MergeChangeRequestHandler
+public class MergeChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
     @Inject
     private ChangeRequestManager changeRequestManager;
 
     @Inject
-    private ChangeRequestStorageManager changeRequestStorageManager;
-
-    @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
-
-    @Inject
-    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
-
-    @Inject
-    private Provider<XWikiContext> contextProvider;
-
-    @Inject
-    private Logger logger;
 
     /**
      * Handling method. (Dumb javadoc since it's supposed to be inherited)
@@ -75,30 +57,24 @@ public class MergeChangeRequestHandler
      * @param changeRequestReference the change request reference.
      * @throws ChangeRequestException in case of errors when handling the request
      */
-    public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException
+    @Override
+    public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
-        Optional<ChangeRequest> changeRequestOpt = this.changeRequestStorageManager
-            .load(changeRequestReference.getId());
-        if (changeRequestOpt.isPresent()) {
-            ChangeRequest changeRequest = changeRequestOpt.get();
+        ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
+        if (changeRequest != null) {
             UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-            if (this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)
-                && this.changeRequestManager.canBeMerged(changeRequest)) {
-                this.changeRequestStorageManager.merge(changeRequest);
-                DocumentReference changeRequestDocumentReference =
-                    this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-                XWikiContext context = this.contextProvider.get();
-                String url = context.getWiki().getURL(changeRequestDocumentReference, context);
-                try {
-                    context.getResponse().sendRedirect(url);
-                } catch (IOException e) {
-                    throw new ChangeRequestException("Error while redirecting to the created change request.", e);
-                }
+            if (!this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)) {
+                this.contextProvider.get().getResponse().sendError(403,
+                    String.format("You're not authorized to merge change request [%s].",
+                        changeRequestReference.getId()));
+            } else if (!this.changeRequestManager.canBeMerged(changeRequest)) {
+                this.contextProvider.get().getResponse().sendError(409,
+                    String.format("The change request [%s] cannot be merged.",
+                        changeRequestReference.getId()));
             } else {
-                this.logger.warn("The change request [{}] cannot be merged.", changeRequestReference.getId());
+                this.storageManager.merge(changeRequest);
+                this.redirectToChangeRequest(changeRequest);
             }
-        } else {
-            this.logger.warn("Cannot find change request with id [{}]", changeRequestReference.getId());
         }
     }
 }

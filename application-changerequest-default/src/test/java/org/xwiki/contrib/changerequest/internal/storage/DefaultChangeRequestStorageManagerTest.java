@@ -139,7 +139,7 @@ class DefaultChangeRequestStorageManagerTest
 
         FileChange fileChange1 = mock(FileChange.class);
         FileChange fileChange2 = mock(FileChange.class);
-        when(changeRequest.getFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
+        when(changeRequest.getAllFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
 
         UserReference userReference = mock(UserReference.class);
         when(changeRequest.getCreator()).thenReturn(userReference);
@@ -227,7 +227,8 @@ class DefaultChangeRequestStorageManagerTest
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(document.getCreationDate()).thenReturn(new Date(42));
 
-        changeRequest.setFileChanges(new ArrayList<>(Arrays.asList(fileChange1, fileChange2)))
+        changeRequest.addFileChange(fileChange1)
+            .addFileChange(fileChange2)
             .setId(id)
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreator(userReference)
@@ -303,8 +304,7 @@ class DefaultChangeRequestStorageManagerTest
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(doc2.getCreationDate()).thenReturn(new Date(42));
         ChangeRequest cr2 = new ChangeRequest();
-        cr2.setFileChanges(new ArrayList<>())
-            .setId("ref2")
+        cr2.setId("ref2")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreator(userReference)
             .setTitle(title)
@@ -330,8 +330,7 @@ class DefaultChangeRequestStorageManagerTest
         when(xobject2.getStringValue("status")).thenReturn("draft");
         when(doc3.getCreationDate()).thenReturn(new Date(16));
         ChangeRequest cr3 = new ChangeRequest();
-        cr3.setFileChanges(new ArrayList<>())
-            .setId("ref3")
+        cr3.setId("ref3")
             .setStatus(ChangeRequestStatus.DRAFT)
             .setCreator(userReference2)
             .setTitle(title2)

@@ -254,7 +254,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             return result;
         } catch (XWikiException e) {
             throw new ChangeRequestException(
-                String.format("Error while loading the document corresponding to the file change [%s]", fileChange));
+                String.format("Error while loading the document corresponding to the file change [%s]", fileChange), e);
         }
     }
 
@@ -277,5 +277,18 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         throws ChangeRequestException
     {
         return getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
+    }
+
+    @Override
+    public DocumentModelBridge getDocumentFromFileChange(FileChange fileChange, String version)
+        throws ChangeRequestException
+    {
+        try {
+            return this.documentRevisionProvider.getRevision(fileChange.getTargetEntity(), version);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(String.format(
+                "Error while loading the document corresponding to the file change [%s] with version [%s]",
+                fileChange, version), e);
+        }
     }
 }

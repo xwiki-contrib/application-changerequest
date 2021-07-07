@@ -19,10 +19,10 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,7 +35,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
-import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
@@ -115,7 +114,7 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public List<DocumentReference> getChangedDocuments(ChangeRequest changeRequest)
     {
-        return changeRequest.getFileChanges().stream().map(FileChange::getTargetEntity).collect(Collectors.toList());
+        return new ArrayList<>(changeRequest.getFileChanges().keySet());
     }
 
     /**
@@ -128,10 +127,8 @@ public class ChangeRequestScriptService implements ScriptService
     public Optional<DocumentModelBridge> getModifiedDocument(ChangeRequest changeRequest,
         DocumentReference documentReference)
     {
-        for (FileChange fileChange : changeRequest.getFileChanges()) {
-            if (fileChange.getTargetEntity().equals(documentReference)) {
-                return Optional.of(fileChange.getModifiedDocument());
-            }
+        if (changeRequest.getFileChanges().containsKey(documentReference)) {
+            return Optional.of(changeRequest.getFileChanges().get(documentReference).peekLast().getModifiedDocument());
         }
         return Optional.empty();
     }
@@ -149,6 +146,24 @@ public class ChangeRequestScriptService implements ScriptService
             return this.changeRequestStorageManager.findChangeRequestTargeting(documentReference);
         } catch (ChangeRequestException e) {
             logger.warn("Error while getting change requests for document [{}]: [{}]", documentReference,
+                ExceptionUtils.getRootCauseMessage(e));
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Find all change request documents whose title is matching the given title.
+     *
+     * @param title a partial title for finding the change requests.
+     * @return a list of document references corresponding to change request pages.
+     * @since 0.3
+     */
+    public List<DocumentReference> findChangeRequestMatchingTitle(String title)
+    {
+        try {
+            return this.changeRequestStorageManager.getChangeRequestMatchingName(title);
+        } catch (ChangeRequestException e) {
+            logger.warn("Error while getting change requests for title [{}]: [{}]", title,
                 ExceptionUtils.getRootCauseMessage(e));
         }
         return Collections.emptyList();

@@ -22,16 +22,20 @@ package org.xwiki.contrib.changerequest.internal;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.internal.handlers.ChangeRequestActionHandler;
 import org.xwiki.contrib.changerequest.internal.handlers.CreateChangeRequestHandler;
 import org.xwiki.contrib.changerequest.internal.handlers.MergeChangeRequestHandler;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.resource.ResourceReferenceHandlerChain;
 import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,13 +57,13 @@ class ChangeRequestResourceHandlerTest
     private ChangeRequestResourceHandler resourceHandler;
 
     @MockComponent
-    private CreateChangeRequestHandler createChangeRequestHandler;
-
-    @MockComponent
-    private MergeChangeRequestHandler mergeChangeRequestHandler;
-
-    @MockComponent
     private AuthorizationManager authorizationManager;
+
+    @BeforeComponent
+    void beforeComponent(MockitoComponentManager componentManager) throws Exception
+    {
+        componentManager.registerComponent(ComponentManager.class, "context", componentManager);
+    }
 
     @Test
     void initialize() throws Exception
@@ -84,19 +88,23 @@ class ChangeRequestResourceHandlerTest
     }
 
     @Test
-    void handle() throws Exception
+    void handle(MockitoComponentManager componentManager) throws Exception
     {
+        ChangeRequestActionHandler createActionHandler =
+            componentManager.registerMockComponent(ChangeRequestActionHandler.class, "create");
+        ChangeRequestActionHandler mergeActionHandler =
+            componentManager.registerMockComponent(ChangeRequestActionHandler.class, "merge");
         ChangeRequestReference reference = mock(ChangeRequestReference.class);
         ResourceReferenceHandlerChain chain = mock(ResourceReferenceHandlerChain.class);
 
         when(reference.getAction()).thenReturn(ChangeRequestReference.ChangeRequestAction.CREATE);
         this.resourceHandler.handle(reference, chain);
-        verify(this.createChangeRequestHandler).handle(reference);
+        verify(createActionHandler).handle(reference);
         verify(chain).handleNext(reference);
 
         when(reference.getAction()).thenReturn(ChangeRequestReference.ChangeRequestAction.MERGE);
         this.resourceHandler.handle(reference, chain);
-        verify(this.mergeChangeRequestHandler).handle(reference);
+        verify(mergeActionHandler).handle(reference);
         verify(chain, times(2)).handleNext(reference);
     }
 }

@@ -74,6 +74,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
     private static final String STATUS_PROPERTY = "status";
     private static final String CHANGED_DOCUMENTS_PROPERTY = "changedDocuments";
+    private static final String REFERENCE = "reference";
 
     @Inject
     private UserReferenceConverter userReferenceConverter;
@@ -131,21 +132,19 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
             xObject.set(STATUS_PROPERTY, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
 
-            List<String> serializedReferences = changeRequest.getFileChanges().stream()
-                .map(FileChange::getTargetEntity)
+            List<String> serializedReferences = changeRequest.getFileChanges().keySet().stream()
                 .map(target -> this.localEntityReferenceSerializer.serialize(target))
                 .collect(Collectors.toList());
             xObject.set(CHANGED_DOCUMENTS_PROPERTY, serializedReferences, context);
 
-            List<String> serializedAuthors = changeRequest.getFileChanges().stream()
-                .map(FileChange::getAuthor)
+            List<String> serializedAuthors = changeRequest.getAuthors().stream()
                 .map(target -> this.userReferenceSerializer.serialize(target))
                 .collect(Collectors.toList());
 
             xObject.set("authors", serializedAuthors, context);
 
             wiki.saveDocument(document, context);
-            for (FileChange fileChange : changeRequest.getFileChanges()) {
+            for (FileChange fileChange : changeRequest.getAllFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);
             }
         } catch (XWikiException e) {
@@ -169,24 +168,25 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             if (!document.isNew() && xObject != null) {
                 List<XWikiAttachment> attachmentList = document.getAttachmentList();
                 List<FileChange> fileChanges = new ArrayList<>();
+                ChangeRequestStatus status =
+                    ChangeRequestStatus.valueOf(xObject.getStringValue(STATUS_PROPERTY).toUpperCase());
+                changeRequest
+                    .setTitle(document.getTitle())
+                    .setDescription(document.getContent())
+                    .setCreator(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
+                    .setStatus(status)
+                    .setCreationDate(document.getCreationDate());
+
                 for (XWikiAttachment attachment : attachmentList) {
                     String filename = attachment.getFilename();
                     if (filename.endsWith(".xml")) {
                         String filechangeId = filename.substring(0, filename.length() - 4);
                         Optional<FileChange> fileChange =
                             this.fileChangeStorageManager.load(changeRequest, filechangeId);
-                        fileChange.ifPresent(fileChanges::add);
+                        fileChange.ifPresent(changeRequest::addFileChange);
                     }
                 }
-                ChangeRequestStatus status =
-                    ChangeRequestStatus.valueOf(xObject.getStringValue(STATUS_PROPERTY).toUpperCase());
-                changeRequest
-                    .setFileChanges(fileChanges)
-                    .setTitle(document.getTitle())
-                    .setDescription(document.getContent())
-                    .setCreator(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
-                    .setStatus(status)
-                    .setCreationDate(document.getCreationDate());
+
                 result = Optional.of(changeRequest);
             }
         } catch (XWikiException e) {
@@ -200,11 +200,30 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public void merge(ChangeRequest changeRequest) throws ChangeRequestException
     {
         // FIXME: we should maybe have a way to rollback if a merge has been only partially done?
-        for (FileChange fileChange : changeRequest.getFileChanges()) {
+        for (FileChange fileChange : changeRequest.getAllFileChanges()) {
             this.fileChangeStorageManager.merge(fileChange);
         }
         changeRequest.setStatus(ChangeRequestStatus.MERGED);
         this.save(changeRequest);
+    }
+
+    @Override
+    public List<DocumentReference> getChangeRequestMatchingName(String title) throws ChangeRequestException
+    {
+        String statement = String.format("from doc.object(%s) as cr where doc.fullName like :reference",
+            this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS));
+        SpaceReference changeRequestSpaceLocation = this.configuration.getChangeRequestSpaceLocation();
+        try {
+            Query query = this.queryManager.createQuery(statement, Query.XWQL);
+            query.bindValue(REFERENCE, String.format("%s.%%%s%%",
+                this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation), title));
+            List<String> changeRequestDocuments = query.execute();
+            return changeRequestDocuments.stream()
+                .map(this.documentReferenceResolver::resolve).collect(Collectors.toList());
+        } catch (QueryException e) {
+            throw new ChangeRequestException(
+                String.format("Error while looking for change requests with title [%s]", title), e);
+        }
     }
 
     @Override
@@ -218,7 +237,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         try {
             Query query = this.queryManager.createQuery(statement, Query.XWQL);
             query.bindValue("space", this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation));
-            query.bindValue("reference", String.format("%%%s%%",
+            query.bindValue(REFERENCE, String.format("%%%s%%",
                 this.localEntityReferenceSerializer.serialize(documentReference)));
             List<String> changeRequestDocuments = query.execute();
             for (String changeRequestDocument : changeRequestDocuments) {

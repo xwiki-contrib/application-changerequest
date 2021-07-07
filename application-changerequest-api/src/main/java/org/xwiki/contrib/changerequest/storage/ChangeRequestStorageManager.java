@@ -75,4 +75,17 @@ public interface ChangeRequestStorageManager
     {
         return Collections.emptyList();
     }
+
+    /**
+     * Search for change requests document references that are matching the given title.
+     *
+     * @param title a partial title for finding change requests.
+     * @return a list of document references that are corresponding to a change request.
+     * @throws ChangeRequestException in case of problem to find the change requests.
+     * @since 0.3
+     */
+    default List<DocumentReference> getChangeRequestMatchingName(String title) throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
 }

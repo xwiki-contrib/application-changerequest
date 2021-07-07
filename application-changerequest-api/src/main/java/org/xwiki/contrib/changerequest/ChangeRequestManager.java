@@ -19,8 +19,12 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.Optional;
+
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
+import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.UserReference;
 
 /**
@@ -38,6 +42,7 @@ public interface ChangeRequestManager
      *
      * @param fileChange the change to be checked for conflicts.
      * @return {@code true} if it contains conflicts, {@code false} otherwise.
+     * @throws ChangeRequestException in case of problem for detecting conflicts.
      */
     boolean hasConflicts(FileChange fileChange) throws ChangeRequestException;
 
@@ -60,4 +65,22 @@ public interface ChangeRequestManager
      * @throws ChangeRequestException in case of problems during one of the check.
      */
     boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException;
+
+    /**
+     * Merge a given modified document in the given change request, without saving the result.
+     *
+     * @param modifiedDocument a document with changes not yet saved.
+     * @param previousVersion the version of the document where the modifications have been started.
+     * @param changeRequest an existing change request.
+     * @return an empty optional if the change request did not contain any changes related to the given document, else
+     *          returns an optional containing the result of the merge: this one can be checked for conflicts.
+     * @throws ChangeRequestException in case of problem for detecting conflicts.
+     * @since 0.3
+     */
+    default Optional<MergeDocumentResult> mergeDocumentChanges(DocumentModelBridge modifiedDocument,
+        String previousVersion, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        return Optional.empty();
+    }
 }

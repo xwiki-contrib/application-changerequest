@@ -36,7 +36,8 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference='ChangeRequest.ChangeRequestPicker'/}}
+{{velocity}}
 #if ($request.get('getmodal') == 1)
 &lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
@@ -56,23 +57,28 @@
               &lt;input type="radio" id="newChangeRequest" name="changeRequestChoice" value="create" checked="checked" /&gt;
             &lt;/div&gt;
             &lt;div class="panel-heading"&gt;
-              &lt;label class="panel-title panel-primary"&gt;Create new change request&lt;/label&gt;
+              &lt;label class="panel-title panel-primary" for="newChangeRequest"&gt;Create new change request&lt;/label&gt;
             &lt;/div&gt;
           &lt;/div&gt;
-          &lt;div class="panel hidden"&gt;
+          &lt;div class="panel"&gt;
             &lt;div class="panel-radio"&gt;
               &lt;input type="radio" id="addToExistingChangeRequest" name="changeRequestChoice" value="edit" /&gt;
             &lt;/div&gt;
             &lt;div class="panel-heading"&gt;
-              &lt;label class="panel-title panel-default"&gt;Add changes to existing change request&lt;/label&gt;
+              &lt;label class="panel-title panel-default" for="addToExistingChangeRequest"&gt;Add changes to existing change request&lt;/label&gt;
             &lt;/div&gt;
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;form id="saveChangeRequestForm"&gt;
-        &lt;div class="panel hidden" id="editCRPanel"&gt;
+        &lt;div class="panel" id="editCRPanel"&gt;
           &lt;div class="form-group"&gt;
             &lt;label for="existingCRSelector"&gt;Chose an existing change request&lt;/label&gt;
-            &lt;input type="text" class="form-control" id="existingCRSelector" /&gt;
+            #set ($crPickerParameters = {
+              'name': 'existingCRSelector',
+              'id': 'existingCRSelector',
+              'class': 'form-control'
+            })
+            #changeRequestPicker($crPickerParameters)
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="panel" id="createCRPanel"&gt;
@@ -220,10 +226,20 @@
   var createChangeRequestModal = function () {
     var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
     $.get(modalURL.getURL('get', 'getmodal=1&amp;outputSyntax=plain')).done(function (data) {
-      console.log(data);
       $('body').append(data);
       $('#changeRequestModal').modal('show');
+      $('#editCRPanel').hide();
       $('#saveChangeRequest').on('click', saveChangeRequest);
+      $('input[name=changeRequestChoice]').on('change', function() {
+        if ($('#newChangeRequest').is(':checked')) {
+          $('#editCRPanel').hide();
+          $('#createCRPanel').show();
+        } else {
+          $('#editCRPanel').show();
+          $('#createCRPanel').hide();
+        }
+      });
+      $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
     }).fail(function (data) {
       console.log(data);
       new XWiki.widgets.Notification("Error while saving the change request:" + data, 'error')

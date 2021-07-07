@@ -19,11 +19,16 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.Deque;
+import java.util.Map;
+import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -82,7 +87,6 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
     {
-        XWikiContext context = this.contextProvider.get();
         DocumentModelBridge modifiedDoc =
             this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
         DocumentModelBridge previousDoc =
@@ -90,6 +94,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         DocumentModelBridge originalDoc =
             this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
 
+        XWikiContext context = this.contextProvider.get();
         MergeConfiguration mergeConfiguration = new MergeConfiguration();
 
         // We need the reference of the user and the document in the config to retrieve
@@ -112,7 +117,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         boolean result = true;
         DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
         Right approvalRight = ChangeRequestApproveRight.getRight();
-        for (FileChange fileChange : changeRequest.getFileChanges()) {
+        for (FileChange fileChange : changeRequest.getAllFileChanges()) {
             if (!this.authorizationManager.hasAccess(Right.EDIT, userDocReference, fileChange.getTargetEntity())
                 || !this.authorizationManager.hasAccess(approvalRight, userDocReference,
                 fileChange.getTargetEntity())) {
@@ -139,7 +144,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
                 MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
                 if (mergeApprovalStrategy.canBeMerged(changeRequest)) {
                     boolean noConflict = true;
-                    for (FileChange fileChange : changeRequest.getFileChanges()) {
+                    for (FileChange fileChange : changeRequest.getAllFileChanges()) {
                         if (this.hasConflicts(fileChange)) {
                             noConflict = false;
                             break;
@@ -152,5 +157,41 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
             }
         }
         return result;
+    }
+
+    @Override
+    public Optional<MergeDocumentResult> mergeDocumentChanges(DocumentModelBridge modifiedDocument,
+        String previousVersion, ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
+        DocumentReference documentReference = modifiedDocument.getDocumentReference();
+        if (fileChanges.containsKey(documentReference)) {
+            FileChange fileChange = fileChanges.get(documentReference).peekLast();
+            Version previous = new Version(previousVersion);
+            Version sourceVersion = new Version(fileChange.getSourceVersion());
+            Version sourceDocVersion = (previous.isLessOrEqualThan(sourceVersion)) ? previous : sourceVersion;
+            DocumentModelBridge previousDoc =
+                this.fileChangeStorageManager.getDocumentFromFileChange(fileChange, sourceDocVersion.toString());
+            DocumentModelBridge currentDoc =
+                this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+
+            XWikiContext context = this.contextProvider.get();
+            MergeConfiguration mergeConfiguration = new MergeConfiguration();
+
+            // We need the reference of the user and the document in the config to retrieve
+            // the conflict decision in the MergeManager.
+            mergeConfiguration.setUserReference(context.getUserReference());
+            mergeConfiguration.setConcernedDocument(documentReference);
+
+            // The modified doc is actually the one we should save, so it's ok to modify it directly
+            // and better for performance.
+            mergeConfiguration.setProvidedVersionsModifiables(true);
+            MergeDocumentResult mergeDocumentResult =
+                mergeManager.mergeDocument(previousDoc, currentDoc, modifiedDocument, mergeConfiguration);
+
+            return Optional.of(mergeDocumentResult);
+        }
+
+        return Optional.empty();
     }
 }

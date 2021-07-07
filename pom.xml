@@ -67,4 +67,34 @@
     <module>application-changerequest-ui</module>
     <module>application-changerequest-notifications</module>
   </modules>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.revapi</groupId>
+        <artifactId>revapi-maven-plugin</artifactId>
+        <configuration>
+          <analysisConfiguration>
+            <revapi.differences>
+              <criticality>highlight</criticality>
+              <differences>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.returnTypeChanged</code>
+                  <old>method java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.ChangeRequest::getFileChanges()</old>
+                  <new>method java.util.Map&lt;org.xwiki.model.reference.DocumentReference, java.util.Deque&lt;org.xwiki.contrib.changerequest.FileChange&gt;&gt; org.xwiki.contrib.changerequest.ChangeRequest::getFileChanges()</new>
+                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.ChangeRequest org.xwiki.contrib.changerequest.ChangeRequest::setFileChanges(java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt;)</old>
+                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
+                </item>
+              </differences>
+            </revapi.differences>
+          </analysisConfiguration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

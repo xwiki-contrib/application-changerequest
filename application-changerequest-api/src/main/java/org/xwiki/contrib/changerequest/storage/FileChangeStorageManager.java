@@ -91,4 +91,19 @@ public interface FileChangeStorageManager
      * @throws ChangeRequestException in case of problem to retrieve the document.
      */
     DocumentModelBridge getPreviousDocumentFromFileChange(FileChange fileChange) throws ChangeRequestException;
+
+    /**
+     * Retrieve the document corresponding to the file change at a specific version.
+     *
+     * @param fileChange an instance of a file change.
+     * @param version the version of the file to retrieve.
+     * @return a {@link DocumentModelBridge} corresponding to document changed in the file change, but on given version.
+     * @throws ChangeRequestException in case of problem to retrieve the document.
+     * @since 0.3
+     */
+    default DocumentModelBridge getDocumentFromFileChange(FileChange fileChange, String version)
+        throws ChangeRequestException
+    {
+        return null;
+    }
 }

@@ -157,7 +157,7 @@ class DefaultChangeRequestManagerTest
 
         FileChange fileChange1 = mock(FileChange.class);
         FileChange fileChange2 = mock(FileChange.class);
-        when(changeRequest.getFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
+        when(changeRequest.getAllFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
 
         DocumentReference reference1 = mock(DocumentReference.class);
         DocumentReference reference2 = mock(DocumentReference.class);
@@ -210,7 +210,7 @@ class DefaultChangeRequestManagerTest
         when(strategy.canBeMerged(changeRequest)).thenReturn(true);
         FileChange fileChange1 = mock(FileChange.class);
         FileChange fileChange2 = mock(FileChange.class);
-        when(changeRequest.getFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
+        when(changeRequest.getAllFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
         DocumentModelBridge documentModelBridge = mock(DocumentModelBridge.class);
         when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(any())).thenReturn(documentModelBridge);
         when(documentModelBridge.getDocumentReference()).thenReturn(mock(DocumentReference.class));

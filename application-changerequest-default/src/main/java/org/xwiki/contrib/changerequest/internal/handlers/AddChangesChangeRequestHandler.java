@@ -20,48 +20,49 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.observation.ObservationManager;
+import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
+
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
 
 /**
- * Specific handler for creating a new change request.
+ * Handler for adding changes to an existing change request.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.3
  */
 @Component
-@Named("create")
+@Named("addchanges")
 @Singleton
-public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandler
+public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
+    @Inject
+    private ChangeRequestManager changeRequestManager;
+
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
-    private ObservationManager observationManager;
+    private Logger logger;
 
-    /**
-     * Handle the given {@link ChangeRequestReference} for performing the create.
-     * @param changeRequestReference the request reference leading to this.
-     * @throws ChangeRequestException in case of errors.
-     */
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
@@ -69,28 +70,38 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         EditForm editForm = this.prepareForm(request);
         XWikiDocument modifiedDocument = this.prepareDocument(request, editForm);
         DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
-        String title = request.getParameter("crTitle");
-        String description = request.getParameter("crDescription");
+        ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
 
-        UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        ChangeRequest changeRequest = new ChangeRequest();
-        FileChange fileChange = new FileChange(changeRequest);
+        if (changeRequest != null) {
+            String previousVersion = request.getParameter("previousVersion");
 
-        fileChange
-            .setAuthor(currentUser)
-            .setTargetEntity(documentReference)
-            .setSourceVersion(request.getParameter("previousVersion"))
-            .setModifiedDocument(modifiedDocument);
+            UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+            FileChange fileChange = new FileChange(changeRequest);
+            fileChange
+                .setAuthor(currentUser)
+                .setTargetEntity(documentReference)
+                // FIXME: the version here is not necessarily the right one.
+                .setSourceVersion(previousVersion)
+                .setModifiedDocument(modifiedDocument);
 
-        changeRequest
-            .setTitle(title)
-            .setDescription(description)
-            .setCreator(currentUser)
-            .addFileChange(fileChange);
-
-        this.storageManager.save(changeRequest);
-
-        this.observationManager.notify(new ChangeRequestCreatedEvent(), documentReference, changeRequest);
-        this.redirectToChangeRequest(changeRequest);
+            Optional<MergeDocumentResult> optionalMergeDocumentResult =
+                this.changeRequestManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
+            boolean withConflict = false;
+            if (optionalMergeDocumentResult.isPresent()) {
+                MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
+                withConflict = mergeDocumentResult.hasConflicts();
+                if (withConflict) {
+                    // TODO: handle conflict answer
+                    logger.error("Conflict found.");
+                } else {
+                    fileChange.setModifiedDocument(mergeDocumentResult.getMergeResult());
+                }
+            }
+            if (!withConflict) {
+                changeRequest.addFileChange(fileChange);
+                this.storageManager.save(changeRequest);
+                this.redirectToChangeRequest(changeRequest);
+            }
+        }
     }
 }
