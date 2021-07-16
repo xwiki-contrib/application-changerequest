@@ -90,6 +90,21 @@
                   <old>method org.xwiki.contrib.changerequest.ChangeRequest org.xwiki.contrib.changerequest.ChangeRequest::setFileChanges(java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt;)</old>
                   <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.parameterTypeChanged</code>
+                  <old>parameter java.util.Optional&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, ===java.lang.String===) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <new>parameter java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, ===org.xwiki.model.reference.DocumentReference===) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <parameterIndex>1</parameterIndex>
+                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.returnTypeChanged</code>
+                  <old>method java.util.Optional&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <new>method java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

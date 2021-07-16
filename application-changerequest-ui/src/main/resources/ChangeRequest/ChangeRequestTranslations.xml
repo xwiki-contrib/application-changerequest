@@ -43,7 +43,15 @@ changerequest.livetable.authors=Authors
 changerequest.docextra.title=Change Requests
 changerequest.application.label=Change Request
 changerequest.picker.placeholder=Type a change request name
-  </content>
+changerequest.savemodal.header.title=Save as change request
+changerequest.savemodal.header.hint=Provide some information to save your changes in a new or existing change request.
+changerequest.savemodal.create.heading=Create new change request
+changerequest.savemodal.create.input.title=Title of the change request
+changerequest.savemodal.create.input.description=Description of the change request
+changerequest.savemodal.edit.heading=Add changes to existing change request
+changerequest.savemodal.edit.input.selector=Choose an existing change request
+changerequest.sheet.status.draft=Draft
+changerequest.sheet.status.merged=Merged</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

@@ -19,13 +19,14 @@
  */
 package org.xwiki.contrib.changerequest.storage;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -49,11 +50,13 @@ public interface FileChangeStorageManager
      * Load the given file change related to the given change request.
      *
      * @param changeRequest the change request that owns the given file change.
-     * @param fileChangeId the id of the file change to load.
+     * @param changedDocument the reference of a changed document for which to retrieve the file changes.
      * @return a file change instance or an empty optional if the file change cannot be found.
      * @throws ChangeRequestException in case of errors while loading the file change.
+     * @since 0.3
      */
-    Optional<FileChange> load(ChangeRequest changeRequest, String fileChangeId) throws ChangeRequestException;
+    List<FileChange> load(ChangeRequest changeRequest, DocumentReference changedDocument)
+        throws ChangeRequestException;
 
     /**
      * Merge the given file change.

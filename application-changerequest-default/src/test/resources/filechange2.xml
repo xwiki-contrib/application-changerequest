@@ -1,0 +1,29 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<xwikidoc version="1.4" reference="SomePage.WebHome" locale="">
+  <web>SomePage</web>
+  <name>WebHome</name>
+  <language/>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>0</translation>
+  <creator>XWiki.Admin</creator>
+  <creationDate>1624961158000</creationDate>
+  <parent>Main.WebHome</parent>
+  <author>XWiki.Admin</author>
+  <contentAuthor>XWiki.surli</contentAuthor>
+  <date>1624961158000</date>
+  <contentUpdateDate>1624961293000</contentUpdateDate>
+  <version>2.3</version>
+  <title>Another title</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>A new page with a change
+
+{{info}}
+An usual macro with some changes in it
+{{/info}}
+
+ </content>
+  <renderedcontent>&lt;p>A new page with a change&lt;/p>&lt;div class="box infomessage">&lt;p>An usual macro with some changes in it&lt;/p>&lt;/div>&lt;p>&amp;nbsp;&lt;/p></renderedcontent>
+</xwikidoc>

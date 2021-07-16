@@ -195,23 +195,23 @@ class DefaultChangeRequestStorageManagerTest
         assertEquals(Optional.empty(), this.storageManager.load(id));
 
         when(document.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
-        XWikiAttachment attachment1 = mock(XWikiAttachment.class);
-        XWikiAttachment attachment2 = mock(XWikiAttachment.class);
-        XWikiAttachment attachment3 = mock(XWikiAttachment.class);
-        XWikiAttachment attachment4 = mock(XWikiAttachment.class);
-        when(document.getAttachmentList()).thenReturn(
-            Arrays.asList(attachment1, attachment2, attachment3, attachment4));
+        when(xobject.getListValue(DefaultChangeRequestStorageManager.CHANGED_DOCUMENTS_PROPERTY))
+            .thenReturn(Arrays.asList("ref1", "ref2"));
 
-        when(attachment1.getFilename()).thenReturn("something.png");
-        when(attachment2.getFilename()).thenReturn("filechange.xml");
-        when(attachment3.getFilename()).thenReturn("otherfile.xml");
-        when(attachment4.getFilename()).thenReturn("filechange2.xml");
+        DocumentReference ref1 = mock(DocumentReference.class);
+        DocumentReference ref2 = mock(DocumentReference.class);
+        when(this.documentReferenceResolver.resolve("ref1")).thenReturn(ref1);
+        when(this.documentReferenceResolver.resolve("ref2")).thenReturn(ref2);
 
         FileChange fileChange1 = mock(FileChange.class);
         FileChange fileChange2 = mock(FileChange.class);
-        when(this.fileChangeStorageManager.load(any(), eq("filechange"))).thenReturn(Optional.of(fileChange1));
-        when(this.fileChangeStorageManager.load(any(), eq("otherfile"))).thenReturn(Optional.empty());
-        when(this.fileChangeStorageManager.load(any(), eq("filechange2"))).thenReturn(Optional.of(fileChange2));
+        FileChange fileChange3 = mock(FileChange.class);
+        when(this.fileChangeStorageManager.load(any(), eq(ref1))).thenReturn(Arrays.asList(fileChange1, fileChange2));
+        when(this.fileChangeStorageManager.load(any(), eq(ref2))).thenReturn(Collections.singletonList(fileChange3));
+
+        when(fileChange1.getTargetEntity()).thenReturn(ref1);
+        when(fileChange2.getTargetEntity()).thenReturn(ref1);
+        when(fileChange3.getTargetEntity()).thenReturn(ref2);
 
         String title = "sometitle";
         String description = "a description";
@@ -229,6 +229,7 @@ class DefaultChangeRequestStorageManagerTest
 
         changeRequest.addFileChange(fileChange1)
             .addFileChange(fileChange2)
+            .addFileChange(fileChange3)
             .setId(id)
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreator(userReference)

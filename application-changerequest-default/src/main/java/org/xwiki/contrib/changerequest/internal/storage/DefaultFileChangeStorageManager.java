@@ -23,7 +23,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
@@ -31,6 +34,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -44,7 +48,6 @@ import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.UserReferenceResolver;
-import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -71,9 +74,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     static final String FILE_CHANGE_CONSTANT_NAME = "filechange";
 
     private static final Pattern FILE_CHANGE_NAME_PATTERN =
-        Pattern.compile(String.format("^%s-.+-.+-[0-9]{12}[\\+\\-][0-9]{4}$", FILE_CHANGE_CONSTANT_NAME));
+        Pattern.compile(String.format("^%s-(?<id>.+-.+)\\.xml$", FILE_CHANGE_CONSTANT_NAME));
 
-    private static final String ATTACHMENT_EXTENSION = ".xml";
+    private static final String ATTACHMENT_EXTENSION = "xml";
 
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -95,13 +98,14 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private UserReferenceConverter userReferenceConverter;
 
     @Inject
-    private UserReferenceSerializer<String> userReferenceSerializer;
-
-    @Inject
-    private EntityReferenceSerializer<String> entityReferenceSerializer;
+    @Named("uid")
+    private EntityReferenceSerializer<String> uidReferenceSerializer;
 
     @Inject
     private MergeManager mergeManager;
+
+    @Inject
+    private Logger logger;
 
     private enum DocumentVersion
     {
@@ -110,11 +114,21 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         FILECHANGE
     }
 
-    private XWikiDocument getChangeRequestDocument(ChangeRequest changeRequest) throws XWikiException
+    private XWikiDocument getFileChangeStorageDocument(ChangeRequest changeRequest, DocumentReference changedDocument)
+        throws XWikiException
     {
         XWikiContext context = this.contextProvider.get();
-        DocumentReference documentReference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-        return context.getWiki().getDocument(documentReference, context);
+        DocumentReference changeRequestDocReference =
+            this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        DocumentReference fileChangeStorageReference =
+            new DocumentReference(this.uidReferenceSerializer.serialize(changedDocument),
+                changeRequestDocReference.getLastSpaceReference());
+        return context.getWiki().getDocument(fileChangeStorageReference, context);
+    }
+
+    private String getFileChangeFileName(String id)
+    {
+        return String.format("%s-%s.%s", FILE_CHANGE_CONSTANT_NAME, id, ATTACHMENT_EXTENSION);
     }
 
     @Override
@@ -127,15 +141,16 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
                 modifiedDocument.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
                 modifiedDocument.setContentUpdateDate(fileChange.getCreationDate());
-                String fileChangeId = String.format("%s-%s-%s-%s",
-                    FILE_CHANGE_CONSTANT_NAME,
-                    this.entityReferenceSerializer.serialize(fileChange.getTargetEntity()),
-                    this.userReferenceSerializer.serialize(fileChange.getAuthor()),
-                    DATE_FORMAT.format(fileChange.getCreationDate()));
+                String fileChangeId = String.format("%s-%s",
+                    modifiedDocument.getId(),
+                    modifiedDocument.getVersion());
                 fileChange.setId(fileChangeId);
-                String filename = fileChange.getId() + ATTACHMENT_EXTENSION;
-                XWikiDocument changeRequestDocument = this.getChangeRequestDocument(fileChange.getChangeRequest());
-                XWikiAttachment attachment = new XWikiAttachment(changeRequestDocument, filename);
+
+                String filename = this.getFileChangeFileName(fileChangeId);
+                XWikiDocument fileChangeDocument = this.getFileChangeStorageDocument(fileChange.getChangeRequest(),
+                    modifiedDocument.getDocumentReferenceWithLocale());
+                fileChangeDocument.setHidden(true);
+                XWikiAttachment attachment = new XWikiAttachment(fileChangeDocument, filename);
                 attachment.setContentStore(wiki.getDefaultAttachmentContentStore().getHint());
                 XWikiAttachmentContent attachmentContent = new XWikiAttachmentContent(attachment);
 
@@ -144,9 +159,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 contentOutputStream.close();
                 attachment.setAttachment_content(attachmentContent);
                 attachment.setMetaDataDirty(true);
-                changeRequestDocument.setAttachment(attachment);
-                changeRequestDocument.setContentDirty(true);
-                wiki.saveDocument(changeRequestDocument, context);
+                fileChangeDocument.setAttachment(attachment);
+                fileChangeDocument.setContentDirty(true);
+                wiki.saveDocument(fileChangeDocument, context);
                 fileChange.setSaved(true);
             } catch (XWikiException | IOException e) {
                 throw new ChangeRequestException(
@@ -156,33 +171,44 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     }
 
     @Override
-    public Optional<FileChange> load(ChangeRequest changeRequest, String fileChangeId)
+    public List<FileChange> load(ChangeRequest changeRequest, DocumentReference changedDocument)
         throws ChangeRequestException
     {
-        Optional<FileChange> result = Optional.empty();
-        if (FILE_CHANGE_NAME_PATTERN.matcher(fileChangeId).matches()) {
-            try {
-                XWikiDocument changeRequestDocument = this.getChangeRequestDocument(changeRequest);
-                String filename = fileChangeId + ATTACHMENT_EXTENSION;
-                XWikiAttachment attachment = changeRequestDocument.getAttachment(filename);
-                if (attachment != null) {
-                    FileChange fileChange = new FileChange(changeRequest);
-                    XWikiDocument document = new XWikiDocument(null);
-                    document.fromXML(attachment.getContentInputStream(contextProvider.get()));
-                    fileChange
-                        .setId(fileChangeId)
-                        .setTargetEntity(document.getDocumentReferenceWithLocale())
-                        .setModifiedDocument(document)
-                        .setSourceVersion(document.getVersion())
-                        .setAuthor(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
-                        .setCreationDate(document.getContentUpdateDate())
-                        .setSaved(true);
-                    result = Optional.of(fileChange);
-                }
-            } catch (XWikiException e) {
-                throw new ChangeRequestException(
-                    String.format("Error while loading file change with id [%s]", fileChangeId), e);
+        List<FileChange> result = new ArrayList<>();
+        try {
+            DocumentReference changedDocumentWithLocale = changedDocument;
+            if (changedDocumentWithLocale.getLocale() == null) {
+                changedDocumentWithLocale = new DocumentReference(changedDocument, Locale.ROOT);
             }
+            XWikiDocument changeRequestDocument = this.getFileChangeStorageDocument(changeRequest, 
+                changedDocumentWithLocale);
+            if (changeRequestDocument.isNew()) {
+                logger.warn("No file change found in [{}].", changeRequestDocument.getDocumentReference());
+            } else {
+                // TODO: check the order for attachments, we'd need to get the file storage sorted by date / version
+                List<XWikiAttachment> attachmentList = changeRequestDocument.getAttachmentList();
+                for (XWikiAttachment attachment : attachmentList) {
+                    Matcher matcher = FILE_CHANGE_NAME_PATTERN.matcher(attachment.getFilename());
+                    if (matcher.matches()) {
+                        XWikiDocument document = new XWikiDocument(null);
+                        document.fromXML(attachment.getContentInputStream(contextProvider.get()));
+                        FileChange fileChange = new FileChange(changeRequest);
+                        fileChange
+                            .setId(matcher.group("id"))
+                            .setTargetEntity(document.getDocumentReferenceWithLocale())
+                            .setModifiedDocument(document)
+                            .setSourceVersion(document.getVersion())
+                            .setAuthor(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
+                            .setCreationDate(document.getContentUpdateDate())
+                            .setSaved(true);
+                        result.add(fileChange);
+                    }
+                }
+            }
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while loading file changes for change request [%s] and reference [%s]",
+                    changeRequest, changedDocument), e);
         }
         return result;
     }

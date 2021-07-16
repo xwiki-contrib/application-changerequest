@@ -54,7 +54,6 @@ import org.xwiki.user.UserReferenceSerializer;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
@@ -71,9 +70,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 {
     static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
         new LocalDocumentReference("ChangeRequest", "ChangeRequestClass");
-
+    static final String CHANGED_DOCUMENTS_PROPERTY = "changedDocuments";
     private static final String STATUS_PROPERTY = "status";
-    private static final String CHANGED_DOCUMENTS_PROPERTY = "changedDocuments";
+
     private static final String REFERENCE = "reference";
 
     @Inject
@@ -166,8 +165,6 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             XWikiDocument document = wiki.getDocument(reference, context);
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS);
             if (!document.isNew() && xObject != null) {
-                List<XWikiAttachment> attachmentList = document.getAttachmentList();
-                List<FileChange> fileChanges = new ArrayList<>();
                 ChangeRequestStatus status =
                     ChangeRequestStatus.valueOf(xObject.getStringValue(STATUS_PROPERTY).toUpperCase());
                 changeRequest
@@ -176,14 +173,15 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                     .setCreator(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
                     .setStatus(status)
                     .setCreationDate(document.getCreationDate());
+                List<String> changedDocuments = xObject.getListValue(CHANGED_DOCUMENTS_PROPERTY);
 
-                for (XWikiAttachment attachment : attachmentList) {
-                    String filename = attachment.getFilename();
-                    if (filename.endsWith(".xml")) {
-                        String filechangeId = filename.substring(0, filename.length() - 4);
-                        Optional<FileChange> fileChange =
-                            this.fileChangeStorageManager.load(changeRequest, filechangeId);
-                        fileChange.ifPresent(changeRequest::addFileChange);
+                for (String changedDocument : changedDocuments) {
+                    DocumentReference changedDocumentReference =
+                        this.documentReferenceResolver.resolve(changedDocument);
+                    List<FileChange> fileChanges =
+                        this.fileChangeStorageManager.load(changeRequest, changedDocumentReference);
+                    for (FileChange fileChange : fileChanges) {
+                        changeRequest.addFileChange(fileChange);
                     }
                 }
 
