@@ -51,7 +51,9 @@ changerequest.savemodal.create.input.description=Description of the change reque
 changerequest.savemodal.edit.heading=Add changes to existing change request
 changerequest.savemodal.edit.input.selector=Choose an existing change request
 changerequest.sheet.status.draft=Draft
-changerequest.sheet.status.merged=Merged</content>
+changerequest.sheet.status.merged=Merged
+changerequest.sheet.merge.button=Merge
+changerequest.sheet.merge.button.title=Merge this change request</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

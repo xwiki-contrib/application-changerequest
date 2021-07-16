@@ -84,21 +84,32 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
+     * Check if the current user is authorized to merge the given changed request.
+     *
+     * @param changeRequest the change request to be checked for merging authorization.
+     * @return {@code true} if the current user has proper rights to merge the given change request.
+     * @since 0.3
+     */
+    @Unstable
+    public boolean isAuthorizedToMerge(ChangeRequest changeRequest)
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest);
+    }
+
+    /**
      * Check if the given change request can be merged.
-     * This method checks if the approval strategy is reached, if the current user is authorized to perform the merge,
-     * and if the change request has conflicts.
+     * This method checks if the approval strategy is reached and if the change request has conflicts.
      *
      * @param changeRequest the change request to check.
-     * @return {@code true} if a change request matching the id is found and can be merged (i.e. the approval strategy
-     *          allows it, the user is authorized to do it, and the change request does not have conflicts).
+     * @return {@code true} if the given change request can be merged (i.e. the approval strategy
+     *          allows it and the change request does not have conflicts).
      */
     public boolean canBeMerged(ChangeRequest changeRequest)
     {
         boolean result = false;
         try {
-            UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-            result = this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)
-                && this.changeRequestManager.canBeMerged(changeRequest);
+            result = this.changeRequestManager.canBeMerged(changeRequest);
         } catch (ChangeRequestException e) {
             this.logger.warn("Error while checking if the change request [{}] can be merged: [{}]",
                 changeRequest, ExceptionUtils.getRootCauseMessage(e));

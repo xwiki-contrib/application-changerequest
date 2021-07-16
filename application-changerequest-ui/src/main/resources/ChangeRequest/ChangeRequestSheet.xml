@@ -463,12 +463,13 @@ Global diff:
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
+#set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
-#if ($canBeMerged)
+#if ($isAuthorizedToMerge)
 {{html}}
 &lt;div class="btn-group" id="merge"&gt;
-  &lt;a href="http://localhost:8080/xwiki/changerequest/merge/$escapetool.url($changeRequestId)" role="button" title="Merge this change request" class="btn btn-primary"&gt;
-  $services.icon.renderHTML('download') &lt;span class="btn-label"&gt;Merge&lt;/span&gt;
+  &lt;a href="http://localhost:8080/xwiki/changerequest/merge/$escapetool.url($changeRequestId)" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$canBeMerged)disabled#end" #if(!$canBeMerged)disabled="disabled"#end&gt;
+  $services.icon.renderHTML('download') &lt;span class="btn-label"&gt;$services.localization.render('changerequest.sheet.merge.button')&lt;/span&gt;
   &lt;/a&gt;
 &lt;/div&gt;
 {{/html}}
