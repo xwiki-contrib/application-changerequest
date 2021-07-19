@@ -93,7 +93,6 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
     {
         XWikiContext xWikiContext = this.contextProvider.get();
 
-
         // We are directly relying on Utils#parseTemplate because we want the plugin manager to properly
         // handle the javascript placeholders and it avoids duplicating code.
         try {

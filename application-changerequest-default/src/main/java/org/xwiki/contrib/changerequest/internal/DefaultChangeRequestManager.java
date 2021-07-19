@@ -50,6 +50,7 @@ import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.merge.MergeConfiguration;
 
 /**
@@ -164,7 +165,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         String previousVersion, ChangeRequest changeRequest) throws ChangeRequestException
     {
         Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
-        DocumentReference documentReference = modifiedDocument.getDocumentReference();
+        XWikiDocument nextDoc = (XWikiDocument) modifiedDocument;
+        DocumentReference documentReference = nextDoc.getDocumentReferenceWithLocale();
         if (fileChanges.containsKey(documentReference)) {
             FileChange fileChange = fileChanges.get(documentReference).peekLast();
             Version previous = new Version(previousVersion);
