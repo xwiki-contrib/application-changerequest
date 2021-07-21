@@ -47,27 +47,50 @@
 $doc.content
 {{/info}}
 
+{{html clean="false"}}
 #set ($changeRequest = $changeRequestOpt.get())
 #set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
-Impacted file:
+&lt;div&gt;
+$services.localization.render('changerequest.sheet.pagechanges')
+&lt;ul&gt;
 #foreach ($ref in $modifiedFiles)
-   * $ref
+  #set ($actualDoc = $xwiki.getDocument($ref))
+  #set ($renderedTitle = $actualDoc.getDisplayTitle())
+  #set ($viewLink = $actualDoc.getURL())
+   &lt;li&gt;&lt;a href="$viewLink"&gt;$renderedTitle&lt;/a&gt;&lt;/li&gt;
 #end
+&lt;/ul&gt;
+&lt;/div&gt;
 
-{{html clean="false"}}
+&lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
+&lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
 #template('diff_macros.vm')
-Global diff:
 #foreach ($ref in $modifiedFiles)
   #set ($modifiedDocOpt = $services.changerequest.getModifiedDocument($changeRequest, $ref))
   #if ($modifiedDocOpt.isPresent())
+  &lt;div class="panel panel-default"&gt;
     #set ($modifiedDoc = $modifiedDocOpt.get())
     #set ($currentDoc = $xwiki.getDocument($ref))
     #set ($documentVersion = $modifiedDoc.getRCSVersion())
     #set ($discard = $modifiedDoc.setRCSVersion($documentVersion.next()))
-    Diff of $ref:
-    #displayDocumentRawChanges($currentDoc, $modifiedDoc, $null)
+    #set ($renderedTitle = $currentDoc.getDisplayTitle())
+    #set ($diffKey = $stringtool.toAlphaNumeric($modifiedDoc.getKey()))
+    &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
+      &lt;h4 class="panel-title"&gt;
+        &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
+          $services.localization.render('changerequest.sheet.difftitle', [$renderedTitle])
+        &lt;/a&gt;
+      &lt;/h4&gt;
+    &lt;/div&gt;
+    &lt;div id="diff-$diffKey" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
+      &lt;div class="panel-body"&gt;
+      #displayDocumentRawChanges($currentDoc, $modifiedDoc, $null)
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
   #end
 #end
+&lt;/div&gt;
 {{/html}}
 #else
     No change request corresponding to the current id.
