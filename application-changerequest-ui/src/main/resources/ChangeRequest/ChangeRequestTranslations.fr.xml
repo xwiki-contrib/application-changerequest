@@ -36,26 +36,26 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>changerequest.livetable.doc.name=Localisation
+  <content>changerequest.livetable.doc.name=Emplacement
 changerequest.livetable.status=Statut
 changerequest.livetable.changedDocuments=Documents concernés
 changerequest.livetable.authors=Auteurs
 changerequest.docextra.title=Requêtes de changements
-changerequest.application.label=Requête de Changement
-changerequest.picker.placeholder=Entrez le nom d'une requête de changement
-changerequest.savemodal.header.title=Enregistrer en tant que requête de changement
-changerequest.savemodal.header.hint=Indiquez les informations permettant d'enregistrer vos modifications en tant que requête de changements.
-changerequest.savemodal.create.heading=Créer une nouvelle requête de changements
-changerequest.savemodal.create.input.title=Titre de la requête de changement
-changerequest.savemodal.create.input.description=Description de la requête de changement
-changerequest.savemodal.edit.heading=Ajouter les changements à une requête existante
-changerequest.savemodal.edit.input.selector=Choisissez une requête existante
+changerequest.application.label=Demande de modification
+changerequest.picker.placeholder=Saisissez un nom pour la demande de modification
+changerequest.savemodal.header.title=Enregistrer comme demande de modification
+changerequest.savemodal.header.hint=Fournissez des informations sur votre demande de modification qu'elle soit nouvelle ou déjà existante.
+changerequest.savemodal.create.heading=Créer une nouvelle demande de modification
+changerequest.savemodal.create.input.title=Titre de la demande de modification
+changerequest.savemodal.create.input.description=Description de la demande de modification
+changerequest.savemodal.edit.heading=Modifier une demande existante
+changerequest.savemodal.edit.input.selector=Choisissez une demande de modification existante
 changerequest.sheet.status.draft=Brouillon
 changerequest.sheet.status.merged=Fusionné
 changerequest.sheet.merge.button=Fusionner
-changerequest.sheet.merge.button.title=Fusionner cette requête
-changerequest.sheet.pagechanges=Changements requis dans les pages :
-changerequest.sheet.alldifftitle=Tous les changements
+changerequest.sheet.merge.button.title=Fusionner cette demande de modification
+changerequest.sheet.pagechanges=Demandes de modification dans les pages :
+changerequest.sheet.alldifftitle=Toutes les modifications
 changerequest.sheet.difftitle=Différences de {0}
 </content>
   </xwikidoc>
