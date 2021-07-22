@@ -13,3 +13,4 @@ org.xwiki.contrib.changerequest.internal.handlers.MergeChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.id.TitleChangeRequestIDGenerator
 org.xwiki.contrib.changerequest.internal.id.UUIDChangeRequestIDGenerator
 org.xwiki.contrib.changerequest.internal.handlers.AddChangesChangeRequestHandler
+org.xwiki.contrib.changerequest.internal.ChangeRequestReferenceSerializer

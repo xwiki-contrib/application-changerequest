@@ -491,7 +491,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
 #if ($isAuthorizedToMerge)
 {{html}}
 &lt;div class="btn-group" id="merge"&gt;
-  &lt;a href="http://localhost:8080/xwiki/changerequest/merge/$escapetool.url($changeRequestId)" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$canBeMerged)disabled#end" #if(!$canBeMerged)disabled="disabled"#end&gt;
+  #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
+  &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$canBeMerged)disabled#end" #if(!$canBeMerged)disabled="disabled"#end&gt;
   $services.icon.renderHTML('download') &lt;span class="btn-label"&gt;$services.localization.render('changerequest.sheet.merge.button')&lt;/span&gt;
   &lt;/a&gt;
 &lt;/div&gt;

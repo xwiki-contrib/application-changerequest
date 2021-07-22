@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.script;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -35,10 +36,15 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.resource.ResourceReferenceSerializer;
+import org.xwiki.resource.SerializeResourceReferenceException;
+import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
+import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -63,6 +69,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    @Inject
+    private ResourceReferenceSerializer<ChangeRequestReference, ExtendedURL> urlResourceReferenceSerializer;
 
     @Inject
     private Logger logger;
@@ -178,5 +187,28 @@ public class ChangeRequestScriptService implements ScriptService
                 ExceptionUtils.getRootCauseMessage(e));
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve the URL for the given change request action and id.
+     * @param action the change request action as defined by
+     *          {@link org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction}.
+     * @param changeRequestId the change request id.
+     * @return an URL as a String or an empty string in case of error.
+     * @since 0.3
+     */
+    public String getChangeRequestURL(String action, String changeRequestId)
+    {
+        ChangeRequestReference.ChangeRequestAction requestAction =
+            ChangeRequestReference.ChangeRequestAction.valueOf(action.toUpperCase(Locale.ROOT));
+        ChangeRequestReference reference = new ChangeRequestReference(requestAction, changeRequestId);
+        try {
+            ExtendedURL extendedURL = this.urlResourceReferenceSerializer.serialize(reference);
+            return extendedURL.serialize();
+        } catch (SerializeResourceReferenceException | UnsupportedResourceReferenceException e) {
+            logger.warn("Error while serializing URL for reference [{}]: [{}]", reference,
+                ExceptionUtils.getRootCauseMessage(e));
+        }
+        return "";
     }
 }
