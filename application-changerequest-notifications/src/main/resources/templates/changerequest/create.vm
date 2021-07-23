@@ -1,0 +1,80 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#template('notification/macros.vm')
+
+###
+### Icons
+###
+#set ($eventDescriptor = $services.eventstream.getDescriptorForEventType($compositeEvent.type, $xcontext.isMainWiki()))
+#set ($mainIcon = $eventDescriptor.applicationIcon)
+#set ($smallIcon = $eventDescriptor.eventTypeIcon)
+
+#foreach($event in $compositeEvent.events)
+    #define ($concernedDocument)
+        #set ($document = $xwiki.getDocument($event.document))
+        <div class="changerequest-impacted-page">
+            <a href="$!escapetool.xml($document.getURL())">$document.displayTitle</a>
+            ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+            ## to actually know where the request comes from.
+
+            #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
+                <span class="text-muted">($services.wiki.getById($event.document.wikiReference.name).prettyName)</span>
+            #end
+        </div>
+    #end
+    ###
+    ### Content
+    ###
+    #define($content)
+        #set ($crReference = $changeRequestReferences.get($event))
+        #set ($document = $xwiki.getDocument($crReference))
+    <div class="notification-page">
+        ## Here, we have 2 choices:
+        ## 1 - Render the title with "plain/1.0" syntax, and use $escapetool.xml() to make sure we don't inject HTML tags
+        ## 2 - Render the title with HTML syntax ($document.displayTitle), and don't use $escapetool.xml() (because it
+        ##     would be useless to render HTML tags only to remove them with escape tools afterwards).
+        ##
+        ## I've played with both, and I have chosen solution 2 for the following reasons:
+        ##
+        ## * in the title of a document, you cannot add HTML tags or nasty content (HTML macro is not rendered, so HTML
+        ##   tags are escaped), so we don't need to use escape tools.
+        ##
+        ## * In a page named "SOME      -     EXAMPLE", the white spaces are represented as `&nbsp;` when rendered with
+        ##   the HTML renderer meanwhile they are trimmed when rendered with the plain text renderer.
+        ##
+        ## * It's consistent with the way the title is displayed in the page itself (using html, see: `titlevars.vm`).
+      <a href="$!escapetool.xml($document.getURL())">$document.displayTitle</a>
+        ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+        ## to actually know where the request comes from.
+        #if ($xcontext.getContext().getOriginalWikiId() != $crReference.wikiReference.name)
+          <span class="text-muted">($services.wiki.getById($crReference.wikiReference.name).prettyName)</span>
+        #end
+    </div>
+    <div class="notification-description">
+        $services.localization.render("changerequest.notifications.create.description",
+                ["#displayNotificationEventUser($event.user, false)", "$concernedDocument"])
+      <div><small class="text-muted">$escapetool.xml($services.date.displayTimeAgo($compositeEvent.dates.get(0)))</small></div>
+    </div>
+    #end
+    ###
+    ### Display
+    ###
+    #displayNotificationEventSkeleton($mainIcon, $smallIcon, $content, "")
+#end

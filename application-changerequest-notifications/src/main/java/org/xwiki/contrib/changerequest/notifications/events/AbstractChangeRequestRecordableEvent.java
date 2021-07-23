@@ -17,37 +17,41 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.events;
+package org.xwiki.contrib.changerequest.notifications.events;
 
-import java.io.Serializable;
-
-import org.xwiki.observation.event.Event;
+import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.stability.Unstable;
 
 /**
- * Event triggered when a new file change is added to a change request.
- * The event also send the following parameters:
- * <ul>
- *  <li>source: the reference of the document that have been added in the change request</li>
- *  <li>data: the the id of the {@link org.xwiki.contrib.changerequest.ChangeRequest} that has been modified</li>
- * </ul>
+ * Abstract class for the various change request events.
  *
  * @version $Id$
  * @since 0.3
  */
 @Unstable
-public class ChangeRequestFileChangeAddedEvent implements Event, Serializable
+public abstract class AbstractChangeRequestRecordableEvent implements RecordableEvent
 {
+    private final String changeRequestId;
+
     /**
-     * Default constructor.
+     * Default constructor with a change request id.
+     * @param id the identifier of a change request for which the event is triggered.
      */
-    public ChangeRequestFileChangeAddedEvent()
+    public AbstractChangeRequestRecordableEvent(String id)
     {
+        this.changeRequestId = id;
     }
 
-    @Override
-    public boolean matches(Object otherEvent)
+    /**
+     * @return the identifier of a change request for which the event is triggered.
+     */
+    public String getChangeRequestId()
     {
-        return otherEvent instanceof ChangeRequestFileChangeAddedEvent;
+        return changeRequestId;
     }
+
+    /**
+     * @return an event name that match the templates.
+     */
+    public abstract String getEventName();
 }

@@ -1,3 +1,6 @@
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestCreatedEventDescriptor
 org.xwiki.contrib.changerequest.internal.ChangeRequestEventsListener
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestFileChangeAddedEventDescriptor
+org.xwiki.contrib.changerequest.internal.ChangeRequestNotificationDisplayer
+org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventConverter
+org.xwiki.contrib.changerequest.internal.ChangeRequestLegacyEventConverter

@@ -40,7 +40,7 @@ public class ChangeRequestFileChangeAddedEventDescriptor implements RecordableEv
     @Override
     public String getEventType()
     {
-        return ChangeRequestFileChangeAddedRecordableEvent.class.getCanonicalName();
+        return ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME;
     }
 
     @Override

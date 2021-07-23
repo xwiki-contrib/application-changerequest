@@ -105,6 +105,14 @@
                   <new>method java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
                   <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.class.nonFinalClassInheritsFromNewClass</code>
+                  <old>class org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent</old>
+                  <new>class org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent</new>
+                  <superClass>org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent</superClass>
+                  <justification>Unstable API: refactoring of the notifications to display more accurate informations.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

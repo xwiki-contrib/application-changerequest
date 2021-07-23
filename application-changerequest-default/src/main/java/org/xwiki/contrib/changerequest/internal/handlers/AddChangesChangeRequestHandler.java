@@ -101,7 +101,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 changeRequest.addFileChange(fileChange);
                 this.storageManager.save(changeRequest);
                 this.observationManager
-                    .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest);
+                    .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
                 this.redirectToChangeRequest(changeRequest);
             }
         }

@@ -40,7 +40,7 @@ public class ChangeRequestCreatedEventDescriptor implements RecordableEventDescr
     @Override
     public String getEventType()
     {
-        return ChangeRequestCreatedRecordableEvent.class.getCanonicalName();
+        return ChangeRequestCreatedRecordableEvent.EVENT_NAME;
     }
 
     @Override

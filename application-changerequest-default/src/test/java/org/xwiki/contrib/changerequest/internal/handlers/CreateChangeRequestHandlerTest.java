@@ -135,7 +135,9 @@ class CreateChangeRequestHandlerTest
             .setSourceVersion(previousVersion)
             .setModifiedDocument(modifiedDocument);
 
+        String crId = "myCrID";
         expectedChangeRequest
+            .setId(crId)
             .setTitle(title)
             .setDescription(description)
             .setCreator(userReference)
@@ -149,6 +151,7 @@ class CreateChangeRequestHandlerTest
             Date creationDate = allFileChanges.get(0).getCreationDate();
             expectedFileChange.setCreationDate(creationDate);
             expectedChangeRequest.setCreationDate(changeRequest.getCreationDate());
+            changeRequest.setId(crId);
             return null;
         }).when(this.storageManager).save(any());
 
@@ -160,7 +163,7 @@ class CreateChangeRequestHandlerTest
         this.handler.handle(null);
         verify(this.storageManager).save(expectedChangeRequest);
         verify(this.observationManager)
-            .notify(any(ChangeRequestCreatedEvent.class), eq(documentReferenceWithLocale), eq(expectedChangeRequest));
+            .notify(any(ChangeRequestCreatedEvent.class), eq(documentReferenceWithLocale), eq(crId));
         verify(this.httpServletResponse).sendRedirect(expectedURL);
     }
 

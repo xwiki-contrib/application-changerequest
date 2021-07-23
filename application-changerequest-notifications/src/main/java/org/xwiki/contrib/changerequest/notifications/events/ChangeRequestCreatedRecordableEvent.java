@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.notifications.events;
 
-import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -29,7 +28,7 @@ import org.xwiki.stability.Unstable;
  * @since 0.1
  */
 @Unstable
-public class ChangeRequestCreatedRecordableEvent implements RecordableEvent
+public class ChangeRequestCreatedRecordableEvent extends AbstractChangeRequestRecordableEvent
 {
     /**
      * Event name to be used in the components referring to that event.
@@ -41,6 +40,22 @@ public class ChangeRequestCreatedRecordableEvent implements RecordableEvent
      */
     public ChangeRequestCreatedRecordableEvent()
     {
+        this(null);
+    }
+
+    /**
+     * Default constructor with a change request id.
+     * @param id the identifier of a change request for which the event is triggered.
+     */
+    public ChangeRequestCreatedRecordableEvent(String id)
+    {
+        super(id);
+    }
+
+    @Override
+    public String getEventName()
+    {
+        return EVENT_NAME;
     }
 
     @Override

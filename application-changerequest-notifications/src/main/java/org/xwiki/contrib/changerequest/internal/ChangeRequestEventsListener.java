@@ -87,12 +87,11 @@ public class ChangeRequestEventsListener extends AbstractEventListener
                     this.documentAccessBridge.getTranslatedDocumentInstance((DocumentReference) source);
                 RecordableEvent recordableEvent = null;
                 if (event instanceof ChangeRequestCreatedEvent) {
-                    recordableEvent = new ChangeRequestCreatedRecordableEvent();
+                    recordableEvent = new ChangeRequestCreatedRecordableEvent((String) data);
                 } else if (event instanceof ChangeRequestFileChangeAddedEvent) {
-                    recordableEvent = new ChangeRequestFileChangeAddedRecordableEvent();
+                    recordableEvent = new ChangeRequestFileChangeAddedRecordableEvent((String) data);
                 }
-                this.observationManager
-                    .notify(recordableEvent, EVENT_SOURCE, documentInstance);
+                this.observationManager.notify(recordableEvent, EVENT_SOURCE, documentInstance);
             } catch (Exception e) {
                 this.logger.error(
                     "Error while getting the document instance from [{}] after a created change request event: [{}]",
