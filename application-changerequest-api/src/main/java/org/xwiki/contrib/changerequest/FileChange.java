@@ -40,7 +40,7 @@ import org.xwiki.user.UserReference;
 public class FileChange
 {
     private String id;
-    private ChangeRequest changeRequest;
+    private final ChangeRequest changeRequest;
     private DocumentReference targetEntity;
     private String sourceVersion;
     private UserReference author;
@@ -209,7 +209,6 @@ public class FileChange
         return new EqualsBuilder()
             .append(saved, that.saved)
             .append(id, that.id)
-            .append(changeRequest, that.changeRequest)
             .append(targetEntity, that.targetEntity)
             .append(sourceVersion, that.sourceVersion)
             .append(author, that.author)
@@ -218,10 +217,11 @@ public class FileChange
             .isEquals();
     }
 
-    @Override public int hashCode()
+    @Override
+    public int hashCode()
     {
         return new HashCodeBuilder(15, 13)
-            .append(id).append(changeRequest)
+            .append(id)
             .append(targetEntity)
             .append(sourceVersion)
             .append(author)

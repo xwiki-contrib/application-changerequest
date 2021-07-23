@@ -17,37 +17,35 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.events;
+package org.xwiki.contrib.changerequest.notifications.events;
 
-import java.io.Serializable;
-
-import org.xwiki.observation.event.Event;
+import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.stability.Unstable;
 
 /**
- * Event sent when new change request is created.
- * The event also send the following parameters:
- * <ul>
- *     <li>source: the reference of the document that have been used to create the change request</li>
- *     <li>data: the actual {@link org.xwiki.contrib.changerequest.ChangeRequest} that has been created</li>
- * </ul>
+ * Recordable event of a file change added to an existing change request to send notification about this.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.3
  */
 @Unstable
-public class ChangeRequestCreatedEvent implements Event, Serializable
+public class ChangeRequestFileChangeAddedRecordableEvent implements RecordableEvent
 {
     /**
-     * Default constructor.
+     * Event name to be used in the components referring to that event.
      */
-    public ChangeRequestCreatedEvent()
+    public static final String EVENT_NAME = "changerequest.filechange.added";
+
+    /**
+     * Default empty constructor.
+     */
+    public ChangeRequestFileChangeAddedRecordableEvent()
     {
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof ChangeRequestCreatedEvent;
+        return otherEvent instanceof ChangeRequestFileChangeAddedRecordableEvent;
     }
 }

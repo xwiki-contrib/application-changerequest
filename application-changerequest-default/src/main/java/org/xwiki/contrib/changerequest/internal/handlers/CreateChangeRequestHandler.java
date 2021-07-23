@@ -33,7 +33,6 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -53,9 +52,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 {
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
-
-    @Inject
-    private ObservationManager observationManager;
 
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.

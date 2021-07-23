@@ -34,6 +34,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -91,8 +92,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
                 withConflict = mergeDocumentResult.hasConflicts();
                 if (withConflict) {
-                    // TODO: handle conflict answer
-                    logger.error("Conflict found.");
+                    this.contextProvider.get().getResponse().sendError(409, "Conflict found in the changes.");
                 } else {
                     fileChange.setModifiedDocument(mergeDocumentResult.getMergeResult());
                 }
@@ -100,6 +100,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             if (!withConflict) {
                 changeRequest.addFileChange(fileChange);
                 this.storageManager.save(changeRequest);
+                this.observationManager
+                    .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest);
                 this.redirectToChangeRequest(changeRequest);
             }
         }

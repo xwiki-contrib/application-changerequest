@@ -32,6 +32,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 
 import com.xpn.xwiki.XWikiContext;
@@ -55,6 +56,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     protected ChangeRequestStorageManager storageManager;
+
+    @Inject
+    protected ObservationManager observationManager;
 
     @Inject
     private DocumentReferenceResolver<String> documentReferenceResolver;

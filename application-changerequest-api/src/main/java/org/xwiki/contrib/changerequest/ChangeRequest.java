@@ -209,6 +209,14 @@ public class ChangeRequest
     }
 
     /**
+     * @return the date of the creation of the change request.
+     */
+    public Date getCreationDate()
+    {
+        return creationDate;
+    }
+
+    /**
      * @param creationDate the date of the creation of the change request.
      * @return the current instance.
      */
@@ -246,7 +254,8 @@ public class ChangeRequest
     public int hashCode()
     {
         return new HashCodeBuilder(17, 37)
-            .append(id).append(title)
+            .append(id)
+            .append(title)
             .append(description)
             .append(creator)
             .append(creationDate)

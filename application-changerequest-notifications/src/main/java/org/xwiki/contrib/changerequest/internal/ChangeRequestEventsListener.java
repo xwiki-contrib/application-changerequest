@@ -19,7 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -31,7 +31,10 @@ import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationManager;
@@ -53,7 +56,10 @@ public class ChangeRequestEventsListener extends AbstractEventListener
      * Default event source.
      */
     static final String EVENT_SOURCE = "org.xwiki.contrib.changerequest:application-changerequest-notifications";
-    private static final List<Event> EVENT_LIST = Collections.singletonList(new ChangeRequestCreatedEvent());
+    private static final List<Event> EVENT_LIST = Arrays.asList(
+        new ChangeRequestCreatedEvent(),
+        new ChangeRequestFileChangeAddedEvent()
+    );
 
     @Inject
     private ObservationManager observationManager;
@@ -79,8 +85,14 @@ public class ChangeRequestEventsListener extends AbstractEventListener
             try {
                 DocumentModelBridge documentInstance =
                     this.documentAccessBridge.getTranslatedDocumentInstance((DocumentReference) source);
+                RecordableEvent recordableEvent = null;
+                if (event instanceof ChangeRequestCreatedEvent) {
+                    recordableEvent = new ChangeRequestCreatedRecordableEvent();
+                } else if (event instanceof ChangeRequestFileChangeAddedEvent) {
+                    recordableEvent = new ChangeRequestFileChangeAddedRecordableEvent();
+                }
                 this.observationManager
-                    .notify(new ChangeRequestCreatedRecordableEvent(), EVENT_SOURCE, documentInstance);
+                    .notify(recordableEvent, EVENT_SOURCE, documentInstance);
             } catch (Exception e) {
                 this.logger.error(
                     "Error while getting the document instance from [{}] after a created change request event: [{}]",

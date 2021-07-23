@@ -25,29 +25,29 @@ import org.xwiki.observation.event.Event;
 import org.xwiki.stability.Unstable;
 
 /**
- * Event sent when new change request is created.
+ * Event triggered when a new file change is added to a change request.
  * The event also send the following parameters:
  * <ul>
- *     <li>source: the reference of the document that have been used to create the change request</li>
- *     <li>data: the actual {@link org.xwiki.contrib.changerequest.ChangeRequest} that has been created</li>
+ *  <li>source: the reference of the document that have been added in the change request</li>
+ *  <li>data: the actual {@link org.xwiki.contrib.changerequest.ChangeRequest} that has been modified</li>
  * </ul>
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.3
  */
 @Unstable
-public class ChangeRequestCreatedEvent implements Event, Serializable
+public class ChangeRequestFileChangeAddedEvent implements Event, Serializable
 {
     /**
      * Default constructor.
      */
-    public ChangeRequestCreatedEvent()
+    public ChangeRequestFileChangeAddedEvent()
     {
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof ChangeRequestCreatedEvent;
+        return otherEvent instanceof ChangeRequestFileChangeAddedEvent;
     }
 }

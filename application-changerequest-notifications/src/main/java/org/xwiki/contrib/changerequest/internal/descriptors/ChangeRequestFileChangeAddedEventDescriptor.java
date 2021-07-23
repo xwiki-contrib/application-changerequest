@@ -23,24 +23,24 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.eventstream.RecordableEventDescriptor;
 
 /**
- * Descriptor related to {@link ChangeRequestCreatedRecordableEvent}.
+ * Descriptor related to {@link ChangeRequestFileChangeAddedEventDescriptor}.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.3
  */
 @Component
 @Singleton
-@Named(ChangeRequestCreatedRecordableEvent.EVENT_NAME)
-public class ChangeRequestCreatedEventDescriptor implements RecordableEventDescriptor
+@Named(ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME)
+public class ChangeRequestFileChangeAddedEventDescriptor implements RecordableEventDescriptor
 {
     @Override
     public String getEventType()
     {
-        return ChangeRequestCreatedRecordableEvent.class.getCanonicalName();
+        return ChangeRequestFileChangeAddedRecordableEvent.class.getCanonicalName();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ChangeRequestCreatedEventDescriptor implements RecordableEventDescr
     @Override
     public String getDescription()
     {
-        return "changerequest.event.created.description";
+        return "changerequest.event.filechange.added.description";
     }
 
     @Override
