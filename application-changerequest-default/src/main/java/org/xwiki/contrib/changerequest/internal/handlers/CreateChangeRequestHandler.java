@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
@@ -67,6 +68,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
         String title = request.getParameter("crTitle");
         String description = request.getParameter("crDescription");
+        boolean isDraft = "1".equals(request.getParameter("crDraft"));
 
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequest changeRequest = new ChangeRequest();
@@ -83,6 +85,12 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             .setDescription(description)
             .setCreator(currentUser)
             .addFileChange(fileChange);
+
+        if (isDraft) {
+            changeRequest.setStatus(ChangeRequestStatus.DRAFT);
+        } else {
+            changeRequest.setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
+        }
 
         this.storageManager.save(changeRequest);
 

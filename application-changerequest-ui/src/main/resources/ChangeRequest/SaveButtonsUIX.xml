@@ -71,6 +71,11 @@
                 &lt;label for="crDescription"&gt;$services.localization.render('changerequest.savemodal.create.input.description')&lt;/label&gt;
                 &lt;textarea class="form-control" rows="3" id="crDescription"&gt;&lt;/textarea&gt;
               &lt;/div&gt;
+              &lt;div class="checkbox"&gt;
+                &lt;label for="crDraft"&gt;
+                &lt;input type="checkbox" id="crDraft" value="1" /&gt; $services.localization.render('changerequest.savemodal.create.input.draft')
+                &lt;/label&gt;
+              &lt;/div&gt;
             &lt;/div&gt;&lt;!-- End panel body --&gt;
            &lt;/div&gt;&lt;!-- End panel collapse --&gt;
           &lt;/div&gt;&lt;!-- End panel --&gt;
@@ -213,6 +218,13 @@
         'value': $('#crDescription').val()
       });
       form.append(crDescriptionField);
+      
+      var crDraftField = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'crDraft',
+        'value': $('#crDraft:checked').val()
+      });
+      form.append(crDraftField);
       actionURL = '/xwiki/changerequest/create';
     } else {
       actionURL = '/xwiki/changerequest/addchanges/' + $('#existingCRSelector').val();

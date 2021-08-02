@@ -140,7 +140,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     public boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException
     {
         boolean result = false;
-        if (changeRequest.getStatus() != ChangeRequestStatus.MERGED) {
+        if (changeRequest.getStatus() == ChangeRequestStatus.READY_FOR_REVIEW) {
             try {
                 MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
                 if (mergeApprovalStrategy.canBeMerged(changeRequest)) {

@@ -48,15 +48,21 @@ changerequest.savemodal.header.hint=Provide some information to save your change
 changerequest.savemodal.create.heading=Create new change request
 changerequest.savemodal.create.input.title=Title of the change request
 changerequest.savemodal.create.input.description=Description of the change request
+changerequest.savemodal.create.input.draft=Mark the change request as draft
 changerequest.savemodal.edit.heading=Add changes to existing change request
 changerequest.savemodal.edit.input.selector=Choose an existing change request
 changerequest.sheet.status.draft=Draft
 changerequest.sheet.status.merged=Merged
+changerequest.sheet.status.ready_for_review=Ready for review
 changerequest.sheet.merge.button=Merge
 changerequest.sheet.merge.button.title=Merge this change request
 changerequest.sheet.pagechanges=Changes requested in pages:
 changerequest.sheet.alldifftitle=All changes
-changerequest.sheet.difftitle=Diff of {0}</content>
+changerequest.sheet.difftitle=Diff of {0}
+changerequest.sheet.markready.button=Ready for review
+changerequest.sheet.markready.button.title=Mark this change request as ready for review
+changerequest.sheet.markdraft.button=Set as draft
+changerequest.sheet.markdraft.button.title=Mark this change request as work in progress</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

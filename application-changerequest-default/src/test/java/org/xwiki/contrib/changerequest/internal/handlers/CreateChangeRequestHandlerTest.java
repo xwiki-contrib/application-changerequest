@@ -26,6 +26,7 @@ import java.util.Optional;
 import javax.inject.Provider;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -141,7 +142,8 @@ class CreateChangeRequestHandlerTest
             .setTitle(title)
             .setDescription(description)
             .setCreator(userReference)
-            .addFileChange(expectedFileChange);
+            .addFileChange(expectedFileChange)
+            .setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
 
         doAnswer(invocationOnMock -> {
             ChangeRequest changeRequest = invocationOnMock.getArgument(0);

@@ -37,6 +37,32 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
+#if ($xcontext.action == 'get' &amp;&amp; $request.get('changerequest') != '' &amp;&amp; $request.get('setstatus') != '')
+#if (!$services.csrf.isTokenValid($request.get('form_token')))
+  #set ($discard = $response.sendError(401, "Wrong CSRF token."))
+#else
+  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
+  #if (!$changeRequestOpt.isPresent())
+    #set ($discard = $response.sendError(404, "Change request not found."))
+  #elseif (!$services.changerequest.canStatusBeChanged($changeRequestOpt.get()))
+    #set ($discard = $response.sendError(403, "You're not allowed to perform this action."))
+  #else
+    #set ($changeRequest = $changeRequestOpt.get())
+    #set ($changeRequestDocReference = $services.changerequest.getChangeRequestDocumentReference($changeRequest))
+    #set ($crDoc = $xwiki.getDocument($changeRequestDocReference))
+    #set ($redirectUrl = $crDoc.getURL('view'))
+    #if ($request.get('setstatus') == 'ready')
+      #set ($discard = $services.changerequest.setReadyForReview($changeRequest))
+      #set ($discard = $response.sendRedirect($redirectUrl))
+    #elseif ($request.get('setstatus') == 'draft')
+      #set ($discard = $services.changerequest.setDraft($changeRequest))
+      #set ($discard = $response.sendRedirect($redirectUrl))
+    #else
+      #set ($discard = $response.sendError(400, "Wrong status argument"))
+    #end
+  #end
+#end
+#else
 #set ($discard = $doc.use('ChangeRequest.ChangeRequestClass'))
 #set ($changeRequestId = $doc.documentReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
@@ -94,6 +120,7 @@ $services.localization.render('changerequest.sheet.pagechanges')
 {{/html}}
 #else
     No change request corresponding to the current id.
+#end
 #end
 {{/velocity}}</content>
   <object>
@@ -335,6 +362,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
   #set ($statusClass = "default")
 #elseif ($status == 'merged')
   #set ($statusClass = "success")
+#elseif ($status == 'ready_for_review')
+  #set ($statusClass = "primary")
 #end
 #set ($statusText = $services.localization.render("changerequest.sheet.status.$status"))
 
@@ -482,19 +511,56 @@ $services.localization.render('changerequest.sheet.pagechanges')
     </property>
     <property>
       <content>{{velocity}}
+
 #set ($changeRequestId = $doc.documentReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
 #set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
-#if ($isAuthorizedToMerge)
+#set ($canChangeStatus = $services.changerequest.canStatusBeChanged($changeRequest))
+#set ($displayButton = $canChangeStatus || $isAuthorizedToMerge)
+#set ($isDraft = $changeRequest.status == 'DRAFT')
+#set ($sheetDoc = $xwiki.getDocument("ChangeRequest.ChangeRequestSheet"))
+#if ($isDraft)
+  #set ($changeStatusBtnUrl = $sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready"))
+  #set ($changeStatusBtnTitle = $services.localization.render('changerequest.sheet.markready.button.title'))
+  #set ($changeStatusBtnClass = "btn-primary")
+  #set ($changeStatusBtnLabel = $services.localization.render('changerequest.sheet.markready.button'))
+  #set ($changeStatusBtnIcon = $services.icon.renderHTML('mark'))
+#else
+  #set ($changeStatusBtnUrl = $sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft"))
+  #set ($changeStatusBtnTitle = $services.localization.render('changerequest.sheet.markdraft.button.title'))
+  #set ($changeStatusBtnClass = "btn-default")
+  #set ($changeStatusBtnLabel = $services.localization.render('changerequest.sheet.markdraft.button'))
+  #set ($changeStatusBtnIcon = $services.icon.renderHTML('edit'))
+#end
+#if ($displayButton)
 {{html}}
-&lt;div class="btn-group" id="merge"&gt;
+&lt;div class="btn-group" id="changeRequestButtons"&gt;
+  #if ($isAuthorizedToMerge &amp;&amp; !($isDraft &amp;&amp; $canChangeStatus))
   #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
   &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$canBeMerged)disabled#end" #if(!$canBeMerged)disabled="disabled"#end&gt;
-  $services.icon.renderHTML('download') &lt;span class="btn-label"&gt;$services.localization.render('changerequest.sheet.merge.button')&lt;/span&gt;
+  $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
   &lt;/a&gt;
+  #if ($canChangeStatus)
+    &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
+      &lt;span class="caret"&gt;&lt;/span&gt;
+      &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
+    &lt;/button&gt;
+    &lt;ul class="dropdown-menu"&gt;
+      &lt;li&gt;
+        &lt;a href="$changeStatusBtnUrl" role="button" title="$changeStatusBtnTitle"&gt;
+        $changeStatusBtnIcon &lt;span class="btn-label"&gt;$changeStatusBtnLabel&lt;/span&gt;
+        &lt;/a&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  #end
+#elseif ($canChangeStatus)
+  &lt;a href="$changeStatusBtnUrl" role="button" title="$changeStatusBtnTitle" class="btn $changeStatusBtnClass"&gt;
+     $changeStatusBtnIcon &lt;span class="btn-label"&gt;$changeStatusBtnLabel&lt;/span&gt;
+  &lt;/a&gt;
+#end
 &lt;/div&gt;
 {{/html}}
 #end

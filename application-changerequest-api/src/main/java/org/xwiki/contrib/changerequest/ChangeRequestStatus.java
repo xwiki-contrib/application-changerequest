@@ -38,5 +38,11 @@ public enum ChangeRequestStatus
     /**
      * When the change request has been merged.
      */
-    MERGED
+    MERGED,
+
+    /**
+     * When the change request can be reviewed.
+     * @since 0.4
+     */
+    READY_FOR_REVIEW
 }

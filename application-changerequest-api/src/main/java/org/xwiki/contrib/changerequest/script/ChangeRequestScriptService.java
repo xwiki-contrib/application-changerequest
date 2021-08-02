@@ -37,8 +37,10 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
@@ -72,6 +74,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ResourceReferenceSerializer<ChangeRequestReference, ExtendedURL> urlResourceReferenceSerializer;
+
+    @Inject
+    private DocumentReferenceResolver<ChangeRequest> documentReferenceResolver;
 
     @Inject
     private Logger logger;
@@ -210,5 +215,66 @@ public class ChangeRequestScriptService implements ScriptService
                 ExceptionUtils.getRootCauseMessage(e));
         }
         return "";
+    }
+
+    /**
+     * Compute the reference of the actual document which stores the change request.
+     *
+     * @param changeRequest the change request for which to get the store document reference.
+     * @return a document reference where the change request can be seen.
+     * @since 0.4
+     */
+    public DocumentReference getChangeRequestDocumentReference(ChangeRequest changeRequest)
+    {
+        return this.documentReferenceResolver.resolve(changeRequest);
+    }
+
+    /**
+     * Check if the current user can change the status of the change request.
+     *
+     * @param changeRequest the change request for which to check the authors.
+     * @return {@code true} if the current user is one of the author of the given change request and the change request
+     *          is not merged yet.
+     * @since 0.4
+     */
+    public boolean canStatusBeChanged(ChangeRequest changeRequest)
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return changeRequest.getStatus() != ChangeRequestStatus.MERGED
+            && changeRequest.getAuthors().contains(currentUser);
+    }
+
+    private void setStatus(ChangeRequest changeRequest, ChangeRequestStatus status)
+    {
+        if (changeRequest.getStatus() != status) {
+            changeRequest.setStatus(status);
+            try {
+                this.changeRequestStorageManager.save(changeRequest);
+            } catch (ChangeRequestException e) {
+                logger.warn("Error while saving the change request: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+    }
+
+    /**
+     * Mark the given change request as ready for review.
+     *
+     * @param changeRequest the change request for which to change the status.
+     * @since 0.4
+     */
+    public void setReadyForReview(ChangeRequest changeRequest)
+    {
+        setStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
+    }
+
+    /**
+     * Mark the given change request as draft.
+     *
+     * @param changeRequest the change request for which to change the status.
+     * @since 0.4
+     */
+    public void setDraft(ChangeRequest changeRequest)
+    {
+        setStatus(changeRequest, ChangeRequestStatus.DRAFT);
     }
 }

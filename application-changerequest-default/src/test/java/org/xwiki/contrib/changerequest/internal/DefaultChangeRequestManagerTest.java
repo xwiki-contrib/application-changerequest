@@ -197,12 +197,15 @@ class DefaultChangeRequestManagerTest
         verify(this.configuration, never()).getMergeApprovalStrategy();
 
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
+        assertFalse(this.manager.canBeMerged(changeRequest));
+        verify(this.configuration, never()).getMergeApprovalStrategy();
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
         String approvalStrategyHint = "approve";
         when(this.configuration.getMergeApprovalStrategy()).thenReturn(approvalStrategyHint);
         MergeApprovalStrategy strategy =
             this.componentManager.registerMockComponent(MergeApprovalStrategy.class, approvalStrategyHint);
         when(strategy.canBeMerged(changeRequest)).thenReturn(false);
-
         assertFalse(this.manager.canBeMerged(changeRequest));
         verify(strategy).canBeMerged(changeRequest);
         verify(changeRequest, never()).getFileChanges();
