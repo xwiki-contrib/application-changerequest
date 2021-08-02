@@ -57,7 +57,6 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <xwiki.enforcer.skip>true</xwiki.enforcer.skip>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
