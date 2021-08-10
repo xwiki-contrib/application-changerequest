@@ -20,7 +20,9 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,6 +33,10 @@ import javax.script.ScriptContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -43,7 +49,6 @@ import org.xwiki.resource.entity.EntityResourceAction;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
-import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -81,6 +86,9 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
     @Inject
     private ContextualAuthorizationManager autorization;
 
+    @Inject
+    private ChangeRequestStorageManager changeRequestStorageManager;
+
     @Override
     public List<EntityResourceAction> getSupportedResourceReferences()
     {
@@ -91,19 +99,33 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
     public void handle(ResourceReference reference, ResourceReferenceHandlerChain chain)
         throws ResourceReferenceHandlerException
     {
-        XWikiContext xWikiContext = this.contextProvider.get();
+        XWikiContext context = this.contextProvider.get();
+        String changerequestId = context.getRequest().getParameter("changerequest");
 
-        // We are directly relying on Utils#parseTemplate because we want the plugin manager to properly
-        // handle the javascript placeholders and it avoids duplicating code.
         try {
-            this.prepareEditedDocument(xWikiContext);
+            if (!StringUtils.isEmpty(changerequestId)) {
+                Optional<ChangeRequest> changeRequestOptional = this.changeRequestStorageManager.load(changerequestId);
+                changeRequestOptional.ifPresent(changeRequest -> {
+                    DocumentReference currentReference = context.getDoc().getDocumentReferenceWithLocale();
+                    Deque<FileChange> fileChanges = changeRequest.getFileChanges().get(currentReference);
+                    if (fileChanges != null && !fileChanges.isEmpty()) {
+                        context.setDoc((XWikiDocument) fileChanges.getLast().getModifiedDocument());
+                    }
+                });
+            }
+            this.prepareEditedDocument(context);
             // We pretend to be in edit action to avoid getting redirection in templates that checks the action
             // we need to call that only after the documents are prepared though to avoid getting blocked by the
             // security checks.
-            xWikiContext.setAction("edit");
-            Utils.parseTemplate("changerequest/editcr", true, xWikiContext);
+            context.setAction("edit");
+            // We are directly relying on Utils#parseTemplate because we want the plugin manager to properly
+            // handle the javascript placeholders and it avoids duplicating code.
+            Utils.parseTemplate("changerequest/editcr", true, context);
         } catch (XWikiException e) {
             throw new ResourceReferenceHandlerException("Error when parsing editcr template.", e);
+        } catch (ChangeRequestException e) {
+            throw new ResourceReferenceHandlerException(
+                String.format("Error when trying to load change request with id [%s]", changerequestId), e);
         }
         chain.handleNext(reference);
     }
@@ -161,7 +183,6 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
      * @since 12.10.6
      * @since 13.2RC1
      */
-    @Unstable
     protected boolean readFromTemplate(XWikiDocument document, String template, XWikiContext context)
         throws XWikiException
     {

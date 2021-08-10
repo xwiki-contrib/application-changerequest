@@ -82,8 +82,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
 #foreach ($ref in $modifiedFiles)
   #set ($actualDoc = $xwiki.getDocument($ref))
   #set ($renderedTitle = $actualDoc.getDisplayTitle())
-  #set ($viewLink = $actualDoc.getURL())
-   &lt;li&gt;&lt;a href="$viewLink"&gt;$renderedTitle&lt;/a&gt;&lt;/li&gt;
+  #set ($editLink = $actualDoc.getURL('editcr', "changerequest=$changeRequest.id"))
+   &lt;li&gt;&lt;a href="$editLink"&gt;$renderedTitle $services.icon.renderHTML('pencil')&lt;/a&gt;&lt;/li&gt;
 #end
 &lt;/ul&gt;
 &lt;/div&gt;

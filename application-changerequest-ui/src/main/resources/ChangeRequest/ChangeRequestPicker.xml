@@ -37,9 +37,13 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
+#template('display_macros.vm')
 #macro (changeRequestPicker_import)
+  #initRequiredSkinExtensions()
   #picker_import
   #set ($discard = $xwiki.jsx.use('ChangeRequest.ChangeRequestPicker'))
+  #getRequiredSkinExtensions($requiredSkinExtensions)
+  #set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $requiredSkinExtensions))
 #end
 
 #macro (changeRequestPicker $parameters)
@@ -175,7 +179,7 @@ define('xwiki-suggestChangeRequest', ['jquery', 'xwiki-selectize'], function($) 
           outputSyntax: 'plain'
         }).done(callback).fail(callback);
       },
-      loadSelected: function(selectedValue, callback) {
+      loadSelected: function(typedText, callback) {
         $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest').getURL('get'), {
           text: typedText,
           exactMatch: true,
@@ -209,7 +213,7 @@ require(['jquery', 'xwiki-suggestChangeRequest', 'xwiki-events-bridge'], functio
       <parse>1</parse>
     </property>
     <property>
-      <use>always</use>
+      <use>onDemand</use>
     </property>
   </object>
 </xwikidoc>

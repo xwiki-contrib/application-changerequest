@@ -39,6 +39,7 @@
   <content>{{include reference='ChangeRequest.ChangeRequestPicker'/}}
 {{velocity}}
 #if ($request.get('getmodal') == 1)
+#set ($isEditingChangeRequest = ($request.get('changerequest') != ''))
 &lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
     &lt;div class="modal-content"&gt;
@@ -61,7 +62,7 @@
                   &lt;/a&gt;
                &lt;/h4&gt;
              &lt;/div&gt;&lt;!-- End panel heading --&gt;
-           &lt;div id="newChangeRequest" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="newChangeRequestHeading"&gt;
+           &lt;div id="newChangeRequest" class="panel-collapse collapse #if(!$isEditingChangeRequest)in#end" role="tabpanel" aria-labelledby="newChangeRequestHeading"&gt;
             &lt;div class="panel-body"&gt;
               &lt;div class="form-group"&gt;
                 &lt;label for="crTitle"&gt;$services.localization.render('changerequest.savemodal.create.input.title')&lt;/label&gt;
@@ -87,13 +88,14 @@
                   &lt;/a&gt;
                &lt;/h4&gt;
              &lt;/div&gt;&lt;!-- End panel heading --&gt;
-             &lt;div id="addToExistingChangeRequest" class="panel-collapse collapse" role="tabpanel" aria-labelledby="addToExistingChangeRequestHeading"&gt;
+             &lt;div id="addToExistingChangeRequest" class="panel-collapse collapse #if($isEditingChangeRequest)in#end" role="tabpanel" aria-labelledby="addToExistingChangeRequestHeading"&gt;
               &lt;div class="panel-body"&gt;
                 &lt;label for="existingCRSelector"&gt;$services.localization.render('changerequest.savemodal.edit.input.selector')&lt;/label&gt;
                   #set ($crPickerParameters = {
                     'name': 'existingCRSelector',
                     'id': 'existingCRSelector',
-                    'class': 'form-control'
+                    'class': 'form-control',
+                    'value': $request.get('changerequest')
                   })
                   #changeRequestPicker($crPickerParameters)
               &lt;/div&gt;&lt;!-- End panel body --&gt;
@@ -103,7 +105,7 @@
         &lt;/form&gt;
       &lt;/div&gt;&lt;!-- End modal body --&gt;
       &lt;div class="modal-footer"&gt;
-        &lt;input type="button" id="saveChangeRequest" class="btn btn-primary" value="$services.localization.render('save')" disabled="disabled" /&gt;
+        &lt;input type="button" id="saveChangeRequest" class="btn btn-primary" value="$services.localization.render('save')" #if(!$isEditingChangeRequest)disabled="disabled"#end /&gt;
         &lt;input type="button" id="cancelChangeRequest" class="btn btn-default" value="$services.localization.render('cancel')" data-dismiss="modal" aria-hidden="true" /&gt;
       &lt;/div&gt;
     &lt;/div&gt;
@@ -198,7 +200,8 @@
       <cache>forbid</cache>
     </property>
     <property>
-      <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
+      <code>// third argument is a polyfill for using URLSearchParam with IE11
+require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-search-params-polyfill', 'index.js')"], function ($, xm) {
   var saveChangeRequest = function () {
     var isNewCR = $('#existingCRSelector').val() === "";
     var form = $('#save_changerequest').parents('form');
@@ -251,13 +254,35 @@
     }
   };
   
+  var loadRequiredSkinExtensions = function(requiredSkinExtensions) {
+    var existingSkinExtensions;
+    var getExistingSkinExtensions = function() {
+      return $('link, script').map(function() {
+        return $(this).attr('href') || $(this).attr('src');
+      }).get();
+    };
+    $('&lt;div/&gt;').html(requiredSkinExtensions).find('link, script').filter(function() {
+      if (!existingSkinExtensions) {
+        existingSkinExtensions = getExistingSkinExtensions();
+      }
+      var url = $(this).attr('href') || $(this).attr('src');
+      return existingSkinExtensions.indexOf(url) &lt; 0;
+    }).appendTo('head');
+  };
+  
   var createChangeRequestModal = function () {
     if ($('#changeRequestModal').length &gt; 0) {
       $('#changeRequestModal').modal('show');
       $('#crDescription').val($('#commentinput').val());
     } else {
       var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
-      $.get(modalURL.getURL('get', 'getmodal=1&amp;outputSyntax=plain')).done(function (data) {
+      var urlParams = new URLSearchParams(window.location.search);
+      var queryString = 'getmodal=1&amp;outputSyntax=plain';
+      if (urlParams.has('changerequest')) {
+        queryString += '&amp;changerequest=' + urlParams.get('changerequest');
+      }
+      $.get(modalURL.getURL('get', queryString)).done(function (data, textStatus, jqXHR) {
+        loadRequiredSkinExtensions(jqXHR.getResponseHeader('X-XWIKI-HTML-HEAD'));
         $('body').append(data);
         $('#changeRequestModal').modal('show');
         $('#saveChangeRequest').on('click', saveChangeRequest);
