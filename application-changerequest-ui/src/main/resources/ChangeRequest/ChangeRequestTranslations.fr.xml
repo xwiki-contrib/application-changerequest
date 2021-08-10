@@ -48,14 +48,20 @@ changerequest.savemodal.header.hint=Fournissez des informations sur votre demand
 changerequest.savemodal.create.heading=Créer une nouvelle demande de modification
 changerequest.savemodal.create.input.title=Titre de la demande de modification
 changerequest.savemodal.create.input.description=Description de la demande de modification
+changerequest.savemodal.create.input.draft=Marquer la demande de modification comme Brouillon
 changerequest.savemodal.edit.heading=Modifier une demande existante
 changerequest.savemodal.edit.input.selector=Choisissez une demande de modification existante
 changerequest.sheet.status.draft=Brouillon
 changerequest.sheet.status.merged=Fusionné
+changerequest.sheet.status.ready_for_review=Prêt à être relu
 changerequest.sheet.merge.button=Fusionner
 changerequest.sheet.merge.button.title=Fusionner cette demande de modification
 changerequest.sheet.pagechanges=Demandes de modification dans les pages :
 changerequest.sheet.alldifftitle=Toutes les modifications
 changerequest.sheet.difftitle=Différences de {0}
+changerequest.sheet.markready.button=Prêt à être relu
+changerequest.sheet.markready.button.title=Marquer cette demande de modification comme Prêt à être relu
+changerequest.sheet.markdraft.button=En brouillon
+changerequest.sheet.markdraft.button.title=Marquer cette demande de modification comme En cours
 </content>
 </xwikidoc>
