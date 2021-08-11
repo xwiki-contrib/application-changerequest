@@ -20,15 +20,16 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -84,6 +85,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
 
     @Inject
     private ChangeRequestConfiguration configuration;
+
+    @Inject
+    private FileChangeVersionManager fileChangeVersionManager;
 
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
@@ -144,17 +148,28 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
             try {
                 MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
                 if (mergeApprovalStrategy.canBeMerged(changeRequest)) {
-                    boolean noConflict = true;
-                    for (FileChange fileChange : changeRequest.getAllFileChanges()) {
-                        if (this.hasConflicts(fileChange)) {
-                            noConflict = false;
-                            break;
-                        }
-                    }
-                    result = noConflict;
+                    result = !this.hasConflict(changeRequest);
                 }
             } catch (ComponentLookupException e) {
                 throw new ChangeRequestException("Error when getting the merge approval strategy", e);
+            }
+        }
+        return result;
+    }
+
+    private boolean hasConflict(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        boolean result = false;
+        Set<DocumentReference> documentReferences = changeRequest.getFileChanges().keySet();
+        for (DocumentReference documentReference : documentReferences) {
+            Optional<FileChange> fileChangeOptional =
+                changeRequest.getLatestFileChangeFor(documentReference);
+            if (fileChangeOptional.isPresent()) {
+                FileChange fileChange = fileChangeOptional.get();
+                if (this.hasConflicts(fileChange)) {
+                    result = true;
+                    break;
+                }
             }
         }
         return result;
@@ -164,18 +179,36 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     public Optional<MergeDocumentResult> mergeDocumentChanges(DocumentModelBridge modifiedDocument,
         String previousVersion, ChangeRequest changeRequest) throws ChangeRequestException
     {
-        Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
+        Map<DocumentReference, Deque<FileChange>> fileChangesMap = changeRequest.getFileChanges();
         XWikiDocument nextDoc = (XWikiDocument) modifiedDocument;
         DocumentReference documentReference = nextDoc.getDocumentReferenceWithLocale();
-        if (fileChanges.containsKey(documentReference)) {
-            FileChange fileChange = fileChanges.get(documentReference).peekLast();
-            Version previous = new Version(previousVersion);
-            Version sourceVersion = new Version(fileChange.getSourceVersion());
-            Version sourceDocVersion = (previous.isLessOrEqualThan(sourceVersion)) ? previous : sourceVersion;
-            DocumentModelBridge previousDoc =
-                this.fileChangeStorageManager.getDocumentFromFileChange(fileChange, sourceDocVersion.toString());
-            DocumentModelBridge currentDoc =
-                this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+        if (fileChangesMap.containsKey(documentReference)) {
+            Deque<FileChange> fileChanges = fileChangesMap.get(documentReference);
+            boolean isPreviousFromFilechange = this.fileChangeVersionManager.isFileChangeVersion(previousVersion);
+            FileChange lastFileChange = fileChanges.getLast();
+            FileChange fileChange = null;
+            DocumentModelBridge previousDoc;
+            DocumentModelBridge currentDoc;
+            if (isPreviousFromFilechange) {
+                Iterator<FileChange> fileChangeIterator = fileChanges.descendingIterator();
+                FileChange checkingFileChange;
+                while (fileChangeIterator.hasNext()) {
+                    checkingFileChange = fileChangeIterator.next();
+                    if (previousVersion.equals(checkingFileChange.getVersion())) {
+                        fileChange = checkingFileChange;
+                    }
+                }
+                if (fileChange == null) {
+                    throw new ChangeRequestException(
+                        String.format("Cannot find file change with version [%s]", previousVersion));
+                }
+                previousDoc = this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+                currentDoc = this.fileChangeStorageManager.getModifiedDocumentFromFileChange(lastFileChange);
+            } else {
+                fileChange = lastFileChange;
+                previousDoc = this.fileChangeStorageManager.getDocumentFromFileChange(fileChange, previousVersion);
+                currentDoc = this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+            }
 
             XWikiContext context = this.contextProvider.get();
             MergeConfiguration mergeConfiguration = new MergeConfiguration();

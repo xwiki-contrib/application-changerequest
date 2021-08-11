@@ -39,10 +39,17 @@ import org.xwiki.user.UserReference;
 @Unstable
 public class FileChange
 {
+    /**
+     * Prefix used for storing the filechange version.
+     */
+    public static final String FILECHANGE_VERSION_PREFIX = "filechange-";
+
     private String id;
     private final ChangeRequest changeRequest;
     private DocumentReference targetEntity;
-    private String sourceVersion;
+    private String previousVersion;
+    private String previousPublishedVersion;
+    private String version;
     private UserReference author;
     private Date creationDate;
     private DocumentModelBridge modifiedDocument;
@@ -96,20 +103,52 @@ public class FileChange
     }
 
     /**
-     * @return the version of the document for which the proposed changes have been made.
+     * The previous version is the version of the document from which the modifications have been made: it can be
+     * either the version of a published document, or the version of a previous file change, in which case the version
+     * is prefixed by {@link #FILECHANGE_VERSION_PREFIX}.
+     * Note that this version should not be used for performing a merge to publish the file change: for this usecase,
+     * the {@link #getPreviousPublishedVersion()} should be used since it guarantees that it's a published version.
+     *
+     * @return the version from which the changes have been made.
      */
-    public String getSourceVersion()
+    public String getPreviousVersion()
     {
-        return sourceVersion;
+        return previousVersion;
     }
 
     /**
-     * @param sourceVersion the version of the document for which the proposed changes have been made.
+     * See {@link #getPreviousVersion()} for details and distinction between this method and
+     * {@link #setPreviousPublishedVersion(String)}.
+     *
+     * @param previousVersion the version from which the changes have been made.
      * @return the current instance.
      */
-    public FileChange setSourceVersion(String sourceVersion)
+    public FileChange setPreviousVersion(String previousVersion)
     {
-        this.sourceVersion = sourceVersion;
+        this.previousVersion = previousVersion;
+        return this;
+    }
+
+    /**
+     * The previous published version is the published version of document for which the changes have been made.
+     * This is the version that should be used for merging the changes to publish them.
+     *
+     * @return the version of the document for which the changes have been made.
+     */
+    public String getPreviousPublishedVersion()
+    {
+        return previousPublishedVersion;
+    }
+
+    /**
+     * See {@link #getPreviousVersion()} and {@link #getPreviousPublishedVersion()}.
+     *
+     * @param previousPublishedVersion the version of the document for which the changes have been made.
+     * @return the current instance.
+     */
+    public FileChange setPreviousPublishedVersion(String previousPublishedVersion)
+    {
+        this.previousPublishedVersion = previousPublishedVersion;
         return this;
     }
 
@@ -193,6 +232,28 @@ public class FileChange
         return creationDate;
     }
 
+    /**
+     * @return the version of this filechange.
+     * @since 0.4
+     */
+    public String getVersion()
+    {
+        return version;
+    }
+
+    /**
+     * Set the version of this filechange.
+     * Note that this method only stores the version and does not set the {@link #FILECHANGE_VERSION_PREFIX}.
+     * @param version the version to set.
+     * @return the current instance.
+     * @since 0.4
+     */
+    public FileChange setVersion(String version)
+    {
+        this.version = version;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -210,10 +271,11 @@ public class FileChange
             .append(saved, that.saved)
             .append(id, that.id)
             .append(targetEntity, that.targetEntity)
-            .append(sourceVersion, that.sourceVersion)
+            .append(previousVersion, that.previousVersion)
             .append(author, that.author)
             .append(creationDate, that.creationDate)
             .append(modifiedDocument, that.modifiedDocument)
+            .append(version, that.version)
             .isEquals();
     }
 
@@ -223,11 +285,12 @@ public class FileChange
         return new HashCodeBuilder(15, 13)
             .append(id)
             .append(targetEntity)
-            .append(sourceVersion)
+            .append(previousVersion)
             .append(author)
             .append(creationDate)
             .append(modifiedDocument)
             .append(saved)
+            .append(version)
             .toHashCode();
     }
 
@@ -237,7 +300,8 @@ public class FileChange
         return new ToStringBuilder(this)
             .append("id", id)
             .append("targetEntity", targetEntity)
-            .append("sourceVersion", sourceVersion)
+            .append("sourceVersion", previousVersion)
+            .append("version", version)
             .append("author", author)
             .append("creationDate", creationDate)
             .append("modifiedDocument", modifiedDocument)

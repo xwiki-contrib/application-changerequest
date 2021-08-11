@@ -20,7 +20,6 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +34,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -107,10 +105,9 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
                 Optional<ChangeRequest> changeRequestOptional = this.changeRequestStorageManager.load(changerequestId);
                 changeRequestOptional.ifPresent(changeRequest -> {
                     DocumentReference currentReference = context.getDoc().getDocumentReferenceWithLocale();
-                    Deque<FileChange> fileChanges = changeRequest.getFileChanges().get(currentReference);
-                    if (fileChanges != null && !fileChanges.isEmpty()) {
-                        context.setDoc((XWikiDocument) fileChanges.getLast().getModifiedDocument());
-                    }
+                    changeRequest.getLatestFileChangeFor(currentReference).ifPresent(fileChange -> {
+                        context.setDoc((XWikiDocument) fileChange.getModifiedDocument());
+                    });
                 });
             }
             this.prepareEditedDocument(context);

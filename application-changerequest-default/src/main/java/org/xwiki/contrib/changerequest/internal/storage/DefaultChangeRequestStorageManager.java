@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -197,10 +198,14 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Override
     public void merge(ChangeRequest changeRequest) throws ChangeRequestException
     {
-        // FIXME: we should maybe have a way to rollback if a merge has been only partially done?
-        for (FileChange fileChange : changeRequest.getAllFileChanges()) {
-            this.fileChangeStorageManager.merge(fileChange);
+        Set<DocumentReference> documentReferences = changeRequest.getFileChanges().keySet();
+        for (DocumentReference documentReference : documentReferences) {
+            Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+            if (optionalFileChange.isPresent()) {
+                this.fileChangeStorageManager.merge(optionalFileChange.get());
+            }
         }
+
         changeRequest.setStatus(ChangeRequestStatus.MERGED);
         this.save(changeRequest);
     }

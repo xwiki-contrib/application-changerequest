@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -188,6 +189,24 @@ public class ChangeRequest
     public Map<DocumentReference, Deque<FileChange>> getFileChanges()
     {
         return fileChanges;
+    }
+
+    /**
+     * Automatically retrieve  the latest {@link FileChange} for the given document reference.
+     *
+     * @param documentReference the reference for which to retrieve latest file change.
+     * @return {@link Optional#empty()} if there's no file change for this reference, else returns an optional with
+     *          latest file change in the list.
+     * @since 0.4
+     */
+    public Optional<FileChange> getLatestFileChangeFor(DocumentReference documentReference)
+    {
+        Optional<FileChange> result = Optional.empty();
+        Deque<FileChange> fileChangeList = this.fileChanges.getOrDefault(documentReference, new LinkedList<>());
+        if (!fileChangeList.isEmpty()) {
+            result = Optional.of(fileChangeList.getLast());
+        }
+        return result;
     }
 
     /**

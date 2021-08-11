@@ -47,8 +47,6 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xpn.xwiki.web.XWikiResponse;
 
-import liquibase.change.Change;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -133,7 +131,7 @@ class CreateChangeRequestHandlerTest
         expectedFileChange
             .setAuthor(userReference)
             .setTargetEntity(documentReferenceWithLocale)
-            .setSourceVersion(previousVersion)
+            .setPreviousVersion(previousVersion)
             .setModifiedDocument(modifiedDocument);
 
         String crId = "myCrID";

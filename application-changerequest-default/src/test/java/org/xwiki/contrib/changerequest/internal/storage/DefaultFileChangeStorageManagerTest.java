@@ -39,6 +39,7 @@ import org.xwiki.context.Execution;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.environment.Environment;
 import org.xwiki.filter.internal.DefaultFilterDescriptorManager;
@@ -91,6 +92,7 @@ import com.xpn.xwiki.internal.filter.output.PropertyClassOutputFilterStream;
 import com.xpn.xwiki.internal.filter.output.XWikiAttachmentOutputFilterStream;
 import com.xpn.xwiki.internal.filter.output.XWikiDocumentOutputFilterStream;
 import com.xpn.xwiki.internal.localization.XWikiLocalizationContext;
+import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.store.XWikiAttachmentStoreInterface;
 import com.xpn.xwiki.test.reference.ReferenceComponentList;
 import com.xpn.xwiki.web.Utils;
@@ -181,6 +183,9 @@ public class DefaultFileChangeStorageManagerTest
     @MockComponent
     private MergeManager mergeManager;
 
+    @MockComponent
+    private FileChangeVersionManager fileChangeVersionManager;
+
     @RegisterExtension
     LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
@@ -236,7 +241,7 @@ public class DefaultFileChangeStorageManagerTest
         DocumentReference targetEntity = mock(DocumentReference.class);
         when(fileChange.getTargetEntity()).thenReturn(targetEntity);
         XWikiDocument document = mock(XWikiDocument.class);
-        when(fileChange.getSourceVersion()).thenReturn("4.3");
+        when(fileChange.getPreviousPublishedVersion()).thenReturn("4.3");
         when(this.documentRevisionProvider.getRevision(targetEntity, "4.3")).thenReturn(document);
         assertEquals(document, this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange));
     }
@@ -277,9 +282,10 @@ public class DefaultFileChangeStorageManagerTest
         XWikiDocument fileChangeDoc = mock(XWikiDocument.class);
         when(this.xWiki.getDocument(fileStorageDocRef, this.context)).thenReturn(fileChangeDoc);
 
+        String version = "filechange-3.3";
+        when(this.fileChangeVersionManager.getDocumentVersion(version)).thenReturn(new Version("3.3"));
         when(modifiedDoc.getId()).thenReturn(4895L);
-        when(modifiedDoc.getVersion()).thenReturn("4.3");
-        String expectedId = "4895-4.3";
+        String expectedId = version + "-4895";
 
         when(fileChange.getId()).thenReturn(expectedId);
         XWikiAttachmentStoreInterface storeInterface = mock(XWikiAttachmentStoreInterface.class);
@@ -287,12 +293,19 @@ public class DefaultFileChangeStorageManagerTest
         when(storeInterface.getHint()).thenReturn("storeHint");
         when(fileChangeDoc.setAttachment(any())).then(invocationOnMock -> {
             XWikiAttachment attachment = invocationOnMock.getArgument(0);
-            assertEquals(DefaultFileChangeStorageManager.FILE_CHANGE_CONSTANT_NAME + "-" + expectedId + ".xml",
-                attachment.getFilename());
+            assertEquals(expectedId + ".xml", attachment.getFilename());
             assertEquals("storeHint", attachment.getContentStore());
 
             return attachment;
         });
+        when(fileChangeDoc.createXObject(DefaultFileChangeStorageManager.FILECHANGE_XCLASS, this.context))
+            .thenReturn(3);
+        BaseObject fileChangeObj = mock(BaseObject.class);
+        when(fileChangeDoc.getXObject(DefaultFileChangeStorageManager.FILECHANGE_XCLASS, 3)).thenReturn(fileChangeObj);
+        when(fileChange.getVersion()).thenReturn(version);
+        when(fileChange.getPreviousVersion()).thenReturn("filechange-3.2");
+        when(fileChange.getPreviousPublishedVersion()).thenReturn("2.13");
+
         this.fileChangeStorageManager.save(fileChange);
         verify(fileChange).setSaved(true);
         verify(this.xWiki).saveDocument(fileChangeDoc, this.context);
@@ -300,6 +313,16 @@ public class DefaultFileChangeStorageManagerTest
         verify(fileChangeDoc).setAttachment(any());
         verify(fileChangeDoc).setHidden(true);
         verify(fileChange).setId(expectedId);
+        verify(fileChangeObj).set(DefaultFileChangeStorageManager.FILENAME_PROPERTY, expectedId + ".xml", this.context);
+        verify(fileChangeObj).set(DefaultFileChangeStorageManager.VERSION_PROPERTY, "filechange-3.3", this.context);
+        verify(fileChangeObj)
+            .set(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY, "2.13", this.context);
+        verify(fileChangeObj)
+            .set(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY, "filechange-3.2", this.context);
+        verify(fileChangeObj).set(DefaultFileChangeStorageManager.REFERENCE_PROPERTY, "xwiki:Space.Doc", this.context);
+        verify(fileChangeObj)
+            .set(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY, Locale.FRENCH, this.context);
+        verify(modifiedDoc).setRCSVersion(new Version("3.3"));
     }
 
     @Test
@@ -307,7 +330,7 @@ public class DefaultFileChangeStorageManagerTest
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         DocumentReference changedDocument = new DocumentReference("xwiki", "Space", "Document");
-        DocumentReference changedDocumentWithLocale = new DocumentReference(changedDocument, Locale.ROOT);
+
         DocumentReference changeRequestDocReference = new DocumentReference("xwiki", "ChangeRequest", "Doc");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
         String uidSerialization = "5:xwiki5:Space8:Document0:";
@@ -322,53 +345,76 @@ public class DefaultFileChangeStorageManagerTest
         assertEquals(new ArrayList<>(), this.fileChangeStorageManager.load(changeRequest, changedDocument));
         assertEquals(1, this.logCapture.size());
         assertEquals("No file change found in [null].", this.logCapture.getMessage(0));
-
+        DocumentReference targetEntity = new DocumentReference("xwiki", "SomePage", "WebHome", Locale.GERMAN);
+        String serializedTargetEntity = "xwiki:SomePage.WebHome";
         when(fileStorageDoc.isNew()).thenReturn(false);
+        BaseObject fileChangeObj1 = mock(BaseObject.class);
+        BaseObject fileChangeObj2 = mock(BaseObject.class);
+        when(fileStorageDoc.getXObjects(DefaultFileChangeStorageManager.FILECHANGE_XCLASS))
+            .thenReturn(Arrays.asList(fileChangeObj1, fileChangeObj2));
+
+        String filename1 = "file1.xml";
+        String filename2 = "file2.xml";
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
+            .thenReturn(serializedTargetEntity);
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
+            .thenReturn(filename1);
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
+            .thenReturn("2.3");
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY))
+            .thenReturn("2.3");
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.VERSION_PROPERTY))
+            .thenReturn("filechange-3.1");
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
+            .thenReturn(Locale.GERMAN.toString());
+
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
+            .thenReturn(serializedTargetEntity);
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
+            .thenReturn(filename2);
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
+            .thenReturn("2.3");
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY))
+            .thenReturn("filechange-3.1");
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.VERSION_PROPERTY))
+            .thenReturn("filechange-3.2");
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
+            .thenReturn(Locale.GERMAN.toString());
+
         XWikiAttachment attachment1 = mock(XWikiAttachment.class);
         XWikiAttachment attachment2 = mock(XWikiAttachment.class);
-        XWikiAttachment attachment3 = mock(XWikiAttachment.class);
-        XWikiAttachment attachment4 = mock(XWikiAttachment.class);
-        when(fileStorageDoc.getAttachmentList()).thenReturn(Arrays.asList(
-            attachment1,
-            attachment2,
-            attachment3,
-            attachment4
-        ));
 
-        String filename1 = "somefile";
-        String filename2 = DefaultFileChangeStorageManager.FILE_CHANGE_CONSTANT_NAME + "-someid-someversion.xml";
-        String filename3 = DefaultFileChangeStorageManager.FILE_CHANGE_CONSTANT_NAME + "-anotherid-4.2.xml";
-        String filename4 = "something-else.xml";
-        when(attachment1.getFilename()).thenReturn(filename1);
-        when(attachment2.getFilename()).thenReturn(filename2);
-        when(attachment3.getFilename()).thenReturn(filename3);
-        when(attachment4.getFilename()).thenReturn(filename4);
+        when(fileStorageDoc.getAttachment(filename1)).thenReturn(attachment1);
+        when(fileStorageDoc.getAttachment(filename2)).thenReturn(attachment2);
 
-        when(attachment2.getContentInputStream(this.context))
+        when(attachment1.getContentInputStream(this.context))
             .thenReturn(getClass().getClassLoader().getResourceAsStream("filechange.xml"));
-        when(attachment3.getContentInputStream(this.context))
+        when(attachment2.getContentInputStream(this.context))
             .thenReturn(getClass().getClassLoader().getResourceAsStream("filechange2.xml"));
 
         DocumentReference authorDocReference = new DocumentReference("xwiki", "XWiki", "surli");
         UserReference authorReference = mock(UserReference.class);
         when(this.userReferenceResolver.resolve(authorDocReference)).thenReturn(authorReference);
 
-        DocumentReference targetEntity = new DocumentReference("xwiki", "SomePage", "WebHome", Locale.ROOT);
         FileChange expected1 = new FileChange(changeRequest)
             .setCreationDate(new Date(1624961293000L))
             .setAuthor(authorReference)
             .setSaved(true)
-            .setId("someid-someversion")
+            .setId("file1")
             .setTargetEntity(targetEntity)
-            .setSourceVersion("1.2");
+            .setPreviousVersion("2.3")
+            .setPreviousPublishedVersion("2.3")
+            .setVersion("filechange-3.1");
 
         FileChange expected2 = new FileChange(changeRequest)
             .setCreationDate(new Date(1624961293000L))
             .setAuthor(authorReference)
             .setSaved(true)
-            .setId("anotherid-4.2")
+            .setId("file2")
             .setTargetEntity(targetEntity)
-            .setSourceVersion("2.3");
+            .setPreviousVersion("filechange-3.1")
+            .setPreviousPublishedVersion("2.3")
+            .setVersion("filechange-3.2");
 
         ArrayList<FileChange> expected = new ArrayList<>(Arrays.asList(expected1, expected2));
 
@@ -391,7 +437,7 @@ public class DefaultFileChangeStorageManagerTest
         DocumentReference targetEntity = mock(DocumentReference.class);
         when(fileChange.getTargetEntity()).thenReturn(targetEntity);
         XWikiDocument previousDocument = mock(XWikiDocument.class);
-        when(fileChange.getSourceVersion()).thenReturn("1.3");
+        when(fileChange.getPreviousPublishedVersion()).thenReturn("1.3");
         when(this.documentRevisionProvider.getRevision(targetEntity, "1.3")).thenReturn(previousDocument);
 
         XWikiDocument currentDocument = mock(XWikiDocument.class);

@@ -27,7 +27,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
-import org.slf4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -35,6 +35,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
+import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -55,6 +56,8 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
+    static final String PREVIOUS_VERSION_PARAMETER = "previousVersion";
+
     @Inject
     private ChangeRequestManager changeRequestManager;
 
@@ -62,7 +65,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
-    private Logger logger;
+    private FileChangeVersionManager fileChangeVersionManager;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
@@ -74,36 +77,67 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
 
         if (changeRequest != null) {
-            String previousVersion = request.getParameter("previousVersion");
-
             UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
             FileChange fileChange = new FileChange(changeRequest);
             fileChange
                 .setAuthor(currentUser)
-                .setTargetEntity(documentReference)
-                // FIXME: the version here is not necessarily the right one.
-                .setSourceVersion(previousVersion)
-                .setModifiedDocument(modifiedDocument);
+                .setTargetEntity(documentReference);
+            Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+            String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
 
-            Optional<MergeDocumentResult> optionalMergeDocumentResult =
-                this.changeRequestManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
-            boolean withConflict = false;
-            if (optionalMergeDocumentResult.isPresent()) {
-                MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
-                withConflict = mergeDocumentResult.hasConflicts();
-                if (withConflict) {
-                    this.contextProvider.get().getResponse().sendError(409, "Conflict found in the changes.");
-                } else {
-                    fileChange.setModifiedDocument(mergeDocumentResult.getMergeResult());
+            if (optionalFileChange.isPresent()) {
+                if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange, optionalFileChange.get(),
+                    modifiedDocument)) {
+                    return;
                 }
+            } else {
+                String fileChangeVersion =
+                    this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+                fileChange
+                    .setPreviousVersion(previousVersion)
+                    .setPreviousPublishedVersion(previousVersion)
+                    .setVersion(fileChangeVersion)
+                    .setModifiedDocument(modifiedDocument);
             }
-            if (!withConflict) {
-                changeRequest.addFileChange(fileChange);
-                this.storageManager.save(changeRequest);
-                this.observationManager
-                    .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
-                this.redirectToChangeRequest(changeRequest);
-            }
+
+            changeRequest.addFileChange(fileChange);
+            this.storageManager.save(changeRequest);
+            this.observationManager
+                .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
+            this.redirectToChangeRequest(changeRequest);
         }
+    }
+
+    private boolean addChangeToExistingFileChange(HttpServletRequest request, ChangeRequest changeRequest,
+        FileChange currentFileChange, FileChange latestFileChange, XWikiDocument modifiedDocument)
+        throws ChangeRequestException, IOException
+    {
+        boolean result = false;
+        String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
+        if (StringUtils.equals(request.getParameter("fromchangerequest"), "1")) {
+            previousVersion = this.fileChangeVersionManager.getFileChangeVersion(previousVersion);
+        }
+        String previousPublishedVersion = latestFileChange.getPreviousPublishedVersion();
+        Optional<MergeDocumentResult> optionalMergeDocumentResult =
+            this.changeRequestManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
+        if (optionalMergeDocumentResult.isPresent()) {
+            MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
+            String fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, true);
+            if (!mergeDocumentResult.hasConflicts()) {
+                currentFileChange
+                    .setPreviousPublishedVersion(previousPublishedVersion)
+                    .setPreviousVersion(previousVersion)
+                    .setVersion(fileChangeVersion)
+                    .setModifiedDocument(mergeDocumentResult.getMergeResult());
+                result = true;
+            } else {
+                this.contextProvider.get().getResponse().sendError(409, "Conflict found in the changes.");
+            }
+        } else {
+            this.contextProvider.get().getResponse().sendError(404,
+                String.format("Could not find file changes for the given reference: [%s]",
+                    modifiedDocument.getDocumentReferenceWithLocale()));
+        }
+        return result;
     }
 }

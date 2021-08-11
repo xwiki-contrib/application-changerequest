@@ -20,7 +20,12 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -211,9 +216,26 @@ class DefaultChangeRequestManagerTest
         verify(changeRequest, never()).getFileChanges();
 
         when(strategy.canBeMerged(changeRequest)).thenReturn(true);
-        FileChange fileChange1 = mock(FileChange.class);
-        FileChange fileChange2 = mock(FileChange.class);
-        when(changeRequest.getAllFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
+        FileChange fileChangeA1 = mock(FileChange.class);
+        FileChange fileChangeA2 = mock(FileChange.class);
+        FileChange fileChangeB1 = mock(FileChange.class);
+
+        DocumentReference refA = mock(DocumentReference.class);
+        DocumentReference refB = mock(DocumentReference.class);
+        Map<DocumentReference, Deque<FileChange>> fileChangeMap = new HashMap<>();
+        Deque<FileChange> dequeA = new LinkedList<>();
+        dequeA.add(fileChangeA1);
+        dequeA.add(fileChangeA2);
+        fileChangeMap.put(refA, dequeA);
+
+        Deque<FileChange> dequeB = new LinkedList<>();
+        dequeB.add(fileChangeB1);
+        fileChangeMap.put(refB, dequeB);
+
+        when(changeRequest.getFileChanges()).thenReturn(fileChangeMap);
+        when(changeRequest.getLatestFileChangeFor(refA)).thenReturn(Optional.of(fileChangeA2));
+        when(changeRequest.getLatestFileChangeFor(refB)).thenReturn(Optional.of(fileChangeB1));
+
         DocumentModelBridge documentModelBridge = mock(DocumentModelBridge.class);
         when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(any())).thenReturn(documentModelBridge);
         when(documentModelBridge.getDocumentReference()).thenReturn(mock(DocumentReference.class));
@@ -224,8 +246,13 @@ class DefaultChangeRequestManagerTest
 
         assertFalse(this.manager.canBeMerged(changeRequest));
         verify(mergeDocumentResult).hasConflicts();
-        verify(this.fileChangeStorageManager).getModifiedDocumentFromFileChange(fileChange1);
-        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChange2);
+        verify(this.fileChangeStorageManager).getModifiedDocumentFromFileChange(fileChangeB1);
+
+        // only B1 is checked since we break at first conflict
+        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeA2);
+
+        // this one should never be checked.
+        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeA1);
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);
         assertTrue(this.manager.canBeMerged(changeRequest));

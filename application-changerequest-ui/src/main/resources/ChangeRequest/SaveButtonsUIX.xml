@@ -39,7 +39,7 @@
   <content>{{include reference='ChangeRequest.ChangeRequestPicker'/}}
 {{velocity}}
 #if ($request.get('getmodal') == 1)
-#set ($isEditingChangeRequest = ($request.get('changerequest') != ''))
+#set ($isEditingChangeRequest = ("$!request.get('changerequest')" != ''))
 &lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
     &lt;div class="modal-content"&gt;
@@ -95,7 +95,7 @@
                     'name': 'existingCRSelector',
                     'id': 'existingCRSelector',
                     'class': 'form-control',
-                    'value': $request.get('changerequest')
+                    'value': "$!request.get('changerequest')"
                   })
                   #changeRequestPicker($crPickerParameters)
               &lt;/div&gt;&lt;!-- End panel body --&gt;
@@ -205,7 +205,8 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
   var saveChangeRequest = function () {
     var isNewCR = $('#existingCRSelector').val() === "";
     var form = $('#save_changerequest').parents('form');
-    
+    var CREATE_URL = "$services.changerequest.getChangeRequestURL('create', '')";
+    var ADD_CHANGES_URL = "$services.changerequest.getChangeRequestURL('addchanges', '__CR__')";
     var actionURL;
     if (isNewCR) {
       var crTitleField = $("&lt;input&gt;", {
@@ -228,9 +229,13 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
         'value': $('#crDraft:checked').val()
       });
       form.append(crDraftField);
-      actionURL = '/xwiki/changerequest/create';
+      actionURL = CREATE_URL;
     } else {
-      actionURL = '/xwiki/changerequest/addchanges/' + $('#existingCRSelector').val();
+      var urlParams = new URLSearchParams(window.location.search);
+      actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val());
+      if (urlParams.has('changerequest')) {
+        actionURL += "?fromchangerequest=1";
+      }
     }
     form.attr('action', actionURL);
     var docField = $("&lt;input&gt;", {
@@ -297,7 +302,7 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
     }
   };
   
-  var attachButtons = function (hasEditRight) {
+  var attachButtons = function (hasEditRight, editExistingCR) {
     var button = $("&lt;input&gt;", {
       'type': 'button',
       'class': 'btn btn-info',
@@ -313,22 +318,19 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
       }
     }
     // hide minor edit and autosave capabilities
-    if (hasEditRight === "false") {
+    if (!hasEditRight || editExistingCR) {
       $('.meta-minorEdit').remove();
       $('#autosaveControl').remove();
+      $('input[name=action_save]').parent().remove();
     }
     button.on('click', function() {
       createChangeRequestModal();
     });
   }
-  
-  var hasEditRight = "$services.security.authorization.hasAccess('edit', $doc)";
+  var urlParams = new URLSearchParams(window.location.search);
+  var hasEditRight = ("$services.security.authorization.hasAccess('edit', $doc)" === "true");
   // doesn't work yet for inplace editing: need to find the right event to attach this.
-  attachButtons(hasEditRight);
-
-  if (hasEditRight === "false") {
-    $('input[name=action_save]').parent().remove();
-  }
+  attachButtons(hasEditRight, urlParams.has('changerequest'));
 });</code>
     </property>
     <property>

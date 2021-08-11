@@ -79,11 +79,18 @@ $doc.content
 &lt;div&gt;
 $services.localization.render('changerequest.sheet.pagechanges')
 &lt;ul&gt;
+#set ($isNotMerged = $changeRequest.status != "MERGED")
 #foreach ($ref in $modifiedFiles)
   #set ($actualDoc = $xwiki.getDocument($ref))
   #set ($renderedTitle = $actualDoc.getDisplayTitle())
-  #set ($editLink = $actualDoc.getURL('editcr', "changerequest=$changeRequest.id"))
+  #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $actualDoc))
+  #if ($isNotMerged &amp;&amp; $hasCREdit)
+    #set ($editLink = $actualDoc.getURL('editcr', "changerequest=$changeRequest.id"))
    &lt;li&gt;&lt;a href="$editLink"&gt;$renderedTitle $services.icon.renderHTML('pencil')&lt;/a&gt;&lt;/li&gt;
+  #else
+    #set ($viewLink = $actualDoc.getURL())
+   &lt;li&gt;&lt;a href="$viewLink"&gt;$renderedTitle&lt;/a&gt;&lt;/li&gt;
+  #end
 #end
 &lt;/ul&gt;
 &lt;/div&gt;

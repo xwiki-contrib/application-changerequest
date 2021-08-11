@@ -76,39 +76,21 @@
               <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.returnTypeChanged</code>
-                  <old>method java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.ChangeRequest::getFileChanges()</old>
-                  <new>method java.util.Map&lt;org.xwiki.model.reference.DocumentReference, java.util.Deque&lt;org.xwiki.contrib.changerequest.FileChange&gt;&gt; org.xwiki.contrib.changerequest.ChangeRequest::getFileChanges()</new>
-                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
+                  <code>java.method.removed</code>
+                  <old>method java.lang.String org.xwiki.contrib.changerequest.FileChange::getSourceVersion()</old>
+                  <justification>Unstable API: we renamed "sourceVersion" to "previousPublishedVersion" to be more explicit.</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.removed</code>
-                  <old>method org.xwiki.contrib.changerequest.ChangeRequest org.xwiki.contrib.changerequest.ChangeRequest::setFileChanges(java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt;)</old>
-                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
+                  <old>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.FileChange::setSourceVersion(java.lang.String)</old>
+                  <justification>Unstable API: we renamed "sourceVersion" to "previousPublishedVersion" to be more explicit.</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.parameterTypeChanged</code>
-                  <old>parameter java.util.Optional&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, ===java.lang.String===) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <new>parameter java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, ===org.xwiki.model.reference.DocumentReference===) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <parameterIndex>1</parameterIndex>
-                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.returnTypeChanged</code>
-                  <old>method java.util.Optional&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <new>method java.util.List&lt;org.xwiki.contrib.changerequest.FileChange&gt; org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::load(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>Unstable API: format for file change storage changed to support adding several file changes in a change request.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.nonFinalClassInheritsFromNewClass</code>
-                  <old>class org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent</old>
-                  <new>class org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent</new>
-                  <superClass>org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent</superClass>
-                  <justification>Unstable API: refactoring of the notifications to display more accurate informations.</justification>
+                  <code>java.method.removed</code>
+                  <old>method java.lang.String org.xwiki.contrib.changerequest.FileChange::getSourceVersion()</old>
+                  <justification>Unstable API: we renamed "sourceVersion" to "previousPublishedVersion" to be more explicit.</justification>
                 </item>
               </differences>
             </revapi.differences>

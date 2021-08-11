@@ -33,10 +33,12 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
+
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
 
@@ -53,6 +55,9 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 {
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
+
+    @Inject
+    private FileChangeVersionManager fileChangeVersionManager;
 
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
@@ -73,11 +78,15 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequest changeRequest = new ChangeRequest();
         FileChange fileChange = new FileChange(changeRequest);
+        String previousVersion = request.getParameter("previousVersion");
+        String fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
 
         fileChange
             .setAuthor(currentUser)
             .setTargetEntity(documentReference)
-            .setSourceVersion(request.getParameter("previousVersion"))
+            .setPreviousVersion(previousVersion)
+            .setPreviousPublishedVersion(previousVersion)
+            .setVersion(fileChangeVersion)
             .setModifiedDocument(modifiedDocument);
 
         changeRequest
