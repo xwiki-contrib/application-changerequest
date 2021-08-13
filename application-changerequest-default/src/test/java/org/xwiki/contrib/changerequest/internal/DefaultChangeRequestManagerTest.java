@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.internal;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -222,7 +223,7 @@ class DefaultChangeRequestManagerTest
 
         DocumentReference refA = new DocumentReference("xwiki", "Space", "RefA");
         DocumentReference refB = new DocumentReference("xwiki", "Space", "RefB");
-        Map<DocumentReference, Deque<FileChange>> fileChangeMap = new HashMap<>();
+        Map<DocumentReference, Deque<FileChange>> fileChangeMap = new LinkedHashMap<>();
         Deque<FileChange> dequeA = new LinkedList<>();
         dequeA.add(fileChangeA1);
         dequeA.add(fileChangeA2);
