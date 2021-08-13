@@ -220,8 +220,8 @@ class DefaultChangeRequestManagerTest
         FileChange fileChangeA2 = mock(FileChange.class);
         FileChange fileChangeB1 = mock(FileChange.class);
 
-        DocumentReference refA = mock(DocumentReference.class);
-        DocumentReference refB = mock(DocumentReference.class);
+        DocumentReference refA = new DocumentReference("xwiki", "Space", "RefA");
+        DocumentReference refB = new DocumentReference("xwiki", "Space", "RefB");
         Map<DocumentReference, Deque<FileChange>> fileChangeMap = new HashMap<>();
         Deque<FileChange> dequeA = new LinkedList<>();
         dequeA.add(fileChangeA1);
@@ -246,10 +246,10 @@ class DefaultChangeRequestManagerTest
 
         assertFalse(this.manager.canBeMerged(changeRequest));
         verify(mergeDocumentResult).hasConflicts();
-        verify(this.fileChangeStorageManager).getModifiedDocumentFromFileChange(fileChangeB1);
+        verify(this.fileChangeStorageManager).getModifiedDocumentFromFileChange(fileChangeA2);
 
-        // only B1 is checked since we break at first conflict
-        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeA2);
+        // only A2 is checked since we break at first conflict
+        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeB1);
 
         // this one should never be checked.
         verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeA1);
