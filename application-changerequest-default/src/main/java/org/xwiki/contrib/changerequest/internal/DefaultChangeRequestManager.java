@@ -176,6 +176,30 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     }
 
     @Override
+    public MergeDocumentResult getMergeDocumentResult(ChangeRequest changeRequest, FileChange fileChange)
+        throws ChangeRequestException
+    {
+        DocumentModelBridge currentDoc =
+            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
+        DocumentModelBridge previousDoc =
+            this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+        DocumentModelBridge nextDoc =
+            this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+
+        MergeConfiguration mergeConfiguration = new MergeConfiguration();
+        DocumentReference documentReference = fileChange.getTargetEntity();
+
+        XWikiContext context = this.contextProvider.get();
+        // We need the reference of the user and the document in the config to retrieve
+        // the conflict decision in the MergeManager.
+        mergeConfiguration.setUserReference(context.getUserReference());
+        mergeConfiguration.setConcernedDocument(documentReference);
+
+        mergeConfiguration.setProvidedVersionsModifiables(false);
+        return mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
+    }
+
+    @Override
     public Optional<MergeDocumentResult> mergeDocumentChanges(DocumentModelBridge modifiedDocument,
         String previousVersion, ChangeRequest changeRequest) throws ChangeRequestException
     {

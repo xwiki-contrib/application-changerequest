@@ -66,6 +66,12 @@ public interface ChangeRequestManager
      */
     boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException;
 
+    default MergeDocumentResult getMergeDocumentResult(ChangeRequest changeRequest, FileChange fileChange)
+        throws ChangeRequestException
+    {
+        return null;
+    }
+
     /**
      * Merge a given modified document in the given change request, without saving the result.
      *

@@ -38,6 +38,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -46,6 +47,7 @@ import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
+import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -276,5 +278,23 @@ public class ChangeRequestScriptService implements ScriptService
     public void setDraft(ChangeRequest changeRequest)
     {
         setStatus(changeRequest, ChangeRequestStatus.DRAFT);
+    }
+
+    public Optional<MergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
+        DocumentReference documentReference)
+    {
+        Optional<MergeDocumentResult> result = Optional.empty();
+        Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+        if (optionalFileChange.isPresent()) {
+            try {
+                MergeDocumentResult mergeDocumentResult =
+                    this.changeRequestManager.getMergeDocumentResult(changeRequest, optionalFileChange.get());
+                result = Optional.of(mergeDocumentResult);
+            } catch (ChangeRequestException e) {
+                logger.warn("Error while computing the merge for change request [{}] and document reference [{}]: [{}]",
+                    changeRequest.getId(), documentReference, ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+        return result;
     }
 }

@@ -67,15 +67,24 @@
 #set ($changeRequestId = $doc.documentReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
+#set ($changeRequest = $changeRequestOpt.get())
 #set ($discard = $xwiki.jsx.use('ChangeRequest.ChangeRequestSheet'))
 
-{{info}}
-$doc.content
-{{/info}}
-
 {{html clean="false"}}
-#set ($changeRequest = $changeRequestOpt.get())
-#set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
+&lt;div&gt;
+
+  &lt;!-- Nav tabs --&gt;
+  &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
+    &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;Description&lt;/a&gt;&lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;File changes&lt;/a&gt;&lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#merge" aria-controls="merge" role="tab" data-toggle="tab"&gt;Merge checks&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;!-- Tab panes --&gt;
+  &lt;div class="tab-content"&gt;
+    &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;$doc.content&lt;/div&gt;
+    &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
+    #set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
 &lt;div&gt;
 $services.localization.render('changerequest.sheet.pagechanges')
 &lt;ul&gt;
@@ -95,19 +104,22 @@ $services.localization.render('changerequest.sheet.pagechanges')
 #end
 &lt;/ul&gt;
 &lt;/div&gt;
-
+#set ($conflictingFiles = {})
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
 &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
 #template('diff_macros.vm')
 #foreach ($ref in $modifiedFiles)
-  #set ($modifiedDocOpt = $services.changerequest.getModifiedDocument($changeRequest, $ref))
-  #if ($modifiedDocOpt.isPresent())
+  #set ($mergeDocumentResultOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $ref))
+  #if ($mergeDocumentResultOpt.isPresent())
   &lt;div class="panel panel-default"&gt;
-    #set ($modifiedDoc = $modifiedDocOpt.get())
-    #set ($currentDoc = $xwiki.getDocument($ref))
-    #set ($documentVersion = $modifiedDoc.getRCSVersion())
-    #set ($discard = $modifiedDoc.setRCSVersion($documentVersion.next()))
-    #set ($renderedTitle = $currentDoc.getDisplayTitle())
+    #set ($mergeDocumentResult = $mergeDocumentResultOpt.get())
+    $mergeDocumentResult.getConflicts('CONTENT')
+    #if ($mergeDocumentResult.hasConflicts())
+      #set ($discard = $conflictingFiles.put($ref, $mergeDocumentResult))
+    #end
+    #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
+    #set ($currentDoc = $mergeDocumentResult.currentDocument)
+    #set ($renderedTitle = $currentDoc.getRenderedTitle($xcontext.context))
     #set ($diffKey = $stringtool.toAlphaNumeric($modifiedDoc.getKey()))
     &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
       &lt;h4 class="panel-title"&gt;
@@ -118,12 +130,95 @@ $services.localization.render('changerequest.sheet.pagechanges')
     &lt;/div&gt;
     &lt;div id="diff-$diffKey" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
       &lt;div class="panel-body"&gt;
-      #displayDocumentRawChanges($currentDoc, $modifiedDoc, $null)
+      #displayDocumentRawChanges($currentDoc, $modifiedDoc)
       &lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   #end
 #end
+&lt;/div&gt;
+    &lt;/div&gt;&lt;!-- End file changes --&gt;
+    &lt;div role="tabpanel" class="tab-pane" id="merge"&gt;
+    &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
+       #set ($isStatusReady = $changeRequest.status == "READY_FOR_REVIEW")
+       #if ($isStatusReady)
+         #set ($statusPanelClass = "panel-success")
+         #set ($statusPanelTitle = "Ready for review")
+       #else
+         #set ($statusPanelClass = "panel-warning")
+         #set ($statusPanelTitle = "Draft change request")
+       #end
+       &lt;div class="panel $statusPanelClass"&gt;
+        &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
+          &lt;h4 class="panel-title"&gt;
+            &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
+              $statusPanelTitle
+            &lt;/a&gt;
+          &lt;/h4&gt;
+        &lt;/div&gt; &lt;!-- End heading status panel --&gt;
+        &lt;div id="statusPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingStatusPanel"&gt;
+          &lt;div class="panel-body"&gt;
+            #set ($sheetRef = "ChangeRequest.ChangeRequestSheet")
+            #set ($sheetDoc = $xwiki.getDocument($sheetRef))
+            #if ($isStatusReady)
+              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning"&gt;
+                Mark the change request as work in progress
+              &lt;/a&gt;
+            #else
+              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary"&gt;
+                Mark the change request as ready for review
+              &lt;/a&gt;
+            #end
+          &lt;/div&gt;
+        &lt;/div&gt;&lt;!-- End body status panel --&gt;
+      &lt;/div&gt;&lt;!-- End panel conflict --&gt;
+       #if ($conflictingFiles.isEmpty())
+         #set ($conflictPanelClass = "panel-success")
+         #set ($conflictPanelTitle = "No conflict found")
+       #else
+         #set ($conflictPanelClass = "panel-warning")
+         #set ($conflictPanelTitle = "$conflictingFiles.size() conflicts found")
+       #end
+       &lt;div class="panel $conflictPanelClass"&gt;
+        &lt;div class="panel-heading" role="tab" id="headingConflictPanel"&gt;
+          &lt;h4 class="panel-title"&gt;
+            &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#conflictPanel" aria-expanded="true" aria-controls="conflictPanel"&gt;
+              $conflictPanelTitle
+            &lt;/a&gt;
+          &lt;/h4&gt;
+        &lt;/div&gt; &lt;!-- End heading conflict --&gt;
+        &lt;div id="conflictPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingConflictPanel"&gt;
+          &lt;div class="panel-body"&gt;
+            #if ($conflictingFiles.isEmpty())
+              No conflict to show.
+            #else
+              &lt;ul&gt;
+              #foreach ($ref in $conflictingFiles.keySet())
+                &lt;li&gt;$ref &lt;button class="btn btn-primary"&gt;Fix conflict&lt;/button&gt;
+              #end
+              &lt;/ul&gt;
+            #end
+          &lt;/div&gt;
+        &lt;/div&gt;&lt;!-- End body conflict --&gt;
+      &lt;/div&gt;&lt;!-- End panel conflict --&gt;
+      &lt;div class="panel panel-warning"&gt;
+        &lt;div class="panel-heading" role="tab" id="headingTwo"&gt;
+          &lt;h4 class="panel-title"&gt;
+            &lt;a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"&gt;
+              Approval strategy: requires 2 approvals.
+            &lt;/a&gt;
+          &lt;/h4&gt;
+        &lt;/div&gt; &lt;!-- End heading approval strategy --&gt;
+        &lt;div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo"&gt;
+          &lt;div class="panel-body"&gt;
+           Missing approvals.
+          &lt;/div&gt;
+        &lt;/div&gt;&lt;!-- End body approval strategy --&gt;
+      &lt;/div&gt;&lt;!-- End panel approval strategy --&gt;
+    &lt;/div&gt;&lt;!-- End panel accordion --&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
 &lt;/div&gt;
 {{/html}}
 #else
@@ -235,6 +330,114 @@ $services.localization.render('changerequest.sheet.pagechanges')
     </property>
     <property>
       <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>1</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>ca32fb8c-d27c-4c25-9116-7d6ddf5b0cd0</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'bootstrap'], function ($) {
+  var checkMergeButton = function() {
+    $('#checkMerge').on('click', function() {
+      $('#changeRequestTabs a[href="#merge"]').tab('show');
+    })
+  };
+
+  $(document).on('xwiki:dom:updated', checkMergeButton);
+  (XWiki.isInitialized &amp;&amp; checkMergeButton()) || $(document).on('xwiki:dom:loading', checkMergeButton);
+})</code>
+    </property>
+    <property>
+      <name>Check merge action</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
     </property>
   </object>
   <object>
@@ -519,59 +722,30 @@ $services.localization.render('changerequest.sheet.pagechanges')
     </property>
     <property>
       <content>{{velocity}}
-
 #set ($changeRequestId = $doc.documentReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
 #set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
-#set ($canChangeStatus = $services.changerequest.canStatusBeChanged($changeRequest))
-#set ($displayButton = $canChangeStatus || $isAuthorizedToMerge)
-#set ($isDraft = $changeRequest.status == 'DRAFT')
-#set ($sheetDoc = $xwiki.getDocument("ChangeRequest.ChangeRequestSheet"))
-#if ($isDraft)
-  #set ($changeStatusBtnUrl = $sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready"))
-  #set ($changeStatusBtnTitle = $services.localization.render('changerequest.sheet.markready.button.title'))
-  #set ($changeStatusBtnClass = "btn-primary")
-  #set ($changeStatusBtnLabel = $services.localization.render('changerequest.sheet.markready.button'))
-  #set ($changeStatusBtnIcon = $services.icon.renderHTML('mark'))
-#else
-  #set ($changeStatusBtnUrl = $sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft"))
-  #set ($changeStatusBtnTitle = $services.localization.render('changerequest.sheet.markdraft.button.title'))
-  #set ($changeStatusBtnClass = "btn-default")
-  #set ($changeStatusBtnLabel = $services.localization.render('changerequest.sheet.markdraft.button'))
-  #set ($changeStatusBtnIcon = $services.icon.renderHTML('edit'))
-#end
-#if ($displayButton)
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
-  #if ($isAuthorizedToMerge &amp;&amp; !($isDraft &amp;&amp; $canChangeStatus))
-  #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
-  &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$canBeMerged)disabled#end" #if(!$canBeMerged)disabled="disabled"#end&gt;
-  $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
-  &lt;/a&gt;
-  #if ($canChangeStatus)
-    &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
-      &lt;span class="caret"&gt;&lt;/span&gt;
-      &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
+  #if (!$canBeMerged)
+    &lt;button title="The change request checks have not been reached, so it cannot be merged yet." class="btn btn-warning" id="checkMerge"&gt;
+      $services.icon.renderHTML('edit') Verify the checks to allow merging
     &lt;/button&gt;
-    &lt;ul class="dropdown-menu"&gt;
-      &lt;li&gt;
-        &lt;a href="$changeStatusBtnUrl" role="button" title="$changeStatusBtnTitle"&gt;
-        $changeStatusBtnIcon &lt;span class="btn-label"&gt;$changeStatusBtnLabel&lt;/span&gt;
-        &lt;/a&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
+  #elseif ($isAuthorizedToMerge)
+    #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
+    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary"&gt;
+    $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
+    &lt;/a&gt;
+  #else
+   &lt;button title="Ready to be merged." class="btn btn-success" id="checkMerge"&gt;
+      $services.icon.renderHTML('check') Ready to be merged
+    &lt;/button&gt;
   #end
-#elseif ($canChangeStatus)
-  &lt;a href="$changeStatusBtnUrl" role="button" title="$changeStatusBtnTitle" class="btn $changeStatusBtnClass"&gt;
-     $changeStatusBtnIcon &lt;span class="btn-label"&gt;$changeStatusBtnLabel&lt;/span&gt;
-  &lt;/a&gt;
-#end
 &lt;/div&gt;
 {{/html}}
-#end
 #end
 {{/velocity}}
 
