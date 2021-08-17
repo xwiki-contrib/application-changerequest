@@ -66,7 +66,17 @@ public interface ChangeRequestManager
      */
     boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException;
 
-    default MergeDocumentResult getMergeDocumentResult(ChangeRequest changeRequest, FileChange fileChange)
+    /**
+     * Perform a merge without saving between the given filechange and latest published version of the document
+     * and returns the {@link MergeDocumentResult} containing all needed information to see diff and/or handle
+     * conflicts.
+     *
+     * @param fileChange the file change for which to perform a merge.
+     * @return a {@link MergeDocumentResult} with information about the merge.
+     * @throws ChangeRequestException in case of problem when retrieving the information.
+     * @since 0.4
+     */
+    default MergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
         return null;

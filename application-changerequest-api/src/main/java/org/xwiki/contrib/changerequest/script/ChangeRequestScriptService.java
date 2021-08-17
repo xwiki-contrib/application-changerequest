@@ -280,6 +280,16 @@ public class ChangeRequestScriptService implements ScriptService
         setStatus(changeRequest, ChangeRequestStatus.DRAFT);
     }
 
+    /**
+     * Perform a merge without saving between the changes of the change request related to the given reference, and the
+     * published document with same reference, and returns the merge result.
+     *
+     * @param changeRequest the change request for which to find changes.
+     * @param documentReference the document reference for which to perform a merge.
+     * @return a {@link Optional#empty()} if no change for the given reference can be found or if an error occurs
+     *         during the merge, else an optional containing the {@link MergeDocumentResult}.
+     * @since 0.4
+     */
     public Optional<MergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
         DocumentReference documentReference)
     {
@@ -288,7 +298,7 @@ public class ChangeRequestScriptService implements ScriptService
         if (optionalFileChange.isPresent()) {
             try {
                 MergeDocumentResult mergeDocumentResult =
-                    this.changeRequestManager.getMergeDocumentResult(changeRequest, optionalFileChange.get());
+                    this.changeRequestManager.getMergeDocumentResult(optionalFileChange.get());
                 result = Optional.of(mergeDocumentResult);
             } catch (ChangeRequestException e) {
                 logger.warn("Error while computing the merge for change request [{}] and document reference [{}]: [{}]",

@@ -176,7 +176,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     }
 
     @Override
-    public MergeDocumentResult getMergeDocumentResult(ChangeRequest changeRequest, FileChange fileChange)
+    public MergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
         DocumentModelBridge currentDoc =
