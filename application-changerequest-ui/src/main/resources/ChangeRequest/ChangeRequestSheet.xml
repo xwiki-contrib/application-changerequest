@@ -64,7 +64,7 @@
 #end
 #else
 #set ($discard = $doc.use('ChangeRequest.ChangeRequestClass'))
-#set ($changeRequestId = $doc.documentReference.name)
+#set ($changeRequestId = $doc.documentReference.lastSpaceReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
@@ -113,7 +113,6 @@ $services.localization.render('changerequest.sheet.pagechanges')
   #if ($mergeDocumentResultOpt.isPresent())
   &lt;div class="panel panel-default"&gt;
     #set ($mergeDocumentResult = $mergeDocumentResultOpt.get())
-    $mergeDocumentResult.getConflicts('CONTENT')
     #if ($mergeDocumentResult.hasConflicts())
       #set ($discard = $conflictingFiles.put($ref, $mergeDocumentResult))
     #end
@@ -722,7 +721,7 @@ $services.localization.render('changerequest.sheet.pagechanges')
     </property>
     <property>
       <content>{{velocity}}
-#set ($changeRequestId = $doc.documentReference.name)
+#set ($changeRequestId = $doc.documentReference.lastSpaceReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
