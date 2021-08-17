@@ -27,6 +27,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.SpaceReference;
 
 /**
  * Specific resolver to resolve a {@link ChangeRequest} as a {@link DocumentReference} since they are stored as
@@ -45,6 +46,7 @@ public class ChangeRequestDocumentReferenceResolver implements DocumentReference
     @Override
     public DocumentReference resolve(ChangeRequest changeRequest, Object... parameters)
     {
-        return new DocumentReference(changeRequest.getId(), this.configuration.getChangeRequestSpaceLocation());
+        return new DocumentReference("WebHome",
+            new SpaceReference(changeRequest.getId(), this.configuration.getChangeRequestSpaceLocation()));
     }
 }
