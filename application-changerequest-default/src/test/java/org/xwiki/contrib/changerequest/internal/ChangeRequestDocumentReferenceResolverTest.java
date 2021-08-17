@@ -55,7 +55,8 @@ class ChangeRequestDocumentReferenceResolverTest
 
         SpaceReference spaceReference = new SpaceReference("mywiki", "MySpace", "Something");
         when(configuration.getChangeRequestSpaceLocation()).thenReturn(spaceReference);
-        DocumentReference expectedReference = new DocumentReference("foo", spaceReference);
+        DocumentReference expectedReference =
+            new DocumentReference("WebHome", new SpaceReference("foo", spaceReference));
         assertEquals(expectedReference, this.resolver.resolve(changeRequest));
     }
 }
