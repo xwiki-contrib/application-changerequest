@@ -104,7 +104,7 @@ $services.localization.render('changerequest.sheet.pagechanges')
 #end
 &lt;/ul&gt;
 &lt;/div&gt;
-#set ($conflictingFiles = {})
+#set ($conflictingFiles = [])
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
 &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
 #template('diff_macros.vm')
@@ -114,7 +114,7 @@ $services.localization.render('changerequest.sheet.pagechanges')
   &lt;div class="panel panel-default"&gt;
     #set ($mergeDocumentResult = $mergeDocumentResultOpt.get())
     #if ($mergeDocumentResult.hasConflicts())
-      #set ($discard = $conflictingFiles.put($ref, $mergeDocumentResult))
+      #set ($discard = $conflictingFiles.add($ref))
     #end
     #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
     #set ($currentDoc = $mergeDocumentResult.currentDocument)
@@ -192,8 +192,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
               No conflict to show.
             #else
               &lt;ul&gt;
-              #foreach ($ref in $conflictingFiles.keySet())
-                &lt;li&gt;$ref &lt;button class="btn btn-primary"&gt;Fix conflict&lt;/button&gt;
+              #foreach ($ref in $conflictingFiles)
+                &lt;li&gt;$ref &lt;button class="conflictFixing btn btn-primary" data-reference="$ref.withoutLocale()" data-locale="$ref.locale"&gt;Fix conflict&lt;/button&gt;
               #end
               &lt;/ul&gt;
             #end
@@ -312,7 +312,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery'], function ($) {
+      <code>'use strict';
+require(['jquery'], function ($) {
   var removeCreateButton = function () {
     $('#tmCreate').remove();
   }
@@ -418,7 +419,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery', 'bootstrap'], function ($) {
+      <code>'use strict';
+require(['jquery', 'bootstrap'], function ($) {
   var checkMergeButton = function() {
     $('#checkMerge').on('click', function() {
       $('#changeRequestTabs a[href="#merge"]').tab('show');
@@ -431,6 +433,336 @@ $services.localization.render('changerequest.sheet.pagechanges')
     </property>
     <property>
       <name>Check merge action</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>2</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>fb3f6f6b-7a15-41ae-9adb-a717fa54d05f</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>define('ChangeRequestConflictModal', ['jquery', 'xwiki-meta', 'bootstrap'], function ($, xm) {
+  
+  var conflictModal = function (changeRequestId, fileChangeReference, fileChangeLocale) {
+    var self = this;
+    self.changeRequestId = changeRequestId;
+    self.fileChangeReference = fileChangeReference;
+    self.fileChangeLocale = fileChangeLocale;
+    var currentReference = xm.documentReference;
+    var changeRequestConflictRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestConflict");
+    self.postUrl = new XWiki.Document(changeRequestConflictRef).getURL('get');
+    
+    self.requestModal = function(previousVersion, nextVersion) {
+      var warningConflictAction = $('#changeRequestConflictModal input[name=warningConflictAction]:checked').val();
+      if ($('#changeRequestConflictModal')) {
+        $('#changeRequestConflictModal').remove();
+      }
+      if (previousVersion &amp;&amp; nextVersion) {
+        var original = previousVersion;
+        var revised = nextVersion;
+      } else if ($('select[name=original]').length &gt; 0 &amp;&amp; $('select[name=revised]').length &gt; 0) {
+        var original = $('#modalConflictSelectVersion select[name=original]').val();
+        var revised = $('#modalConflictSelectVersion select[name=revised]').val();
+      }
+      
+      var params = {
+        'form_token': xm.form_token,
+        'filechange': self.fileChangeReference,
+        'filechangeLocale': self.fileChangeLocale,
+        'changerequest': self.changeRequestId,
+        'original': original,
+        'revised': revised,
+        'warningConflictAction': warningConflictAction
+      };
+      
+      var notification = new XWiki.widgets.Notification('Requesting conflict modal...','inprogress');
+      $.post(self.postUrl, params).done(function (data) {
+        notification.hide();
+        $('body').append(data);
+        $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestConflictModal').toArray()});
+        self.initModal();
+      }).fail(function (data) {
+        notification.replace(new XWiki.widgets.Notification('Error while getting conflict information.','error'));
+      });
+    };
+    
+    // Change the diff based on the action chosen.
+    self.radioSelect = function () {
+      var selectedValue = $('#changeRequestConflictModal input[name=warningConflictAction]:checked').val();
+      if (selectedValue == "keepChangeRequest") {
+        self.requestModal("NEXT", "MERGED");
+        // It's the next and current value which will be used for the merge, so better use them in case of custom
+        // conflicts resolution.
+      } else if (selectedValue == "keepPublished" || selectedValue == "custom") {
+        self.requestModal("NEXT", "CURRENT");
+      }
+    };
+    
+    self.submitAction = function () {
+      var warningConflictAction = $('#changeRequestConflictModal input[name=warningConflictAction]:checked').val();
+      
+      var params = {
+        'form_token': xm.form_token,
+        'filechange': self.fileChangeReference,
+        'filechangeLocale': self.fileChangeLocale,
+        'changerequest': self.changeRequestId,
+        'decision': warningConflictAction
+      };
+      
+      if (warningConflictAction == 'custom') {
+        var conflictReferences = [];
+        
+        $('#changeRequestConflictModal input[name=conflict_id]').each(function () {
+          var conflictId = $(this).val();
+          var selectValue = $('#conflict_decision_select_' + conflictId).val();
+          var customValue = $('#conflict_decision_value_custom_' + conflictId).val();
+          conflictReferences.add(conflictId);
+          params["customDecision_" + conflictId] = selectValue;
+          
+          if (selectValue == 'custom') {
+            params["customInput_" + conflictId] = customValue;
+          }
+        });
+        params["conflictReferences"] = conflictReferences;
+      }
+      var notification = new XWiki.widgets.Notification('Applying conflict resolution...','inprogress');
+      $.post(self.postUrl, params).done(function (data) {
+        if (data.success) {
+          notification.replace(new XWiki.widgets.Notification('Resolution applied successfully, the page will reload.','done'));
+          window.location.reload();
+        } else {
+          notification.replace(new XWiki.widgets.Notification('An error happened when applying the conflict resolution.','error'));
+        }
+      }).fail(function () {
+        notification.replace(new XWiki.widgets.Notification('Request error when applying the conflict resolution.','error'));
+      });
+    };
+    
+    self.initModal = function() {
+      var modal = $('#changeRequestConflictModal');
+
+      if (modal) {
+        modal.on('hidden.bs.modal', function (e) {
+          modal.remove();
+          $('div.modal-backdrop').remove();
+        });
+
+        $('#changeRequestConflictModalChoices .panel').on('click', self.selectChoice);
+        $('#changeRequestConflictModal input[name=warningConflictAction]').on('change', self.radioSelect);
+        $('#changeRequestConflictChangeDiff').on('click', self.requestModal);
+        $('#changeRequestConflictSubmitButton').on('click', self.submitAction);
+        modal.modal('show');
+      }
+    };
+  }
+  
+  return conflictModal;
+});</code>
+    </property>
+    <property>
+      <name>handle conflict modal</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>3</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>d36ff964-4454-4e7c-a928-f29636110a96</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm, ConflictModal) {
+  var initialize = function () {
+    $(".conflictFixing").on('click', function () {
+      var button = $(this);
+      var reference = button.attr('data-reference');
+      var locale = button.attr('data-locale');
+      var currentReference = xm.documentReference;
+      var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
+      var modal = new ConflictModal(changeRequestId, reference, locale);
+      modal.requestModal('NEXT', 'MERGED');
+    });
+  };
+  
+  $(document).on('xwiki:dom:updated', initialize);
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+});</code>
+    </property>
+    <property>
+      <name>Handle conflict button</name>
     </property>
     <property>
       <parse>0</parse>

@@ -57,6 +57,7 @@ import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.merge.MergeConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -257,5 +258,33 @@ class DefaultChangeRequestManagerTest
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);
         assertTrue(this.manager.canBeMerged(changeRequest));
+    }
+
+    @Test
+    void getMergeDocumentResult() throws Exception
+    {
+        FileChange fileChange = mock(FileChange.class);
+        XWikiDocument nextDoc = mock(XWikiDocument.class);
+        XWikiDocument currentDoc = mock(XWikiDocument.class);
+        XWikiDocument previousDoc = mock(XWikiDocument.class);
+        when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(nextDoc);
+        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).thenReturn(currentDoc);
+        when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange)).thenReturn(previousDoc);
+
+        DocumentReference userReference = mock(DocumentReference.class);
+        when(this.context.getUserReference()).thenReturn(userReference);
+        DocumentReference targetEntity = mock(DocumentReference.class);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+
+        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
+        when(mergeManager.mergeDocument(eq(previousDoc), eq(nextDoc), eq(currentDoc), any()))
+            .thenAnswer(invocationOnMock -> {
+            MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
+            assertEquals(userReference, mergeConfiguration.getUserReference());
+            assertEquals(targetEntity, mergeConfiguration.getConcernedDocument());
+            assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
+            return mergeDocumentResult;
+        });
+        assertEquals(mergeDocumentResult, this.manager.getMergeDocumentResult(fileChange));
     }
 }

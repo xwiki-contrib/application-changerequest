@@ -19,10 +19,12 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Role;
+import org.xwiki.diff.ConflictDecision;
 import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.UserReference;
@@ -80,6 +82,25 @@ public interface ChangeRequestManager
         throws ChangeRequestException
     {
         return null;
+    }
+
+    /**
+     * Perform a merge and fix the conflicts with the provided decision. Note that this method lead to saving a new
+     * file change with the conflict resolution.
+     *
+     * @param fileChange the file change for which to perform a merge.
+     * @param resolutionChoice the global decision to make for fixing the conflicts.
+     * @param conflictDecisionList the specific decisions to take for each conflict if
+     *         {@link ConflictResolutionChoice#CUSTOM} was chosen.
+     * @return {@code true} if the merge succeeded without creating any new conflicts, {@code false} if some conflicts
+     *          remained.
+     * @throws ChangeRequestException in case of error to perform the merge.
+     * @since 0.4
+     */
+    default boolean mergeWithConflictDecision(FileChange fileChange, ConflictResolutionChoice resolutionChoice,
+        List<ConflictDecision<?>> conflictDecisionList) throws ChangeRequestException
+    {
+        return false;
     }
 
     /**

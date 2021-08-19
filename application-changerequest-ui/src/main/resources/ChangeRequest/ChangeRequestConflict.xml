@@ -1,0 +1,263 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="ChangeRequest.ChangeRequestConflict" locale="">
+  <web>ChangeRequest</web>
+  <name>ChangeRequestConflict</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ChangeRequestConflict</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+#if ($xcontext.action != 'get')
+  Technical page to handle conflicts in change request.
+#elseif (!$services.csrf.isTokenValid($request.get('form_token')))
+  #set ($discard = $response.sendError(401, "Wrong CSRF token."))
+#elseif ("$!request.get('changerequest')" == '' || "$!request.get('filechange')" == '')
+  #set ($discard = $response.sendError(400, "Wrong argument for the request"))
+#else
+  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
+  #if (!$changeRequestOpt.isPresent())
+     #set ($discard = $response.sendError(400, "Cannot find change request"))
+  #else
+    #set ($changeRequest = $changeRequestOpt.get())
+    #set ($fileChangeRefWithoutLocale = $services.model.resolveDocument($request.get('filechange')))
+    #set ($fileChangeRef = $services.model.createDocumentReference($fileChangeRefWithoutLocale, $services.localization.toLocale($request.get('filechangeLocale'))))
+    
+    #set ($mergeDocumentOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $fileChangeRef))
+    #if (!$mergeDocumentOpt.isPresent())
+      #set ($discard = $response.sendError(500, "Cannot perform merge"))
+    #else
+      #set ($mergeDocument = $mergeDocumentOpt.get())
+      #if ("$!request.get('decision')" == '')
+{{html clean="false"}}
+#set ($discard = $services.template.execute('diff_macros.vm'))
+
+#set ($versions = {
+  'PREVIOUS': $mergeDocument.previousDocument,
+  'CURRENT': $mergeDocument.currentDocument,
+  'NEXT': $mergeDocument.nextDocument,
+  'MERGED': $mergeDocument.mergeResult
+})
+
+#if ("$!request.original" != '')
+  #set ($originalVersion = $request.original)
+#else
+  #set ($originalVersion = 'NEXT')
+#end
+#set ($originalDocument = $versions.get($originalVersion))
+
+#if ("$!request.revised" != '')
+  #set ($revisedVersion = $request.revised)
+#else
+  #set ($revisedVersion = 'MERGED')
+#end
+#set ($revisedDocument = $versions.get($revisedVersion))
+
+#if ("$!request.warningConflictAction" != '')
+  #set ($warningConflictAction = $request.warningConflictAction)
+#else
+  #set ($warningConflictAction = "keepChangeRequest")
+#end
+
+&lt;div class="modal text-left" id="changeRequestConflictModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
+  &lt;div class="modal-dialog modal-lg"&gt;
+    &lt;div class="modal-content"&gt;
+      &lt;div class="modal-header"&gt;
+        &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
+        &lt;div class="modal-title" id="changeRequestConflictModalTitle"&gt;Resolution of conflicts&lt;/div&gt;
+        &lt;hr /&gt;
+        &lt;div class="xHint"&gt;
+          This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="modal-body"&gt;
+        &lt;div class="panel-group" id="changeRequestConflictModalChoices" role="tablist" aria-multiselectable="false"&gt;
+          &lt;div class="panel #if ($warningConflictAction == "keepChangeRequest")panel-primary#{else}panel-default#end"&gt;
+            &lt;div class="panel-radio"&gt;
+              &lt;input type="radio" id="actionMergeRadio" name="warningConflictAction" value="keepChangeRequest"#if ($warningConflictAction == "keepChangeRequest") checked="checked"#end /&gt;
+            &lt;/div&gt;
+            &lt;div class="panel-heading"&gt;
+              &lt;label class="panel-title"&gt;
+                Keep change request
+                &lt;span class="label label-success"&gt;recommended&lt;/span&gt;
+              &lt;/label&gt;
+              &lt;div class="xHint"&gt;
+                Fix the conflicts by keeping change request version.
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="panel #if ($warningConflictAction == "keepPublished")panel-primary#{else}panel-default#end"&gt;
+            &lt;div class="panel-radio"&gt;
+              &lt;input type="radio" id="actionForceSaveRadio" name="warningConflictAction" value="keepPublished"#if ($warningConflictAction == "keepPublished") checked="checked"#end /&gt;
+            &lt;/div&gt;
+            &lt;div class="panel-heading"&gt;
+              &lt;label class="panel-title"&gt;
+                Keep published
+              &lt;/label&gt;
+              &lt;div class="xHint"&gt;
+                Fix the conflicts by keeping published version.
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          ## Display the custom choice only if there is conflicts only on the content of the page, for now we don't provide
+          ## a way to solve other kind of conflicts.
+          #if (!$mergeDocument.contentConflicts.isEmpty() &amp;&amp; $mergeDocument.contentConflicts.size() == $mergeDocument.allConflicts.size())
+          &lt;div class="panel #if ($warningConflictAction == "custom")panel-primary#{else}panel-default#end"&gt;
+            &lt;div class="panel-radio"&gt;
+              &lt;input type="radio" id="actionCustomRadio" name="warningConflictAction" value="custom"#if ($warningConflictAction == "custom") checked="checked"#end /&gt;
+            &lt;/div&gt;
+            &lt;div class="panel-heading"&gt;
+              &lt;label class="panel-title"&gt;
+                $services.localization.render('core.editors.save.previewDiff.custom.action')
+                &lt;span class="label label-warning"&gt;$services.localization.render('core.editors.save.previewDiff.custom.label')&lt;/span&gt;
+              &lt;/label&gt;
+              &lt;div class="xHint"&gt;
+                $services.localization.render('core.editors.save.previewDiff.custom.hint')
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          #end
+        &lt;/div&gt;
+        &lt;div class="panel"&gt;
+          &lt;div class="panel-heading" id="headingDiffChanges"&gt;
+            &lt;label class="panel-title"&gt;$services.localization.render('core.editors.save.previewDiff.viewChanges')&lt;/label&gt;
+            &lt;span class="openDetails" data-toggle="collapse" href="#collapsePreviewDiffDiff" aria-expanded="true" aria-controls="collapsePreviewDiffDiff"&gt;$services.icon.renderHTML('caret-down')&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div id="collapsePreviewDiffDiff" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingDiffChanges"&gt;
+            &lt;div class="panel-body"&gt;
+              ## We don't allow to change the diff in case of custom selection.
+              #if ($warningConflictAction != "custom")
+              &lt;div class="previewdiff-diff-options" id="modalConflictSelectVersion"&gt;
+                &lt;span class="label"&gt;$services.localization.render('extensions.upgrade.mergeConflict.changes.original')&lt;/span&gt;
+                &lt;select name="original"&gt;
+                  #foreach($entry in $versions.entrySet())
+                    #if ($entry.value)
+                      &lt;option value="$entry.key"#if ($entry.key == $originalVersion) selected="selected"#end&gt;
+                        $services.localization.render("core.editors.save.previewDiff.versionToCompare.${entry.key.toLowerCase()}")
+                      &lt;/option&gt;
+                    #end
+                  #end
+                &lt;/select&gt;
+                &lt;span class="label"&gt;$services.localization.render('extensions.upgrade.mergeConflict.changes.revised')&lt;/span&gt;
+                &lt;select name="revised"&gt;
+                  #foreach($entry in $versions.entrySet())
+                    #if ($entry.value)
+                      &lt;option value="$entry.key"#if ($entry.key == $revisedVersion) selected="selected"#end&gt;
+                        $services.localization.render("core.editors.save.previewDiff.versionToCompare.${entry.key.toLowerCase()}")
+                      &lt;/option&gt;
+                    #end
+                  #end
+                &lt;/select&gt;
+                &lt;span class="buttonwrapper"&gt;
+                  &lt;button type="button" id="changeRequestConflictChangeDiff" class="secondary"
+                          title="$escapetool.xml($services.localization.render('extensions.actions.diff'))"&gt;
+                    $escapetool.xml($services.localization.render("extensions.actions.diff"))
+                  &lt;/button&gt;
+                &lt;/span&gt;
+              &lt;/div&gt;
+              #end
+              &lt;div id="changescontent"&gt;
+                #if ($originalVersion == "CURRENT")
+                  #set ($rev1 = "Current")
+                #elseif ($originalVersion == "MERGED")
+                  #set ($rev1 = "Merged")
+                #else
+                  #set ($rev1 = $originalDocument.getVersion())
+                #end
+                #if ($revisedVersion == "CURRENT")
+                  #set ($rev2 = "Current")
+                #elseif ($revisedVersion == "MERGED")
+                  #set ($rev2 = "Merged")
+                #else
+                  #set ($rev2 = $revisedDocument.getVersion())
+                #end
+                #set ($wrappedDocs = $xwiki.wrapDocs([$originalDocument, $revisedDocument]))
+                #set ($from = {'doc': $wrappedDocs.get(0), 'version': $rev1})
+                #set ($to = {'doc': $wrappedDocs.get(1), 'version': $rev2})
+                #set ($headingLevel = 4)
+                #set ($conflictsList = $NULL)
+                #if ($warningConflictAction == "custom")
+                  #set ($conflictsList = $mergeDocument.getConflicts('CONTENT'))
+                #end
+                #displayDocumentChanges($from $to $conflictsList)
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="modal-footer"&gt;
+        &lt;input type="button" id="changeRequestConflictSubmitButton" class="btn btn-primary" value="$services.localization.render('save')" /&gt;
+        &lt;input type="button" id="changeRequestConflictCancelButton" class="btn btn-default" value="$services.localization.render('cancel')" data-dismiss="modal" aria-hidden="true" /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+{{/html}}
+      #else
+      ## Handle decision
+      #set ($decision = $request.get('decision'))
+      #if ($decision == 'custom' &amp;&amp; "$!request.get('conflictReferences')" != "")
+        #set ($allDecisions = [])
+        #foreach ($conflictReference in $request.getParameterValues('conflictReferences'))
+          #set ($conflictDecision = $request.get("customDecision_$conflictReference"))
+          #set ($conflictInput = [])
+          #if ("$!conflictDecision" == 'custom')
+            #set ($discard = $conflictInput.add($request.get("customInput_$conflictReference")))
+          #end
+          #if ("$!conflictDecision" != '')
+            #set ($newDecision = $services.changeRequest.createConflictDecision($mergeDocument, $conflictReference, $stringtool.capitalize($conflictDecision), $conflictInput))
+            #set ($discard = $allDecisions.add($newDecision))
+          #end
+        #end
+        #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'CUSTOM', $allDecisions))
+        #jsonReponse({
+          'success': $success
+        })
+      #elseif ($decision == 'keepChangeRequest')
+        #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'CHANGE_REQUEST_VERSION', $NULL))
+        #jsonResponse({
+          'success': $success
+        })
+      #elseif ($decision == 'keepPublished')
+        #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'PUBLISHED_VERSION', $NULL))
+        #jsonResponse({
+          'success': $success
+        })
+      #else
+         #set ($discard = $response.sendError(400, "Wrong argument for the request"))
+      #end
+    #end
+    #end
+ #end
+#end
+{{/velocity}}</content>
+</xwikidoc>

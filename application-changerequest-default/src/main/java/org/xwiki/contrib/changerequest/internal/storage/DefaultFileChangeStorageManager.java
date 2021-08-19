@@ -186,7 +186,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 fileChange.setSaved(true);
             } catch (XWikiException | IOException e) {
                 throw new ChangeRequestException(
-                    String.format("Error while storing filechange [%s]", fileChange));
+                    String.format("Error while storing filechange [%s]", fileChange), e);
             }
         }
     }

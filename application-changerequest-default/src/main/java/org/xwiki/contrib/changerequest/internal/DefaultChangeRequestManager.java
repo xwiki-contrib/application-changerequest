@@ -19,8 +19,12 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -38,17 +42,23 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.diff.Conflict;
+import org.xwiki.diff.ConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.store.merge.MergeConflictDecisionsManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -71,6 +81,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     private MergeManager mergeManager;
 
     @Inject
+    private MergeConflictDecisionsManager mergeConflictDecisionsManager;
+
+    @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Inject
@@ -78,6 +91,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
 
     @Inject
     private UserReferenceConverter userReferenceConverter;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
     @Named("context")
@@ -252,5 +268,68 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public boolean mergeWithConflictDecision(FileChange fileChange, ConflictResolutionChoice resolutionChoice,
+        List<ConflictDecision<?>> conflictDecisionList) throws ChangeRequestException
+    {
+        DocumentReference targetEntity = fileChange.getTargetEntity();
+        DocumentReference userReference = this.contextProvider.get().getUserReference();
+        MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange);
+
+        ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
+        // FIXME: only handle content conflicts for now, see XWIKI-18908
+        this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
+            conflicts);
+
+        ConflictDecision.DecisionType globalDecisionType = null;
+
+        switch (resolutionChoice) {
+            case CUSTOM:
+                this.mergeConflictDecisionsManager
+                    .setConflictDecisionList(new ArrayList<>(conflictDecisionList), targetEntity, userReference);
+                break;
+
+            case CHANGE_REQUEST_VERSION:
+                globalDecisionType = ConflictDecision.DecisionType.NEXT;
+                break;
+
+            case PUBLISHED_VERSION:
+                globalDecisionType = ConflictDecision.DecisionType.CURRENT;
+                break;
+
+            default:
+                globalDecisionType = ConflictDecision.DecisionType.UNDECIDED;
+                break;
+        }
+
+        if (globalDecisionType != null) {
+            for (Conflict<?> conflict : conflicts) {
+                this.mergeConflictDecisionsManager.recordDecision(targetEntity, userReference, conflict.getReference(),
+                    globalDecisionType, Collections.emptyList());
+            }
+        }
+
+        mergeDocumentResult = this.getMergeDocumentResult(fileChange);
+        if (mergeDocumentResult.hasConflicts()) {
+            return false;
+        } else {
+            String previousVersion = fileChange.getVersion();
+            String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
+            String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+
+            FileChange mergeFileChange = new FileChange(fileChange.getChangeRequest())
+                .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
+                .setCreationDate(new Date())
+                .setPreviousVersion(previousVersion)
+                .setPreviousPublishedVersion(previousPublishedVersion)
+                .setVersion(version)
+                .setModifiedDocument(mergeDocumentResult.getMergeResult())
+                .setTargetEntity(targetEntity);
+
+            this.fileChangeStorageManager.save(mergeFileChange);
+            return true;
+        }
     }
 }

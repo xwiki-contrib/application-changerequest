@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
@@ -38,8 +39,12 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.diff.Conflict;
+import org.xwiki.diff.ConflictDecision;
+import org.xwiki.diff.internal.DefaultConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.resource.ResourceReferenceSerializer;
@@ -305,6 +310,72 @@ public class ChangeRequestScriptService implements ScriptService
                     changeRequest.getId(), documentReference, ExceptionUtils.getRootCauseMessage(e));
             }
         }
+        return result;
+    }
+
+    /**
+     * Allow to create a {@link ConflictDecision} based on the given parameters.
+     *
+     * @param mergeDocumentResult the merge result for which to create a conflict decision.
+     * @param conflictReference the reference of the conflict for which to create the decision.
+     * @param decisionType the decision taken for fixing the conflict.
+     * @param customResolution a custom resolution input. Note that if this parameter is given, then the decisionType
+     *                         will be set to custom.
+     * @return an {@link Optional#empty()} if no conflict matches the given reference in the merge result, else returns
+     *          a {@link ConflictDecision} with the appropriate information to be used in
+     *          {@link #fixConflicts(ChangeRequest, DocumentReference, ConflictResolutionChoice, List)}.
+     * @since 0.4
+     */
+    public Optional<ConflictDecision<?>> createConflictDecision(MergeDocumentResult mergeDocumentResult,
+        String conflictReference, ConflictDecision.DecisionType decisionType, List<Object> customResolution)
+    {
+        Optional<ConflictDecision<?>> result = Optional.empty();
+        Conflict<?> concernedConflict = null;
+        for (Conflict<?> conflict : mergeDocumentResult.getConflicts()) {
+            if (StringUtils.equals(conflictReference, conflict.getReference())) {
+                concernedConflict = conflict;
+                break;
+            }
+        }
+        if (concernedConflict != null) {
+            ConflictDecision<Object> decision = new DefaultConflictDecision<>(concernedConflict);
+            decision.setType(decisionType);
+            if (customResolution != null && !customResolution.isEmpty()) {
+                decision.setCustom(customResolution);
+            }
+            result = Optional.of(decision);
+        }
+
+        return result;
+    }
+
+    /**
+     * Fix conflicts related to the given {@link MergeDocumentResult} by applying the given decision.
+     *
+     * @param changeRequest the change request for which to fix the conflicts.
+     * @param documentReference the document reference for which to perform a merge.
+     * @param resolutionChoice the global choice to make.
+     * @param customDecisions the specific decisions in case the resolution choice was
+     *          {@link ConflictResolutionChoice#CUSTOM}.
+     * @return {@code true} if the conflicts were properly fixed, {@link false} if any problem occurs preventing to fix
+     *          the conflict.
+     * @since 0.4
+     */
+    public boolean fixConflicts(ChangeRequest changeRequest, DocumentReference documentReference,
+        ConflictResolutionChoice resolutionChoice, List<ConflictDecision<?>> customDecisions)
+    {
+        boolean result = false;
+        Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+        if (optionalFileChange.isPresent()) {
+            try {
+                result = this.changeRequestManager
+                    .mergeWithConflictDecision(optionalFileChange.get(), resolutionChoice, customDecisions);
+            } catch (ChangeRequestException e) {
+                logger.warn("Error while trying to fix conflicts for [{}] in [{}] with decision [{}]: [{}]",
+                    documentReference, changeRequest.getId(), resolutionChoice, ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+
         return result;
     }
 }
