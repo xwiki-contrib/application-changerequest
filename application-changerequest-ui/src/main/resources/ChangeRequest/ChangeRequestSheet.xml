@@ -76,6 +76,7 @@
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
     &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;Description&lt;/a&gt;&lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab"&gt;Reviews&lt;/a&gt;&lt;/li&gt;
     &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;File changes&lt;/a&gt;&lt;/li&gt;
     &lt;li role="presentation"&gt;&lt;a href="#merge" aria-controls="merge" role="tab" data-toggle="tab"&gt;Merge checks&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -83,6 +84,26 @@
   &lt;!-- Tab panes --&gt;
   &lt;div class="tab-content"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;$doc.content&lt;/div&gt;
+    &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
+    &lt;div&gt;&lt;button class="btn btn-primary" id="addReview"&gt;Add review&lt;/button&gt;&lt;/div&gt;
+    &lt;div id="reviewsContainer"&gt;
+    #foreach ($review in $changeRequest.reviews)
+      #if ($review.approved)
+        #set ($reviewPanelClass = "panel-success")
+      #else
+        #set ($reviewPanelClass = "panel-warning")
+      #end
+      &lt;div class="panel $reviewPanelClass"&gt;
+        &lt;div class="panel-heading"&gt;&lt;h3 class="panel-title"&gt;Review from $xwiki.getUserName($review.author.reference) performed on $datetool.format($review.reviewDate)&lt;/h3&gt;&lt;/div&gt;
+        #if ("$!review.comment" != "")
+        &lt;div class="panel-body"&gt;
+          $review.comment
+        &lt;/div&gt;
+        #end
+      &lt;/div&gt;
+    #end
+    &lt;/div&gt;
+    &lt;/div&gt;&lt;!-- End reviews --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
     #set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
 &lt;div&gt;
@@ -200,17 +221,31 @@ $services.localization.render('changerequest.sheet.pagechanges')
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body conflict --&gt;
       &lt;/div&gt;&lt;!-- End panel conflict --&gt;
-      &lt;div class="panel panel-warning"&gt;
-        &lt;div class="panel-heading" role="tab" id="headingTwo"&gt;
+      #set ($approvalStrategyOpt = $services.changerequest.mergeApprovalStrategy)
+      #if ($approvalStrategyOpt.isPresent())
+        #set ($approvalStrategy = $approvalStrategyOpt.get())
+        #set ($canBeMerged = $approvalStrategy.canBeMerged($changeRequest))
+        #if ($canBeMerged)
+          #set ($strategyPanelClass = "panel-success")
+        #else
+          #set ($strategyPanelClass = "panel-warning")
+        #end
+        #set ($strategyPanelText = $approvalStrategy.getStatus($changeRequest))
+      #else
+        #set ($strategyPanelClass = "panel-error")
+        #set ($strategyPanelText = "Approval strategy cannot be loaded")
+      #end
+      &lt;div class="panel $strategyPanelClass"&gt;
+        &lt;div class="panel-heading" role="tab" id="headingApprovalStrategyPanel"&gt;
           &lt;h4 class="panel-title"&gt;
-            &lt;a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"&gt;
-              Approval strategy: requires 2 approvals.
+            &lt;a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#approvalStrategyPanel" aria-expanded="false" aria-controls="approvalStrategyPanel"&gt;
+              Approval strategy
             &lt;/a&gt;
           &lt;/h4&gt;
         &lt;/div&gt; &lt;!-- End heading approval strategy --&gt;
-        &lt;div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo"&gt;
+        &lt;div id="approvalStrategyPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingApprovalStrategyPanel"&gt;
           &lt;div class="panel-body"&gt;
-           Missing approvals.
+           $strategyPanelText
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body approval strategy --&gt;
       &lt;/div&gt;&lt;!-- End panel approval strategy --&gt;
@@ -757,12 +792,189 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
     });
   };
   
-  $(document).on('xwiki:dom:updated', initialize);
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
 });</code>
     </property>
     <property>
       <name>Handle conflict button</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>4</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>5e6a11b2-96d9-4f13-9d20-484cd485d3a1</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var reviewModal = function (changeRequestId) {
+    var self = this;
+    self.changeRequestId = changeRequestId;
+    var currentReference = xm.documentReference;
+    var changeRequestReviewRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestReview");
+    self.postUrl = new XWiki.Document(changeRequestReviewRef).getURL('get');
+    
+    self.requestModal = function () {
+      var params = {
+        'form_token': xm.form_token,
+        'changerequest': self.changeRequestId
+      };
+      self.notification = new XWiki.widgets.Notification('Requesting review modal...','inprogress');
+      $.post(self.postUrl, params).done(function (data) {
+        self.notification.hide();
+        $('body').append(data);
+        $(document).trigger('xwiki:dom:updated', {'elements': $('#reviewModal').toArray()});
+        self.initModal();
+      }).fail(function (data) {
+        self.notification.replace(new XWiki.widgets.Notification('Error while getting review information.','error'));
+      });
+    };
+    
+    self.submitAction = function () {
+      var selectedValue = $('#reviewModal input[name=reviewChoice]:checked');
+      if (selectedValue.length &gt; 0) {
+        var isApproved = selectedValue.val() === 'approve';
+        var params = {
+          'form_token': xm.form_token,
+          'changerequest': self.changeRequestId,
+          'approved': isApproved,
+          'comment': $('#reviewModal #reviewComment').val()
+        };
+        self.notification = new XWiki.widgets.Notification('Posting review...','inprogress');
+        $.post(self.postUrl, params).done(function (data) {
+          if (data.success) {
+            self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
+            window.location.reload();
+          } else {
+            self.notification.replace(new XWiki.widgets.Notification('Error while posting review.','error'));
+          }
+        }).fail(function (data) {
+          self.notification.replace(new XWiki.widgets.Notification('Request error while posting review.','error'));
+          console.error(data);
+        });
+        $('#reviewModal').modal('hide');
+      }
+    };
+    
+    self.initModal = function () {
+      var modal = $('#reviewModal');
+
+      if (modal) {
+        modal.on('hidden.bs.modal', function (e) {
+          modal.off('hidden.bs.modal');
+          $('#submitReview').off('click');
+          modal.remove();
+          $('div.modal-backdrop').remove();
+        });
+
+        $('#submitReview').on('click', self.submitAction);
+        modal.modal('show');
+      }
+    };
+  }
+  
+  var initialize = function () {
+    $("#addReview").on('click', function () {
+      var button = $(this);
+      var currentReference = xm.documentReference;
+      var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
+      var modal = new reviewModal(changeRequestId);
+      modal.requestModal();
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+});</code>
+    </property>
+    <property>
+      <name>Review modal</name>
     </property>
     <property>
       <parse>0</parse>

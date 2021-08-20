@@ -120,4 +120,15 @@ public interface ChangeRequestManager
     {
         return Optional.empty();
     }
+
+    /**
+     * @return the {@link MergeApprovalStrategy} currently configured
+     *          (see {@link ChangeRequestConfiguration#getMergeApprovalStrategy()}).
+     * @throws ChangeRequestException in case of problem for getting the component.
+     * @since 0.4
+     */
+    default MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
+    {
+        return null;
+    }
 }

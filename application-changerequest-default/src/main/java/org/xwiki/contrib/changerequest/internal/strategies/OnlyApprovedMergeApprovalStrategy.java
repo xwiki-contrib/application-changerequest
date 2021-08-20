@@ -19,34 +19,35 @@
  */
 package org.xwiki.contrib.changerequest.internal.strategies;
 
+import java.util.List;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
 
 /**
- * A dumb {@link MergeApprovalStrategy} that allows to merge any change request.
- * Mainly used for tests.
+ * This strategy checks that a change request only have approvals to allow merging a change request.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.4
  */
 @Component
-@Named(AcceptAllMergeApprovalStrategy.NAME)
+@Named(OnlyApprovedMergeApprovalStrategy.NAME)
 @Singleton
-public class AcceptAllMergeApprovalStrategy extends AbstractMergeApprovalStrategy
+public class OnlyApprovedMergeApprovalStrategy extends AbstractMergeApprovalStrategy
 {
     /**
      * Name of the strategy.
      */
-    public static final String NAME = "acceptall";
+    public static final String NAME = "onlyapproved";
 
     /**
      * Default constructor.
      */
-    public AcceptAllMergeApprovalStrategy()
+    public OnlyApprovedMergeApprovalStrategy()
     {
         super(NAME);
     }
@@ -54,12 +55,28 @@ public class AcceptAllMergeApprovalStrategy extends AbstractMergeApprovalStrateg
     @Override
     public boolean canBeMerged(ChangeRequest changeRequest)
     {
-        return true;
+        List<ChangeRequestReview> reviews = changeRequest.getReviews();
+        boolean result = !reviews.isEmpty();
+        for (ChangeRequestReview review : reviews) {
+            if (!review.isApproved()) {
+                result = false;
+                break;
+            }
+        }
+        return result;
     }
 
     @Override
     public String getStatus(ChangeRequest changeRequest)
     {
-        return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix() + "status");
+        String result;
+        if (canBeMerged(changeRequest)) {
+            result = this.contextualLocalizationManager
+                .getTranslationPlain(getTranslationPrefix() + "status.success");
+        } else {
+            result = this.contextualLocalizationManager
+                .getTranslationPlain(getTranslationPrefix() + "status.failure");
+        }
+        return result;
     }
 }

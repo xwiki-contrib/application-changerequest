@@ -54,6 +54,7 @@ public class ChangeRequest
     private ChangeRequestStatus status;
     private final Map<DocumentReference, Deque<FileChange>> fileChanges;
     private Set<UserReference> authors;
+    private List<ChangeRequestReview> reviews;
 
     /**
      * Default constructor.
@@ -64,6 +65,7 @@ public class ChangeRequest
         this.status = ChangeRequestStatus.DRAFT;
         this.fileChanges = new HashMap<>();
         this.authors = new HashSet<>();
+        this.reviews = new ArrayList<>();
     }
 
     /**
@@ -245,6 +247,28 @@ public class ChangeRequest
         return this;
     }
 
+    /**
+     * @return the reviews related to this change request.
+     * @since 0.4
+     */
+    public List<ChangeRequestReview> getReviews()
+    {
+        return reviews;
+    }
+
+    /**
+     * Attach a new review to this change request.
+     *
+     * @param review the review to be attached to the change request.
+     * @return the current instance.
+     * @since 0.4
+     */
+    public ChangeRequest addReview(ChangeRequestReview review)
+    {
+        this.reviews.add(review);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -266,6 +290,7 @@ public class ChangeRequest
             .append(creationDate, that.creationDate)
             .append(status, that.status)
             .append(fileChanges, that.fileChanges)
+            .append(reviews, that.reviews)
             .isEquals();
     }
 
@@ -280,6 +305,7 @@ public class ChangeRequest
             .append(creationDate)
             .append(status)
             .append(fileChanges)
+            .append(reviews)
             .toHashCode();
     }
 
@@ -294,6 +320,7 @@ public class ChangeRequest
             .append("creationDate", creationDate)
             .append("status", status)
             .append("fileChanges", fileChanges)
+            .append("review", reviews)
             .toString();
     }
 }

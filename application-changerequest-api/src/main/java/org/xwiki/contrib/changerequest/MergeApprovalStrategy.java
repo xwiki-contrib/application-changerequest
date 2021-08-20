@@ -41,4 +41,35 @@ public interface MergeApprovalStrategy
      * @return {@code true} if the change request can be merged, based on the current strategy.
      */
     boolean canBeMerged(ChangeRequest changeRequest);
+
+    /**
+     * Retrieve a human-readable status explaining why the approval strategy is reached or not.
+     *
+     * @param changeRequest the change request for which to get a status.
+     * @return a localized status explaining why the change request can or cannot be merged based on the approval
+     *          strategy.
+     * @since 0.4
+     */
+    default String getStatus(ChangeRequest changeRequest)
+    {
+        return "";
+    }
+
+    /**
+     * @return the name of the strategy, which should also be the hint of the component.
+     * @since 0.4
+     */
+    default String getName()
+    {
+        return "";
+    }
+
+    /**
+     * @return a human-readable description of the strategy, which should be localized.
+     * @since 0.4
+     */
+    default String getDescription()
+    {
+        return "";
+    }
 }

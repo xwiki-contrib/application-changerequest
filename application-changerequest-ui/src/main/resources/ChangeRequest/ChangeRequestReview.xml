@@ -1,0 +1,104 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="ChangeRequest.ChangeRequestReview" locale="">
+  <web>ChangeRequest</web>
+  <name>ChangeRequestReview</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ChangeRequestReview</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+#if ($xcontext.action != 'get')
+  Technical page for handling reviews.
+#elseif (!$services.csrf.isTokenValid($request.get('form_token')))
+  #set ($discard = $response.sendError(401, "Wrong CSRF token."))
+#elseif ("$!request.get('changerequest')" == '')
+  #set ($discard = $response.sendError(400, "Wrong argument for the request"))
+#else
+  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
+  #if (!$changeRequestOpt.isPresent())
+     #set ($discard = $response.sendError(400, "Cannot find change request"))
+  #else
+    #set ($changeRequest = $changeRequestOpt.get())
+    #if ("$!request.get('approved')" != '')
+      #set ($isApproved = $request.get('approved') == 'true')
+      #set ($comment = "$!request.get('comment')")
+      #set ($success = $services.changerequest.addReview($changeRequest, $isApproved, $comment))
+      #jsonResponse({
+        'success': $success
+      })
+    #else
+      {{html clean="false"}}
+      &lt;div class="modal fade" tabindex="-1" role="dialog" id="reviewModal"&gt;
+        &lt;div class="modal-dialog" role="document"&gt;
+          &lt;div class="modal-content"&gt;
+            &lt;div class="modal-header"&gt;
+              &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;&lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+              &lt;h4 class="modal-title"&gt;Post a review&lt;/h4&gt;
+            &lt;/div&gt;
+            &lt;div class="modal-body"&gt;
+               &lt;div class="panel-group" id="reviewChoice" role="tablist" aria-multiselectable="false"&gt;
+                &lt;div class="panel panel-success"&gt;
+                  &lt;div class="panel-radio"&gt;
+                    &lt;input type="radio" id="approveReview" name="reviewChoice" value="approve" /&gt;
+                  &lt;/div&gt;
+                  &lt;div class="panel-heading"&gt;
+                    &lt;label for="approveReview"&gt;Approve change request&lt;/label&gt;
+                  &lt;/div&gt;
+               &lt;/div&gt;
+               &lt;div class="panel panel-warning"&gt;
+                  &lt;div class="panel-radio"&gt;
+                    &lt;input type="radio" id="requestChangeReview" name="reviewChoice" value="requestChange" /&gt;
+                  &lt;/div&gt;
+                  &lt;div class="panel-heading"&gt;
+                    &lt;label for="requestChangeReview"&gt;Request changes&lt;/label&gt;
+                  &lt;/div&gt;
+               &lt;/div&gt;
+             &lt;/div&gt;
+             &lt;div class="form-group"&gt;
+               &lt;label for="reviewComment"&gt;Provide a comment&lt;/label&gt;
+               &lt;textarea class="form-control" rows="3" id="reviewComment"&gt;&lt;/textarea&gt;
+             &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="modal-footer"&gt;
+              &lt;button type="button" class="btn btn-primary" id="submitReview"&gt;Save&lt;/button&gt;
+              &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;Close&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;&lt;!-- /.modal-content --&gt;
+        &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;
+      &lt;/div&gt;&lt;!-- /.modal --&gt;
+      {{/html}}
+    #end
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>

@@ -19,47 +19,53 @@
  */
 package org.xwiki.contrib.changerequest.internal.strategies;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import javax.inject.Inject;
 
-import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.localization.ContextualLocalizationManager;
 
 /**
- * A dumb {@link MergeApprovalStrategy} that allows to merge any change request.
- * Mainly used for tests.
+ * Abstract component for approval strategies.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.4
  */
-@Component
-@Named(AcceptAllMergeApprovalStrategy.NAME)
-@Singleton
-public class AcceptAllMergeApprovalStrategy extends AbstractMergeApprovalStrategy
+public abstract class AbstractMergeApprovalStrategy implements MergeApprovalStrategy
 {
-    /**
-     * Name of the strategy.
-     */
-    public static final String NAME = "acceptall";
+    private static final String TRANSLATION_PREFIX = "changerequest.strategies.";
+
+    @Inject
+    protected ContextualLocalizationManager contextualLocalizationManager;
+
+    private final String name;
 
     /**
      * Default constructor.
+     *
+     * @param name the name of the strategy, which should also be used as hint.
      */
-    public AcceptAllMergeApprovalStrategy()
+    public AbstractMergeApprovalStrategy(String name)
     {
-        super(NAME);
+        this.name = name;
+    }
+
+    /**
+     * @return a translation prefix based on the name of the strategy.
+     */
+    protected String getTranslationPrefix()
+    {
+        return TRANSLATION_PREFIX + getName() + ".";
     }
 
     @Override
-    public boolean canBeMerged(ChangeRequest changeRequest)
+    public String getName()
     {
-        return true;
+        return this.name;
     }
 
     @Override
-    public String getStatus(ChangeRequest changeRequest)
+    public String getDescription()
     {
-        return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix() + "status");
+        return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix() + "description");
     }
 }

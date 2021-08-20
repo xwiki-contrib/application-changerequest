@@ -41,6 +41,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -115,6 +116,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Inject
     private ChangeRequestConfiguration configuration;
 
+    @Inject
+    private ReviewStorageManager reviewStorageManager;
+
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
     {
@@ -186,6 +190,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                     }
                 }
 
+                this.reviewStorageManager.load(changeRequest);
                 result = Optional.of(changeRequest);
             }
         } catch (XWikiException e) {

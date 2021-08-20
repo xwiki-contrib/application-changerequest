@@ -15,3 +15,7 @@ org.xwiki.contrib.changerequest.internal.id.UUIDChangeRequestIDGenerator
 org.xwiki.contrib.changerequest.internal.handlers.AddChangesChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.ChangeRequestReferenceSerializer
 org.xwiki.contrib.changerequest.internal.FileChangeVersionManager
+org.xwiki.contrib.changerequest.internal.strategies.FixedNumberApprovalsMergeApprovalStrategy
+org.xwiki.contrib.changerequest.internal.strategies.OnlyApprovedMergeApprovalStrategy
+org.xwiki.contrib.changerequest.internal.storage.DefaultReviewStorageManager
+org.xwiki.contrib.changerequest.internal.ChangeRequestConfigurationSource

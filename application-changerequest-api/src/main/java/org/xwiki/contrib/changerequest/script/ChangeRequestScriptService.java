@@ -38,10 +38,13 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
 import org.xwiki.diff.internal.DefaultConflictDecision;
@@ -84,6 +87,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private DocumentReferenceResolver<ChangeRequest> documentReferenceResolver;
+
+    @Inject
+    private ReviewStorageManager reviewStorageManager;
 
     @Inject
     private Logger logger;
@@ -377,5 +383,47 @@ public class ChangeRequestScriptService implements ScriptService
         }
 
         return result;
+    }
+
+    /**
+     * Allow to add a review to the given change request.
+     *
+     * @param changeRequest the change request for which to add a review.
+     * @param approved {@code true} if the review is an approval, {@code false} if it requests changes.
+     * @param comment an optional comment with the review.
+     * @return {@code true} if the review has been properly stored.
+     * @since 0.4
+     */
+    public boolean addReview(ChangeRequest changeRequest, boolean approved, String comment)
+    {
+        boolean result = false;
+        UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
+        review.setComment(comment);
+        try {
+            this.reviewStorageManager.save(review);
+            result = true;
+        } catch (ChangeRequestException e) {
+            logger.warn("Error while saving review for change request [{}]: [{}]",
+                changeRequest.getId(), ExceptionUtils.getRootCauseMessage(e));
+        }
+        return result;
+    }
+
+    /**
+     * Retrieve the {@link MergeApprovalStrategy} to be used.
+     *
+     * @return an {@link Optional#empty()} in case of problem to get the strategy, else an optional containing the
+     * {@link MergeApprovalStrategy}.
+     * @since 0.4
+     */
+    public Optional<MergeApprovalStrategy> getMergeApprovalStrategy()
+    {
+        try {
+            return Optional.of(this.changeRequestManager.getMergeApprovalStrategy());
+        } catch (ChangeRequestException e) {
+            logger.warn("Error while getting merge approval strategy: [{}]", ExceptionUtils.getRootCauseMessage(e));
+        }
+        return Optional.empty();
     }
 }

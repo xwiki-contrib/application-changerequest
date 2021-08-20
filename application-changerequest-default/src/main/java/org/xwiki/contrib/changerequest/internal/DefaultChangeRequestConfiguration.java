@@ -23,13 +23,17 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrategy;
 import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.model.reference.SpaceReferenceResolver;
+import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWikiContext;
 
@@ -43,22 +47,36 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class DefaultChangeRequestConfiguration implements ChangeRequestConfiguration
 {
+    static final String DEFAULT_APPROVAL_STRATEGY = AcceptAllMergeApprovalStrategy.NAME;
     private static final List<String> CHANGE_REQUEST_SPACE_LOCATION = Arrays.asList("XWiki", "ChangeRequest");
 
     @Inject
     private Provider<XWikiContext> contextProvider;
 
-    // FIXME: This needs to be replaced by a proper configuration from a doc.
+    @Inject
+    @Named("changerequest")
+    private ConfigurationSource configurationSource;
+
+    @Inject
+    private SpaceReferenceResolver<String> spaceReferenceResolver;
+
     @Override
     public String getMergeApprovalStrategy()
     {
-        return AcceptAllMergeApprovalStrategy.NAME;
+        return this.configurationSource.getProperty("approvalStrategy", DEFAULT_APPROVAL_STRATEGY);
     }
 
     @Override
     public SpaceReference getChangeRequestSpaceLocation()
     {
-        return new SpaceReference(this.contextProvider.get().getWikiReference().getName(),
-            CHANGE_REQUEST_SPACE_LOCATION);
+        WikiReference wikiReference = this.contextProvider.get().getWikiReference();
+        String changeRequestLocation = this.configurationSource.getProperty("changeRequestLocation", null);
+        SpaceReference result;
+        if (changeRequestLocation != null) {
+            result = this.spaceReferenceResolver.resolve(changeRequestLocation, wikiReference);
+        } else {
+            result = new SpaceReference(wikiReference.getName(), CHANGE_REQUEST_SPACE_LOCATION);
+        }
+        return result;
     }
 }

@@ -19,10 +19,12 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrategy;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
@@ -51,6 +53,10 @@ class DefaultChangeRequestConfigurationTest
     @MockComponent
     private Provider<XWikiContext> contextProvider;
 
+    @MockComponent
+    @Named("changerequest")
+    private ConfigurationSource configurationSource;
+
     private XWikiContext context;
 
     @BeforeEach
@@ -63,7 +69,10 @@ class DefaultChangeRequestConfigurationTest
     @Test
     void getMergeApprovalStrategy()
     {
-        assertEquals(AcceptAllMergeApprovalStrategy.NAME, this.configuration.getMergeApprovalStrategy());
+        when(this.configurationSource
+            .getProperty("approvalStrategy", DefaultChangeRequestConfiguration.DEFAULT_APPROVAL_STRATEGY))
+            .thenReturn("something");
+        assertEquals("something", this.configuration.getMergeApprovalStrategy());
     }
 
     @Test

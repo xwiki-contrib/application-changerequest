@@ -150,10 +150,15 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         return result;
     }
 
-    private MergeApprovalStrategy getMergeApprovalStrategy() throws ComponentLookupException
+    @Override
+    public MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
     {
-        return this.componentManager.getInstance(MergeApprovalStrategy.class,
-            this.configuration.getMergeApprovalStrategy());
+        try {
+            return this.componentManager.getInstance(MergeApprovalStrategy.class,
+                this.configuration.getMergeApprovalStrategy());
+        } catch (ComponentLookupException e) {
+            throw new ChangeRequestException("Error when getting the merge approval strategy", e);
+        }
     }
 
     @Override
@@ -161,13 +166,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     {
         boolean result = false;
         if (changeRequest.getStatus() == ChangeRequestStatus.READY_FOR_REVIEW) {
-            try {
-                MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
-                if (mergeApprovalStrategy.canBeMerged(changeRequest)) {
-                    result = !this.hasConflict(changeRequest);
-                }
-            } catch (ComponentLookupException e) {
-                throw new ChangeRequestException("Error when getting the merge approval strategy", e);
+            MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
+            if (mergeApprovalStrategy.canBeMerged(changeRequest)) {
+                result = !this.hasConflict(changeRequest);
             }
         }
         return result;
