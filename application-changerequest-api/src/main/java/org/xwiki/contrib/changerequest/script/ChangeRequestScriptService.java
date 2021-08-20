@@ -363,7 +363,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @param resolutionChoice the global choice to make.
      * @param customDecisions the specific decisions in case the resolution choice was
      *          {@link ConflictResolutionChoice#CUSTOM}.
-     * @return {@code true} if the conflicts were properly fixed, {@link false} if any problem occurs preventing to fix
+     * @return {@code true} if the conflicts were properly fixed, {@code false} if any problem occurs preventing to fix
      *          the conflict.
      * @since 0.4
      */
