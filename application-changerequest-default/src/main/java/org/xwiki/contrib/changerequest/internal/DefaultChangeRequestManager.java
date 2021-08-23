@@ -138,10 +138,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         boolean result = true;
         DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
         Right approvalRight = ChangeRequestApproveRight.getRight();
-        for (FileChange fileChange : changeRequest.getAllFileChanges()) {
-            if (!this.authorizationManager.hasAccess(Right.EDIT, userDocReference, fileChange.getTargetEntity())
-                || !this.authorizationManager.hasAccess(approvalRight, userDocReference,
-                fileChange.getTargetEntity())) {
+        for (DocumentReference documentReference : changeRequest.getModifiedDocuments()) {
+            if (!this.authorizationManager.hasAccess(Right.EDIT, userDocReference, documentReference)
+                || !this.authorizationManager.hasAccess(approvalRight, userDocReference, documentReference)) {
                 result = false;
                 break;
             }
@@ -332,5 +331,23 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
             this.fileChangeStorageManager.save(mergeFileChange);
             return true;
         }
+    }
+
+    @Override
+    public boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
+    {
+        boolean result = false;
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        Right approvalRight = ChangeRequestApproveRight.getRight();
+        if (!(changeRequest.getAuthors().contains(userReference))) {
+            result = true;
+            for (DocumentReference documentReference : changeRequest.getModifiedDocuments()) {
+                if (!this.authorizationManager.hasAccess(approvalRight, userDocReference, documentReference)) {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 }

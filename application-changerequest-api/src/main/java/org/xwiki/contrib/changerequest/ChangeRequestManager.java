@@ -131,4 +131,17 @@ public interface ChangeRequestManager
     {
         return null;
     }
+
+    /**
+     * Check if the given user is authorized to review the given change request.
+     *
+     * @param userReference the user for which to check authorizations.
+     * @param changeRequest the change request to review.
+     * @return {@code true} if the user is not one of the change request author and it authorized to review it.
+     * @since 0.4
+     */
+    default boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return false;
+    }
 }

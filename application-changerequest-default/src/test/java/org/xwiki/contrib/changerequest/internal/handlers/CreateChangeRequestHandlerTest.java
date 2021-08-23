@@ -145,7 +145,7 @@ class CreateChangeRequestHandlerTest
 
         doAnswer(invocationOnMock -> {
             ChangeRequest changeRequest = invocationOnMock.getArgument(0);
-            List<FileChange> allFileChanges = changeRequest.getAllFileChanges();
+            List<FileChange> allFileChanges = changeRequest.getLastFileChanges();
             assertEquals(1, allFileChanges.size());
             // ensure to have the exact same date in file change
             Date creationDate = allFileChanges.get(0).getCreationDate();

@@ -21,14 +21,12 @@ package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -162,14 +160,9 @@ class DefaultChangeRequestManagerTest
         DocumentReference userDocReference = mock(DocumentReference.class);
         when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
 
-        FileChange fileChange1 = mock(FileChange.class);
-        FileChange fileChange2 = mock(FileChange.class);
-        when(changeRequest.getAllFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
-
         DocumentReference reference1 = mock(DocumentReference.class);
         DocumentReference reference2 = mock(DocumentReference.class);
-        when(fileChange1.getTargetEntity()).thenReturn(reference1);
-        when(fileChange2.getTargetEntity()).thenReturn(reference2);
+        when(changeRequest.getModifiedDocuments()).thenReturn(new HashSet<>(Arrays.asList(reference1, reference2)));
 
         Right approvalRight = ChangeRequestApproveRight.getRight();
         when(this.authorizationManager.hasAccess(approvalRight, userDocReference, reference1)).thenReturn(false);

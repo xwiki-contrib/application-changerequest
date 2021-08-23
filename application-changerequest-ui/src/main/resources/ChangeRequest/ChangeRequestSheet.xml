@@ -85,7 +85,9 @@
   &lt;div class="tab-content"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;$doc.content&lt;/div&gt;
     &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
+    #if ($services.changerequest.isAuthorizedToReview($changeRequest))
     &lt;div&gt;&lt;button class="btn btn-primary" id="addReview"&gt;Add review&lt;/button&gt;&lt;/div&gt;
+    #end
     &lt;div id="reviewsContainer"&gt;
     #foreach ($review in $changeRequest.reviews)
       #if ($review.approved)
@@ -191,7 +193,36 @@ $services.localization.render('changerequest.sheet.pagechanges')
             #end
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body status panel --&gt;
-      &lt;/div&gt;&lt;!-- End panel conflict --&gt;
+      &lt;/div&gt;&lt;!-- End status panel --&gt;
+      #if ($services.changerequest.isAuthorizedToMerge($changeRequest))
+        #set ($authorizationPanelClass = "panel-success")
+      #else
+        #set ($authorizationPanelClass = "panel-success")
+      #end
+      &lt;div class="panel $statusPanelClass"&gt;
+        &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
+      &lt;h4 class="panel-title"&gt;
+      &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
+      $statusPanelTitle
+      &lt;/a&gt;
+      &lt;/h4&gt;
+      &lt;/div&gt; &lt;!-- End heading status panel --&gt;
+      &lt;div id="statusPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingStatusPanel"&gt;
+      &lt;div class="panel-body"&gt;
+      #set ($sheetRef = "ChangeRequest.ChangeRequestSheet")
+      #set ($sheetDoc = $xwiki.getDocument($sheetRef))
+      #if ($isStatusReady)
+      &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning"&gt;
+      Mark the change request as work in progress
+      &lt;/a&gt;
+      #else
+      &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary"&gt;
+      Mark the change request as ready for review
+      &lt;/a&gt;
+      #end
+      &lt;/div&gt;
+      &lt;/div&gt;&lt;!-- End body status panel --&gt;
+      &lt;/div&gt;&lt;!-- End status panel --&gt;
        #if ($conflictingFiles.isEmpty())
          #set ($conflictPanelClass = "panel-success")
          #set ($conflictPanelTitle = "No conflict found")

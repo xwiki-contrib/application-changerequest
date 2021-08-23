@@ -398,14 +398,18 @@ public class ChangeRequestScriptService implements ScriptService
     {
         boolean result = false;
         UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
-        review.setComment(comment);
-        try {
-            this.reviewStorageManager.save(review);
-            result = true;
-        } catch (ChangeRequestException e) {
-            logger.warn("Error while saving review for change request [{}]: [{}]",
-                changeRequest.getId(), ExceptionUtils.getRootCauseMessage(e));
+        if (this.isAuthorizedToReview(changeRequest)) {
+            ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
+            review.setComment(comment);
+            try {
+                this.reviewStorageManager.save(review);
+                result = true;
+            } catch (ChangeRequestException e) {
+                logger.warn("Error while saving review for change request [{}]: [{}]",
+                    changeRequest.getId(), ExceptionUtils.getRootCauseMessage(e));
+            }
+        } else {
+            logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
         }
         return result;
     }
@@ -425,5 +429,18 @@ public class ChangeRequestScriptService implements ScriptService
             logger.warn("Error while getting merge approval strategy: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
         return Optional.empty();
+    }
+
+    /**
+     * Check if the current user is authorized to review the given change request.
+     *
+     * @param changeRequest the change request about to be reviewed.
+     * @return {@code true} if the change request can be reviewed by current user.
+     * @since 0.4
+     */
+    public boolean isAuthorizedToReview(ChangeRequest changeRequest)
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
     }
 }

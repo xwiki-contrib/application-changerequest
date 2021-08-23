@@ -128,6 +128,29 @@ public class ChangeRequest
     }
 
     /**
+     * @return the set of document modified as part of this change request.
+     * @since 0.4
+     */
+    public Set<DocumentReference> getModifiedDocuments()
+    {
+        return this.fileChanges.keySet();
+    }
+
+    /**
+     * Retrieve last file changes for any document modified in the change request.
+     * @return last file changes for each document.
+     * @since 0.4
+     */
+    public List<FileChange> getLastFileChanges()
+    {
+        List<FileChange> result = new ArrayList<>();
+        for (Map.Entry<DocumentReference, Deque<FileChange>> entry : this.fileChanges.entrySet()) {
+            result.add(entry.getValue().getLast());
+        }
+        return result;
+    }
+
+    /**
      * @return all file changes of the current change request.
      */
     public List<FileChange> getAllFileChanges()
