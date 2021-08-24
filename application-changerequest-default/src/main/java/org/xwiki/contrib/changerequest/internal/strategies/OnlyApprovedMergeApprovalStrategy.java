@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.strategies;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -55,7 +56,10 @@ public class OnlyApprovedMergeApprovalStrategy extends AbstractMergeApprovalStra
     @Override
     public boolean canBeMerged(ChangeRequest changeRequest)
     {
-        List<ChangeRequestReview> reviews = changeRequest.getReviews();
+        List<ChangeRequestReview> reviews = changeRequest.getReviews()
+            .stream()
+            .filter(ChangeRequestReview::isValid)
+            .collect(Collectors.toList());
         boolean result = !reviews.isEmpty();
         for (ChangeRequestReview review : reviews) {
             if (!review.isApproved()) {

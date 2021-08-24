@@ -62,6 +62,9 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
     static final String APPROVED_PROPERTY = "approved";
     static final String DATE_PROPERTY = "reviewDate";
     static final String COMMENT_PROPERTY = "comment";
+    static final String VALID_PROPERTY = "valid";
+
+    static final String ID_FORMAT = "xobject_%s";
 
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
@@ -86,18 +89,30 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
             XWikiContext context = contextProvider.get();
             try {
                 XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
-                int xObjectNumber = changeRequestDoc.createXObject(REVIEW_XCLASS, context);
-                BaseObject xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
+                BaseObject xObject;
+                String saveComment;
+                if (StringUtils.isEmpty(review.getId())) {
+                    int xObjectNumber = changeRequestDoc.createXObject(REVIEW_XCLASS, context);
+                    xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
+                    review.setId(String.format(ID_FORMAT, xObjectNumber));
+                    saveComment = "Add new review";
+                } else {
+                    int xObjectNumber = Integer.parseInt(review.getId().split("_")[1]);
+                    xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
+                    saveComment = "Update existing review";
+                }
                 int approvedValue = (review.isApproved()) ? 1 : 0;
                 xObject.set(APPROVED_PROPERTY, approvedValue, context);
                 xObject.set(AUTHOR_PROPERTY, this.userReferenceConverter.convert(review.getAuthor()), context);
                 xObject.set(DATE_PROPERTY, review.getReviewDate(), context);
                 xObject.set(COMMENT_PROPERTY, review.getComment(), context);
+                int validValue = (review.isValid()) ? 1 : 0;
+                xObject.set(VALID_PROPERTY, validValue, context);
 
-                context.getWiki().saveDocument(changeRequestDoc, "Add new review", context);
+                context.getWiki().saveDocument(changeRequestDoc, saveComment, context);
                 review.setSaved(true);
             } catch (XWikiException e) {
-                throw new ChangeRequestException("Error while saving new review", e);
+                throw new ChangeRequestException("Error while saving review", e);
             }
         }
     }
@@ -117,9 +132,14 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                 UserReference author = this.userReferenceResolver.resolve(xObject.getStringValue(AUTHOR_PROPERTY));
                 String comment = xObject.getLargeStringValue(COMMENT_PROPERTY);
                 Date reviewDate = xObject.getDateValue(DATE_PROPERTY);
+                boolean isValid = StringUtils.equals(xObject.getStringValue(VALID_PROPERTY), "1");
+                String id = String.format(ID_FORMAT, xObject.getNumber());
 
                 ChangeRequestReview review = new ChangeRequestReview(changeRequest, isApproved, author);
-                review.setReviewDate(reviewDate)
+                review
+                    .setValid(isValid)
+                    .setId(id)
+                    .setReviewDate(reviewDate)
                     .setComment(comment)
                     .setSaved(true);
                 changeRequest.addReview(review);

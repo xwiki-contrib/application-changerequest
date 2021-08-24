@@ -69,12 +69,14 @@ public class FixedNumberApprovalsMergeApprovalStrategy extends AbstractMergeAppr
         boolean result = false;
         int approved = 0;
         for (ChangeRequestReview review : changeRequest.getReviews()) {
-            if (review.isApproved()) {
-                approved++;
-            }
-            if (approved >= this.thresholdNumber) {
-                result = true;
-                break;
+            if (review.isValid()) {
+                if (review.isApproved()) {
+                    approved++;
+                }
+                if (approved >= this.thresholdNumber) {
+                    result = true;
+                    break;
+                }
             }
         }
 

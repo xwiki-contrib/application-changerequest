@@ -66,6 +66,16 @@ public class OnlyApprovedMergeApprovalStrategyTest
         when(review1.isApproved()).thenReturn(true);
         when(review2.isApproved()).thenReturn(false);
         when(review3.isApproved()).thenReturn(true);
+
+        when(review1.isValid()).thenReturn(false);
+        when(review2.isValid()).thenReturn(false);
+        when(review3.isValid()).thenReturn(false);
+        assertFalse(strategy.canBeMerged(changeRequest));
+
+        when(review2.isValid()).thenReturn(true);
+        assertFalse(strategy.canBeMerged(changeRequest));
+
+        when(review1.isValid()).thenReturn(true);
         assertFalse(strategy.canBeMerged(changeRequest));
 
         when(review2.isApproved()).thenReturn(true);
@@ -103,6 +113,7 @@ public class OnlyApprovedMergeApprovalStrategyTest
 
         ChangeRequestReview review = mock(ChangeRequestReview.class);
         when(review.isApproved()).thenReturn(true);
+        when(review.isValid()).thenReturn(true);
         when(changeRequest.getReviews()).thenReturn(Collections.singletonList(review));
         assertEquals("success4242", strategy.getStatus(changeRequest));
     }

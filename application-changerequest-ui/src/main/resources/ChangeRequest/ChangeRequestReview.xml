@@ -49,14 +49,26 @@
      #set ($discard = $response.sendError(400, "Cannot find change request"))
   #else
     #set ($changeRequest = $changeRequestOpt.get())
-    #if ("$!request.get('approved')" != '')
+    #if ("$!request.get('action')" == 'setstatus' &amp;&amp; "$!request.get('reviewid')" != '' &amp;&amp; "$!request.get('isvalid')" != '')
+      #set ($optionalReview = $services.changerequest.getReview($changeRequest, $request.get('reviewid')))
+      #if (!$optionalReview.isPresent())
+        #set ($discard = $response.sendError(400, "Cannot find review"))
+      #else
+        #set ($review = $optionalReview.get())
+        #set ($isValid = ($request.get('isvalid') == '1'))
+        #set ($success = $services.changerequest.setReviewValidity($review, $isValid))
+        #jsonResponse({
+          'success': $success
+        })
+      #end
+    #elseif ("$!request.get('action')" == 'create' &amp;&amp; "$!request.get('approved')" != '')
       #set ($isApproved = $request.get('approved') == 'true')
       #set ($comment = "$!request.get('comment')")
       #set ($success = $services.changerequest.addReview($changeRequest, $isApproved, $comment))
       #jsonResponse({
         'success': $success
       })
-    #else
+    #elseif ("$!request.get('action')" == 'create')
       {{html clean="false"}}
       &lt;div class="modal fade" tabindex="-1" role="dialog" id="reviewModal"&gt;
         &lt;div class="modal-dialog" role="document"&gt;
@@ -97,6 +109,8 @@
         &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;
       &lt;/div&gt;&lt;!-- /.modal --&gt;
       {{/html}}
+    #else
+      #set ($discard = $response.sendError(400, "Wrong action argument for the request"))
     #end
   #end
 #end

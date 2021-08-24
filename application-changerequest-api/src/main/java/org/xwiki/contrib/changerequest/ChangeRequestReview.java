@@ -40,7 +40,9 @@ public class ChangeRequestReview
     private final UserReference author;
     private String comment;
     private Date reviewDate;
+    private boolean isValid;
     private boolean isSaved;
+    private String id;
 
     /**
      * Default constructor.
@@ -55,6 +57,7 @@ public class ChangeRequestReview
         this.approved = approved;
         this.author = author;
         this.reviewDate = new Date();
+        this.isValid = true;
     }
 
     /**
@@ -139,6 +142,44 @@ public class ChangeRequestReview
         return this;
     }
 
+    /**
+     * @return {@code true} if the review should be taken into account for the approval strategy.
+     */
+    public boolean isValid()
+    {
+        return isValid;
+    }
+
+    /**
+     * Set the review as valid if it needs to be into account for the approval strategy, set it as invalid if it should
+     * not be taken into account anymore.
+     * @param valid {@code true} if the review should be taken into account.
+     * @return the current instance.
+     */
+    public ChangeRequestReview setValid(boolean valid)
+    {
+        isValid = valid;
+        return this;
+    }
+
+    /**
+     * @return a unique identifier used for the storage.
+     */
+    public String getId()
+    {
+        return id;
+    }
+
+    /**
+     * @param id the unique identifier of this review used for the storage.
+     * @return the current instance.
+     */
+    public ChangeRequestReview setId(String id)
+    {
+        this.id = id;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -157,6 +198,8 @@ public class ChangeRequestReview
             .append(author, that.author)
             .append(comment, that.comment)
             .append(reviewDate, that.reviewDate)
+            .append(isValid, that.isValid)
+            .append(id, that.id)
             .isEquals();
     }
 
@@ -168,6 +211,8 @@ public class ChangeRequestReview
             .append(author)
             .append(comment)
             .append(reviewDate)
+            .append(isValid)
+            .append(id)
             .toHashCode();
     }
 }

@@ -443,4 +443,53 @@ public class ChangeRequestScriptService implements ScriptService
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
     }
+
+    /**
+     * Retrieve a review based on its identifier.
+     *
+     * @param changeRequest the change request for which to retrieve a review.
+     * @param reviewId the id of the review to retrieve.
+     * @return an {@link Optional#empty()} if the review cannot be found, else an optional containing the requested
+     *          {@link ChangeRequestReview}.
+     * @since 0.4
+     */
+    public Optional<ChangeRequestReview> getReview(ChangeRequest changeRequest, String reviewId)
+    {
+        return changeRequest.getReviews().stream().filter(review -> reviewId.equals(review.getId())).findFirst();
+    }
+
+    /**
+     * Change the validity of the review to mark it as invalid, or on contrary to make it valid again.
+     *
+     * @param review the review for which to change the validity status.
+     * @param isValid the new validity status to set.
+     * @return {@code true} if the review has been properly saved with the new status.
+     * @since 0.4
+     */
+    public boolean setReviewValidity(ChangeRequestReview review, boolean isValid)
+    {
+        if (canEditReview(review)) {
+            review.setValid(isValid);
+            review.setSaved(false);
+            try {
+                this.reviewStorageManager.save(review);
+                return true;
+            } catch (ChangeRequestException e) {
+                logger.warn("Error while saving the review [{}]: [{}]", review, ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if the current user can edit the given review.
+     * @param review the review for which to check if it can be edited.
+     * @return {@code true} if the review is authored by the current user.
+     * @since 0.4
+     */
+    public boolean canEditReview(ChangeRequestReview review)
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return review.getAuthor().equals(currentUserReference);
+    }
 }

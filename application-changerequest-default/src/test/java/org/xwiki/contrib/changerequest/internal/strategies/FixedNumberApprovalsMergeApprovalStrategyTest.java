@@ -68,10 +68,24 @@ public class FixedNumberApprovalsMergeApprovalStrategyTest
         when(review2.isApproved()).thenReturn(false);
         when(review3.isApproved()).thenReturn(true);
         when(review4.isApproved()).thenReturn(false);
+
+        when(review1.isValid()).thenReturn(false);
+        when(review2.isValid()).thenReturn(false);
+        when(review3.isValid()).thenReturn(false);
+        when(review4.isValid()).thenReturn(false);
+        assertFalse(strategy.canBeMerged(changeRequest));
+
+        when(review1.isValid()).thenReturn(true);
+        when(review2.isValid()).thenReturn(true);
+        when(review3.isValid()).thenReturn(true);
+        when(review4.isValid()).thenReturn(true);
         assertFalse(strategy.canBeMerged(changeRequest));
 
         when(review4.isApproved()).thenReturn(true);
         assertTrue(strategy.canBeMerged(changeRequest));
+
+        when(review4.isValid()).thenReturn(false);
+        assertFalse(strategy.canBeMerged(changeRequest));
 
         when(changeRequest.getReviews()).thenReturn(Collections.singletonList(review1));
         assertFalse(strategy.canBeMerged(changeRequest));
@@ -108,6 +122,7 @@ public class FixedNumberApprovalsMergeApprovalStrategyTest
 
         ChangeRequestReview review = mock(ChangeRequestReview.class);
         when(review.isApproved()).thenReturn(true);
+        when(review.isValid()).thenReturn(true);
         when(changeRequest.getReviews()).thenReturn(Arrays.asList(review, review, review));
         assertEquals("success4242", strategy.getStatus(changeRequest));
     }

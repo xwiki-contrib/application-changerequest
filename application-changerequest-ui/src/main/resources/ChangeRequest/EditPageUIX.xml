@@ -172,8 +172,8 @@
 #set ($hasEdit = $services.security.authorization.hasAccess('edit', $tdoc))
 #if (!$isReadOnly &amp;&amp; $hasCREdit &amp;&amp; !$hasEdit)
 #set ($editURL = $doc.getURL('editcr', ''))
-&lt;div class="dropdown" id="myButton"&gt;
-  &lt;a href="$editURL" role="button" title="Edit with change request"&gt;&lt;span class="glyphicon glyphicon-pencil"&gt;&lt;/span&gt;&lt;/a&gt;
+&lt;div class="btn-group" id="crEdit"&gt;
+  &lt;a href="$editURL" role="button" title="$services.localization.render('changerequest.edit.button.title')" class="btn btn-default"&gt;&lt;span class="glyphicon glyphicon-pencil"&gt;&lt;/span&gt; $services.localization.render('changerequest.edit.button.value')&lt;/a&gt;
 &lt;/div&gt;
 #end
 {{/html}}

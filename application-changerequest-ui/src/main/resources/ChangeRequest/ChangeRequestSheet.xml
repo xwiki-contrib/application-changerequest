@@ -68,17 +68,29 @@
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
+#set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
 #set ($discard = $xwiki.jsx.use('ChangeRequest.ChangeRequestSheet'))
+#set ($discard = $xwiki.ssx.use('ChangeRequest.ChangeRequestSheet'))
 
 {{html clean="false"}}
 &lt;div&gt;
 
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
-    &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;Description&lt;/a&gt;&lt;/li&gt;
-    &lt;li role="presentation"&gt;&lt;a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab"&gt;Reviews&lt;/a&gt;&lt;/li&gt;
-    &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;File changes&lt;/a&gt;&lt;/li&gt;
-    &lt;li role="presentation"&gt;&lt;a href="#merge" aria-controls="merge" role="tab" data-toggle="tab"&gt;Merge checks&lt;/a&gt;&lt;/li&gt;
+    &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;
+      $services.localization.render('changerequest.sheet.tab.description.title')
+    &lt;/a&gt;&lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab"&gt;
+      $services.localization.render('changerequest.sheet.tab.reviews.title')
+      &lt;span class="badge"&gt;$changeRequest.reviews.size()&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;
+      $services.localization.render('changerequest.sheet.tab.filechanges.title')
+      &lt;span class="badge"&gt;$modifiedFiles.size()&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#merge" aria-controls="merge" role="tab" data-toggle="tab"&gt;$services.localization.render('changerequest.sheet.tab.checks.title')&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 
   &lt;!-- Tab panes --&gt;
@@ -90,13 +102,40 @@
     #end
     &lt;div id="reviewsContainer"&gt;
     #foreach ($review in $changeRequest.reviews)
-      #if ($review.approved)
+      #set ($reviewAuthor = $xwiki.getUserName($review.author.reference))
+      #if ($review.valid &amp;&amp; $review.approved)
         #set ($reviewPanelClass = "panel-success")
-      #else
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
+      #elseif ($review.valid &amp;&amp; !$review.approved)
         #set ($reviewPanelClass = "panel-warning")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
+      #elseif (!$review.valid &amp;&amp; $review.approved)
+        #set ($reviewPanelClass = "panel-default")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
+      #else
+        #set ($reviewPanelClass = "panel-default")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
       #end
+      #set ($canEditReview = $services.changerequest.canEditReview($review))
       &lt;div class="panel $reviewPanelClass"&gt;
-        &lt;div class="panel-heading"&gt;&lt;h3 class="panel-title"&gt;Review from $xwiki.getUserName($review.author.reference) performed on $datetool.format($review.reviewDate)&lt;/h3&gt;&lt;/div&gt;
+        &lt;div class="panel-heading"&gt;
+           #if ($canEditReview)
+            #if ($review.valid)
+              #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markinvalid.title'))
+              #set($buttonValue = "$services.icon.renderHTML('remove') $services.localization.render('changerequest.sheet.tab.review.button.markinvalid')")
+              #set ($buttonClass = "btn-danger")
+            #else
+              #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markvalid.title') )
+              #set($buttonValue = "$services.icon.renderHTML('check') $services.localization.render('changerequest.sheet.tab.review.button.markvalid')")
+              #set ($buttonClass = "btn-success")
+            #end
+            &lt;button class="btn $buttonClass badge outdated" data-review-id="$review.id" title="$buttonTitle"&gt;$buttonValue&lt;/button&gt;
+          #elseif (!$review.valid)
+            &lt;span class="label label-danger outdated" title="$services.localization.render('changerequest.sheet.tab.review.title.outdated.title')"&gt;$services.localization.render('changerequest.sheet.tab.review.title.outdated')&lt;/span&gt;
+          #end
+          &lt;span class="review-date"&gt;$datetool.format($review.reviewDate)&lt;/span&gt;
+          &lt;h3 class="panel-title"&gt;$reviewPanelTitle&lt;/h3&gt;
+        &lt;/div&gt;
         #if ("$!review.comment" != "")
         &lt;div class="panel-body"&gt;
           $review.comment
@@ -107,7 +146,6 @@
     &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End reviews --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
-    #set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
 &lt;div&gt;
 $services.localization.render('changerequest.sheet.pagechanges')
 &lt;ul&gt;
@@ -165,10 +203,10 @@ $services.localization.render('changerequest.sheet.pagechanges')
        #set ($isStatusReady = $changeRequest.status == "READY_FOR_REVIEW")
        #if ($isStatusReady)
          #set ($statusPanelClass = "panel-success")
-         #set ($statusPanelTitle = "Ready for review")
+         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.ready_for_review'))
        #else
          #set ($statusPanelClass = "panel-warning")
-         #set ($statusPanelTitle = "Draft change request")
+         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.draft'))
        #end
        &lt;div class="panel $statusPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
@@ -183,52 +221,23 @@ $services.localization.render('changerequest.sheet.pagechanges')
             #set ($sheetRef = "ChangeRequest.ChangeRequestSheet")
             #set ($sheetDoc = $xwiki.getDocument($sheetRef))
             #if ($isStatusReady)
-              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning"&gt;
-                Mark the change request as work in progress
+              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning" title="$services.localization.render('changerequest.sheet.markdraft.button.title')"&gt;
+                $services.localization.render('changerequest.sheet.markdraft.button')
               &lt;/a&gt;
             #else
-              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary"&gt;
-                Mark the change request as ready for review
+              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary" title="$services.localization.render('changerequest.sheet.markready.button.title')"&gt;
+               $services.localization.render('changerequest.sheet.markready.button')
               &lt;/a&gt;
             #end
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body status panel --&gt;
       &lt;/div&gt;&lt;!-- End status panel --&gt;
-      #if ($services.changerequest.isAuthorizedToMerge($changeRequest))
-        #set ($authorizationPanelClass = "panel-success")
-      #else
-        #set ($authorizationPanelClass = "panel-success")
-      #end
-      &lt;div class="panel $statusPanelClass"&gt;
-        &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
-      &lt;h4 class="panel-title"&gt;
-      &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
-      $statusPanelTitle
-      &lt;/a&gt;
-      &lt;/h4&gt;
-      &lt;/div&gt; &lt;!-- End heading status panel --&gt;
-      &lt;div id="statusPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingStatusPanel"&gt;
-      &lt;div class="panel-body"&gt;
-      #set ($sheetRef = "ChangeRequest.ChangeRequestSheet")
-      #set ($sheetDoc = $xwiki.getDocument($sheetRef))
-      #if ($isStatusReady)
-      &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning"&gt;
-      Mark the change request as work in progress
-      &lt;/a&gt;
-      #else
-      &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary"&gt;
-      Mark the change request as ready for review
-      &lt;/a&gt;
-      #end
-      &lt;/div&gt;
-      &lt;/div&gt;&lt;!-- End body status panel --&gt;
-      &lt;/div&gt;&lt;!-- End status panel --&gt;
        #if ($conflictingFiles.isEmpty())
          #set ($conflictPanelClass = "panel-success")
-         #set ($conflictPanelTitle = "No conflict found")
+         #set ($conflictPanelTitle = $services.localization.render('changerequest.sheet.tab.checks.conflicts.noconflict.title'))
        #else
          #set ($conflictPanelClass = "panel-warning")
-         #set ($conflictPanelTitle = "$conflictingFiles.size() conflicts found")
+         #set ($conflictPanelTitle = $services.localization.render('changerequest.sheet.tab.checks.conflicts.title', "$conflictingFiles.size()"))
        #end
        &lt;div class="panel $conflictPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingConflictPanel"&gt;
@@ -241,11 +250,11 @@ $services.localization.render('changerequest.sheet.pagechanges')
         &lt;div id="conflictPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingConflictPanel"&gt;
           &lt;div class="panel-body"&gt;
             #if ($conflictingFiles.isEmpty())
-              No conflict to show.
+              $services.localization.render('changerequest.sheet.tab.checks.conflicts.noconflict.body')
             #else
               &lt;ul&gt;
               #foreach ($ref in $conflictingFiles)
-                &lt;li&gt;$ref &lt;button class="conflictFixing btn btn-primary" data-reference="$ref.withoutLocale()" data-locale="$ref.locale"&gt;Fix conflict&lt;/button&gt;
+                &lt;li&gt;$ref &lt;button class="conflictFixing btn btn-primary" data-reference="$ref.withoutLocale()" data-locale="$ref.locale"&gt;$services.localization.render('changerequest.sheet.tab.checks.conflicts.button')&lt;/button&gt;
               #end
               &lt;/ul&gt;
             #end
@@ -935,6 +944,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     self.requestModal = function () {
       var params = {
         'form_token': xm.form_token,
+        'action': 'create',
         'changerequest': self.changeRequestId
       };
       self.notification = new XWiki.widgets.Notification('Requesting review modal...','inprogress');
@@ -954,6 +964,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         var isApproved = selectedValue.val() === 'approve';
         var params = {
           'form_token': xm.form_token,
+          'action': 'create',
           'changerequest': self.changeRequestId,
           'approved': isApproved,
           'comment': $('#reviewModal #reviewComment').val()
@@ -1006,6 +1017,271 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <name>Review modal</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>5</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>1966a41f-f230-4160-8f15-61b681b47304</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var initialize = function () {
+    $(".btn.outdated").on('click', function () {
+      var button = $(this);
+      var currentReference = xm.documentReference;
+      var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
+      var currentReference = xm.documentReference;
+      var changeRequestReviewRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestReview");
+      var postUrl = new XWiki.Document(changeRequestReviewRef).getURL('get');
+      var setValid;
+      if (button.hasClass('btn-danger')) {
+        setValid = '0';
+      } else {
+        setValid = '1';
+      }
+      var reviewId = button.attr('data-review-id');
+      var params = {
+        'form_token': xm.form_token,
+        'action': 'setstatus',
+        'changerequest': changeRequestId,
+        'reviewid': reviewId,
+        'isvalid': setValid
+      }
+      var notification = new XWiki.widgets.Notification('Changing review status...','inprogress');
+      $.post(postUrl, params).done(function (data) {
+        if (data.success) {
+          notification.replace(new XWiki.widgets.Notification('Review status edited','done'));
+          window.location.reload();
+        } else {
+          notification.replace(new XWiki.widgets.Notification('Error while changing status.','error'));
+        }
+      }).fail(function (data) {
+        notification.replace(new XWiki.widgets.Notification('Request error while changing status.','error'));
+        console.error(data);
+      });
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+})</code>
+    </property>
+    <property>
+      <name>Review outdated button</name>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use/>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.review-date {
+  float: right;
+}
+.outdated {
+  float: right;
+  margin-left: 10px;
+}</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name/>
     </property>
     <property>
       <parse>0</parse>

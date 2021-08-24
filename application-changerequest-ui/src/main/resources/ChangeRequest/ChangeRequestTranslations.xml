@@ -62,7 +62,26 @@ changerequest.sheet.difftitle=Diff of {0}
 changerequest.sheet.markready.button=Ready for review
 changerequest.sheet.markready.button.title=Mark this change request as ready for review
 changerequest.sheet.markdraft.button=Set as draft
-changerequest.sheet.markdraft.button.title=Mark this change request as work in progress</content>
+changerequest.sheet.markdraft.button.title=Mark this change request as work in progress
+changerequest.livetable.doc.location=Location
+changerequest.edit.button.value=Edit
+changerequest.edit.button.title=Edit with change request
+changerequest.sheet.tab.description.title=Description
+changerequest.sheet.tab.reviews.title=Reviews
+changerequest.sheet.tab.filechanges.title=File changes
+changerequest.sheet.tab.checks.title=Checks
+changerequest.sheet.tab.checks.conflicts.noconflict.title=No conflict found
+changerequest.sheet.tab.checks.conflicts.title={0} conflict(s) found
+changerequest.sheet.tab.checks.conflicts.noconflict.body=No conflict to show
+changerequest.sheet.tab.checks.conflicts.button=Fix conflict
+changerequest.sheet.tab.review.title.approved=Approved by {0}
+changerequest.sheet.tab.review.title.notapproved=Change requested by {0}
+changerequest.sheet.tab.review.title.outdated=outdated
+changerequest.sheet.tab.review.title.outdated.title=This review is not valid anymore and is not taken into account in approval strategies.
+changerequest.sheet.tab.review.button.markinvalid=invalidate
+changerequest.sheet.tab.review.button.markinvalid.title=Mark this review as outdated
+changerequest.sheet.tab.review.button.markvalid=restore
+changerequest.sheet.tab.review.button.markvalid.title=Mark this review as valid again</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>
