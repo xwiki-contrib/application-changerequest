@@ -47,6 +47,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
@@ -104,6 +105,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
 
     @Inject
     private FileChangeVersionManager fileChangeVersionManager;
+
+    @Inject
+    private ChangeRequestStorageManager changeRequestStorageManager;
 
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
@@ -319,7 +323,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
             String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
             String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
 
-            FileChange mergeFileChange = new FileChange(fileChange.getChangeRequest())
+            ChangeRequest changeRequest = fileChange.getChangeRequest();
+            FileChange mergeFileChange = new FileChange(changeRequest)
                 .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
                 .setCreationDate(new Date())
                 .setPreviousVersion(previousVersion)
@@ -328,7 +333,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
                 .setModifiedDocument(mergeDocumentResult.getMergeResult())
                 .setTargetEntity(targetEntity);
 
-            this.fileChangeStorageManager.save(mergeFileChange);
+            changeRequest.addFileChange(mergeFileChange);
+            this.changeRequestStorageManager.save(changeRequest);
             return true;
         }
     }
