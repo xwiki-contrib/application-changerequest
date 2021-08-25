@@ -1415,7 +1415,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <content>{{velocity}}
-#set ($changeRequestId = $doc.documentReference.name)
+#set ($changeRequestId = $doc.documentReference.lastSpaceReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($status = $doc.get('status'))
