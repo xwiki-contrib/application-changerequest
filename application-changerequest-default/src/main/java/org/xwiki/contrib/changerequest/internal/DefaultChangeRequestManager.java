@@ -47,6 +47,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
+import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.Conflict;
@@ -355,5 +356,13 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToFixConflict(UserReference userReference, FileChange fileChange)
+    {
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        Right changeRequestRight = ChangeRequestRight.getRight();
+        return this.authorizationManager.hasAccess(changeRequestRight, userDocReference, fileChange.getTargetEntity());
     }
 }

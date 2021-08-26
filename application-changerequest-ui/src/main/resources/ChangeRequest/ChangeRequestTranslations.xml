@@ -72,7 +72,8 @@ changerequest.sheet.tab.filechanges.title=File changes
 changerequest.sheet.tab.checks.title=Checks
 changerequest.sheet.tab.checks.conflicts.noconflict.title=No conflict found
 changerequest.sheet.tab.checks.conflicts.title={0} conflict(s) found
-changerequest.sheet.tab.checks.conflicts.noconflict.body=No conflict to show
+changerequest.sheet.tab.checks.conflicts.noconflict.body=No conflict to show.
+changerequest.sheet.tab.checks.conflicts.body=Some conflicts have been found in the following file(s):
 changerequest.sheet.tab.checks.conflicts.button=Fix conflict
 changerequest.sheet.tab.review.title.approved=Approved by {0}
 changerequest.sheet.tab.review.title.notapproved=Change requested by {0}
@@ -81,7 +82,14 @@ changerequest.sheet.tab.review.title.outdated.title=This review is not valid any
 changerequest.sheet.tab.review.button.markinvalid=invalidate
 changerequest.sheet.tab.review.button.markinvalid.title=Mark this review as outdated
 changerequest.sheet.tab.review.button.markvalid=restore
-changerequest.sheet.tab.review.button.markvalid.title=Mark this review as valid again</content>
+changerequest.sheet.tab.review.button.markvalid.title=Mark this review as valid again
+changerequest.sheet.tab.review.button.add=New review
+changerequest.sheet.tab.checks.approvalStrategy.title=Approval strategy
+changerequest.sheet.tab.checks.approvalStrategy.body.cannotBeLoaded=Approval strategy cannot be loaded.
+changerequest.sheet.checks.button=Not ready for merging
+changerequest.sheet.checks.button.title=Some checks conditions have not been met, click to see what should be fixed for merging.
+changerequest.sheet.checks.status.ready.explanation=This change request is already ready to be reviewed.
+changerequest.sheet.checks.status.draft.explanation=This change request is a work in progress, it can be reviewed and merged only when authors decide to mark it as ready.</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

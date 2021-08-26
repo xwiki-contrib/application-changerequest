@@ -144,4 +144,16 @@ public interface ChangeRequestManager
     {
         return false;
     }
+
+    /**
+     * Check if the given user is authorized to fix a conflict related to the given file change.
+     * @param userReference the user for which to check authorization.
+     * @param fileChange the file change concerned by the conflict.
+     * @return {@code true} if the user is authorized to fix the conflict.
+     * @since 0.4
+     */
+    default boolean isAuthorizedToFixConflict(UserReference userReference, FileChange fileChange)
+    {
+        return false;
+    }
 }

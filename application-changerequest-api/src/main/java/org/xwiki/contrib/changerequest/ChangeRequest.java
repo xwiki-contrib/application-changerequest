@@ -54,7 +54,7 @@ public class ChangeRequest
     private ChangeRequestStatus status;
     private final Map<DocumentReference, Deque<FileChange>> fileChanges;
     private Set<UserReference> authors;
-    private List<ChangeRequestReview> reviews;
+    private LinkedList<ChangeRequestReview> reviews;
 
     /**
      * Default constructor.
@@ -65,7 +65,7 @@ public class ChangeRequest
         this.status = ChangeRequestStatus.DRAFT;
         this.fileChanges = new HashMap<>();
         this.authors = new HashSet<>();
-        this.reviews = new ArrayList<>();
+        this.reviews = new LinkedList<>();
     }
 
     /**
@@ -271,7 +271,7 @@ public class ChangeRequest
     }
 
     /**
-     * @return the reviews related to this change request.
+     * @return the reviews related to this change request sorted in date descending order.
      * @since 0.4
      */
     public List<ChangeRequestReview> getReviews()
@@ -280,7 +280,7 @@ public class ChangeRequest
     }
 
     /**
-     * Attach a new review to this change request.
+     * Attach a new review to this change request. Note that the review are added on the head of the deque.
      *
      * @param review the review to be attached to the change request.
      * @return the current instance.
@@ -288,7 +288,7 @@ public class ChangeRequest
      */
     public ChangeRequest addReview(ChangeRequestReview review)
     {
-        this.reviews.add(review);
+        this.reviews.addFirst(review);
         return this;
     }
 

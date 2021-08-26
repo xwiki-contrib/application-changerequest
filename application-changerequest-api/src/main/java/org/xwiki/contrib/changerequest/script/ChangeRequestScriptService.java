@@ -371,14 +371,17 @@ public class ChangeRequestScriptService implements ScriptService
         ConflictResolutionChoice resolutionChoice, List<ConflictDecision<?>> customDecisions)
     {
         boolean result = false;
-        Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-        if (optionalFileChange.isPresent()) {
-            try {
-                result = this.changeRequestManager
-                    .mergeWithConflictDecision(optionalFileChange.get(), resolutionChoice, customDecisions);
-            } catch (ChangeRequestException e) {
-                logger.warn("Error while trying to fix conflicts for [{}] in [{}] with decision [{}]: [{}]",
-                    documentReference, changeRequest.getId(), resolutionChoice, ExceptionUtils.getRootCauseMessage(e));
+        if (this.canFixConflict(changeRequest, documentReference)) {
+            Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+            if (optionalFileChange.isPresent()) {
+                try {
+                    result = this.changeRequestManager
+                        .mergeWithConflictDecision(optionalFileChange.get(), resolutionChoice, customDecisions);
+                } catch (ChangeRequestException e) {
+                    logger.warn("Error while trying to fix conflicts for [{}] in [{}] with decision [{}]: [{}]",
+                        documentReference, changeRequest.getId(), resolutionChoice,
+                        ExceptionUtils.getRootCauseMessage(e));
+                }
             }
         }
 
@@ -491,5 +494,22 @@ public class ChangeRequestScriptService implements ScriptService
     {
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         return review.getAuthor().equals(currentUserReference);
+    }
+
+    /**
+     * Check if the current user can fix a conflict related to the given document reference in the given change request.
+     * @param changeRequest the change request concerned by a conflict.
+     * @param documentReference the reference of the document concerned by the conflict.
+     * @return {@code true} if the current user is authorized to fix the conflict.
+     * @since 0.4
+     */
+    public boolean canFixConflict(ChangeRequest changeRequest, DocumentReference documentReference)
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+        if (optionalFileChange.isPresent()) {
+            return this.changeRequestManager.isAuthorizedToFixConflict(currentUserReference, optionalFileChange.get());
+        }
+        return false;
     }
 }

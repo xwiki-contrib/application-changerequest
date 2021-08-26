@@ -54,6 +54,4 @@ public interface ReviewStorageManager
      * @throws ChangeRequestException in case of problem during the load.
      */
     List<ChangeRequestReview> load(ChangeRequest changeRequest) throws ChangeRequestException;
-
-
 }
