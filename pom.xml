@@ -76,21 +76,10 @@
               <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method java.lang.String org.xwiki.contrib.changerequest.FileChange::getSourceVersion()</old>
-                  <justification>Unstable API: we renamed "sourceVersion" to "previousPublishedVersion" to be more explicit.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.FileChange::setSourceVersion(java.lang.String)</old>
-                  <justification>Unstable API: we renamed "sourceVersion" to "previousPublishedVersion" to be more explicit.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method java.lang.String org.xwiki.contrib.changerequest.FileChange::getSourceVersion()</old>
-                  <justification>Unstable API: we renamed "sourceVersion" to "previousPublishedVersion" to be more explicit.</justification>
+                  <code>java.method.returnTypeChanged</code>
+                  <old>method org.xwiki.store.merge.MergeDocumentResult org.xwiki.contrib.changerequest.ChangeRequestManager::getMergeDocumentResult(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <new>method org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult org.xwiki.contrib.changerequest.ChangeRequestManager::getMergeDocumentResult(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <justification>Unstable API: introduction of a dedicated ChangeRequestMergeDocumentResult to handle Delete file change.</justification>
                 </item>
               </differences>
             </revapi.differences>

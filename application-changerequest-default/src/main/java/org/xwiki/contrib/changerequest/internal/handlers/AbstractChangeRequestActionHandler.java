@@ -61,7 +61,7 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
     protected ObservationManager observationManager;
 
     @Inject
-    private DocumentReferenceResolver<String> documentReferenceResolver;
+    protected DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Inject
     private RequestParameterConverter requestParameterConverter;

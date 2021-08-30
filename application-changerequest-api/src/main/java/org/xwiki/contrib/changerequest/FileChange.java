@@ -40,6 +40,29 @@ import org.xwiki.user.UserReference;
 public class FileChange
 {
     /**
+     * Define the type of modification the change is about.
+     *
+     * @since 0.5
+     */
+    public enum FileChangeType
+    {
+        /**
+         * The change concerns the creation of a new document.
+         */
+        CREATION,
+
+        /**
+         * The change concerns the modification of an existing document.
+         */
+        EDITION,
+
+        /**
+         * The change concerns the deletion of a document.
+         */
+        DELETION
+    };
+
+    /**
      * Prefix used for storing the filechange version.
      */
     public static final String FILECHANGE_VERSION_PREFIX = "filechange-";
@@ -54,16 +77,30 @@ public class FileChange
     private Date creationDate;
     private DocumentModelBridge modifiedDocument;
     private boolean saved;
+    private FileChangeType type;
 
     /**
-     * Default constructor.
+     * Creates a new file change edition related to the given change request.
      *
      * @param changeRequest the change request this file change belongs to.
      */
     public FileChange(ChangeRequest changeRequest)
     {
+        this(changeRequest, FileChangeType.EDITION);
+    }
+
+    /**
+     * Default constructor.
+     *
+     * @param changeRequest the change request this file change belongs to.
+     * @param type the type of change.
+     * @since 0.5
+     */
+    public FileChange(ChangeRequest changeRequest, FileChangeType type)
+    {
         this.changeRequest = changeRequest;
         this.creationDate = new Date();
+        this.type = type;
     }
 
     /**
@@ -254,6 +291,15 @@ public class FileChange
         return this;
     }
 
+    /**
+     * @return the type of this file change.
+     * @since 0.5
+     */
+    public FileChangeType getType()
+    {
+        return type;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -276,6 +322,7 @@ public class FileChange
             .append(creationDate, that.creationDate)
             .append(modifiedDocument, that.modifiedDocument)
             .append(version, that.version)
+            .append(type, that.type)
             .isEquals();
     }
 
@@ -291,6 +338,7 @@ public class FileChange
             .append(modifiedDocument)
             .append(saved)
             .append(version)
+            .append(type)
             .toHashCode();
     }
 
@@ -306,6 +354,7 @@ public class FileChange
             .append("creationDate", creationDate)
             .append("modifiedDocument", modifiedDocument)
             .append("saved", saved)
+            .append("type", type)
             .toString();
     }
 }

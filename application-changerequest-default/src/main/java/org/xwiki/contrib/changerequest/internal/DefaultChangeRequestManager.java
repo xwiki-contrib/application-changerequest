@@ -41,6 +41,7 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
@@ -197,27 +198,49 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     }
 
     @Override
-    public MergeDocumentResult getMergeDocumentResult(FileChange fileChange)
+    public ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
         DocumentModelBridge currentDoc =
             this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
-        DocumentModelBridge previousDoc =
-            this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-        DocumentModelBridge nextDoc =
-            this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+        ChangeRequestMergeDocumentResult result;
+        if (fileChange.getType() == FileChange.FileChangeType.DELETION) {
+            XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
+            boolean deletionConflict = xwikiCurrentDoc.isNew()
+                || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
+            result = new ChangeRequestMergeDocumentResult(deletionConflict).setDocumentTitle(getTitle(xwikiCurrentDoc));
+        } else {
+            DocumentModelBridge previousDoc =
+                this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+            DocumentModelBridge nextDoc =
+                this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
 
-        MergeConfiguration mergeConfiguration = new MergeConfiguration();
-        DocumentReference documentReference = fileChange.getTargetEntity();
+            MergeConfiguration mergeConfiguration = new MergeConfiguration();
+            DocumentReference documentReference = fileChange.getTargetEntity();
 
-        XWikiContext context = this.contextProvider.get();
-        // We need the reference of the user and the document in the config to retrieve
-        // the conflict decision in the MergeManager.
-        mergeConfiguration.setUserReference(context.getUserReference());
-        mergeConfiguration.setConcernedDocument(documentReference);
+            XWikiContext context = this.contextProvider.get();
+            // We need the reference of the user and the document in the config to retrieve
+            // the conflict decision in the MergeManager.
+            mergeConfiguration.setUserReference(context.getUserReference());
+            mergeConfiguration.setConcernedDocument(documentReference);
 
-        mergeConfiguration.setProvidedVersionsModifiables(false);
-        return mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
+            mergeConfiguration.setProvidedVersionsModifiables(false);
+            MergeDocumentResult mergeDocumentResult =
+                mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
+            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult)
+                .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
+        }
+        return result;
+    }
+
+    private String getTitle(XWikiDocument document)
+    {
+        if (document.isNew()) {
+            return document.getDocumentReference().toString();
+        } else {
+            XWikiContext context = this.contextProvider.get();
+            return document.getRenderedTitle(context);
+        }
     }
 
     @Override
@@ -281,62 +304,69 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     {
         DocumentReference targetEntity = fileChange.getTargetEntity();
         DocumentReference userReference = this.contextProvider.get().getUserReference();
-        MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange);
 
-        ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
-        // FIXME: only handle content conflicts for now, see XWIKI-18908
-        this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
-            conflicts);
+        if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
+            MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
 
-        ConflictDecision.DecisionType globalDecisionType = null;
+            ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
+            // FIXME: only handle content conflicts for now, see XWIKI-18908
+            this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
+                conflicts);
 
-        switch (resolutionChoice) {
-            case CUSTOM:
-                this.mergeConflictDecisionsManager
-                    .setConflictDecisionList(new ArrayList<>(conflictDecisionList), targetEntity, userReference);
-                break;
+            ConflictDecision.DecisionType globalDecisionType = null;
 
-            case CHANGE_REQUEST_VERSION:
-                globalDecisionType = ConflictDecision.DecisionType.NEXT;
-                break;
+            switch (resolutionChoice) {
+                case CUSTOM:
+                    this.mergeConflictDecisionsManager
+                        .setConflictDecisionList(new ArrayList<>(conflictDecisionList), targetEntity, userReference);
+                    break;
 
-            case PUBLISHED_VERSION:
-                globalDecisionType = ConflictDecision.DecisionType.CURRENT;
-                break;
+                case CHANGE_REQUEST_VERSION:
+                    globalDecisionType = ConflictDecision.DecisionType.NEXT;
+                    break;
 
-            default:
-                globalDecisionType = ConflictDecision.DecisionType.UNDECIDED;
-                break;
-        }
+                case PUBLISHED_VERSION:
+                    globalDecisionType = ConflictDecision.DecisionType.CURRENT;
+                    break;
 
-        if (globalDecisionType != null) {
-            for (Conflict<?> conflict : conflicts) {
-                this.mergeConflictDecisionsManager.recordDecision(targetEntity, userReference, conflict.getReference(),
-                    globalDecisionType, Collections.emptyList());
+                default:
+                    globalDecisionType = ConflictDecision.DecisionType.UNDECIDED;
+                    break;
             }
-        }
 
-        mergeDocumentResult = this.getMergeDocumentResult(fileChange);
-        if (mergeDocumentResult.hasConflicts()) {
-            return false;
+            if (globalDecisionType != null) {
+                for (Conflict<?> conflict : conflicts) {
+                    this.mergeConflictDecisionsManager.recordDecision(targetEntity, userReference,
+                        conflict.getReference(),
+                        globalDecisionType, Collections.emptyList());
+                }
+            }
+
+            mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
+            if (mergeDocumentResult.hasConflicts()) {
+                return false;
+            } else {
+                String previousVersion = fileChange.getVersion();
+                String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
+                String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+
+                ChangeRequest changeRequest = fileChange.getChangeRequest();
+                FileChange mergeFileChange = new FileChange(changeRequest)
+                    .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
+                    .setCreationDate(new Date())
+                    .setPreviousVersion(previousVersion)
+                    .setPreviousPublishedVersion(previousPublishedVersion)
+                    .setVersion(version)
+                    .setModifiedDocument(mergeDocumentResult.getMergeResult())
+                    .setTargetEntity(targetEntity);
+
+                changeRequest.addFileChange(mergeFileChange);
+                this.changeRequestStorageManager.save(changeRequest);
+                return true;
+            }
         } else {
-            String previousVersion = fileChange.getVersion();
-            String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
-            String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
-
-            ChangeRequest changeRequest = fileChange.getChangeRequest();
-            FileChange mergeFileChange = new FileChange(changeRequest)
-                .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
-                .setCreationDate(new Date())
-                .setPreviousVersion(previousVersion)
-                .setPreviousPublishedVersion(previousPublishedVersion)
-                .setVersion(version)
-                .setModifiedDocument(mergeDocumentResult.getMergeResult())
-                .setTargetEntity(targetEntity);
-
-            changeRequest.addFileChange(mergeFileChange);
-            this.changeRequestStorageManager.save(changeRequest);
-            return true;
+            // handle deletion conflict
+            return false;
         }
     }
 

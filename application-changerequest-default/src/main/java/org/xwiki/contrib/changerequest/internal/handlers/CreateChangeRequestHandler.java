@@ -20,12 +20,15 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -39,6 +42,8 @@ import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
 
@@ -68,26 +73,39 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
         HttpServletRequest request = this.prepareRequest();
-        EditForm editForm = this.prepareForm(request);
-        XWikiDocument modifiedDocument = this.prepareDocument(request, editForm);
-        DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
+        boolean isDeletion = "1".equals(request.getParameter("deletion"));
+
+        XWikiDocument modifiedDocument = null;
+        DocumentReference documentReference;
+
+        if (!isDeletion) {
+            EditForm editForm = this.prepareForm(request);
+            modifiedDocument = this.prepareDocument(request, editForm);
+            documentReference = modifiedDocument.getDocumentReferenceWithLocale();
+        } else {
+            // TODO: Handle affectChildren
+            String serializedReference = request.getParameter("docReference");
+            DocumentReference referenceWithoutLocale = this.documentReferenceResolver.resolve(serializedReference);
+            String localeString = request.getParameter("locale");
+            Locale locale;
+            if (StringUtils.isEmpty(localeString)) {
+                locale = Locale.ROOT;
+            } else {
+                locale = LocaleUtils.toLocale(localeString);
+            }
+            documentReference = new DocumentReference(referenceWithoutLocale, locale);
+        }
+
         String title = request.getParameter("crTitle");
         String description = request.getParameter("crDescription");
         boolean isDraft = "1".equals(request.getParameter("crDraft"));
 
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequest changeRequest = new ChangeRequest();
-        FileChange fileChange = new FileChange(changeRequest);
-        String previousVersion = request.getParameter("previousVersion");
-        String fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
 
-        fileChange
-            .setAuthor(currentUser)
-            .setTargetEntity(documentReference)
-            .setPreviousVersion(previousVersion)
-            .setPreviousPublishedVersion(previousVersion)
-            .setVersion(fileChangeVersion)
-            .setModifiedDocument(modifiedDocument);
+        String previousVersion = request.getParameter("previousVersion");
+        FileChange fileChange =
+            getFileChange(changeRequest, isDeletion, documentReference, modifiedDocument, previousVersion);
 
         changeRequest
             .setTitle(title)
@@ -105,5 +123,40 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 
         this.observationManager.notify(new ChangeRequestCreatedEvent(), documentReference, changeRequest.getId());
         this.redirectToChangeRequest(changeRequest);
+    }
+
+    private FileChange getFileChange(ChangeRequest changeRequest, boolean isDeletion,
+        DocumentReference documentReference, XWikiDocument modifiedDocument, String requestPreviousVersion)
+        throws ChangeRequestException
+    {
+        FileChange fileChange;
+        if (isDeletion) {
+            fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
+            XWikiContext context = contextProvider.get();
+            try {
+                XWikiDocument document = context.getWiki().getDocument(documentReference, context);
+                String previousVersion = document.getVersion();
+                fileChange
+                    .setPreviousVersion(previousVersion)
+                    .setPreviousPublishedVersion(previousVersion);
+            } catch (XWikiException e) {
+                throw new
+                    ChangeRequestException("Cannot access the document for which a deletion request is performed.", e);
+            }
+        } else {
+            fileChange = new FileChange(changeRequest);
+            fileChange
+                .setPreviousVersion(requestPreviousVersion)
+                .setPreviousPublishedVersion(requestPreviousVersion)
+                .setModifiedDocument(modifiedDocument);
+        }
+        UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        String fileChangeVersion = this.fileChangeVersionManager
+            .getNextFileChangeVersion(requestPreviousVersion, false);
+        fileChange
+            .setTargetEntity(documentReference)
+            .setVersion(fileChangeVersion)
+            .setAuthor(currentUser);
+        return fileChange;
     }
 }

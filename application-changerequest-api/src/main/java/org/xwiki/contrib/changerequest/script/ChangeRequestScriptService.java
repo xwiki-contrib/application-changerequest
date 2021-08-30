@@ -37,6 +37,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
@@ -301,16 +302,16 @@ public class ChangeRequestScriptService implements ScriptService
      *         during the merge, else an optional containing the {@link MergeDocumentResult}.
      * @since 0.4
      */
-    public Optional<MergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
+    public Optional<ChangeRequestMergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
         DocumentReference documentReference)
     {
-        Optional<MergeDocumentResult> result = Optional.empty();
+        Optional<ChangeRequestMergeDocumentResult> result = Optional.empty();
         Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
         if (optionalFileChange.isPresent()) {
             try {
-                MergeDocumentResult mergeDocumentResult =
+                ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
                     this.changeRequestManager.getMergeDocumentResult(optionalFileChange.get());
-                result = Optional.of(mergeDocumentResult);
+                result = Optional.of(changeRequestMergeDocumentResult);
             } catch (ChangeRequestException e) {
                 logger.warn("Error while computing the merge for change request [{}] and document reference [{}]: [{}]",
                     changeRequest.getId(), documentReference, ExceptionUtils.getRootCauseMessage(e));

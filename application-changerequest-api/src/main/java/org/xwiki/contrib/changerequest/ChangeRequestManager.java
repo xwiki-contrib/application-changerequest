@@ -78,7 +78,7 @@ public interface ChangeRequestManager
      * @throws ChangeRequestException in case of problem when retrieving the information.
      * @since 0.4
      */
-    default MergeDocumentResult getMergeDocumentResult(FileChange fileChange)
+    default ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
         return null;

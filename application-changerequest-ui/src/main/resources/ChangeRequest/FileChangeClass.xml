@@ -46,6 +46,47 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <author>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>input</displayType>
+      <freeText/>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>author</name>
+      <number>8</number>
+      <picker>1</picker>
+      <prettyName>author</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators/>
+      <size>20</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <usesList>0</usesList>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
+    </author>
+    <creationDate>
+      <customDisplay/>
+      <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
+      <disabled>0</disabled>
+      <emptyIsToday>1</emptyIsToday>
+      <hint/>
+      <name>creationDate</name>
+      <number>9</number>
+      <picker>1</picker>
+      <prettyName>creationDate</prettyName>
+      <size>20</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+    </creationDate>
     <filename>
       <customDisplay/>
       <disabled>0</disabled>
@@ -130,6 +171,31 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </referenceLocale>
+    <type>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>edition</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText/>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>type</name>
+      <number>7</number>
+      <picker>0</picker>
+      <prettyName>type</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>edition|deletion|creation</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </type>
     <version>
       <customDisplay/>
       <disabled>0</disabled>

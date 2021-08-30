@@ -182,17 +182,26 @@ $services.localization.render('changerequest.sheet.pagechanges')
 &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
 #template('diff_macros.vm')
 #foreach ($ref in $modifiedFiles)
-  #set ($mergeDocumentResultOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $ref))
-  #if ($mergeDocumentResultOpt.isPresent())
+  #set ($crMergeDocumentResultOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $ref))
+  #if ($crMergeDocumentResultOpt.isPresent())
   &lt;div class="panel panel-default"&gt;
-    #set ($mergeDocumentResult = $mergeDocumentResultOpt.get())
-    #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
-    #set ($currentDoc = $mergeDocumentResult.currentDocument)
-    #set ($renderedTitle = $currentDoc.getRenderedTitle($xcontext.context))
-    #if ($mergeDocumentResult.hasConflicts())
-      #set ($discard = $conflictingFiles.put($ref, $currentDoc))
+    #set ($crMergeDocumentResult = $crMergeDocumentResultOpt.get())
+    #if ($crMergeDocumentResult.hasConflicts())
+      #set ($discard = $conflictingFiles.put($ref, $crMergeDocumentResult))
     #end
-    #set ($diffKey = $stringtool.toAlphaNumeric($modifiedDoc.getKey()))
+    #set ($renderedTitle = $crMergeDocumentResult.documentTitle)
+    #if ($crMergeDocumentResult.type == "DELETION")
+      #set ($diffKey = $crMergeDocumentResult.hashCode())
+      #set ($diffContent = "Deletion of the whole file.")
+    #else
+      #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
+      #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
+      #set ($currentDoc = $mergeDocumentResult.currentDocument)
+      #set ($diffKey = $stringtool.toAlphaNumeric($modifiedDoc.getKey()))
+      #define ($diffContent)
+        #displayDocumentRawChanges($currentDoc, $modifiedDoc)
+      #end
+    #end
     &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
       &lt;h4 class="panel-title"&gt;
         &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
@@ -201,9 +210,7 @@ $services.localization.render('changerequest.sheet.pagechanges')
       &lt;/h4&gt;
     &lt;/div&gt;
     &lt;div id="diff-$diffKey" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
-      &lt;div class="panel-body"&gt;
-      #displayDocumentRawChanges($currentDoc, $modifiedDoc)
-      &lt;/div&gt;
+      &lt;div class="panel-body"&gt;$diffContent&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   #end
@@ -280,8 +287,8 @@ $services.localization.render('changerequest.sheet.pagechanges')
               &lt;ul&gt;
               #foreach ($entry in $conflictingFiles.entrySet())
                 #set ($ref = $entry.key)
-                #set ($currentDoc = $entry.value)
-                #set ($renderedTitle = $currentDoc.getRenderedTitle($xcontext.context))
+                #set ($crMergeDocumentResult = $entry.value)
+                #set ($renderedTitle = $crMergeDocumentResult.documentTitle)
                 &lt;li&gt;
                   &lt;a href="$currentDoc.getURL('view', $xcontext.context)"&gt;$renderedTitle&lt;/a&gt;
                   #if ($services.changerequest.canFixConflict($changeRequest, $ref))

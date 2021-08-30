@@ -1,0 +1,255 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="ChangeRequest.DeleteButtonUIX" locale="">
+  <web>ChangeRequest</web>
+  <name>DeleteButtonUIX</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>DeleteButtonUIX</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>Technical page to allow delete in change request.</content>
+  <object>
+    <name>ChangeRequest.DeleteButtonUIX</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>f9626082-5530-4912-987e-ae0e9cfee1d3</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>forbid</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var saveChangeRequest = function () {
+    var isNewCR = $('#existingCRSelector').val() === "";
+    var form = $('#save_changerequest').parents('form');
+    var DELETE_URL = "$services.changerequest.getChangeRequestURL('delete', '')";
+    var ADD_CHANGES_URL = "$services.changerequest.getChangeRequestURL('addchanges', '__CR__')";
+    var actionURL;
+    if (isNewCR) {
+      var crTitleField = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'crTitle',
+        'value': $('#crTitle').val()
+      });
+      form.append(crTitleField);
+      
+      var crDescriptionField = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'crDescription',
+        'value': $('#crDescription').val()
+      });
+      form.append(crDescriptionField);
+      
+      var crDraftField = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'crDraft',
+        'value': $('#crDraft:checked').val()
+      });
+      form.append(crDraftField);
+      actionURL = CREATE_URL;
+    } else {
+      var urlParams = new URLSearchParams(window.location.search);
+      actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val());
+    }
+    actionURL += "?deletion=1";
+    form.attr('action', actionURL);
+    var docField = $("&lt;input&gt;", {
+      'type': 'hidden',
+      'name': 'docReference',
+      'value': xm.documentReference
+    });
+    form.append(docField);
+    $('#saveChangeRequest').trigger('xwiki:document:saved');
+    form.submit();
+  };
+  
+  var validateForm = function () {
+    var crTitle = $('#crTitle').val();
+    var crSelector = $('#existingCRSelector').val();
+    var saveButton = $('#saveChangeRequest');
+    if (crTitle === "" &amp;&amp; crSelector === "") {
+      saveButton.attr('disabled', 'disabled');
+    } else {
+      saveButton.removeAttr('disabled');
+    }
+  };
+  
+  var loadRequiredSkinExtensions = function(requiredSkinExtensions) {
+    var existingSkinExtensions;
+    var getExistingSkinExtensions = function() {
+      return $('link, script').map(function() {
+        return $(this).attr('href') || $(this).attr('src');
+      }).get();
+    };
+    $('&lt;div/&gt;').html(requiredSkinExtensions).find('link, script').filter(function() {
+      if (!existingSkinExtensions) {
+        existingSkinExtensions = getExistingSkinExtensions();
+      }
+      var url = $(this).attr('href') || $(this).attr('src');
+      return existingSkinExtensions.indexOf(url) &lt; 0;
+    }).appendTo('head');
+  };
+  
+  var createChangeRequestModal = function () {
+    if ($('#changeRequestModal').length &gt; 0) {
+      $('#changeRequestModal').modal('show');
+      $('#crDescription').val($('#commentinput').val());
+    } else {
+      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
+      var urlParams = new URLSearchParams(window.location.search);
+      var queryString = 'getmodal=1&amp;outputSyntax=plain';
+      if (urlParams.has('changerequest')) {
+        queryString += '&amp;changerequest=' + urlParams.get('changerequest');
+      }
+      $.get(modalURL.getURL('get', queryString)).done(function (data, textStatus, jqXHR) {
+        loadRequiredSkinExtensions(jqXHR.getResponseHeader('X-XWIKI-HTML-HEAD'));
+        $('body').append(data);
+        $('#changeRequestModal').modal('show');
+        $('#saveChangeRequest').on('click', saveChangeRequest);
+        $('#crTitle').on('change', validateForm);
+        $('#existingCRSelector').on('change', validateForm);
+        $('#crDescription').val($('#commentinput').val());
+        $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
+      }).fail(function (data) {
+        console.log(data);
+        new XWiki.widgets.Notification("Error while saving the change request:" + data, 'error')
+      });
+    }
+  };
+  
+  var attachButtons = function () {
+    var button = $("&lt;input&gt;", {
+      'type': 'button',
+      'class': 'btn btn-warning',
+      'name': 'delete_changerequest',
+      'id': 'delete_changerequest',
+      'value': 'Delete as change request'
+    }).append(" ");
+    if ($('#delete_changerequest').length == 0) {
+      $(button.append(" ")).insertBefore('.xcontent form &gt; button.btn-danger.confirm');
+    }
+    button.on('click', function() {
+      createChangeRequestModal();
+    });
+  }
+  // doesn't work yet for inplace editing: need to find the right event to attach this.
+  attachButtons();
+});</code>
+    </property>
+    <property>
+      <name>Delete as change request injection</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>always</use>
+    </property>
+  </object>
+</xwikidoc>

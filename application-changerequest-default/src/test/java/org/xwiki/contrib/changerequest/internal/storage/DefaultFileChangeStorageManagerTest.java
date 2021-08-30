@@ -186,6 +186,9 @@ public class DefaultFileChangeStorageManagerTest
     @MockComponent
     private FileChangeVersionManager fileChangeVersionManager;
 
+    @MockComponent
+    private UserReferenceResolver<String> stringUserReferenceResolver;
+
     @RegisterExtension
     LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
@@ -274,8 +277,6 @@ public class DefaultFileChangeStorageManagerTest
 
         DocumentReference changeRequestDocReference = new DocumentReference("xwiki", "ChangeRequest", "Doc");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
-        when(modifiedDoc.getDocumentReferenceWithLocale())
-            .thenReturn(new DocumentReference("xwiki", "Space", "Doc", Locale.FRENCH));
 
         DocumentReference fileStorageDocRef = new DocumentReference("5:xwiki5:Space3:Doc2:fr",
             changeRequestDocReference.getLastSpaceReference());
@@ -285,7 +286,7 @@ public class DefaultFileChangeStorageManagerTest
         String version = "filechange-3.3";
         when(this.fileChangeVersionManager.getDocumentVersion(version)).thenReturn(new Version("3.3"));
         when(modifiedDoc.getId()).thenReturn(4895L);
-        String expectedId = version + "-4895";
+        String expectedId = version + "-102366739979450084";
 
         when(fileChange.getId()).thenReturn(expectedId);
         XWikiAttachmentStoreInterface storeInterface = mock(XWikiAttachmentStoreInterface.class);
@@ -305,6 +306,8 @@ public class DefaultFileChangeStorageManagerTest
         when(fileChange.getVersion()).thenReturn(version);
         when(fileChange.getPreviousVersion()).thenReturn("filechange-3.2");
         when(fileChange.getPreviousPublishedVersion()).thenReturn("2.13");
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange.getTargetEntity()).thenReturn(new DocumentReference("xwiki", "Space", "Doc", Locale.FRENCH));
 
         this.fileChangeStorageManager.save(fileChange);
         verify(fileChange).setSaved(true);
@@ -350,11 +353,13 @@ public class DefaultFileChangeStorageManagerTest
         when(fileStorageDoc.isNew()).thenReturn(false);
         BaseObject fileChangeObj1 = mock(BaseObject.class);
         BaseObject fileChangeObj2 = mock(BaseObject.class);
+        BaseObject fileChangeObj3 = mock(BaseObject.class);
         when(fileStorageDoc.getXObjects(DefaultFileChangeStorageManager.FILECHANGE_XCLASS))
-            .thenReturn(Arrays.asList(fileChangeObj1, fileChangeObj2));
+            .thenReturn(Arrays.asList(fileChangeObj1, fileChangeObj2, fileChangeObj3));
 
         String filename1 = "file1.xml";
         String filename2 = "file2.xml";
+        String filename3 = "file3.xml";
         when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
             .thenReturn(serializedTargetEntity);
         when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
@@ -367,6 +372,12 @@ public class DefaultFileChangeStorageManagerTest
             .thenReturn("filechange-3.1");
         when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
             .thenReturn(Locale.GERMAN.toString());
+        when(fileChangeObj1.getDateValue(DefaultFileChangeStorageManager.CREATION_DATE_PROPERTY))
+            .thenReturn(new Date(4242));
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.AUTHOR_PROPERTY))
+            .thenReturn("xwiki:XWiki.surli");
+        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.TYPE_PROPERTY))
+            .thenReturn("edition");
 
         when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
             .thenReturn(serializedTargetEntity);
@@ -380,6 +391,31 @@ public class DefaultFileChangeStorageManagerTest
             .thenReturn("filechange-3.2");
         when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
             .thenReturn(Locale.GERMAN.toString());
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.TYPE_PROPERTY))
+            .thenReturn("edition");
+        when(fileChangeObj2.getDateValue(DefaultFileChangeStorageManager.CREATION_DATE_PROPERTY))
+            .thenReturn(new Date(4343));
+        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.AUTHOR_PROPERTY))
+            .thenReturn("xwiki:XWiki.Foo");
+
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
+            .thenReturn(serializedTargetEntity);
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
+            .thenReturn(filename3);
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
+            .thenReturn("3.3");
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY))
+            .thenReturn("filechange-3.2");
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.VERSION_PROPERTY))
+            .thenReturn("filechange-3.3");
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
+            .thenReturn(Locale.GERMAN.toString());
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.TYPE_PROPERTY))
+            .thenReturn("deletion");
+        when(fileChangeObj3.getDateValue(DefaultFileChangeStorageManager.CREATION_DATE_PROPERTY))
+            .thenReturn(new Date(4444));
+        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.AUTHOR_PROPERTY))
+            .thenReturn("xwiki:XWiki.Bar");
 
         XWikiAttachment attachment1 = mock(XWikiAttachment.class);
         XWikiAttachment attachment2 = mock(XWikiAttachment.class);
@@ -392,13 +428,18 @@ public class DefaultFileChangeStorageManagerTest
         when(attachment2.getContentInputStream(this.context))
             .thenReturn(getClass().getClassLoader().getResourceAsStream("filechange2.xml"));
 
-        DocumentReference authorDocReference = new DocumentReference("xwiki", "XWiki", "surli");
-        UserReference authorReference = mock(UserReference.class);
-        when(this.userReferenceResolver.resolve(authorDocReference)).thenReturn(authorReference);
+        UserReference authorReference1 = mock(UserReference.class);
+        when(this.stringUserReferenceResolver.resolve("xwiki:XWiki.surli")).thenReturn(authorReference1);
+
+        UserReference authorReference2 = mock(UserReference.class);
+        when(this.stringUserReferenceResolver.resolve("xwiki:XWiki.Foo")).thenReturn(authorReference2);
+
+        UserReference authorReference3 = mock(UserReference.class);
+        when(this.stringUserReferenceResolver.resolve("xwiki:XWiki.Bar")).thenReturn(authorReference3);
 
         FileChange expected1 = new FileChange(changeRequest)
-            .setCreationDate(new Date(1624961293000L))
-            .setAuthor(authorReference)
+            .setCreationDate(new Date(4242))
+            .setAuthor(authorReference1)
             .setSaved(true)
             .setId("file1")
             .setTargetEntity(targetEntity)
@@ -407,8 +448,8 @@ public class DefaultFileChangeStorageManagerTest
             .setVersion("filechange-3.1");
 
         FileChange expected2 = new FileChange(changeRequest)
-            .setCreationDate(new Date(1624961293000L))
-            .setAuthor(authorReference)
+            .setCreationDate(new Date(4343))
+            .setAuthor(authorReference2)
             .setSaved(true)
             .setId("file2")
             .setTargetEntity(targetEntity)
@@ -416,10 +457,20 @@ public class DefaultFileChangeStorageManagerTest
             .setPreviousPublishedVersion("2.3")
             .setVersion("filechange-3.2");
 
-        ArrayList<FileChange> expected = new ArrayList<>(Arrays.asList(expected1, expected2));
+        FileChange expected3 = new FileChange(changeRequest, FileChange.FileChangeType.DELETION)
+            .setCreationDate(new Date(4444))
+            .setAuthor(authorReference3)
+            .setSaved(true)
+            .setId("file3")
+            .setTargetEntity(targetEntity)
+            .setPreviousVersion("filechange-3.2")
+            .setPreviousPublishedVersion("3.3")
+            .setVersion("filechange-3.3");
+
+        ArrayList<FileChange> expected = new ArrayList<>(Arrays.asList(expected1, expected2, expected3));
 
         List<FileChange> fileChanges = this.fileChangeStorageManager.load(changeRequest, changedDocument);
-        assertEquals(2, fileChanges.size());
+        assertEquals(3, fileChanges.size());
 
         expected1.setModifiedDocument(fileChanges.get(0).getModifiedDocument());
         expected2.setModifiedDocument(fileChanges.get(1).getModifiedDocument());
