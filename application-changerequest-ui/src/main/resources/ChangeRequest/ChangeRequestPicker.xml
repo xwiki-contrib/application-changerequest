@@ -67,7 +67,7 @@
     #set ($crDoc = $xwiki.getDocument($reference))
     #set ($discard = $result.add({
       'label': $crDoc.title,
-      'value': $reference.name,
+      'value': $reference.lastSpaceReference.name,
       'url': $xwiki.getURL($reference),
       'icon': $services.icon.getMetaData('branch'),
       'hint': ''

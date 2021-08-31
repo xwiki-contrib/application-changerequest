@@ -127,8 +127,8 @@
       <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
   var saveChangeRequest = function () {
     var isNewCR = $('#existingCRSelector').val() === "";
-    var form = $('#save_changerequest').parents('form');
-    var DELETE_URL = "$services.changerequest.getChangeRequestURL('delete', '')";
+    var form = $('#delete_changerequest').parents('form');
+    var CREATE_URL = "$services.changerequest.getChangeRequestURL('create', '')";
     var ADD_CHANGES_URL = "$services.changerequest.getChangeRequestURL('addchanges', '__CR__')";
     var actionURL;
     if (isNewCR) {

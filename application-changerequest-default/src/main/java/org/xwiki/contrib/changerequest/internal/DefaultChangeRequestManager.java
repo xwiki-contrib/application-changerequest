@@ -114,6 +114,30 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
     {
+        switch (fileChange.getType()) {
+            case EDITION:
+                return editionHasConflict(fileChange);
+
+            case DELETION:
+                return deletionHasConflict(fileChange);
+
+            case CREATION:
+            default:
+                throw new ChangeRequestException("Not yet implemented.");
+        }
+    }
+
+    private boolean deletionHasConflict(FileChange fileChange) throws ChangeRequestException
+    {
+        DocumentModelBridge currentDoc =
+            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
+        XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
+        return xwikiCurrentDoc.isNew()
+            || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
+    }
+
+    private boolean editionHasConflict(FileChange fileChange) throws ChangeRequestException
+    {
         DocumentModelBridge modifiedDoc =
             this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
         DocumentModelBridge previousDoc =

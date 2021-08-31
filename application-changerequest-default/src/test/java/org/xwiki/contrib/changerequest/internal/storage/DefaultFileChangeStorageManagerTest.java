@@ -478,9 +478,10 @@ public class DefaultFileChangeStorageManagerTest
     }
 
     @Test
-    void merge() throws Exception
+    void mergeEdition() throws Exception
     {
         FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         XWikiDocument modifiedDocument = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(modifiedDocument);
         when(modifiedDocument.getRCSVersion()).thenReturn(new Version("2.1"));

@@ -152,7 +152,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         }
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         String fileChangeVersion = this.fileChangeVersionManager
-            .getNextFileChangeVersion(requestPreviousVersion, false);
+            .getNextFileChangeVersion(fileChange.getPreviousVersion(), false);
         fileChange
             .setTargetEntity(documentReference)
             .setVersion(fileChangeVersion)

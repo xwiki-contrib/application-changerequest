@@ -121,6 +121,7 @@ class DefaultChangeRequestManagerTest
     void hasConflict() throws ChangeRequestException
     {
         FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         DocumentModelBridge modifiedDoc = mock(DocumentModelBridge.class);
         DocumentModelBridge currentDoc = mock(DocumentModelBridge.class);
         DocumentModelBridge previousDoc = mock(DocumentModelBridge.class);
@@ -214,7 +215,9 @@ class DefaultChangeRequestManagerTest
         when(strategy.canBeMerged(changeRequest)).thenReturn(true);
         FileChange fileChangeA1 = mock(FileChange.class);
         FileChange fileChangeA2 = mock(FileChange.class);
+        when(fileChangeA2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         FileChange fileChangeB1 = mock(FileChange.class);
+        when(fileChangeB1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
 
         DocumentReference refA = new DocumentReference("xwiki", "Space", "RefA");
         DocumentReference refB = new DocumentReference("xwiki", "Space", "RefB");

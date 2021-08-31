@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.internal.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -40,11 +41,16 @@ import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.job.JobException;
+import org.xwiki.job.JobExecutor;
 import org.xwiki.localization.LocaleUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.refactoring.job.EntityRequest;
+import org.xwiki.refactoring.job.RefactoringJobs;
+import org.xwiki.refactoring.script.RequestFactory;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.UserReference;
@@ -122,6 +128,12 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private MergeManager mergeManager;
 
     @Inject
+    private RequestFactory refactoringRequestFactory;
+
+    @Inject
+    private JobExecutor jobExecutor;
+
+    @Inject
     private Logger logger;
 
     private enum DocumentVersion
@@ -150,7 +162,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     private String getIdFromFilename(String filename)
     {
-        return filename.split("\\.")[0];
+        return filename.substring(0, filename.length() - ATTACHMENT_EXTENSION.length() - 1);
     }
 
     @Override
@@ -313,6 +325,26 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     @Override
     public void merge(FileChange fileChange) throws ChangeRequestException
     {
+        switch (fileChange.getType())
+        {
+            case EDITION:
+                this.mergeEdition(fileChange);
+                break;
+
+            case DELETION:
+                this.mergeDeletion(fileChange);
+                break;
+
+            case CREATION:
+                throw new ChangeRequestException("Not yet implemented.");
+
+            default:
+                throw new ChangeRequestException("Unknown file change type: " + fileChange.getType());
+        }
+    }
+
+    private void mergeEdition(FileChange fileChange) throws ChangeRequestException
+    {
         XWikiContext context = contextProvider.get();
         XWiki wiki = context.getWiki();
         try {
@@ -347,6 +379,20 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while merging the file change [%s]", fileChange), e);
+        }
+    }
+
+    private void mergeDeletion(FileChange fileChange) throws ChangeRequestException
+    {
+        DocumentReference targetEntity = fileChange.getTargetEntity();
+        EntityRequest deleteRequest =
+            this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(targetEntity));
+        deleteRequest.setInteractive(false);
+        deleteRequest.setCheckAuthorRights(true);
+        try {
+            this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
+        } catch (JobException e) {
+            throw new ChangeRequestException(String.format("Error while deleting [%s]", targetEntity), e);
         }
     }
 
