@@ -68,6 +68,11 @@
       <artifactId>xwiki-platform-wysiwyg-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-extension-handler-xar</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

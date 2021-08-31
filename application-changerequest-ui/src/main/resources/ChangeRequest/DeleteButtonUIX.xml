@@ -224,17 +224,20 @@
   };
   
   var attachButtons = function () {
-    var button = $("&lt;input&gt;", {
-      'type': 'button',
-      'class': 'btn btn-warning',
-      'name': 'delete_changerequest',
-      'id': 'delete_changerequest',
-      'value': 'Delete as change request'
-    }).append(" ");
     if ($('#delete_changerequest').length == 0) {
-      $(button.append(" ")).insertBefore('.xcontent form &gt; button.btn-danger.confirm');
+      var button = $("&lt;input&gt;", {
+        'type': 'button',
+        'class': 'btn btn-warning',
+        'name': 'delete_changerequest',
+        'id': 'delete_changerequest',
+        'value': "$services.localization.render('changerequest.template.deletecr.confirm')"
+      });
+      $(button).insertBefore('.xcontent form &gt; button.btn-danger.confirm');
+    } else {
+      console.log("Delete button found.");
     }
-    button.on('click', function() {
+    $('#delete_changerequest').on('click', function(e) {
+      e.preventDefault();
       createChangeRequestModal();
     });
   }
@@ -250,6 +253,155 @@
     </property>
     <property>
       <use>always</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.DeleteButtonUIX</name>
+    <number>0</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>ce4c895a-5dd4-430c-904c-f06174d960b1</guid>
+    <class>
+      <name>XWiki.UIExtensionClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <async_cached>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_cached</name>
+        <number>3</number>
+        <prettyName>Cached</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_cached>
+      <async_context>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>async_context</name>
+        <number>4</number>
+        <prettyName>Context elements</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>, </separator>
+        <separators>|, </separators>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </async_context>
+      <async_enabled>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_enabled</name>
+        <number>2</number>
+        <prettyName>Asynchronous rendering</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_enabled>
+      <content>
+        <disabled>0</disabled>
+        <editor>Text</editor>
+        <name>content</name>
+        <number>1</number>
+        <prettyName>Executed Content</prettyName>
+        <rows>25</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <extensionPointId>
+        <disabled>0</disabled>
+        <name>extensionPointId</name>
+        <number>5</number>
+        <prettyName>Extension Point ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </extensionPointId>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>6</number>
+        <prettyName>Extension ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parameters>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>parameters</name>
+        <number>7</number>
+        <prettyName>Extension Parameters</prettyName>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </parameters>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>8</number>
+        <prettyName>Extension Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <async_cached>0</async_cached>
+    </property>
+    <property>
+      <async_context/>
+    </property>
+    <property>
+      <async_enabled>0</async_enabled>
+    </property>
+    <property>
+      <content>{{velocity}}
+#set ($hasDeleteRight = $services.security.authorization.hasAccess('delete', $tdoc))
+#set ($crEditName = "changerequest")
+#set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
+#if (!$isReadOnly &amp;&amp; $hasCREdit &amp;&amp; !$hasDeleteRight &amp;&amp; $services.changerequest.canDeletionBeRequested($tdoc.documentReference))
+{{html clean="false"}} ## we need clean="false" because we want to display the raw content of #submenuitem()
+ #template('menus_macros.vm')
+ #set ($deleteURL = $tdoc.getURL('deletecr', ''))
+ #submenuitem($deleteURL, 'Request for deletion', 'deletecr', '', 'remove')
+{{/html}}
+#end{{/velocity}}</content>
+    </property>
+    <property>
+      <extensionPointId>org.xwiki.plaftorm.adminactions</extensionPointId>
+    </property>
+    <property>
+      <name>org.xwiki.contrib.changerequest.adminactions.delete</name>
+    </property>
+    <property>
+      <parameters>order=40000</parameters>
+    </property>
+    <property>
+      <scope/>
     </property>
   </object>
 </xwikidoc>

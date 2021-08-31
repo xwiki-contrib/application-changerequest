@@ -513,4 +513,22 @@ public class ChangeRequestScriptService implements ScriptService
         }
         return false;
     }
+
+    /**
+     * Check if the given document can be requested for deletion.
+     *
+     * @param documentReference the document for which to check if it can be requested for deletion.
+     * @return {@code true} if the document can be requested for deletion.
+     * @since 0.5
+     */
+    public boolean canDeletionBeRequested(DocumentReference documentReference)
+    {
+        try {
+            return this.changeRequestManager.canDeletionBeRequested(documentReference);
+        } catch (ChangeRequestException e) {
+            logger.error("Error when checking if document [{}] can be requested for deletion: [{}]", documentReference,
+                ExceptionUtils.getRootCauseMessage(e));
+        }
+        return false;
+    }
 }

@@ -42,7 +42,9 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.store.merge.MergeDocumentResult;
@@ -102,12 +104,16 @@ class DefaultChangeRequestManagerTest
     @MockComponent
     private ChangeRequestConfiguration configuration;
 
+    private XarExtensionScriptService xarExtensionScriptService;
+
     private XWikiContext context;
 
     @BeforeComponent
     void beforeComponent() throws Exception
     {
         this.componentManager.registerComponent(ComponentManager.class, "context", this.componentManager);
+        this.xarExtensionScriptService = mock(XarExtensionScriptService.class);
+        this.componentManager.registerComponent(ScriptService.class, "extension.xar", this.xarExtensionScriptService);
     }
 
     @BeforeEach

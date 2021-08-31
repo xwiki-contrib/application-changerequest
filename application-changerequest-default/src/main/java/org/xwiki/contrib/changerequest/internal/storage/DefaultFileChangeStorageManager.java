@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest.internal.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -41,15 +40,12 @@ import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
-import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.localization.LocaleUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.refactoring.job.EntityRequest;
-import org.xwiki.refactoring.job.RefactoringJobs;
 import org.xwiki.refactoring.script.RequestFactory;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
@@ -385,13 +381,12 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private void mergeDeletion(FileChange fileChange) throws ChangeRequestException
     {
         DocumentReference targetEntity = fileChange.getTargetEntity();
-        EntityRequest deleteRequest =
-            this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(targetEntity));
-        deleteRequest.setInteractive(false);
-        deleteRequest.setCheckAuthorRights(true);
+        XWikiContext context = this.contextProvider.get();
+        XWiki wiki = context.getWiki();
         try {
-            this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
-        } catch (JobException e) {
+            XWikiDocument document = wiki.getDocument(targetEntity, context);
+            wiki.deleteDocument(document, context);
+        } catch (XWikiException e) {
             throw new ChangeRequestException(String.format("Error while deleting [%s]", targetEntity), e);
         }
     }

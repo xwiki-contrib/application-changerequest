@@ -25,6 +25,7 @@ import java.util.Optional;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.diff.ConflictDecision;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.UserReference;
@@ -153,6 +154,20 @@ public interface ChangeRequestManager
      * @since 0.4
      */
     default boolean isAuthorizedToFixConflict(UserReference userReference, FileChange fileChange)
+    {
+        return false;
+    }
+
+    /**
+     * Check if the given reference can be requested for deletion.
+     * Right now we don't authorize to request for deletions pages that belongs to extensions or that are hidden, or
+     * that contains xclasses.
+     *
+     * @param documentReference the reference to check if it can be requested for deletion.
+     * @return {@code true} if the given reference can be requested for deletion.
+     * @throws ChangeRequestException in case of problem when checking document properties.
+     */
+    default boolean canDeletionBeRequested(DocumentReference documentReference) throws ChangeRequestException
     {
         return false;
     }

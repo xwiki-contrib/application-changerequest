@@ -38,6 +38,8 @@ import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -53,7 +55,9 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
+import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.store.merge.MergeConflictDecisionsManager;
@@ -64,6 +68,7 @@ import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.merge.MergeConfiguration;
 
@@ -75,7 +80,7 @@ import com.xpn.xwiki.doc.merge.MergeConfiguration;
  */
 @Component
 @Singleton
-public class DefaultChangeRequestManager implements ChangeRequestManager
+public class DefaultChangeRequestManager implements ChangeRequestManager, Initializable
 {
     @Inject
     private FileChangeStorageManager fileChangeStorageManager;
@@ -110,6 +115,18 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
 
     @Inject
     private ChangeRequestStorageManager changeRequestStorageManager;
+
+    private XarExtensionScriptService xarExtensionScriptService;
+
+    @Override
+    public void initialize() throws InitializationException
+    {
+        try {
+            this.xarExtensionScriptService = this.componentManager.getInstance(ScriptService.class, "extension.xar");
+        } catch (ComponentLookupException e) {
+            throw new InitializationException("Error while getting the XarExtensionScriptService", e);
+        }
+    }
 
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
@@ -418,5 +435,24 @@ public class DefaultChangeRequestManager implements ChangeRequestManager
         DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
         Right changeRequestRight = ChangeRequestRight.getRight();
         return this.authorizationManager.hasAccess(changeRequestRight, userDocReference, fileChange.getTargetEntity());
+    }
+
+    @Override
+    public boolean canDeletionBeRequested(DocumentReference documentReference) throws ChangeRequestException
+    {
+        boolean result = false;
+        if (!this.xarExtensionScriptService.isExtensionDocument(documentReference)) {
+            XWikiContext context = this.contextProvider.get();
+            try {
+                XWikiDocument document = context.getWiki().getDocument(documentReference, context);
+                boolean hasClass = document.getXClass().getProperties().length > 0;
+                boolean isHidden = document.isHidden();
+                result = !hasClass && !isHidden;
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Error when loading document [%s] for checking properties", e));
+            }
+        }
+        return result;
     }
 }

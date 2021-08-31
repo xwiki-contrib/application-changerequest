@@ -1,0 +1,120 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+## This template was inspired by delete.vm file in xwiki-platform-flamingo-skin-resources module.
+##
+#######################################################
+##                     GLOBALS
+#######################################################
+#set($fullmsg = '')
+#set($quote = '"')
+#set($hasInlinks = false)
+#######################################################
+##                     DISPLAY
+#######################################################
+#controller()
+#macro(displayContent $deletecontent)
+#template("startpage.vm")
+<div class="main">
+  <div id="mainContentArea">
+      #define($title)<a href="$doc.getURL('view')">$!escapetool.xml($doc.plainTitle)</a>#end
+      #set($titleToDisplay = $services.localization.render('core.delete.title', [$title]))
+    <div class="xcontent">
+        #template('contentheader.vm')
+        $deletecontent
+      <div class="clearfloats"></div>
+    </div> ## xcontent
+  </div>## mainContentArea
+</div>## main
+#template("endpage.vm")
+#end
+#######################################################
+##                    CONTROLLER
+#######################################################
+#macro(controller)
+    #set ($content = "#displayConfirmationPage()")
+    #displayContent($content)
+#end
+
+#######################################################
+##            DISPLAY CONFIRMATION PAGE
+#######################################################
+#macro(displayConfirmationPage)
+<form method="post">
+    #getBacklinks()
+    #displayConfirmMessage()
+</form>
+#end
+#######################################################
+##                  DISPLAY PANEL
+#######################################################
+#macro(displayPanel $panelId $panelClass $heading $body)
+<div class="panel $!panelClass">
+  <div class="panel-heading">
+      $heading
+    <div class="pull-right"><a class="panel-collapse-carret" role="button" data-toggle="collapse" href="#$panelId" aria-expanded="false" aria-controls="$panelId"><span class="caret"></span></a></div>
+  </div>
+  <div class="panel-body collapse" id="$panelId">
+      $body
+  </div>
+</div>
+#end
+#######################################################
+##                 GET BACKLINKS
+##
+## Get the documents having some links to the current
+## one.
+#######################################################
+#macro(getBacklinks)
+    #set($links = $doc.getBacklinks())
+    #if($links && $links.size() > 0)
+        #define($heading)
+        <strong>$services.localization.render('core.delete.backlinks')</strong> ($links.size())
+        #end
+        #define($message)
+        <ul>
+            #foreach($docname in $links)
+                #set($rdoc = $xwiki.getDocument($docname).getTranslatedDocument())
+              <li><a href="$rdoc.getURL('view')">$escapetool.xml($rdoc.getPlainTitle())</a></li>
+            #end
+        </ul>
+        #end
+        #set($body = $services.localization.render('core.delete.backlinksWarning', [$message]))
+        #displayPanel('panel-backlinks', 'panel-default', $heading, $body)
+        #set($hasInlinks = true)
+    #end
+#end
+
+#######################################################
+##              DISPLAY CONFIRM MESSAGE
+#######################################################
+#macro(displayConfirmMessage)
+#if($hasInlinks)
+    <p><strong>$escapetool.xml($services.localization.render('core.recyclebin.confirmWithInlinks'))</strong></p>
+#else
+    <p>$escapetool.xml($services.localization.render('core.recyclebin.confirm'))</p>
+#end
+<button class="btn btn-warning confirm" id="delete_changerequest" name="delete_changerequest">$escapetool.xml($services.localization.render('changerequest.template.deletecr.confirm'))</button>
+    #if("$!{request.xredirect}" != '')
+        #set($cancelUrl = "$request.xredirect")
+    #else
+        #set($cancelUrl = $doc.getURL())
+    #end
+<a class="btn btn-default cancel" href="$!{escapetool.xml(${cancelUrl})}">$escapetool.xml($services.localization.render('cancel'))</a>
+#end

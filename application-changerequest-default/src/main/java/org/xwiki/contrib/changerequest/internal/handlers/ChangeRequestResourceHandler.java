@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.internal;
+package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -36,7 +36,6 @@ import org.xwiki.component.phase.Disposable;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.internal.handlers.ChangeRequestActionHandler;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
