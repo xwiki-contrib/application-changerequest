@@ -1,0 +1,100 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="ChangeRequest.FileChangeLiveTable" locale="">
+  <web>ChangeRequest</web>
+  <name>FileChangeLiveTable</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>FileChangeLiveTable</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity wiki="false"}}
+#if ("$!request.get('changerequest')" == '')
+Technical page for getting livetable data for change request file changes.
+#else
+  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
+  #if (!$changeRequestOpt.isPresent())
+    #set ($discard = $response.sendError(400, 'Change request cannot be found.'))
+  #else
+    #template('hierarchy_macros.vm')
+    #set ($changeRequest = $changeRequestOpt.get())
+    #set ($isMerged = $changeRequest.status == "MERGED")
+    #set ($references = $changeRequest.modifiedDocuments)
+    #set ($crEditName = "changerequest")
+    #if("$!{request.xpage}" == 'plain')
+      $response.setContentType('application/json')
+    #end
+    #set ($rowNumber = $references.size())
+    #set ($rows = [])
+    #foreach ($docReference in $references)
+      #set ($concernedDoc = $xwiki.getDocument($docReference))
+      #set ($viewUrl = $concernedDoc.getURL('view'))
+      #set ($editUrl = $concernedDoc.getURL('editcr', "changerequest=$changeRequest.id"))
+      #set ($isExtensionPage = $services.extension.xar.isExtensionDocument($docReference))
+      #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $docReference))
+      #set ($lastFileChangeOpt = $changeRequest.getLatestFileChangeFor($docReference))
+      #if ($lastFileChangeOpt.isPresent())
+        #set ($lastFileChange = $lastFileChangeOpt.get())
+        #set ($authorDocRef = $lastFileChange.author.reference)
+        #set ($row = {
+          'isExtensionPage': $isExtensionPage,
+          'filechange_author': "&lt;a href='$xwiki.getURL($authorDocRef)'&gt;$xwiki.getPlainUserName($authorDocRef)&lt;/a&gt;",
+          'filechange_type': $services.localization.render("changerequest.filechange.type.$lastFileChange.type"),
+          'doc_viewable': $services.security.authorization.hasAccess('view', $docReference),
+          'doc_fullName': $services.model.serialize($docReference, 'local'),
+          'doc_space': $services.model.serialize($docReference.parent, 'local'),
+          'doc_location': "#hierarchy($docReference, {'limit': 5, 'plain': false, 'local': true, 'displayTitle': false})",
+          'doc_url': $xwiki.getURL($docReference),
+          'doc_space_url': $xwiki.getURL($docReference.parent),
+          'doc_wiki': $docReference.wikiReference.name,
+          'doc_wiki_url': $xwiki.getURL($docReference.wikiReference),
+          'doc_edit_url': $xwiki.getURL($docReference, 'editcr', "changerequest=$changeRequest.id")
+        })
+        #if ($lastFileChange.type == 'EDITION' &amp;&amp; $hasCREdit &amp;&amp; !$isMerged)
+          #set ($discard = $row.put('doc_hasedit', 'true'))
+          ##set ($discard = $row.put('doc_edit_url', $xwiki.getURL($docReference, 'editcr', "changerequest=$changeRequest.id")))
+        #else
+          #set ($discard = $row.put('doc_hasedit', 'false'))
+        #end
+        #set ($discard = $rows.add($row))
+      #end
+    #end
+    #jsonResponse({
+      'totalrows': $rowNumber,
+      'returnedrows': $rowNumber,
+      'offset': 1,
+      'reqNo': 1,
+      'rows': $rows
+    })
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>

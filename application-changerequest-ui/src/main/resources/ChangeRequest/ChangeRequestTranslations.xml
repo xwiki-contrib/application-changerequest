@@ -89,7 +89,13 @@ changerequest.sheet.tab.checks.approvalStrategy.body.cannotBeLoaded=Approval str
 changerequest.sheet.checks.button=Not ready for merging
 changerequest.sheet.checks.button.title=Some checks conditions have not been met, click to see what should be fixed for merging.
 changerequest.sheet.checks.status.ready.explanation=This change request is already ready to be reviewed.
-changerequest.sheet.checks.status.draft.explanation=This change request is a work in progress, it can be reviewed and merged only when authors decide to mark it as ready.</content>
+changerequest.sheet.checks.status.draft.explanation=This change request is a work in progress, it can be reviewed and merged only when authors decide to mark it as ready.
+changerequest.filechange.type.EDITION=Edition
+changerequest.filechange.type.DELETION=Deletion
+changerequest.livetable.filechange.doc.location=Location
+changerequest.livetable.filechange.filechange_type=Change type
+changerequest.livetable.filechange.filechange_author=Author of last change
+changerequest.livetable.filechange._actions=Actions</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

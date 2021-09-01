@@ -160,22 +160,23 @@
     &lt;/div&gt;&lt;!-- End reviews --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
 &lt;div&gt;
-$services.localization.render('changerequest.sheet.pagechanges')
-&lt;ul&gt;
-#foreach ($ref in $modifiedFiles)
-  #set ($actualDoc = $xwiki.getDocument($ref))
-  #set ($renderedTitle = $actualDoc.getDisplayTitle())
-  #set ($crEditName = "changerequest")
-  #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $actualDoc))
-  #if ($isNotMerged &amp;&amp; $hasCREdit)
-    #set ($editLink = $actualDoc.getURL('editcr', "changerequest=$changeRequest.id"))
-   &lt;li&gt;&lt;a href="$editLink"&gt;$renderedTitle $services.icon.renderHTML('pencil')&lt;/a&gt;&lt;/li&gt;
-  #else
-    #set ($viewLink = $actualDoc.getURL())
-   &lt;li&gt;&lt;a href="$viewLink"&gt;$renderedTitle&lt;/a&gt;&lt;/li&gt;
-  #end
-#end
-&lt;/ul&gt;
+#set ($id = 'changerequests-filechange')
+#set ($columns = ['doc.location', 'filechange_type', 'filechange_author', '_actions'])
+#set($columnsProperties = {
+   'doc.location' : { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
+   'filechange_type': { 'type' : 'text', 'filterable': 'false', 'sortable': 'false' },
+   'filechange_author': { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
+   '_actions': {'actions': ['edit']}
+})
+#set ($fileChangeLTDoc = $xwiki.getDocument('ChangeRequest.FileChangeLiveTable'))
+#set($options = {
+   'rowCount': 10,
+   'translationPrefix': 'changerequest.livetable.filechange.',
+   'url': $fileChangeLTDoc.getURL('get', "changerequest=$changeRequest.id"),
+   'outputOnlyHtml': true,
+   'pageSize': false
+})
+#livetable($id $columns $columnsProperties $options)
 &lt;/div&gt;
 #set ($conflictingFiles = {})
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
