@@ -90,5 +90,11 @@ changerequest.sheet.checks.button=Non prêt pour la fusion
 changerequest.sheet.checks.button.title=Certaines conditions ne sont pas remplies, cliquez pour consulter ce qui doit être corrigé avant fusion.
 changerequest.sheet.checks.status.ready.explanation=Cette demande de modification est prête à être révisée.
 changerequest.sheet.checks.status.draft.explanation=Cette demande de modification est en cours, elle pourra être révisée et fusionnée lorsque ses acteurs l'auront marquée comme prête.
+changerequest.filechange.type.EDITION=Modification
+changerequest.filechange.type.DELETION=Suppression
+changerequest.livetable.filechange.doc.location=Emplacement
+changerequest.livetable.filechange.filechange_type=Modifier le type
+changerequest.livetable.filechange.filechange_author=Auteur de la dernière modification
+changerequest.livetable.filechange._actions=Actions
 </content>
 </xwikidoc>
