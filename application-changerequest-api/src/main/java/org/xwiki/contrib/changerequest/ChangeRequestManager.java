@@ -55,8 +55,9 @@ public interface ChangeRequestManager
      * @param userReference the user for which to check the authorizations
      * @param changeRequest the change request to check
      * @return {@code true} if the user has the appropriate rights to perform the merge.
+     * @throws ChangeRequestException in case of problem when checking if the user is an approver.
      */
-    boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest);
+    boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest) throws ChangeRequestException;
 
     /**
      * Check if all conditions are met so that a change request can be merged.
@@ -139,9 +140,11 @@ public interface ChangeRequestManager
      * @param userReference the user for which to check authorizations.
      * @param changeRequest the change request to review.
      * @return {@code true} if the user is not one of the change request author and it authorized to review it.
+     * @throws ChangeRequestException in case of problem when checking if a user is an approver.
      * @since 0.4
      */
     default boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
     {
         return false;
     }

@@ -20,7 +20,9 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -67,6 +70,12 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     @Inject
     private FileChangeVersionManager fileChangeVersionManager;
 
+    @Inject
+    private ApproversManager<DocumentReference> documentReferenceApproversManager;
+
+    @Inject
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
@@ -102,6 +111,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
             changeRequest.addFileChange(fileChange);
             this.storageManager.save(changeRequest);
+            this.addApprovers(documentReference, changeRequest);
             this.observationManager
                 .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
             this.redirectToChangeRequest(changeRequest);
@@ -139,5 +149,25 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     modifiedDocument.getDocumentReferenceWithLocale()));
         }
         return result;
+    }
+
+    private void addApprovers(DocumentReference originalReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        Set<UserReference> usersCRApprovers =
+            new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, false));
+
+        Set<DocumentReference> groupsCRApprovers =
+            new HashSet<>(this.changeRequestApproversManager.getGroupsApprovers(changeRequest));
+
+        usersCRApprovers.addAll(this.documentReferenceApproversManager.getAllApprovers(originalReference, false));
+        groupsCRApprovers.addAll(this.documentReferenceApproversManager.getGroupsApprovers(originalReference));
+
+        if (!groupsCRApprovers.isEmpty()) {
+            this.changeRequestApproversManager.setGroupsApprovers(groupsCRApprovers, changeRequest);
+        }
+        if (!usersCRApprovers.isEmpty()) {
+            this.changeRequestApproversManager.setUsersApprovers(usersCRApprovers, changeRequest);
+        }
     }
 }

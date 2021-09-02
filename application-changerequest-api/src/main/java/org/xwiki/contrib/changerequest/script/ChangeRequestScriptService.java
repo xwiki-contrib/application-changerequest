@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,6 +35,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -93,6 +95,9 @@ public class ChangeRequestScriptService implements ScriptService
     private ReviewStorageManager reviewStorageManager;
 
     @Inject
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -122,7 +127,13 @@ public class ChangeRequestScriptService implements ScriptService
     public boolean isAuthorizedToMerge(ChangeRequest changeRequest)
     {
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest);
+        try {
+            return this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest);
+        } catch (ChangeRequestException e) {
+            logger.error("Error when checking if user [{}] is authorized to merge [{}]: [{}]", currentUser,
+                changeRequest, ExceptionUtils.getRootCauseMessage(e));
+        }
+        return false;
     }
 
     /**
@@ -445,7 +456,13 @@ public class ChangeRequestScriptService implements ScriptService
     public boolean isAuthorizedToReview(ChangeRequest changeRequest)
     {
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
+        try {
+            return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
+        } catch (ChangeRequestException e) {
+            logger.error("Error while checking if user [{}] is authorized to review [{}]: [{}]", currentUserReference,
+                changeRequest, ExceptionUtils.getRootCauseMessage(e));
+        }
+        return false;
     }
 
     /**
@@ -530,5 +547,23 @@ public class ChangeRequestScriptService implements ScriptService
                 ExceptionUtils.getRootCauseMessage(e));
         }
         return false;
+    }
+
+    /**
+     * Retrieve all explicit approvers for the given change request.
+     *
+     * @param changeRequest the request for which to get approvers.
+     * @return the list of approvers.
+     * @since 0.5
+     */
+    public Set<UserReference> getApprovers(ChangeRequest changeRequest)
+    {
+        try {
+            return this.changeRequestApproversManager.getAllApprovers(changeRequest, true);
+        } catch (ChangeRequestException e) {
+            logger.error("Error when getting approvers list for change request [{}]: [{}].", changeRequest,
+                ExceptionUtils.getRootCauseMessage(e));
+        }
+        return Collections.emptySet();
     }
 }

@@ -87,6 +87,10 @@
       &lt;span class="label label-default"&gt;$changeRequest.reviews.size()&lt;/span&gt;
       &lt;/a&gt;
     &lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#approvers" aria-controls="approvers" role="tab" data-toggle="tab"&gt;
+      $services.localization.render('changerequest.sheet.tab.approvers.title')
+      &lt;/a&gt;
+    &lt;/li&gt;
     &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;
       $services.localization.render('changerequest.sheet.tab.filechanges.title')
       &lt;span class="label label-default"&gt;$modifiedFiles.size()&lt;/span&gt;
@@ -107,7 +111,7 @@
   &lt;/ul&gt;
 
   &lt;!-- Tab panes --&gt;
-  &lt;div class="tab-content"&gt;
+  &lt;div class="tab-content change-request-sheet"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;$doc.content&lt;/div&gt;
     &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
     #if ($services.changerequest.isAuthorizedToReview($changeRequest) &amp;&amp; $isNotMerged)
@@ -158,6 +162,20 @@
     #end
     &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End reviews --&gt;
+    &lt;div role="tabpanel" class="tab-pane" id="approvers"&gt;
+    #set ($approversList = $services.changerequest.getApprovers($changeRequest))
+    #if ($approversList.isEmpty())
+      No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.
+    #else
+      Approvers of this change request:
+      &lt;ul&gt;
+      #foreach ($userReference in $approversList)
+        #set ($userDocReference = $userReference.reference)
+        &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
+      #end
+      &lt;ul&gt;
+    #end
+    &lt;/div&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
 &lt;div&gt;
 #set ($id = 'changerequests-filechange')
@@ -1320,6 +1338,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
 .outdated {
   float: right;
   margin-left: 10px;
+}
+.tab-content.change-request-sheet &gt; .tab-pane.active {
+  margin-top: 1em;
 }</code>
     </property>
     <property>

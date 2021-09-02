@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
@@ -63,6 +65,12 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 
     @Inject
     private FileChangeVersionManager fileChangeVersionManager;
+
+    @Inject
+    private ApproversManager<DocumentReference> documentReferenceApproversManager;
+
+    @Inject
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
@@ -120,7 +128,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         }
 
         this.storageManager.save(changeRequest);
-
+        this.copyApprovers(documentReference, changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), documentReference, changeRequest.getId());
         this.redirectToChangeRequest(changeRequest);
     }
@@ -158,5 +166,21 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             .setVersion(fileChangeVersion)
             .setAuthor(currentUser);
         return fileChange;
+    }
+
+    private void copyApprovers(DocumentReference originalReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        Set<UserReference> usersApprovers =
+            this.documentReferenceApproversManager.getAllApprovers(originalReference, false);
+        Set<DocumentReference> groupsApprovers =
+            this.documentReferenceApproversManager.getGroupsApprovers(originalReference);
+
+        if (!groupsApprovers.isEmpty()) {
+            this.changeRequestApproversManager.setGroupsApprovers(groupsApprovers, changeRequest);
+        }
+        if (!usersApprovers.isEmpty()) {
+            this.changeRequestApproversManager.setUsersApprovers(usersApprovers, changeRequest);
+        }
     }
 }

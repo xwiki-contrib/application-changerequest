@@ -40,6 +40,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -49,7 +50,6 @@ import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
-import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -116,6 +116,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     @Inject
     private ChangeRequestStorageManager changeRequestStorageManager;
 
+    @Inject
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
     private XarExtensionScriptService xarExtensionScriptService;
 
     @Override
@@ -181,16 +184,33 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Override
     public boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
     {
         boolean result = true;
         DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
-        Right approvalRight = ChangeRequestApproveRight.getRight();
-        for (DocumentReference documentReference : changeRequest.getModifiedDocuments()) {
-            if (!this.authorizationManager.hasAccess(Right.EDIT, userDocReference, documentReference)
-                || !this.authorizationManager.hasAccess(approvalRight, userDocReference, documentReference)) {
-                result = false;
-                break;
+
+        if (this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)) {
+            for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
+                Right rightToBeChecked;
+                switch (lastFileChange.getType()) {
+                    case DELETION:
+                        rightToBeChecked = Right.DELETE;
+                        break;
+
+                    case EDITION:
+                    case CREATION:
+                    default:
+                        rightToBeChecked = Right.EDIT;
+                        break;
+                }
+                if (!this.authorizationManager.hasAccess(rightToBeChecked, userDocReference,
+                    lastFileChange.getTargetEntity())) {
+                    result = false;
+                    break;
+                }
             }
+        } else {
+            result = false;
         }
 
         return result;
@@ -413,18 +433,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Override
     public boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
     {
         boolean result = false;
-        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
-        Right approvalRight = ChangeRequestApproveRight.getRight();
         if (!(changeRequest.getAuthors().contains(userReference))) {
-            result = true;
-            for (DocumentReference documentReference : changeRequest.getModifiedDocuments()) {
-                if (!this.authorizationManager.hasAccess(approvalRight, userDocReference, documentReference)) {
-                    result = false;
-                    break;
-                }
-            }
+            result = this.changeRequestApproversManager.isApprover(userReference, changeRequest, true);
         }
         return result;
     }
