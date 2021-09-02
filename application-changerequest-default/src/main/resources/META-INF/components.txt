@@ -22,3 +22,4 @@ org.xwiki.contrib.changerequest.internal.ChangeRequestConfigurationSource
 org.xwiki.contrib.changerequest.internal.handlers.DeleteAsChangeRequestResourceHandler
 org.xwiki.contrib.changerequest.internal.approvers.ChangeRequestApproversManager
 org.xwiki.contrib.changerequest.internal.approvers.DocumentReferenceApproversManager
+org.xwiki.contrib.changerequest.internal.strategies.AllApproversMergeApprovalStrategy
