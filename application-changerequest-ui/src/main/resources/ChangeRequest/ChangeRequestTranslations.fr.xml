@@ -96,5 +96,6 @@ changerequest.livetable.filechange.doc.location=Emplacement
 changerequest.livetable.filechange.filechange_type=Modifier le type
 changerequest.livetable.filechange.filechange_author=Auteur de la dernière modification
 changerequest.livetable.filechange._actions=Actions
+changerequest.sheet.tab.approvers.title=Approbateurs
 </content>
 </xwikidoc>
