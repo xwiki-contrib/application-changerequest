@@ -47,12 +47,33 @@
     <nameField/>
     <validationScript/>
     <approvalStrategy>
-      <customDisplay/>
+      <customDisplay>{{velocity}}
+#if ($type == 'edit')
+  #set ($componentManager = $services.component.getContextComponentManager())
+  #set ($availableStrategies = $componentManager.getInstanceList('org.xwiki.contrib.changerequest.MergeApprovalStrategy'))
+  {{html}}
+  &lt;div class='strategies'&gt;
+  #foreach ($strategy in $availableStrategies)
+    &lt;div class='radio'&gt;
+    #set ($isSelected = $strategy.name == $value)
+      &lt;label&gt;
+        &lt;input type='radio' name="${prefix}${name}" id="${prefix}${name}_$strategy.name" value="$strategy.name" #if($isSelected)checked="checked"#end&gt;
+        $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrategy.name.$strategy.name"))
+        &lt;span class='xHint'&gt;$strategy.description&lt;/span&gt;
+      &lt;/label&gt;
+  &lt;/div&gt;
+  #end
+  &lt;/div&gt;
+  {{/html}}
+#elseif ($type == 'view')
+$escapetool.xml($services.localization.render("changerequest.mergeApprovalStrategy.name.$value"))
+#end
+{{/velocity}}</customDisplay>
       <disabled>0</disabled>
-      <hint/>
+      <hint>Some hint</hint>
       <name>approvalStrategy</name>
       <number>1</number>
-      <picker>1</picker>
+      <picker>0</picker>
       <prettyName>approvalStrategy</prettyName>
       <size>30</size>
       <unmodifiable>0</unmodifiable>
