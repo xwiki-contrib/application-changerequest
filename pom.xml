@@ -81,6 +81,19 @@
                   <new>method org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult org.xwiki.contrib.changerequest.ChangeRequestManager::getMergeDocumentResult(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
                   <justification>Unstable API: introduction of a dedicated ChangeRequestMergeDocumentResult to handle Delete file change.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::getChangedDocuments(org.xwiki.contrib.changerequest.ChangeRequest)</old>
+                  <justification>Unstable API: this API is actually directly provided in ChangeRequest.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.returnTypeChanged</code>
+                  <old>method java.util.Optional&lt;org.xwiki.contrib.changerequest.MergeApprovalStrategy&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::getMergeApprovalStrategy()</old>
+                  <new>method org.xwiki.contrib.changerequest.MergeApprovalStrategy org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::getMergeApprovalStrategy() throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <justification>Unstable API: Simplification of the API, the optional was not needed here.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

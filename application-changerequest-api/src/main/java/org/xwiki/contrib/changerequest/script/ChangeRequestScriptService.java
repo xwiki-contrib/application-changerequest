@@ -19,8 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -31,7 +29,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
@@ -106,14 +103,9 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeRequestId the identifier of a change request.
      * @return an optional containing the change request instance if it can be found, else an empty optional.
      */
-    public Optional<ChangeRequest> getChangeRequest(String changeRequestId)
+    public Optional<ChangeRequest> getChangeRequest(String changeRequestId) throws ChangeRequestException
     {
-        try {
-            return this.changeRequestStorageManager.load(changeRequestId);
-        } catch (ChangeRequestException e) {
-            this.logger.warn("Error while loading change request with id [{}]", changeRequestId, e);
-        }
-        return Optional.empty();
+        return this.changeRequestStorageManager.load(changeRequestId);
     }
 
     /**
@@ -124,16 +116,10 @@ public class ChangeRequestScriptService implements ScriptService
      * @since 0.3
      */
     @Unstable
-    public boolean isAuthorizedToMerge(ChangeRequest changeRequest)
+    public boolean isAuthorizedToMerge(ChangeRequest changeRequest) throws ChangeRequestException
     {
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        try {
-            return this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest);
-        } catch (ChangeRequestException e) {
-            logger.error("Error when checking if user [{}] is authorized to merge [{}]: [{}]", currentUser,
-                changeRequest, ExceptionUtils.getRootCauseMessage(e));
-        }
-        return false;
+        return this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest);
     }
 
     /**
@@ -144,27 +130,9 @@ public class ChangeRequestScriptService implements ScriptService
      * @return {@code true} if the given change request can be merged (i.e. the approval strategy
      *          allows it and the change request does not have conflicts).
      */
-    public boolean canBeMerged(ChangeRequest changeRequest)
+    public boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException
     {
-        boolean result = false;
-        try {
-            result = this.changeRequestManager.canBeMerged(changeRequest);
-        } catch (ChangeRequestException e) {
-            this.logger.warn("Error while checking if the change request [{}] can be merged: [{}]",
-                changeRequest, ExceptionUtils.getRootCauseMessage(e));
-        }
-        return result;
-    }
-
-    /**
-     * Retrieve all document references that have been impacted by a change in that change request.
-     *
-     * @param changeRequest the change request for which to get the changed documents.
-     * @return a list of document references.
-     */
-    public List<DocumentReference> getChangedDocuments(ChangeRequest changeRequest)
-    {
-        return new ArrayList<>(changeRequest.getFileChanges().keySet());
+        return this.changeRequestManager.canBeMerged(changeRequest);
     }
 
     /**
@@ -177,10 +145,8 @@ public class ChangeRequestScriptService implements ScriptService
     public Optional<DocumentModelBridge> getModifiedDocument(ChangeRequest changeRequest,
         DocumentReference documentReference)
     {
-        if (changeRequest.getFileChanges().containsKey(documentReference)) {
-            return Optional.of(changeRequest.getFileChanges().get(documentReference).peekLast().getModifiedDocument());
-        }
-        return Optional.empty();
+        Optional<FileChange> latestFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+        return latestFileChange.map(FileChange::getModifiedDocument);
     }
 
     /**
@@ -191,14 +157,9 @@ public class ChangeRequestScriptService implements ScriptService
      * @since 0.3
      */
     public List<ChangeRequest> getChangeRequestWithChangesFor(DocumentReference documentReference)
+        throws ChangeRequestException
     {
-        try {
-            return this.changeRequestStorageManager.findChangeRequestTargeting(documentReference);
-        } catch (ChangeRequestException e) {
-            logger.warn("Error while getting change requests for document [{}]: [{}]", documentReference,
-                ExceptionUtils.getRootCauseMessage(e));
-        }
-        return Collections.emptyList();
+        return this.changeRequestStorageManager.findChangeRequestTargeting(documentReference);
     }
 
     /**
@@ -208,15 +169,9 @@ public class ChangeRequestScriptService implements ScriptService
      * @return a list of document references corresponding to change request pages.
      * @since 0.3
      */
-    public List<DocumentReference> findChangeRequestMatchingTitle(String title)
+    public List<DocumentReference> findChangeRequestMatchingTitle(String title) throws ChangeRequestException
     {
-        try {
-            return this.changeRequestStorageManager.getChangeRequestMatchingName(title);
-        } catch (ChangeRequestException e) {
-            logger.warn("Error while getting change requests for title [{}]: [{}]", title,
-                ExceptionUtils.getRootCauseMessage(e));
-        }
-        return Collections.emptyList();
+        return this.changeRequestStorageManager.getChangeRequestMatchingName(title);
     }
 
     /**
@@ -228,18 +183,13 @@ public class ChangeRequestScriptService implements ScriptService
      * @since 0.3
      */
     public String getChangeRequestURL(String action, String changeRequestId)
+        throws SerializeResourceReferenceException, UnsupportedResourceReferenceException
     {
         ChangeRequestReference.ChangeRequestAction requestAction =
             ChangeRequestReference.ChangeRequestAction.valueOf(action.toUpperCase(Locale.ROOT));
         ChangeRequestReference reference = new ChangeRequestReference(requestAction, changeRequestId);
-        try {
-            ExtendedURL extendedURL = this.urlResourceReferenceSerializer.serialize(reference);
-            return extendedURL.serialize();
-        } catch (SerializeResourceReferenceException | UnsupportedResourceReferenceException e) {
-            logger.warn("Error while serializing URL for reference [{}]: [{}]", reference,
-                ExceptionUtils.getRootCauseMessage(e));
-        }
-        return "";
+        ExtendedURL extendedURL = this.urlResourceReferenceSerializer.serialize(reference);
+        return extendedURL.serialize();
     }
 
     /**
@@ -269,15 +219,11 @@ public class ChangeRequestScriptService implements ScriptService
             && changeRequest.getAuthors().contains(currentUser);
     }
 
-    private void setStatus(ChangeRequest changeRequest, ChangeRequestStatus status)
+    private void setStatus(ChangeRequest changeRequest, ChangeRequestStatus status) throws ChangeRequestException
     {
         if (changeRequest.getStatus() != status) {
             changeRequest.setStatus(status);
-            try {
-                this.changeRequestStorageManager.save(changeRequest);
-            } catch (ChangeRequestException e) {
-                logger.warn("Error while saving the change request: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            }
+            this.changeRequestStorageManager.save(changeRequest);
         }
     }
 
@@ -287,7 +233,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeRequest the change request for which to change the status.
      * @since 0.4
      */
-    public void setReadyForReview(ChangeRequest changeRequest)
+    public void setReadyForReview(ChangeRequest changeRequest) throws ChangeRequestException
     {
         setStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
     }
@@ -298,7 +244,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeRequest the change request for which to change the status.
      * @since 0.4
      */
-    public void setDraft(ChangeRequest changeRequest)
+    public void setDraft(ChangeRequest changeRequest) throws ChangeRequestException
     {
         setStatus(changeRequest, ChangeRequestStatus.DRAFT);
     }
@@ -314,19 +260,14 @@ public class ChangeRequestScriptService implements ScriptService
      * @since 0.4
      */
     public Optional<ChangeRequestMergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
-        DocumentReference documentReference)
+        DocumentReference documentReference) throws ChangeRequestException
     {
         Optional<ChangeRequestMergeDocumentResult> result = Optional.empty();
         Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
         if (optionalFileChange.isPresent()) {
-            try {
-                ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
-                    this.changeRequestManager.getMergeDocumentResult(optionalFileChange.get());
-                result = Optional.of(changeRequestMergeDocumentResult);
-            } catch (ChangeRequestException e) {
-                logger.warn("Error while computing the merge for change request [{}] and document reference [{}]: [{}]",
-                    changeRequest.getId(), documentReference, ExceptionUtils.getRootCauseMessage(e));
-            }
+            ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
+                this.changeRequestManager.getMergeDocumentResult(optionalFileChange.get());
+            result = Optional.of(changeRequestMergeDocumentResult);
         }
         return result;
     }
@@ -381,19 +322,14 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public boolean fixConflicts(ChangeRequest changeRequest, DocumentReference documentReference,
         ConflictResolutionChoice resolutionChoice, List<ConflictDecision<?>> customDecisions)
+        throws ChangeRequestException
     {
         boolean result = false;
         if (this.canFixConflict(changeRequest, documentReference)) {
             Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
             if (optionalFileChange.isPresent()) {
-                try {
-                    result = this.changeRequestManager
-                        .mergeWithConflictDecision(optionalFileChange.get(), resolutionChoice, customDecisions);
-                } catch (ChangeRequestException e) {
-                    logger.warn("Error while trying to fix conflicts for [{}] in [{}] with decision [{}]: [{}]",
-                        documentReference, changeRequest.getId(), resolutionChoice,
-                        ExceptionUtils.getRootCauseMessage(e));
-                }
+                result = this.changeRequestManager
+                    .mergeWithConflictDecision(optionalFileChange.get(), resolutionChoice, customDecisions);
             }
         }
 
@@ -410,19 +346,15 @@ public class ChangeRequestScriptService implements ScriptService
      * @since 0.4
      */
     public boolean addReview(ChangeRequest changeRequest, boolean approved, String comment)
+        throws ChangeRequestException
     {
         boolean result = false;
         UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         if (this.isAuthorizedToReview(changeRequest)) {
             ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
             review.setComment(comment);
-            try {
-                this.reviewStorageManager.save(review);
-                result = true;
-            } catch (ChangeRequestException e) {
-                logger.warn("Error while saving review for change request [{}]: [{}]",
-                    changeRequest.getId(), ExceptionUtils.getRootCauseMessage(e));
-            }
+            this.reviewStorageManager.save(review);
+            result = true;
         } else {
             logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
         }
@@ -436,14 +368,10 @@ public class ChangeRequestScriptService implements ScriptService
      * {@link MergeApprovalStrategy}.
      * @since 0.4
      */
-    public Optional<MergeApprovalStrategy> getMergeApprovalStrategy()
+    public MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
     {
-        try {
-            return Optional.of(this.changeRequestManager.getMergeApprovalStrategy());
-        } catch (ChangeRequestException e) {
-            logger.warn("Error while getting merge approval strategy: [{}]", ExceptionUtils.getRootCauseMessage(e));
-        }
-        return Optional.empty();
+
+        return this.changeRequestManager.getMergeApprovalStrategy();
     }
 
     /**
@@ -453,16 +381,10 @@ public class ChangeRequestScriptService implements ScriptService
      * @return {@code true} if the change request can be reviewed by current user.
      * @since 0.4
      */
-    public boolean isAuthorizedToReview(ChangeRequest changeRequest)
+    public boolean isAuthorizedToReview(ChangeRequest changeRequest) throws ChangeRequestException
     {
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        try {
-            return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
-        } catch (ChangeRequestException e) {
-            logger.error("Error while checking if user [{}] is authorized to review [{}]: [{}]", currentUserReference,
-                changeRequest, ExceptionUtils.getRootCauseMessage(e));
-        }
-        return false;
+        return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
     }
 
     /**
@@ -487,17 +409,13 @@ public class ChangeRequestScriptService implements ScriptService
      * @return {@code true} if the review has been properly saved with the new status.
      * @since 0.4
      */
-    public boolean setReviewValidity(ChangeRequestReview review, boolean isValid)
+    public boolean setReviewValidity(ChangeRequestReview review, boolean isValid) throws ChangeRequestException
     {
         if (canEditReview(review)) {
             review.setValid(isValid);
             review.setSaved(false);
-            try {
-                this.reviewStorageManager.save(review);
-                return true;
-            } catch (ChangeRequestException e) {
-                logger.warn("Error while saving the review [{}]: [{}]", review, ExceptionUtils.getRootCauseMessage(e));
-            }
+            this.reviewStorageManager.save(review);
+            return true;
         }
         return false;
     }
@@ -538,15 +456,9 @@ public class ChangeRequestScriptService implements ScriptService
      * @return {@code true} if the document can be requested for deletion.
      * @since 0.5
      */
-    public boolean canDeletionBeRequested(DocumentReference documentReference)
+    public boolean canDeletionBeRequested(DocumentReference documentReference) throws ChangeRequestException
     {
-        try {
-            return this.changeRequestManager.canDeletionBeRequested(documentReference);
-        } catch (ChangeRequestException e) {
-            logger.error("Error when checking if document [{}] can be requested for deletion: [{}]", documentReference,
-                ExceptionUtils.getRootCauseMessage(e));
-        }
-        return false;
+        return this.changeRequestManager.canDeletionBeRequested(documentReference);
     }
 
     /**
@@ -556,14 +468,8 @@ public class ChangeRequestScriptService implements ScriptService
      * @return the list of approvers.
      * @since 0.5
      */
-    public Set<UserReference> getApprovers(ChangeRequest changeRequest)
+    public Set<UserReference> getApprovers(ChangeRequest changeRequest) throws ChangeRequestException
     {
-        try {
-            return this.changeRequestApproversManager.getAllApprovers(changeRequest, true);
-        } catch (ChangeRequestException e) {
-            logger.error("Error when getting approvers list for change request [{}]: [{}].", changeRequest,
-                ExceptionUtils.getRootCauseMessage(e));
-        }
-        return Collections.emptySet();
+        return this.changeRequestApproversManager.getAllApprovers(changeRequest, true);
     }
 }

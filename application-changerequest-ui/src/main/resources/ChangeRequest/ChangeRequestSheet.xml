@@ -320,23 +320,17 @@
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body conflict --&gt;
       &lt;/div&gt;&lt;!-- End panel conflict --&gt;
-      #set ($approvalStrategyOpt = $services.changerequest.mergeApprovalStrategy)
-      #if ($approvalStrategyOpt.isPresent())
-        #set ($approvalStrategy = $approvalStrategyOpt.get())
-        #set ($canBeMerged = $approvalStrategy.canBeMerged($changeRequest))
-        #if ($canBeMerged)
-          #set ($strategyPanelClass = "panel-success")
-          #set ($statusIcon = $checkIconSuccess)
-        #else
-          #set ($strategyPanelClass = "panel-warning")
-          #set ($statusIcon = $checkIconProblem)
-        #end
-        #set ($strategyPanelText = $approvalStrategy.getStatus($changeRequest))
+      #set ($approvalStrategy = $services.changerequest.mergeApprovalStrategy)
+      #set ($approvalStrategy = $approvalStrategyOpt.get())
+      #set ($canBeMerged = $approvalStrategy.canBeMerged($changeRequest))
+      #if ($canBeMerged)
+        #set ($strategyPanelClass = "panel-success")
+        #set ($statusIcon = $checkIconSuccess)
       #else
-        #set ($strategyPanelClass = "panel-error")
-        #set ($strategyPanelText = $services.localization.render('changerequest.sheet.tab.checks.approvalStrategy.body.cannotBeLoaded'))
+        #set ($strategyPanelClass = "panel-warning")
         #set ($statusIcon = $checkIconProblem)
       #end
+      #set ($strategyPanelText = $approvalStrategy.getStatus($changeRequest))
       &lt;div class="panel $strategyPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingApprovalStrategyPanel"&gt;
           &lt;h4 class="panel-title"&gt;
