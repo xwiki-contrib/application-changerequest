@@ -35,7 +35,6 @@ import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
@@ -43,6 +42,13 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.APPROVED_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.AUTHOR_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.COMMENT_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.DATE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.REVIEW_XCLASS;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.VALID_PROPERTY;
 
 /**
  * Default implementation of the review storage manager, which stores the reviews in xobjects, directly in the
@@ -55,15 +61,6 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class DefaultReviewStorageManager implements ReviewStorageManager
 {
-    static final LocalDocumentReference REVIEW_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "ChangeRequestReviewClass");
-
-    static final String AUTHOR_PROPERTY = "author";
-    static final String APPROVED_PROPERTY = "approved";
-    static final String DATE_PROPERTY = "reviewDate";
-    static final String COMMENT_PROPERTY = "comment";
-    static final String VALID_PROPERTY = "valid";
-
     static final String ID_FORMAT = "xobject_%s";
 
     @Inject

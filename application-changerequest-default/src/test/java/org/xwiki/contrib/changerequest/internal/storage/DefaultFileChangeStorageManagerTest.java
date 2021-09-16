@@ -299,10 +299,10 @@ public class DefaultFileChangeStorageManagerTest
 
             return attachment;
         });
-        when(fileChangeDoc.createXObject(DefaultFileChangeStorageManager.FILECHANGE_XCLASS, this.context))
+        when(fileChangeDoc.createXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, this.context))
             .thenReturn(3);
         BaseObject fileChangeObj = mock(BaseObject.class);
-        when(fileChangeDoc.getXObject(DefaultFileChangeStorageManager.FILECHANGE_XCLASS, 3)).thenReturn(fileChangeObj);
+        when(fileChangeDoc.getXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, 3)).thenReturn(fileChangeObj);
         when(fileChange.getVersion()).thenReturn(version);
         when(fileChange.getPreviousVersion()).thenReturn("filechange-3.2");
         when(fileChange.getPreviousPublishedVersion()).thenReturn("2.13");
@@ -316,15 +316,15 @@ public class DefaultFileChangeStorageManagerTest
         verify(fileChangeDoc).setAttachment(any());
         verify(fileChangeDoc).setHidden(true);
         verify(fileChange).setId(expectedId);
-        verify(fileChangeObj).set(DefaultFileChangeStorageManager.FILENAME_PROPERTY, expectedId + ".xml", this.context);
-        verify(fileChangeObj).set(DefaultFileChangeStorageManager.VERSION_PROPERTY, "filechange-3.3", this.context);
+        verify(fileChangeObj).set(FileChangeXClassInitializer.FILENAME_PROPERTY, expectedId + ".xml", this.context);
+        verify(fileChangeObj).set(FileChangeXClassInitializer.VERSION_PROPERTY, "filechange-3.3", this.context);
         verify(fileChangeObj)
-            .set(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY, "2.13", this.context);
+            .set(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY, "2.13", this.context);
         verify(fileChangeObj)
-            .set(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY, "filechange-3.2", this.context);
-        verify(fileChangeObj).set(DefaultFileChangeStorageManager.REFERENCE_PROPERTY, "xwiki:Space.Doc", this.context);
+            .set(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY, "filechange-3.2", this.context);
+        verify(fileChangeObj).set(FileChangeXClassInitializer.REFERENCE_PROPERTY, "xwiki:Space.Doc", this.context);
         verify(fileChangeObj)
-            .set(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY, Locale.FRENCH, this.context);
+            .set(FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY, Locale.FRENCH, this.context);
         verify(modifiedDoc).setRCSVersion(new Version("3.3"));
     }
 
@@ -354,67 +354,67 @@ public class DefaultFileChangeStorageManagerTest
         BaseObject fileChangeObj1 = mock(BaseObject.class);
         BaseObject fileChangeObj2 = mock(BaseObject.class);
         BaseObject fileChangeObj3 = mock(BaseObject.class);
-        when(fileStorageDoc.getXObjects(DefaultFileChangeStorageManager.FILECHANGE_XCLASS))
+        when(fileStorageDoc.getXObjects(FileChangeXClassInitializer.FILECHANGE_XCLASS))
             .thenReturn(Arrays.asList(fileChangeObj1, fileChangeObj2, fileChangeObj3));
 
         String filename1 = "file1.xml";
         String filename2 = "file2.xml";
         String filename3 = "file3.xml";
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.REFERENCE_PROPERTY))
             .thenReturn(serializedTargetEntity);
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.FILENAME_PROPERTY))
             .thenReturn(filename1);
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
             .thenReturn("2.3");
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY))
             .thenReturn("2.3");
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.VERSION_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.VERSION_PROPERTY))
             .thenReturn("filechange-3.1");
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY))
             .thenReturn(Locale.GERMAN.toString());
-        when(fileChangeObj1.getDateValue(DefaultFileChangeStorageManager.CREATION_DATE_PROPERTY))
+        when(fileChangeObj1.getDateValue(FileChangeXClassInitializer.CREATION_DATE_PROPERTY))
             .thenReturn(new Date(4242));
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.AUTHOR_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.AUTHOR_PROPERTY))
             .thenReturn("xwiki:XWiki.surli");
-        when(fileChangeObj1.getStringValue(DefaultFileChangeStorageManager.TYPE_PROPERTY))
+        when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.TYPE_PROPERTY))
             .thenReturn("edition");
 
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.REFERENCE_PROPERTY))
             .thenReturn(serializedTargetEntity);
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.FILENAME_PROPERTY))
             .thenReturn(filename2);
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
             .thenReturn("2.3");
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY))
             .thenReturn("filechange-3.1");
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.VERSION_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.VERSION_PROPERTY))
             .thenReturn("filechange-3.2");
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY))
             .thenReturn(Locale.GERMAN.toString());
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.TYPE_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.TYPE_PROPERTY))
             .thenReturn("edition");
-        when(fileChangeObj2.getDateValue(DefaultFileChangeStorageManager.CREATION_DATE_PROPERTY))
+        when(fileChangeObj2.getDateValue(FileChangeXClassInitializer.CREATION_DATE_PROPERTY))
             .thenReturn(new Date(4343));
-        when(fileChangeObj2.getStringValue(DefaultFileChangeStorageManager.AUTHOR_PROPERTY))
+        when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.AUTHOR_PROPERTY))
             .thenReturn("xwiki:XWiki.Foo");
 
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.REFERENCE_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.REFERENCE_PROPERTY))
             .thenReturn(serializedTargetEntity);
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.FILENAME_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.FILENAME_PROPERTY))
             .thenReturn(filename3);
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
             .thenReturn("3.3");
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.PREVIOUS_VERSION_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY))
             .thenReturn("filechange-3.2");
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.VERSION_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.VERSION_PROPERTY))
             .thenReturn("filechange-3.3");
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.REFERENCE_LOCALE_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY))
             .thenReturn(Locale.GERMAN.toString());
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.TYPE_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.TYPE_PROPERTY))
             .thenReturn("deletion");
-        when(fileChangeObj3.getDateValue(DefaultFileChangeStorageManager.CREATION_DATE_PROPERTY))
+        when(fileChangeObj3.getDateValue(FileChangeXClassInitializer.CREATION_DATE_PROPERTY))
             .thenReturn(new Date(4444));
-        when(fileChangeObj3.getStringValue(DefaultFileChangeStorageManager.AUTHOR_PROPERTY))
+        when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.AUTHOR_PROPERTY))
             .thenReturn("xwiki:XWiki.Bar");
 
         XWikiAttachment attachment1 = mock(XWikiAttachment.class);

@@ -101,10 +101,10 @@ class DefaultReviewStorageManagerTest
         when(xWiki.getDocument(changeRequestDocRef, this.context)).thenReturn(xWikiDocument);
 
         when(review.getId()).thenReturn("");
-        when(xWikiDocument.createXObject(DefaultReviewStorageManager.REVIEW_XCLASS, this.context)).thenReturn(42);
+        when(xWikiDocument.createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context)).thenReturn(42);
 
         BaseObject baseObject = mock(BaseObject.class);
-        when(xWikiDocument.getXObject(DefaultReviewStorageManager.REVIEW_XCLASS, 42)).thenReturn(baseObject);
+        when(xWikiDocument.getXObject(ReviewXClassInitializer.REVIEW_XCLASS, 42)).thenReturn(baseObject);
 
         UserReference userReference = mock(UserReference.class);
         when(review.isApproved()).thenReturn(true);
@@ -119,22 +119,22 @@ class DefaultReviewStorageManagerTest
         this.storageManager.save(review);
         verify(review).setId("xobject_42");
         verify(review).setSaved(true);
-        verify(baseObject).set(DefaultReviewStorageManager.APPROVED_PROPERTY, 1, this.context);
-        verify(baseObject).set(DefaultReviewStorageManager.VALID_PROPERTY, 1, this.context);
-        verify(baseObject).set(DefaultReviewStorageManager.AUTHOR_PROPERTY, authorReference, this.context);
-        verify(baseObject).set(DefaultReviewStorageManager.DATE_PROPERTY, new Date(34), this.context);
-        verify(baseObject).set(DefaultReviewStorageManager.COMMENT_PROPERTY, "Some thing", this.context);
+        verify(baseObject).set(ReviewXClassInitializer.APPROVED_PROPERTY, 1, this.context);
+        verify(baseObject).set(ReviewXClassInitializer.VALID_PROPERTY, 1, this.context);
+        verify(baseObject).set(ReviewXClassInitializer.AUTHOR_PROPERTY, authorReference, this.context);
+        verify(baseObject).set(ReviewXClassInitializer.DATE_PROPERTY, new Date(34), this.context);
+        verify(baseObject).set(ReviewXClassInitializer.COMMENT_PROPERTY, "Some thing", this.context);
         verify(xWiki).saveDocument(xWikiDocument, "Add new review", this.context);
-        verify(xWikiDocument).createXObject(DefaultReviewStorageManager.REVIEW_XCLASS, this.context);
+        verify(xWikiDocument).createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context);
 
         when(review.isValid()).thenReturn(false);
         when(review.getId()).thenReturn("xobject_42");
         when(review.isSaved()).thenReturn(false);
 
         this.storageManager.save(review);
-        verify(xWikiDocument).createXObject(DefaultReviewStorageManager.REVIEW_XCLASS, this.context);
+        verify(xWikiDocument).createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context);
         verify(xWiki).saveDocument(xWikiDocument, "Update existing review", this.context);
-        verify(baseObject).set(DefaultReviewStorageManager.VALID_PROPERTY, 0, this.context);
+        verify(baseObject).set(ReviewXClassInitializer.VALID_PROPERTY, 0, this.context);
     }
 
     @Test
@@ -152,21 +152,21 @@ class DefaultReviewStorageManagerTest
         BaseObject obj1 = mock(BaseObject.class);
         BaseObject obj2 = mock(BaseObject.class);
 
-        when(xWikiDocument.getXObjects(DefaultReviewStorageManager.REVIEW_XCLASS))
+        when(xWikiDocument.getXObjects(ReviewXClassInitializer.REVIEW_XCLASS))
             .thenReturn(Arrays.asList(obj1, obj2));
 
-        when(obj1.getStringValue(DefaultReviewStorageManager.APPROVED_PROPERTY)).thenReturn("0");
-        when(obj1.getStringValue(DefaultReviewStorageManager.AUTHOR_PROPERTY)).thenReturn("author1");
-        when(obj1.getLargeStringValue(DefaultReviewStorageManager.COMMENT_PROPERTY)).thenReturn("Some comment");
-        when(obj1.getDateValue(DefaultReviewStorageManager.DATE_PROPERTY)).thenReturn(new Date(45));
-        when(obj1.getStringValue(DefaultReviewStorageManager.VALID_PROPERTY)).thenReturn("1");
+        when(obj1.getStringValue(ReviewXClassInitializer.APPROVED_PROPERTY)).thenReturn("0");
+        when(obj1.getStringValue(ReviewXClassInitializer.AUTHOR_PROPERTY)).thenReturn("author1");
+        when(obj1.getLargeStringValue(ReviewXClassInitializer.COMMENT_PROPERTY)).thenReturn("Some comment");
+        when(obj1.getDateValue(ReviewXClassInitializer.DATE_PROPERTY)).thenReturn(new Date(45));
+        when(obj1.getStringValue(ReviewXClassInitializer.VALID_PROPERTY)).thenReturn("1");
         when(obj1.getNumber()).thenReturn(13);
 
-        when(obj2.getStringValue(DefaultReviewStorageManager.APPROVED_PROPERTY)).thenReturn("1");
-        when(obj2.getStringValue(DefaultReviewStorageManager.AUTHOR_PROPERTY)).thenReturn("author2");
-        when(obj2.getLargeStringValue(DefaultReviewStorageManager.COMMENT_PROPERTY)).thenReturn("Some other comment");
-        when(obj2.getDateValue(DefaultReviewStorageManager.DATE_PROPERTY)).thenReturn(new Date(16));
-        when(obj2.getStringValue(DefaultReviewStorageManager.VALID_PROPERTY)).thenReturn("0");
+        when(obj2.getStringValue(ReviewXClassInitializer.APPROVED_PROPERTY)).thenReturn("1");
+        when(obj2.getStringValue(ReviewXClassInitializer.AUTHOR_PROPERTY)).thenReturn("author2");
+        when(obj2.getLargeStringValue(ReviewXClassInitializer.COMMENT_PROPERTY)).thenReturn("Some other comment");
+        when(obj2.getDateValue(ReviewXClassInitializer.DATE_PROPERTY)).thenReturn(new Date(16));
+        when(obj2.getStringValue(ReviewXClassInitializer.VALID_PROPERTY)).thenReturn("0");
         when(obj2.getNumber()).thenReturn(48);
 
         UserReference author1 = mock(UserReference.class);

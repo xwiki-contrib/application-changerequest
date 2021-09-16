@@ -45,7 +45,6 @@ import org.xwiki.localization.LocaleUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.refactoring.script.RequestFactory;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
@@ -63,6 +62,17 @@ import com.xpn.xwiki.doc.merge.MergeConfiguration;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.util.Util;
 
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.AUTHOR_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.CREATION_DATE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILECHANGE_XCLASS;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILENAME_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.REFERENCE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.TYPE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.VERSION_PROPERTY;
+
 /**
  * Default implementation of {@link FileChangeStorageManager}.
  * The file changes are located in attachments that are attached to the related {@link ChangeRequest}.
@@ -74,19 +84,6 @@ import com.xpn.xwiki.util.Util;
 @Singleton
 public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 {
-    static final LocalDocumentReference FILECHANGE_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "FileChangeClass");
-
-    static final String PREVIOUS_VERSION_PROPERTY = "previousVersion";
-    static final String PREVIOUS_PUBLISHED_VERSION_PROPERTY = "previousPublishedVersion";
-    static final String VERSION_PROPERTY = "version";
-    static final String FILENAME_PROPERTY = "filename";
-    static final String REFERENCE_PROPERTY = "reference";
-    static final String REFERENCE_LOCALE_PROPERTY = "referenceLocale";
-    static final String TYPE_PROPERTY = "type";
-    static final String AUTHOR_PROPERTY = "author";
-    static final String CREATION_DATE_PROPERTY = "creationDate";
-
     private static final String ATTACHMENT_EXTENSION = "xml";
 
     @Inject

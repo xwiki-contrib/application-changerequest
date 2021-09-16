@@ -148,7 +148,7 @@ class DefaultChangeRequestStorageManagerTest
         when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
 
         BaseObject xobject = mock(BaseObject.class);
-        when(document.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(xobject);
 
         this.storageManager.save(changeRequest);
@@ -179,17 +179,17 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
         BaseObject xobject = mock(BaseObject.class);
-        when(document.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
 
         when(document.isNew()).thenReturn(true);
         assertEquals(Optional.empty(), this.storageManager.load(id));
 
         when(document.isNew()).thenReturn(false);
-        when(document.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(null);
+        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(null);
         assertEquals(Optional.empty(), this.storageManager.load(id));
 
-        when(document.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
-        when(xobject.getListValue(DefaultChangeRequestStorageManager.CHANGED_DOCUMENTS_PROPERTY))
+        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(xobject.getListValue(ChangeRequestXClassInitializer.CHANGED_DOCUMENTS_FIELD))
             .thenReturn(Arrays.asList("ref1", "ref2"));
 
         DocumentReference ref1 = mock(DocumentReference.class);
@@ -242,7 +242,7 @@ class DefaultChangeRequestStorageManagerTest
         when(this.localEntityReferenceSerializer.serialize(crLocation)).thenReturn("XWiki.ChangeRequest");
         when(this.localEntityReferenceSerializer.serialize(targetReference)).thenReturn("Foo.MyPage");
 
-        when(this.entityReferenceSerializer.serialize(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS))
+        when(this.entityReferenceSerializer.serialize(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS))
             .thenReturn("ChangeRequest.ChangeRequestClass");
         String expectedStatement = "where doc.space like :space and "
             + "doc.object(ChangeRequest.ChangeRequestClass).changedDocuments like :reference";
@@ -278,13 +278,13 @@ class DefaultChangeRequestStorageManagerTest
         // skip ref1
         XWikiDocument doc1 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref1, this.context)).thenReturn(doc1);
-        when(doc1.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(null);
+        when(doc1.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(null);
 
         // ref2
         XWikiDocument doc2 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref2, this.context)).thenReturn(doc2);
         BaseObject xobject = mock(BaseObject.class);
-        when(doc2.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(doc2.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
         String title = "sometitle";
         String description = "a description";
         when(doc2.getTitle()).thenReturn(title);
@@ -310,7 +310,7 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument doc3 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref3, this.context)).thenReturn(doc3);
         BaseObject xobject2 = mock(BaseObject.class);
-        when(doc3.getXObject(DefaultChangeRequestStorageManager.CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
+        when(doc3.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
         String title2 = "anothertitle";
         String description2 = "another description";
         when(doc3.getTitle()).thenReturn(title2);

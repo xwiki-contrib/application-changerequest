@@ -39,7 +39,6 @@ import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.user.UserReference;
@@ -53,6 +52,10 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
+import static org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer.APPROVERS_XCLASS;
+import static org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer.USERS_APPROVERS_PROPERTY;
+
 /**
  * Default approvers manager for standard documents.
  * We are relying on an xobject inserted in documents to define the list of approvers.
@@ -64,11 +67,6 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class DocumentReferenceApproversManager implements ApproversManager<DocumentReference>
 {
-    static final LocalDocumentReference APPROVERS_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "ApproversClass");
-
-    static final String USERS_APPROVERS_PROPERTY = "usersApprovers";
-    static final String GROUPS_APPROVERS_PROPERTY = "groupsApprovers";
     static final Character SEPARATOR_CHARACTER = ',';
 
     @Inject

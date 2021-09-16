@@ -45,7 +45,6 @@ import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
@@ -59,6 +58,10 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
+import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.CHANGED_DOCUMENTS_FIELD;
+import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS;
+import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.STATUS_FIELD;
+
 /**
  * Default implementation of {@link ChangeRequestStorageManager}.
  * The change request are stored as XWiki documents located on a dedicated space.
@@ -70,11 +73,6 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class DefaultChangeRequestStorageManager implements ChangeRequestStorageManager
 {
-    static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "ChangeRequestClass");
-    static final String CHANGED_DOCUMENTS_PROPERTY = "changedDocuments";
-    private static final String STATUS_PROPERTY = "status";
-
     private static final String REFERENCE = "reference";
 
     @Inject
@@ -134,12 +132,12 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             document.setContent(changeRequest.getDescription());
             document.setContentAuthorReference(this.userReferenceConverter.convert(changeRequest.getCreator()));
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
-            xObject.set(STATUS_PROPERTY, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
+            xObject.set(STATUS_FIELD, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
 
             List<String> serializedReferences = changeRequest.getFileChanges().keySet().stream()
                 .map(target -> this.localEntityReferenceSerializer.serialize(target))
                 .collect(Collectors.toList());
-            xObject.set(CHANGED_DOCUMENTS_PROPERTY, serializedReferences, context);
+            xObject.set(CHANGED_DOCUMENTS_FIELD, serializedReferences, context);
 
             List<String> serializedAuthors = changeRequest.getAuthors().stream()
                 .map(target -> this.userReferenceSerializer.serialize(target))
@@ -170,15 +168,15 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             XWikiDocument document = wiki.getDocument(reference, context);
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS);
             if (!document.isNew() && xObject != null) {
-                ChangeRequestStatus status =
-                    ChangeRequestStatus.valueOf(xObject.getStringValue(STATUS_PROPERTY).toUpperCase());
+                ChangeRequestStatus status = ChangeRequestStatus.valueOf(
+                    xObject.getStringValue(STATUS_FIELD).toUpperCase());
                 changeRequest
                     .setTitle(document.getTitle())
                     .setDescription(document.getContent())
                     .setCreator(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
                     .setStatus(status)
                     .setCreationDate(document.getCreationDate());
-                List<String> changedDocuments = xObject.getListValue(CHANGED_DOCUMENTS_PROPERTY);
+                List<String> changedDocuments = xObject.getListValue(CHANGED_DOCUMENTS_FIELD);
 
                 for (String changedDocument : changedDocuments) {
                     DocumentReference changedDocumentReference =
@@ -241,7 +239,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         List<ChangeRequest> result = new ArrayList<>();
         SpaceReference changeRequestSpaceLocation = this.configuration.getChangeRequestSpaceLocation();
         String statement = String.format("where doc.space like :space and doc.object(%s).%s like :reference",
-            this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_PROPERTY);
+            this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_FIELD);
         try {
             Query query = this.queryManager.createQuery(statement, Query.XWQL);
             query.bindValue("space", this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation));
