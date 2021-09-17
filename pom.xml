@@ -64,6 +64,14 @@
     <module>application-changerequest-ui</module>
     <module>application-changerequest-notifications</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <modules>
+        <module>application-changerequest-test</module>
+      </modules>
+    </profile>
+  </profiles>
   <build>
     <plugins>
       <plugin>

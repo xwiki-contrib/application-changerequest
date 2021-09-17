@@ -23,36 +23,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.xwiki.contrib.changerequest</groupId>
-    <artifactId>application-changerequest</artifactId>
     <version>0.5-SNAPSHOT</version>
+    <groupId>org.xwiki.contrib.changerequest</groupId>
+    <artifactId>application-changerequest-test</artifactId>
   </parent>
-  <artifactId>application-changerequest-ui</artifactId>
+  <artifactId>application-changerequest-test-pageobjects</artifactId>
   <version>0.5-SNAPSHOT</version>
-  <name>Application Change Request - UI</name>
-  <packaging>xar</packaging>
-  <properties>
-    <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>Change Request Application</xwiki.extension.name>
-    <xwiki.extension.category>application</xwiki.extension.category>
-    <xwiki.extension.icon>branch</xwiki.extension.icon>
-  </properties>
+  <name>Application Change Request - Test - Page Objects</name>
+  <description>Page Objects for the tests of the Change Request application.</description>
   <dependencies>
     <dependency>
-      <groupId>org.xwiki.contrib.changerequest</groupId>
-      <artifactId>application-changerequest-default</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.contrib.changerequest</groupId>
-      <artifactId>application-changerequest-notifications</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-sheet-ui</artifactId>
+      <artifactId>xwiki-platform-test-ui</artifactId>
       <version>${platform.version}</version>
-      <type>xar</type>
     </dependency>
   </dependencies>
 </project>
