@@ -53,8 +53,10 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Named("org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer")
 public class ChangeRequestXClassInitializer implements MandatoryDocumentInitializer
 {
+    static final String CHANGE_REQUEST_SPACE = "ChangeRequest";
+
     static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "ChangeRequestClass");
+        new LocalDocumentReference(CHANGE_REQUEST_SPACE, "ChangeRequestClass");
     static final String STATUS_FIELD = "status";
     static final String CHANGED_DOCUMENTS_FIELD = "changedDocuments";
     static final String AUTHORS_FIELD = "authors";
@@ -63,7 +65,7 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
         new LocalDocumentReference("XWiki", "ClassSheetBinding");
 
     private static final LocalDocumentReference SHEET_REFERENCE =
-        new LocalDocumentReference("ChangeRequest", "ChangeRequestSheet");
+        new LocalDocumentReference(CHANGE_REQUEST_SPACE, "ChangeRequestSheet");
 
     @Inject
     private Provider<XWikiContext> contextProvider;
