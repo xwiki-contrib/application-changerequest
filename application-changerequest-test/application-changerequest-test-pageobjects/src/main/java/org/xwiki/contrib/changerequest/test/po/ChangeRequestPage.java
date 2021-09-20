@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -44,5 +45,20 @@ public class ChangeRequestPage extends ViewPage
     public String getDescription()
     {
         return getDriver().findElementById("home").getText();
+    }
+
+    /**
+     * Open the file changes tab and returns it.
+     *
+     * @return a {@link FileChangesPane} to navigate in the file changes.
+     */
+    public FileChangesPane openFileChanges()
+    {
+
+        WebElement filechanges = getDriver().findElementById("filechanges");
+        if (!filechanges.getAttribute("class").contains("active")) {
+            getDriver().findElementByCssSelector("a[aria-controls=filechanges]").click();
+        }
+        return new FileChangesPane(filechanges);
     }
 }

@@ -19,15 +19,20 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
+import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.diff.DocumentDiffSummary;
+import org.xwiki.test.ui.po.diff.EntityDiff;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,5 +93,18 @@ class ChangeRequestCreationIT
 
         assertEquals("Some changes in the test page", changeRequestPage.getDescription());
         assertEquals("Ready for review", changeRequestPage.getStatusLabel());
+
+        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(1, fileChangesPane.getFileChangesListLiveTable().getRowCount());
+
+        String pageName = testReference.toString();
+        DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(pageName);
+        assertEquals("(1 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
+
+        EntityDiff contentDiff = fileChangesPane.getEntityDiff(pageName, "Page properties");
+        List<String> content = contentDiff.getDiff("Content");
+        assertEquals(3, content.size());
+        assertEquals("-Some content<del> to the test page</del>.", content.get(1));
+        assertEquals("+Some <ins>new </ins>content.", content.get(2));
     }
 }

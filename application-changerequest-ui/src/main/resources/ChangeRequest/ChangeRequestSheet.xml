@@ -68,7 +68,7 @@
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
-#set ($modifiedFiles = $services.changerequest.getChangedDocuments($changeRequest))
+#set ($modifiedFiles = $changeRequest.modifiedDocuments)
 #set ($discard = $xwiki.jsx.use('ChangeRequest.ChangeRequestSheet'))
 #set ($discard = $xwiki.ssx.use('ChangeRequest.ChangeRequestSheet'))
 #set ($isNotMerged = $changeRequest.status != "MERGED")
@@ -178,7 +178,7 @@
     &lt;/div&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
 &lt;div&gt;
-#set ($id = 'changerequests-filechange')
+#set ($id = 'changerequest-filechanges')
 #set ($columns = ['doc.location', 'filechange_type', 'filechange_author', '_actions'])
 #set($columnsProperties = {
    'doc.location' : { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
@@ -321,7 +321,6 @@
         &lt;/div&gt;&lt;!-- End body conflict --&gt;
       &lt;/div&gt;&lt;!-- End panel conflict --&gt;
       #set ($approvalStrategy = $services.changerequest.mergeApprovalStrategy)
-      #set ($approvalStrategy = $approvalStrategyOpt.get())
       #set ($canBeMerged = $approvalStrategy.canBeMerged($changeRequest))
       #if ($canBeMerged)
         #set ($strategyPanelClass = "panel-success")
