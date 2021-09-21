@@ -437,7 +437,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     {
         boolean result = false;
         if (!(changeRequest.getAuthors().contains(userReference))) {
-            result = this.changeRequestApproversManager.isApprover(userReference, changeRequest, true);
+            result = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
         }
         return result;
     }
