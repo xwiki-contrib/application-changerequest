@@ -84,20 +84,51 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         XWikiDocument modifiedDocument = this.prepareDocument(request, editForm);
         DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
         ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
+        boolean isDeletion = "1".equals(request.getParameter("deletion"));
 
         if (changeRequest != null) {
             UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-            FileChange fileChange = new FileChange(changeRequest);
+
+            FileChange fileChange =
+                this.createFileChange(isDeletion, changeRequest, modifiedDocument, documentReference, request,
+                    currentUser);
+            if (fileChange != null) {
+                changeRequest.addFileChange(fileChange);
+                this.storageManager.save(changeRequest);
+                this.addApprovers(documentReference, changeRequest);
+                this.observationManager
+                    .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
+                this.redirectToChangeRequest(changeRequest);
+            }
+        }
+    }
+
+    private FileChange createFileChange(boolean isDeletion, ChangeRequest changeRequest, XWikiDocument modifiedDocument,
+        DocumentReference documentReference, HttpServletRequest request, UserReference currentUser)
+        throws ChangeRequestException, IOException
+    {
+        FileChange fileChange;
+
+        if (isDeletion) {
+            fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
+            String previousVersion = modifiedDocument.getVersion();
+            String fileChangeVersion =
+                this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
             fileChange
-                .setAuthor(currentUser)
-                .setTargetEntity(documentReference);
+                .setPreviousVersion(previousVersion)
+                .setPreviousPublishedVersion(previousVersion)
+                .setVersion(fileChangeVersion);
+        } else {
+            fileChange = new FileChange(changeRequest);
+
             Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
             String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
 
             if (optionalFileChange.isPresent()) {
-                if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange, optionalFileChange.get(),
-                    modifiedDocument)) {
-                    return;
+                if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
+                    optionalFileChange.get(), modifiedDocument))
+                {
+                    return null;
                 }
             } else {
                 String fileChangeVersion =
@@ -108,14 +139,12 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     .setVersion(fileChangeVersion)
                     .setModifiedDocument(modifiedDocument);
             }
-
-            changeRequest.addFileChange(fileChange);
-            this.storageManager.save(changeRequest);
-            this.addApprovers(documentReference, changeRequest);
-            this.observationManager
-                .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
-            this.redirectToChangeRequest(changeRequest);
         }
+        fileChange
+            .setAuthor(currentUser)
+            .setTargetEntity(documentReference);
+
+        return fileChange;
     }
 
     private boolean addChangeToExistingFileChange(HttpServletRequest request, ChangeRequest changeRequest,
