@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -189,28 +190,40 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         boolean result = true;
         DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
 
-        if (this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)) {
-            for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
-                Right rightToBeChecked;
-                switch (lastFileChange.getType()) {
-                    case DELETION:
-                        rightToBeChecked = Right.DELETE;
-                        break;
+        // This method is only checking if the user is an approver, so even with the fallback it's possible that
+        // an admin user has approval right, but is not an approver of this specific change request, because a
+        // list of approver is defined in it. So we cannot forbid merging a change request for people who are not
+        // explicitely approvers.
+        // Instead, we check in each file if the approval right is granted in case the user is not approver:
+        // users who have proper write authorization, and proper approval right should be able to merge if they're not
+        // explicitely approvers of the given change request.
+        // This choice is mainly to avoid blocking a change request, in case approvers do not have write access
+        // which can be quite common.
+        boolean isApprover = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
 
-                    case EDITION:
-                    case CREATION:
-                    default:
-                        rightToBeChecked = Right.EDIT;
-                        break;
-                }
-                if (!this.authorizationManager.hasAccess(rightToBeChecked, userDocReference,
-                    lastFileChange.getTargetEntity())) {
-                    result = false;
+        for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
+            Right rightToBeChecked;
+            switch (lastFileChange.getType()) {
+                case DELETION:
+                    rightToBeChecked = Right.DELETE;
                     break;
-                }
+
+                case EDITION:
+                case CREATION:
+                default:
+                    rightToBeChecked = Right.EDIT;
+                    break;
             }
-        } else {
-            result = false;
+            DocumentReference targetEntity = lastFileChange.getTargetEntity();
+            boolean hasWriteRight = this.authorizationManager
+                .hasAccess(rightToBeChecked, userDocReference, targetEntity);
+            boolean hasApprovalRight = this.authorizationManager
+                .hasAccess(ChangeRequestApproveRight.getRight(), userDocReference, targetEntity);
+
+            if (!(hasWriteRight && (isApprover || hasApprovalRight))) {
+                result = false;
+                break;
+            }
         }
 
         return result;
