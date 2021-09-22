@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,9 +37,11 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
+import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -76,6 +79,9 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
+    @Inject
+    private ReviewStorageManager reviewStorageManager;
+
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
@@ -96,6 +102,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 changeRequest.addFileChange(fileChange);
                 this.storageManager.save(changeRequest);
                 this.addApprovers(documentReference, changeRequest);
+                this.invalidateApprovals(changeRequest);
                 this.observationManager
                     .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
                 this.redirectToChangeRequest(changeRequest);
@@ -197,6 +204,18 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         }
         if (!usersCRApprovers.isEmpty()) {
             this.changeRequestApproversManager.setUsersApprovers(usersCRApprovers, changeRequest);
+        }
+    }
+
+    private void invalidateApprovals(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        List<ChangeRequestReview> reviews = changeRequest.getReviews();
+        for (ChangeRequestReview review : reviews) {
+            if (review.isApproved()) {
+                review.setValid(false);
+                review.setSaved(false);
+            }
+            this.reviewStorageManager.save(review);
         }
     }
 }
