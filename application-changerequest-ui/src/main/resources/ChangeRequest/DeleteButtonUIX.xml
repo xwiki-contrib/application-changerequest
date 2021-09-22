@@ -387,7 +387,7 @@
 {{html clean="false"}} ## we need clean="false" because we want to display the raw content of #submenuitem()
  #template('menus_macros.vm')
  #set ($deleteURL = $tdoc.getURL('deletecr', ''))
- #submenuitem($deleteURL, 'Request for deletion', 'deletecr', '', 'remove')
+ #submenuitem($deleteURL, $services.localization.render('changerequest.moreactions.deletionrequest'), 'deletecr', '', 'remove')
 {{/html}}
 #end{{/velocity}}</content>
     </property>

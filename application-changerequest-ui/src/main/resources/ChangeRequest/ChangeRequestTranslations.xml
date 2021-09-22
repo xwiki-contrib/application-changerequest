@@ -103,7 +103,14 @@ changerequest.mergeApprovalStrategy.name.fixednumberapprovals=Require a fixed nu
 changerequest.mergeApprovalStrategy.name.onlyapproved=Require only approvals
 
 ChangeRequest.ConfigurationClass_approvalStrategy=Merge Approval Strategy
-ChangeRequest.ConfigurationClass_approvalStrategy.hint=Strategy to comply with for allowing merging a change request.</content>
+ChangeRequest.ConfigurationClass_approvalStrategy.hint=Strategy to comply with for allowing merging a change request.
+
+changerequest.moreactions.manageapprovers=Manage approvers
+changerequest.moreactions.deletionrequest=Request for deletion
+ChangeRequest.ApproversClass_usersApprovers=Users who can approve
+ChangeRequest.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
+ChangeRequest.ApproversClass_groupsApprovers=Groups who can approve
+ChangeRequest.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>
