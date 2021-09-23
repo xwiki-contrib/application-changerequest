@@ -23,6 +23,7 @@ import java.util.Date;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.UserReference;
 
@@ -214,5 +215,18 @@ public class ChangeRequestReview
             .append(isValid)
             .append(id)
             .toHashCode();
+    }
+
+    @Override public String toString()
+    {
+        return new ToStringBuilder(this)
+            .append("approved", approved)
+            .append("author", author)
+            .append("comment", comment)
+            .append("reviewDate", reviewDate)
+            .append("isValid", isValid)
+            .append("isSaved", isSaved)
+            .append("id", id)
+            .toString();
     }
 }

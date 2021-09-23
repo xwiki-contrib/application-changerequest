@@ -64,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -352,6 +353,11 @@ class ChangeRequestScriptServiceTest
         String comment = "Some review.";
         ChangeRequestReview review = new ChangeRequestReview(changeRequest, false, userReference);
         review.setComment(comment);
+        doAnswer(invocationOnMock -> {
+            ChangeRequestReview review1 = invocationOnMock.getArgument(0);
+            review.setReviewDate(review1.getReviewDate());
+            return null;
+        }).when(this.reviewStorageManager).save(any());
         assertTrue(this.scriptService.addReview(changeRequest, false, comment));
         verify(this.reviewStorageManager).save(review);
     }
