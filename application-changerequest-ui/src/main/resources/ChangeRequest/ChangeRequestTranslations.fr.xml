@@ -103,5 +103,11 @@ changerequest.mergeApprovalStrategy.name.fixednumberapprovals=Exiger l'approbati
 changerequest.mergeApprovalStrategy.name.onlyapproved=Exiger seulement des approbations
 ChangeRequest.ConfigurationClass_approvalStrategy=Stratégie d'approbation des fusions
 ChangeRequest.ConfigurationClass_approvalStrategy.hint=Stratégie à respecter pour autoriser la fusion d'une demande de modification.
+changerequest.moreactions.manageapprovers=Gérer les approbateurs
+changerequest.moreactions.deletionrequest=Demande de suppression
+ChangeRequest.ApproversClass_usersApprovers=Utilisateurs pouvant approuver
+ChangeRequest.ApproversClass_usersApprovers_hint=Utilisateurs du wiki autorisés à approuver les demandes de modification pour ce document.
+ChangeRequest.ApproversClass_groupsApprovers=Groupes pouvant approuver
+ChangeRequest.ApproversClass_groupsApprovers_hint=Groupes d'utilisateurs du wiki autorisés à approuver les demandes de modification pour ce document.
 </content>
 </xwikidoc>
