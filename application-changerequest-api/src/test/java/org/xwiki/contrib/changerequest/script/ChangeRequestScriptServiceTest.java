@@ -415,8 +415,16 @@ class ChangeRequestScriptServiceTest
         UserReference userReference = mock(UserReference.class);
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         ChangeRequestReview review = mock(ChangeRequestReview.class);
-        when(review.getAuthor()).thenReturn(userReference);
+        UserReference anotherUser = mock(UserReference.class);
+        when(review.getAuthor()).thenReturn(anotherUser);
+        assertFalse(this.scriptService.setReviewValidity(review, true));
+        assertFalse(this.scriptService.setReviewValidity(review, false));
+        verify(review, never()).setValid(true);
+        verify(review, never()).setValid(false);
+        verify(review, never()).setSaved(false);
+        verify(this.reviewStorageManager, never()).save(review);
 
+        when(review.getAuthor()).thenReturn(userReference);
         assertTrue(this.scriptService.setReviewValidity(review, true));
         verify(review).setValid(true);
         verify(review).setSaved(false);

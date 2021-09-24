@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.UserReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -228,5 +230,81 @@ public class ChangeRequestTest
         assertEquals(Optional.empty(), changeRequest.getLatestFileChangeFor(mock(DocumentReference.class)));
         assertEquals(Optional.of(fileChange1Ref2), changeRequest.getLatestFileChangeFor(ref2));
         assertEquals(Optional.of(fileChange2Ref3), changeRequest.getLatestFileChangeFor(ref3));
+    }
+
+    @Test
+    void equals()
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("A title");
+
+        ChangeRequest otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("A title");
+        assertEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(mock(UserReference.class))
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("A title");
+        assertNotEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some other description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("A title");
+        assertNotEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4342")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("A title");
+        assertNotEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.DRAFT)
+            .setCreationDate(new Date(48))
+            .setTitle("A title");
+        assertNotEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(49))
+            .setTitle("A title");
+        assertNotEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("Another title");
+        assertNotEquals(changeRequest, otherChangeRequest);
     }
 }
