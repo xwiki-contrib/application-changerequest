@@ -43,6 +43,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.diff.Conflict;
@@ -50,10 +52,12 @@ import org.xwiki.diff.ConflictDecision;
 import org.xwiki.diff.internal.DefaultConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.script.service.ScriptServiceManager;
 import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.url.ExtendedURL;
@@ -95,7 +99,24 @@ public class ChangeRequestScriptService implements ScriptService
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     @Inject
+    private ObservationManager observationManager;
+
+    @Inject
     private Logger logger;
+
+    @Inject
+    private ScriptServiceManager scriptServiceManager;
+
+    /**
+     * @param <S> the type of the {@link ScriptService}
+     * @param serviceName the name of the sub {@link ScriptService}
+     * @return the {@link ScriptService} or null of none could be found
+     */
+    @SuppressWarnings("unchecked")
+    public <S extends ScriptService> S get(String serviceName)
+    {
+        return (S) this.scriptServiceManager.get("changerequest." + serviceName);
+    }
 
     /**
      * Retrieve the change request identified with the given id.
@@ -221,9 +242,12 @@ public class ChangeRequestScriptService implements ScriptService
 
     private void setStatus(ChangeRequest changeRequest, ChangeRequestStatus status) throws ChangeRequestException
     {
-        if (changeRequest.getStatus() != status) {
+        ChangeRequestStatus oldStatus = changeRequest.getStatus();
+        if (oldStatus != status) {
             changeRequest.setStatus(status);
             this.changeRequestStorageManager.save(changeRequest);
+            this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
+                new ChangeRequestStatus[] {oldStatus, status});
         }
     }
 
@@ -354,6 +378,7 @@ public class ChangeRequestScriptService implements ScriptService
             ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
             review.setComment(comment);
             this.reviewStorageManager.save(review);
+            this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
             result = true;
         } else {
             logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
@@ -370,7 +395,6 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
     {
-
         return this.changeRequestManager.getMergeApprovalStrategy();
     }
 
@@ -471,5 +495,19 @@ public class ChangeRequestScriptService implements ScriptService
     public Set<UserReference> getApprovers(ChangeRequest changeRequest) throws ChangeRequestException
     {
         return this.changeRequestApproversManager.getAllApprovers(changeRequest, true);
+    }
+
+    /**
+     * Retrieve a file change based on its id.
+     * @param changeRequest the change request from where to retrieve the file change.
+     * @param fileChangeId the id of the file change to find.
+     * @return an {@link Optional#empty()} if the file change cannot be retrieved, else the retrieved file change.
+     * @since 0.6
+     */
+    public Optional<FileChange> getFileChange(ChangeRequest changeRequest, String fileChangeId)
+    {
+        return changeRequest.getAllFileChanges().stream()
+            .filter(fileChange -> StringUtils.equals(fileChangeId, fileChange.getId()))
+            .findFirst();
     }
 }

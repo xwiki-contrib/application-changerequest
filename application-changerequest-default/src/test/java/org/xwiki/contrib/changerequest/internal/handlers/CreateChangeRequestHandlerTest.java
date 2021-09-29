@@ -163,7 +163,7 @@ class CreateChangeRequestHandlerTest
         this.handler.handle(null);
         verify(this.storageManager).save(expectedChangeRequest);
         verify(this.observationManager)
-            .notify(any(ChangeRequestCreatedEvent.class), eq(documentReferenceWithLocale), eq(crId));
+            .notify(any(ChangeRequestCreatedEvent.class), eq(crId), eq(expectedChangeRequest));
         verify(this.httpServletResponse).sendRedirect(expectedURL);
     }
 

@@ -32,6 +32,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
 import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.eventstream.RecordableEventConverter;
@@ -48,9 +51,29 @@ import org.xwiki.eventstream.RecordableEventConverter;
 public class ChangeRequestRecordableEventConverter implements RecordableEventConverter
 {
     /**
-     * Key used for event parameter containing the change request ID of the event.
+     * Key used for event parameter to store the change request ID.
      */
     public static final String CHANGE_REQUEST_ID_PARAMETER_KEY = "changerequest.id";
+
+    /**
+     * Key used for event parameter to store the file change ID.
+     */
+    public static final String FILECHANGE_ID_PARAMETER_KEY = "changerequest.filechange.id";
+
+    /**
+     * Key used for event parameter to store the review ID.
+     */
+    public static final String REVIEW_ID_PARAMETER_KEY = "changerequest.review.id";
+
+    /**
+     * Key used for event parameter to store the old status.
+     */
+    public static final String OLD_STATUS_PARAMETER_KEY = "changerequest.status.old";
+
+    /**
+     * Key used for event parameter to store the new status.
+     */
+    public static final String NEW_STATUS_PARAMETER_KEY = "changerequest.status.new";
 
     @Inject
     private RecordableEventConverter defaultConverter;
@@ -59,13 +82,29 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
     public Event convert(RecordableEvent recordableEvent, String source, Object data) throws Exception
     {
         Event result = this.defaultConverter.convert(recordableEvent, source, data);
+        Map<String, String> parameters = new HashMap<>(result.getParameters());
         if (recordableEvent instanceof AbstractChangeRequestRecordableEvent) {
             AbstractChangeRequestRecordableEvent crEvent = (AbstractChangeRequestRecordableEvent) recordableEvent;
-            Map<String, String> parameters = new HashMap<>(result.getParameters());
             parameters.put(CHANGE_REQUEST_ID_PARAMETER_KEY, crEvent.getChangeRequestId());
-            result.setParameters(parameters);
             result.setType(crEvent.getEventName());
         }
+        if (recordableEvent instanceof ChangeRequestFileChangeAddedRecordableEvent) {
+            ChangeRequestFileChangeAddedRecordableEvent crEvent =
+                (ChangeRequestFileChangeAddedRecordableEvent) recordableEvent;
+            parameters.put(FILECHANGE_ID_PARAMETER_KEY, crEvent.getFileChangeId());
+        }
+        if (recordableEvent instanceof ChangeRequestReviewAddedRecordableEvent) {
+            ChangeRequestReviewAddedRecordableEvent crEvent = (ChangeRequestReviewAddedRecordableEvent) recordableEvent;
+            parameters.put(REVIEW_ID_PARAMETER_KEY, crEvent.getReviewId());
+        }
+        if (recordableEvent instanceof ChangeRequestStatusChangedRecordableEvent) {
+            ChangeRequestStatusChangedRecordableEvent crEvent =
+                (ChangeRequestStatusChangedRecordableEvent) recordableEvent;
+            parameters.put(OLD_STATUS_PARAMETER_KEY, crEvent.getOldStatus().name());
+            parameters.put(NEW_STATUS_PARAMETER_KEY, crEvent.getNewStatus().name());
+        }
+
+        result.setParameters(parameters);
         return result;
     }
 
@@ -74,7 +113,10 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
     {
         return Arrays.asList(
             new ChangeRequestCreatedRecordableEvent(),
-            new ChangeRequestFileChangeAddedRecordableEvent()
+            new ChangeRequestFileChangeAddedRecordableEvent(),
+            new ChangeRequestReviewAddedRecordableEvent(),
+            new ChangeRequestStatusChangedRecordableEvent(),
+            new DocumentModifiedInChangeRequestEvent()
         );
     }
 }

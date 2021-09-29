@@ -74,6 +74,56 @@
 #set ($isNotMerged = $changeRequest.status != "MERGED")
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
+
+#macro (displayEventStatus $status)
+  #set ($lowerCaseStatus = $stringtool.lowerCase($status))
+  #set ($translation = $services.localization.render("changerequest.sheet.status.$lowerCaseStatus"))
+  $stringtool.lowerCase($translation)
+#end
+
+#macro (displayEvent $event)
+  ## we skip the document modified events, since they are basically redundant with the filechanges ones.
+  #if ($event.type != "changerequest.document.modified")
+  &lt;li class="event"&gt;
+    &lt;span class="date"&gt;$datetool.format($event.date)&lt;/span&gt;
+    &lt;span class="content"&gt;
+    #set ($userArgument = "#displayUser($event.user)")
+    #set ($localizationKey = "changerequest.timeline.$event.type")
+    #set ($localizationArguments = [])
+    #if ($event.type == "changerequest.create")
+      #set ($actualDoc = $xwiki.getDocument($event.document))
+      #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
+    #elseif ($event.type == "changerequest.filechange.added")
+      #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+      #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
+      #if ($fileChangeOpt.isPresent())
+        #set ($eventDoc = $fileChangeOpt.get().targetEntity)
+        #set ($actualDoc = $xwiki.getDocument($eventDoc))
+        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+      #end
+    #elseif ($event.type == "changerequest.status.modified")
+      #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
+      #set ($newStatus = $event.parameters.get('changerequest.status.new'))
+      #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
+    #elseif ($event.type == "changerequest.review.added")
+      #set ($reviewId = $event.parameters.get('changerequest.review.id'))
+      #set ($reviewOpt = $services.changerequest.getReview($changeRequest, $reviewId))
+      #if ($reviewOpt.isPresent())
+        #if ($reviewOpt.get().approved)
+          #set ($localizationKey = "${localizationKey}.approval")
+        #else
+          #set ($localizationKey = "${localizationKey}.requestchanges")
+        #end
+        #set ($localizationArguments = [$userArgument])
+      #end
+    #else
+      #set ($localizationArguments = [$userArgument])
+    #end
+    $services.localization.render($localizationKey, $localizationArguments)
+    &lt;/span&gt;
+  &lt;/li&gt;
+  #end
+#end
 {{html clean="false"}}
 &lt;div&gt;
 
@@ -112,7 +162,17 @@
 
   &lt;!-- Tab panes --&gt;
   &lt;div class="tab-content change-request-sheet"&gt;
-    &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;$doc.content&lt;/div&gt;
+    &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;
+      &lt;div class="cr-description well"&gt;$doc.content&lt;/div&gt;
+      &lt;div id="timeline-content"&gt;
+        &lt;ul class="timeline"&gt;
+        #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
+        #foreach ($event in $eventSearchResult.stream().iterator())
+          #displayEvent($event)
+        #end
+        &lt;/ul&gt;
+      &lt;/div&gt;&lt;!-- End timeline --&gt;
+    &lt;/div&gt;&lt;!-- End home --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
     #if ($services.changerequest.isAuthorizedToReview($changeRequest) &amp;&amp; $isNotMerged)
     &lt;div&gt;&lt;button class="btn btn-primary" id="addReview"&gt;$services.localization.render('changerequest.sheet.tab.review.button.add')&lt;/button&gt;&lt;/div&gt;
@@ -1347,6 +1407,201 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>1</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>14ca3d0f-4ea2-4e87-9096-c36a3dad7f3a</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>/* Variables */
+
+@background: white;
+@color-primary: black;
+@color-light: black;
+@color-dim: #6c6d6d;
+@spacing: 20px;
+@radius: 4px;
+
+@date: 300px;
+@dotborder: 4px;
+@dot: 11px;
+@line: 4px;
+
+#timeline-content {
+  margin-top: @spacing;
+  text-align: center;  
+}
+
+/* Timeline */
+
+.timeline {
+  border-left: @line solid @color-primary;
+  border-bottom-right-radius: @radius;
+  border-top-right-radius: @radius;
+  margin: @spacing auto;  
+  position: relative;
+  line-height: 1.4em;
+  padding: @spacing;   
+  list-style: none;
+  text-align: left;  
+  max-width: 70%; 
+  
+  .event {
+    border-bottom: 1px dashed fade(@color-light, 10%);
+    margin-bottom: @spacing;  
+    position: relative;
+
+    &amp;:last-of-type { 
+      padding-bottom: 0;
+      margin-bottom: 0; 
+      border: none;      
+    }
+
+    &amp;:before, &amp;:after {
+      position: absolute;
+      display: block;
+      top: 0;
+    }
+    
+    .content {
+      position: relative;
+      top: -1.5em;
+    }
+
+    .date {
+      left: (((@date * 0.6) + @spacing + @line + @dot + (@dotborder * 2)) * 1.5) * -1;    
+      color: fade(@color-light, 40%);
+      text-align: right;
+      min-width: @date;
+      position: relative;
+      display: inline-block;
+    }
+
+    &amp;:after {
+      box-shadow: 0 0 0 @dotborder fade(@color-primary,100%);    
+      left: (@spacing + @line + (@dot * 0.35)) * -1;        
+      background: lighten(@background,5%);    
+      border-radius: 50%;  
+      height: @dot;
+      width: @dot;
+      content: "";
+      top: 5px;
+    }
+  }
+}</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name>timeline</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
     </property>
   </object>
   <object>

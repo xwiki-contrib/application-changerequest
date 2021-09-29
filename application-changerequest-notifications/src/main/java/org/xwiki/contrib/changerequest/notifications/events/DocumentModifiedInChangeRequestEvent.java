@@ -17,37 +17,52 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.events;
+package org.xwiki.contrib.changerequest.notifications.events;
 
-import java.io.Serializable;
-
-import org.xwiki.observation.event.Event;
 import org.xwiki.stability.Unstable;
 
 /**
- * Event triggered when a new file change is added to a change request.
- * The event also send the following parameters:
- * <ul>
- *  <li>source: change request identifier</li>
- *  <li>data: the file change that have been added</li>
- * </ul>
+ * Event sent to the watcher of a document that has been modified in a change request.
+ * Note that this event is always sent along with a {@link ChangeRequestFileChangeAddedRecordableEvent}.
  *
  * @version $Id$
- * @since 0.3
+ * @since 0.6
  */
 @Unstable
-public class ChangeRequestFileChangeAddedEvent implements Event, Serializable
+public class DocumentModifiedInChangeRequestEvent extends AbstractChangeRequestRecordableEvent
 {
     /**
-     * Default constructor.
+     * Event name to be used in the components referring to that event.
      */
-    public ChangeRequestFileChangeAddedEvent()
+    public static final String EVENT_NAME = "changerequest.document.modified";
+
+    /**
+     * Default empty constructor.
+     */
+    public DocumentModifiedInChangeRequestEvent()
     {
+        this(null);
+    }
+
+    /**
+     * Default constructor with a change request id.
+     *
+     * @param id the identifier of a change request for which the event is triggered.
+     */
+    public DocumentModifiedInChangeRequestEvent(String id)
+    {
+        super(id);
+    }
+
+    @Override
+    public String getEventName()
+    {
+        return EVENT_NAME;
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof ChangeRequestFileChangeAddedEvent;
+        return otherEvent instanceof DocumentModifiedInChangeRequestEvent;
     }
 }

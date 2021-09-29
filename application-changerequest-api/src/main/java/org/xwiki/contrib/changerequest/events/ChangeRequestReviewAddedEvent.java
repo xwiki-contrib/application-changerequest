@@ -17,44 +17,38 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest;
+package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
+import org.xwiki.observation.event.Event;
 import org.xwiki.stability.Unstable;
 
 /**
- * Represents the different statuses possible for a change request.
+ * Event triggered when a new review is added to a change request.
+ *
+ * The event also send the following parameters:
+ *  <ul>
+ *    <li>source: change request identifier</li>
+ *    <li>data: the review that has been added</li>
+ *  </ul>
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.6
  */
 @Unstable
-public enum ChangeRequestStatus
+public class ChangeRequestReviewAddedEvent implements Event, Serializable
 {
     /**
-     * When the change request is still a draft and cannot be merged.
+     * Default constructor.
      */
-    DRAFT,
+    public ChangeRequestReviewAddedEvent()
+    {
+    }
 
-    /**
-     * When the change request has been merged.
-     */
-    MERGED,
-
-    /**
-     * When the change request can be reviewed.
-     * @since 0.4
-     */
-    READY_FOR_REVIEW,
-
-    /**
-     * When the change request can be merged.
-     * @since 0.6
-     */
-    READY_FOR_MERGING,
-
-    /**
-     * When the change request is closed without merging.
-     * @since 0.6
-     */
-    CLOSED
+    @Override
+    public boolean matches(Object otherEvent)
+    {
+        return otherEvent instanceof ChangeRequestReviewAddedEvent;
+    }
 }

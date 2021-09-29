@@ -104,7 +104,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.addApprovers(documentReference, changeRequest);
                 this.invalidateApprovals(changeRequest);
                 this.observationManager
-                    .notify(new ChangeRequestFileChangeAddedEvent(), documentReference, changeRequest.getId());
+                    .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
                 this.redirectToChangeRequest(changeRequest);
             }
         }

@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
@@ -46,6 +47,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -116,6 +118,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
     @Inject
     private ReviewStorageManager reviewStorageManager;
+
+    @Inject
+    private ObservationManager observationManager;
 
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
@@ -209,7 +214,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             }
         }
 
+        ChangeRequestStatus oldStatus = changeRequest.getStatus();
         changeRequest.setStatus(ChangeRequestStatus.MERGED);
+        this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
+            new ChangeRequestStatus[] {oldStatus, ChangeRequestStatus.MERGED});
         this.save(changeRequest);
     }
 

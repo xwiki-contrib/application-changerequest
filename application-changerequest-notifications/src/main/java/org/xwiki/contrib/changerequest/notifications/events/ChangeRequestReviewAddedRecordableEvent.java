@@ -22,38 +22,39 @@ package org.xwiki.contrib.changerequest.notifications.events;
 import org.xwiki.stability.Unstable;
 
 /**
- * Recordable event of a file change added to an existing change request to send notification about this.
+ * Event triggered when a new review has been added to a change request.
  *
  * @version $Id$
- * @since 0.3
+ * @since 0.6
  */
 @Unstable
-public class ChangeRequestFileChangeAddedRecordableEvent extends AbstractChangeRequestRecordableEvent
+public class ChangeRequestReviewAddedRecordableEvent extends AbstractChangeRequestRecordableEvent
 {
     /**
      * Event name to be used in the components referring to that event.
      */
-    public static final String EVENT_NAME = "changerequest.filechange.added";
+    public static final String EVENT_NAME = "changerequest.review.added";
 
-    private final String fileChangeId;
+    private final String reviewId;
 
     /**
      * Default empty constructor.
      */
-    public ChangeRequestFileChangeAddedRecordableEvent()
+    public ChangeRequestReviewAddedRecordableEvent()
     {
         this(null, null);
     }
 
     /**
      * Default constructor with a change request id.
+     *
      * @param id the identifier of a change request for which the event is triggered.
-     * @param fileChangeId the identifier of the added file change.
+     * @param reviewId the identifier of the added review related to the event.
      */
-    public ChangeRequestFileChangeAddedRecordableEvent(String id, String fileChangeId)
+    public ChangeRequestReviewAddedRecordableEvent(String id, String reviewId)
     {
         super(id);
-        this.fileChangeId = fileChangeId;
+        this.reviewId = reviewId;
     }
 
     @Override
@@ -63,16 +64,16 @@ public class ChangeRequestFileChangeAddedRecordableEvent extends AbstractChangeR
     }
 
     /**
-     * @return the identifier of the file change added leading to this event.
+     * @return the id of the added review which led to this event.
      */
-    public String getFileChangeId()
+    public String getReviewId()
     {
-        return fileChangeId;
+        return reviewId;
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof ChangeRequestFileChangeAddedRecordableEvent;
+        return otherEvent instanceof ChangeRequestReviewAddedRecordableEvent;
     }
 }

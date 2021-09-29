@@ -110,7 +110,13 @@ changerequest.moreactions.deletionrequest=Request for deletion
 ChangeRequest.ApproversClass_usersApprovers=Users who can approve
 ChangeRequest.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
 ChangeRequest.ApproversClass_groupsApprovers=Groups who can approve
-ChangeRequest.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.</content>
+ChangeRequest.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.
+
+changerequest.timeline.changerequest.create={0} created the change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.status.modified={0} changed the status of the change request from {1} to {2}
+changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
+changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting for changes</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>

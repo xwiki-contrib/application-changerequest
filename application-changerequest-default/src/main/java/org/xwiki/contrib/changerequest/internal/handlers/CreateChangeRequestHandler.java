@@ -129,7 +129,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 
         this.storageManager.save(changeRequest);
         this.copyApprovers(documentReference, changeRequest);
-        this.observationManager.notify(new ChangeRequestCreatedEvent(), documentReference, changeRequest.getId());
+        this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
         this.redirectToChangeRequest(changeRequest);
     }
 

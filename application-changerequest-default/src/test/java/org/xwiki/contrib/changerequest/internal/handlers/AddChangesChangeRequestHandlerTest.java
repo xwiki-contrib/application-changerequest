@@ -161,7 +161,7 @@ class AddChangesChangeRequestHandlerTest
         verify(this.changeRequestApproversManager).getGroupsApprovers(changeRequest);
         verify(this.documentReferenceApproversManager).getGroupsApprovers(documentReference);
         verify(this.observationManager)
-            .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(documentReference), eq(changeRequestId));
+            .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(changeRequestId), eq(expectedFileChange));
         verify(response).sendRedirect(url);
     }
 
@@ -235,7 +235,7 @@ class AddChangesChangeRequestHandlerTest
         verify(this.changeRequestApproversManager).getGroupsApprovers(changeRequest);
         verify(this.documentReferenceApproversManager).getGroupsApprovers(documentReference);
         verify(this.observationManager)
-            .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(documentReference), eq(changeRequestId));
+            .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(changeRequestId), eq(expectedFileChange));
         verify(response).sendRedirect(url);
     }
 }

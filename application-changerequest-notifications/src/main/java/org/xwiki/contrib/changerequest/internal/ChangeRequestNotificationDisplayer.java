@@ -37,6 +37,9 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.eventstream.Event;
 import org.xwiki.model.reference.DocumentReference;
@@ -167,7 +170,10 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     {
         return Arrays.asList(
             ChangeRequestCreatedRecordableEvent.EVENT_NAME,
-            ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME
+            ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME,
+            ChangeRequestReviewAddedRecordableEvent.EVENT_NAME,
+            ChangeRequestStatusChangedRecordableEvent.EVENT_NAME,
+            DocumentModifiedInChangeRequestEvent.EVENT_NAME
         );
     }
 }

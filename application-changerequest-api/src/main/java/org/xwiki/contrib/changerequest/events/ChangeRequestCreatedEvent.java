@@ -28,8 +28,8 @@ import org.xwiki.stability.Unstable;
  * Event sent when new change request is created.
  * The event also send the following parameters:
  * <ul>
- *     <li>source: the reference of the document that have been used to create the change request</li>
- *     <li>data: the id of the {@link org.xwiki.contrib.changerequest.ChangeRequest} that has been created</li>
+ *     <li>source: the change request identifier</li>
+ *     <li>data: the new change request</li>
  * </ul>
  *
  * @version $Id$

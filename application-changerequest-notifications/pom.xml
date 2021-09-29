@@ -32,8 +32,7 @@
   <name>Application Change Request - Notifications</name>
   <packaging>jar</packaging>
   <properties>
-    <!-- TODO: This should be removed once XWIKI-18857 is fixed. -->
-    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
+    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
   </properties>
   <dependencies>
     <dependency>
