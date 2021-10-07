@@ -42,16 +42,16 @@ public class ChangeRequestMergeDocumentResultTest
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);
 
         ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult);
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, "");
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
 
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false);
+        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false, "");
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true);
+        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true, "");
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
     }
 }

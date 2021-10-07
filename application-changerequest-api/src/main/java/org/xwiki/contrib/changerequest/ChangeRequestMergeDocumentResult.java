@@ -38,6 +38,7 @@ import org.xwiki.store.merge.MergeDocumentResult;
 @Unstable
 public class ChangeRequestMergeDocumentResult
 {
+    private final String fileChangeId;
     private final FileChange.FileChangeType type;
     private MergeDocumentResult wrappedResult;
     private final boolean isConflictingDeletion;
@@ -46,24 +47,28 @@ public class ChangeRequestMergeDocumentResult
     /**
      * Constructor to use in case of {@link FileChange.FileChangeType#EDITION}.
      *
-     * @param mergeDocumentResult the result of the merge that will be wrapped.
+     * @param mergeDocumentResult the result of the merge that will be wrapped
+     * @param fileChangeId the identifier of the file change used to compute this merge result
      */
-    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult)
+    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, String fileChangeId)
     {
         this.wrappedResult = mergeDocumentResult;
         this.type = FileChange.FileChangeType.EDITION;
         this.isConflictingDeletion = false;
+        this.fileChangeId = fileChangeId;
     }
 
     /**
      * Constructor to use in case of {@link FileChange.FileChangeType#DELETION}.
      *
-     * @param conflictingDeletion {@code true} if there's a conflict with this deletion.
+     * @param conflictingDeletion {@code true} if there's a conflict with this deletion
+     * @param fileChangeId the identifier of the file change used to compute this merge result
      */
-    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion)
+    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion, String fileChangeId)
     {
         this.isConflictingDeletion = conflictingDeletion;
         this.type = FileChange.FileChangeType.DELETION;
+        this.fileChangeId = fileChangeId;
     }
 
     /**
@@ -112,6 +117,15 @@ public class ChangeRequestMergeDocumentResult
         return wrappedResult;
     }
 
+    /**
+     * @return the identifier of the file change used to compute this merge result.
+     * @since 0.6
+     */
+    public String getFileChangeId()
+    {
+        return fileChangeId;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -130,6 +144,7 @@ public class ChangeRequestMergeDocumentResult
             .append(type, that.type)
             .append(wrappedResult, that.wrappedResult)
             .append(documentTitle, that.documentTitle)
+            .append(fileChangeId, that.fileChangeId)
             .isEquals();
     }
 
@@ -138,6 +153,7 @@ public class ChangeRequestMergeDocumentResult
     {
         return new HashCodeBuilder(17, 37)
             .append(type)
+            .append(fileChangeId)
             .append(wrappedResult)
             .append(isConflictingDeletion)
             .append(documentTitle)
@@ -149,6 +165,7 @@ public class ChangeRequestMergeDocumentResult
     {
         return new ToStringBuilder(this)
             .append("type", type)
+            .append("fileChangeId", fileChangeId)
             .append("wrappedResult", wrappedResult)
             .append("isConflictingDeletion", isConflictingDeletion)
             .append("documentTitle", documentTitle)

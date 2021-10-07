@@ -57,12 +57,14 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
+    <discussions.version>2.0-SNAPSHOT</discussions.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
     <module>application-changerequest-default</module>
     <module>application-changerequest-ui</module>
     <module>application-changerequest-notifications</module>
+    <module>application-changerequest-discussions</module>
   </modules>
   <profiles>
     <profile>
@@ -88,6 +90,20 @@
                   <old>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent::&lt;init&gt;(java.lang.String)</old>
                   <new>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent::&lt;init&gt;(java.lang.String, java.lang.String)</new>
                   <justification>Unstable API: we changed the constructor of the event so that we can retrieve the file change related to the event.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(boolean)</old>
+                  <new>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(boolean, java.lang.String)</new>
+                  <justification>Unstable API: add missing information to be able to retrieve the file change from a merge result.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(org.xwiki.store.merge.MergeDocumentResult)</old>
+                  <new>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(org.xwiki.store.merge.MergeDocumentResult, java.lang.String)</new>
+                  <justification>Unstable API: add missing information to be able to retrieve the file change from a merge result.</justification>
                 </item>
               </differences>
             </revapi.differences>

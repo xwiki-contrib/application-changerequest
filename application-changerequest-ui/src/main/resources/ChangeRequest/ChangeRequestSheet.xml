@@ -74,6 +74,7 @@
 #set ($isNotMerged = $changeRequest.status != "MERGED")
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
+#set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
 
 #macro (displayEventStatus $status)
   #set ($lowerCaseStatus = $stringtool.lowerCase($status))
@@ -125,7 +126,7 @@
   #end
 #end
 {{html clean="false"}}
-&lt;div&gt;
+&lt;div class="cr-main-div" data-changerequest-id="$changeRequestId"&gt;
 
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
@@ -164,6 +165,16 @@
   &lt;div class="tab-content change-request-sheet"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;
       &lt;div class="cr-description well"&gt;$doc.content&lt;/div&gt;
+      &lt;div id="discussions"&gt;
+        #foreach ($discussion in $allDiscussions)
+          #if ($discussion.reference.reference == "title-irTGWm")
+          Discussion: $discussion.reference
+          #foreach ($message in $services.changerequest.discussion.getMessages($discussion, 0, 10))
+            $message.reference -&gt; $message
+          #end
+          #end
+        #end
+      &lt;/div&gt;
       &lt;div id="timeline-content"&gt;
         &lt;ul class="timeline"&gt;
         #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
@@ -289,7 +300,7 @@
       &lt;/h4&gt;
     &lt;/div&gt;
     &lt;div id="diff-$diffKey" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
-      &lt;div class="panel-body"&gt;$diffContent&lt;/div&gt;
+      &lt;div class="panel-body diff-body" data-filechange="$crMergeDocumentResult.fileChangeId"&gt;$diffContent&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   #end
@@ -1282,6 +1293,316 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   </object>
   <object>
     <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>6</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>ea5056ef-4799-4d88-9265-df9cd9c48978</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+define('CommentModal', ['jquery', 'xwiki-meta', 'bootstrap'], function ($, xm) {
+  var commentModal = function (requestData) {
+    var self = this;
+    self.requestData = requestData;
+    var currentReference = xm.documentReference;
+    var changeRequestDiscussionRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestDiscussion");
+    self.postUrl = new XWiki.Document(changeRequestDiscussionRef).getURL('get');
+    
+    self.requestModal = function() {
+      var notification = new XWiki.widgets.Notification('Requesting discussion modal...','inprogress');
+      var params = {
+        'action': 'displayModal',
+        'form_token': xm.form_token
+      };
+      $.extend(params, self.requestData)
+      $.post(self.postUrl, params).done(function (data) {
+        notification.hide();
+        $('body').append(data);
+        $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestDiscussionModal').toArray()});
+        self.initModal();
+      }).fail(function (data) {
+        notification.replace(new XWiki.widgets.Notification('Error while getting discussion information.','error'));
+      });
+    };
+    
+    self.submitAction = function () {
+      var modal = $('#changeRequestDiscussionModal');
+      var form = modal.find('form');
+      var url = form.attr('action');
+      var data = form.serialize();
+      var notification = new XWiki.widgets.Notification('Submitting message...','inprogress');
+      $.post(url, data).done(function (data) {
+        notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
+        console.log(data);
+        modal.modal('hide');
+        // TODO: refresh window
+      }).fail(function (data) {
+        console.error(data);
+        notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
+      });
+    }
+    
+    self.initModal = function () {
+      var modal = $('#changeRequestDiscussionModal');
+
+      if (modal) {
+        modal.on('hidden.bs.modal', function (e) {
+          modal.remove();
+          $('div.modal-backdrop').remove();
+        });
+
+        $('#changeRequestDiscussionSubmitButton').on('click', self.submitAction);
+        modal.modal('show');
+      }
+    }
+  }
+  return commentModal;
+})</code>
+    </property>
+    <property>
+      <name>Comment modal</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>7</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>b7c6493f-b4dd-4a49-ad84-0ea565d588ea</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['CommentModal', 'jquery', 'xwiki-meta'], function (CommentModal, $, xm) {
+  var hasLineNumber = function (element) {
+    return (element.hasClass('diff-line-number') &amp;&amp; element.text() !== "");
+  }
+  var getLine = function (element) {
+    var parent;
+    if (element.prop('tagName') === 'TR') {
+      parent = element;
+    } else {
+      parent = element.parents('tr');
+    }
+    return parent;
+  }
+  var getLineNumber = function (element) {
+    var siblings = getLine(element).find('.diff-line-number');
+    for (var i = 0; i &lt; siblings.length; i++) {
+      var sibling = $(siblings[i]);
+      if (hasLineNumber(sibling)) {
+        return sibling.text();
+      }
+    }
+  }
+  var getChangeType = function (element) {
+    var diffLine = getLine(element).find('.diff-line');
+    if (diffLine.hasClass('diff-line-deleted')) {
+      return "REMOVED";
+    } else if (diffLine.hasClass('diff-line-added')) {
+      return "ADDED";
+    } else if (diffLine.hasClass('diff-line-context')) {
+      return "UNCHANGED";
+    }
+  }
+  
+  var initialize = function() {
+    $('.diff-container tr').on('click', function () {
+      var fileChangeId = $(this).parents('.diff-body').attr('data-filechange');
+      var documentPart = $.trim($(this).parents('.diff-container').parent().parent().find('.diff-header').text());
+      var lineNumber = getLineNumber($(this));
+      var changeType = getChangeType($(this));
+      var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
+      var modal = new CommentModal({
+        'type': 'diffLine',
+        'fileChangeId': fileChangeId,
+        'documentPart': documentPart,
+        'lineNumber': lineNumber,
+        'changeType': changeType,
+        'changeRequestId': changeRequestId
+      });
+      modal.requestModal();
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+});</code>
+    </property>
+    <property>
+      <name>Diff comment</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
@@ -1400,7 +1721,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <contentType>CSS</contentType>
     </property>
     <property>
-      <name/>
+      <name>review</name>
     </property>
     <property>
       <parse>0</parse>
@@ -1596,6 +1917,136 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <name>timeline</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>2</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>12f95fb8-3061-431f-9f40-5a038fb099b7</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>@highlighted: rgba(255, 255, 0, 0.2);
+
+.diff-container tr {
+  cursor: pointer;
+}
+.diff-container tr:hover {
+  background: @highlighted;
+}
+.diff-line-deleted:hover, .diff-line-added:hover {
+  background: inherit;
+}</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name>diff</name>
     </property>
     <property>
       <parse>0</parse>

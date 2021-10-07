@@ -284,7 +284,8 @@ class DefaultChangeRequestManagerTest
         when(fileChange.getPreviousPublishedVersion()).thenReturn("1.1");
         when(currentDoc.isNew()).thenReturn(false);
         when(currentDoc.getRenderedTitle(this.context)).thenReturn("Some title");
-        ChangeRequestMergeDocumentResult expectedResult = new ChangeRequestMergeDocumentResult(true)
+        when(fileChange.getId()).thenReturn("fileChangeId");
+        ChangeRequestMergeDocumentResult expectedResult = new ChangeRequestMergeDocumentResult(true, "fileChangeId")
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -293,7 +294,7 @@ class DefaultChangeRequestManagerTest
         DocumentReference documentReference = mock(DocumentReference.class);
         when(currentDoc.getDocumentReference()).thenReturn(documentReference);
         when(documentReference.toString()).thenReturn("Some.Reference");
-        expectedResult = new ChangeRequestMergeDocumentResult(true)
+        expectedResult = new ChangeRequestMergeDocumentResult(true, "fileChangeId")
             .setDocumentTitle("Some.Reference");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -301,7 +302,7 @@ class DefaultChangeRequestManagerTest
         when(fileChange.getPreviousPublishedVersion()).thenReturn("1.2");
         when(currentDoc.isNew()).thenReturn(false);
 
-        expectedResult = new ChangeRequestMergeDocumentResult(false)
+        expectedResult = new ChangeRequestMergeDocumentResult(false, "fileChangeId")
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -328,7 +329,7 @@ class DefaultChangeRequestManagerTest
             return mergeDocumentResult;
         });
 
-        expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult)
+        expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult, "fileChangeId")
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
     }

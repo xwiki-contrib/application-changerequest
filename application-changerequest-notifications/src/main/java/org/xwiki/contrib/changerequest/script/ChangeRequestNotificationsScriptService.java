@@ -61,7 +61,7 @@ public class ChangeRequestNotificationsScriptService implements ScriptService
     public EventSearchResult getChangeRequestEvents(String changeRequestId, int offset, int limit)
         throws EventStreamException
     {
-        // FIXME: this can be simplified with XWiki 13.9 API 
+        // FIXME: this can be simplified with XWiki 13.9 API
         SimpleEventQuery eventQuery = new SimpleEventQuery(offset, limit)
             .eq(String.format("%s__properties_string",
                 ChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY), changeRequestId)
