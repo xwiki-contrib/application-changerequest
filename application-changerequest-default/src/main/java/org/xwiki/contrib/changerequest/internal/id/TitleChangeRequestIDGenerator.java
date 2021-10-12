@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal.id;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -26,7 +28,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.model.validation.EntityNameValidationManager;
+import org.xwiki.model.validation.EntityNameValidation;
 
 /**
  * Implementation of {@link ChangeRequestIDGenerator} that relies on the change request title.
@@ -39,13 +41,21 @@ import org.xwiki.model.validation.EntityNameValidationManager;
 @Singleton
 public class TitleChangeRequestIDGenerator implements ChangeRequestIDGenerator
 {
+    static final int MAX_LENGTH = 64;
+
     @Inject
-    private Provider<EntityNameValidationManager> entityNameValidationManagerProvider;
+    @Named("SlugEntityNameValidation")
+    private Provider<EntityNameValidation> slugEntityNameValidation;
 
     @Override
     public String generateId(ChangeRequest changeRequest)
     {
-        return this.entityNameValidationManagerProvider.get()
-            .getEntityReferenceNameStrategy().transform(changeRequest.getTitle());
+        String sanitizedTitle = this.slugEntityNameValidation.get().transform(changeRequest.getTitle());
+        String uuid = UUID.randomUUID().toString();
+        if (sanitizedTitle.length() + uuid.length() > MAX_LENGTH + 1) {
+            int offset = MAX_LENGTH - uuid.length() - 1;
+            sanitizedTitle = sanitizedTitle.substring(0, offset);
+        }
+        return String.format("%s-%s", sanitizedTitle, uuid);
     }
 }
