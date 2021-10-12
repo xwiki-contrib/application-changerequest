@@ -109,10 +109,10 @@ ChangeRequest.ApproversClass_usersApprovers=Utilisateurs pouvant approuver
 ChangeRequest.ApproversClass_usersApprovers_hint=Utilisateurs du wiki autorisés à approuver les demandes de modification pour ce document.
 ChangeRequest.ApproversClass_groupsApprovers=Groupes pouvant approuver
 ChangeRequest.ApproversClass_groupsApprovers_hint=Groupes d'utilisateurs du wiki autorisés à approuver les demandes de modification pour ce document.
-### Missing: changerequest.timeline.changerequest.create={0} created the change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
-### Missing: changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.create={0} a créé la demande de modification pour &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.filechange.added={0} a ajouté une modification de fichier pour &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.status.modified={0} a modifié le statut de la demande de modification de {1} à {2}
-### Missing: changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
-### Missing: changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting for changes
+changerequest.timeline.changerequest.review.added.approval={0} a ajouté une demande d''approbation
+changerequest.timeline.changerequest.review.added.requestchanges={0} a ajouté une demande d''approbation des modifications
 </content>
 </xwikidoc>
