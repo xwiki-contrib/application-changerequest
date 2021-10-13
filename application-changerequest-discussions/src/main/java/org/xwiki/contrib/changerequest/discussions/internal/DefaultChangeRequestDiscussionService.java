@@ -70,7 +70,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     private static final String REFERENCE_ID_GROUP = "referenceId";
 
     private static final Pattern ENTITY_REFERENCE_REFERENCE_PATTERN =
-        Pattern.compile(String.format("^(?<%s>.+)-(?<%s>.+)$", CHANGE_REQUEST_ID_GROUP, REFERENCE_ID_GROUP));
+        Pattern.compile(String.format("^(?<%s>[\\w-]+)_(?<%s>.+)$", CHANGE_REQUEST_ID_GROUP, REFERENCE_ID_GROUP));
 
     private static final String DISCUSSION_CONTEXT_TRANSLATION_PREFIX = "changerequest.discussion.context.";
     private static final String DISCUSSION_TRANSLATION_PREFIX = "changerequest.discussion.";
@@ -121,7 +121,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 break;
         }
 
-        return this.localizationManager.getTranslationPlain(translationKey, parameters);
+        return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
     }
 
     private <T extends AbstractChangeRequestDiscussionContextReference> String getDescriptionTranslation(String prefix,
@@ -154,7 +154,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 break;
         }
 
-        return this.localizationManager.getTranslationPlain(translationKey, parameters);
+        return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
     }
 
     private <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContextEntityReference
@@ -162,7 +162,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     {
         String entityReference;
         if (!StringUtils.isEmpty(reference.getReference())) {
-            entityReference = String.format("%s-%s", reference.getChangeRequestId(), reference.getReference());
+            entityReference = String.format("%s_%s", reference.getChangeRequestId(), reference.getReference());
         } else {
             entityReference = reference.getChangeRequestId();
         }
