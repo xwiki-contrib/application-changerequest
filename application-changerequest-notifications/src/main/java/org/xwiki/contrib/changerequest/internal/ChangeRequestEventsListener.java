@@ -35,11 +35,14 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionEvent;
+import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
@@ -71,7 +74,8 @@ public class ChangeRequestEventsListener extends AbstractEventListener
         new ChangeRequestCreatedEvent(),
         new ChangeRequestFileChangeAddedEvent(),
         new ChangeRequestStatusChangedEvent(),
-        new ChangeRequestReviewAddedEvent()
+        new ChangeRequestReviewAddedEvent(),
+        new ChangeRequestDiscussionEvent()
     );
 
     @Inject
@@ -129,6 +133,13 @@ public class ChangeRequestEventsListener extends AbstractEventListener
                 documentInstance = this.getChangeRequestDocument(changeRequestId);
                 ChangeRequestReview review = (ChangeRequestReview) data;
                 recordableEvent = new ChangeRequestReviewAddedRecordableEvent(changeRequestId, review.getId());
+            } else if (event instanceof ChangeRequestDiscussionEvent) {
+                documentInstance = this.getChangeRequestDocument(changeRequestId);
+                AbstractChangeRequestDiscussionContextReference discussionContextReference =
+                    (AbstractChangeRequestDiscussionContextReference) data;
+                recordableEvent = new ChangeRequestDiscussionRecordableEvent(changeRequestId,
+                    discussionContextReference.getType().name(),
+                    discussionContextReference.getReference());
             }
             this.observationManager.notify(recordableEvent, EVENT_SOURCE, documentInstance);
         } catch (Exception e) {

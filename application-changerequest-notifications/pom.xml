@@ -51,6 +51,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.xwiki.contrib.changerequest</groupId>
+      <artifactId>application-changerequest-discussions</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-notifications-notifiers-api</artifactId>
       <version>${platform.version}</version>

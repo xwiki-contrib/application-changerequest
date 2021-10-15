@@ -75,6 +75,7 @@
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
+#set ($displayDocExtra = false)
 
 #macro (displayEventStatus $status)
   #set ($lowerCaseStatus = $stringtool.lowerCase($status))

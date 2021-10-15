@@ -31,6 +31,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
@@ -75,6 +76,16 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
      */
     public static final String NEW_STATUS_PARAMETER_KEY = "changerequest.status.new";
 
+    /**
+     * Key used for event parameter to store a discussion type.
+     */
+    public static final String DISCUSSION_TYPE_KEY = "changerequest.discussion.type";
+
+    /**
+     * Key used for event parameter to store a discussion reference.
+     */
+    public static final String DISCUSSION_REFERENCE_KEY = "changerequest.discussion.reference";
+
     @Inject
     private RecordableEventConverter defaultConverter;
 
@@ -103,6 +114,12 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             parameters.put(OLD_STATUS_PARAMETER_KEY, crEvent.getOldStatus().name());
             parameters.put(NEW_STATUS_PARAMETER_KEY, crEvent.getNewStatus().name());
         }
+        if (recordableEvent instanceof ChangeRequestDiscussionRecordableEvent) {
+            ChangeRequestDiscussionRecordableEvent discussionRecordableEvent =
+                (ChangeRequestDiscussionRecordableEvent) recordableEvent;
+            parameters.put(DISCUSSION_TYPE_KEY, discussionRecordableEvent.getDiscussionType());
+            parameters.put(DISCUSSION_REFERENCE_KEY, discussionRecordableEvent.getDiscussionReference());
+        }
 
         result.setParameters(parameters);
         return result;
@@ -116,7 +133,8 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             new ChangeRequestFileChangeAddedRecordableEvent(),
             new ChangeRequestReviewAddedRecordableEvent(),
             new ChangeRequestStatusChangedRecordableEvent(),
-            new DocumentModifiedInChangeRequestEvent()
+            new DocumentModifiedInChangeRequestEvent(),
+            new ChangeRequestDiscussionRecordableEvent()
         );
     }
 }

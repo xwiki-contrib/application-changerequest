@@ -116,7 +116,8 @@ changerequest.timeline.changerequest.create={0} created the change request with 
 changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.status.modified={0} changed the status of the change request from {1} to {2}
 changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
-changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting for changes</content>
+changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting for changes
+changerequest.timeline.changerequest.discussions={0} added a new message</content>
   <object>
     <name>ChangeRequest.ChangeRequestTranslations</name>
     <number>0</number>
