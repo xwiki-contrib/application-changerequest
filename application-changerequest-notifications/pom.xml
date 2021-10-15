@@ -31,9 +31,6 @@
   <version>0.6-SNAPSHOT</version>
   <name>Application Change Request - Notifications</name>
   <packaging>jar</packaging>
-  <properties>
-    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
