@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
@@ -66,6 +67,9 @@ class DefaultChangeRequestDiscussionServiceTest
     private DiscussionService discussionService;
 
     @MockComponent
+    private ChangeRequestDiscussionReferenceUtils discussionReferenceUtils;
+
+    @MockComponent
     private ContextualLocalizationManager localizationManager;
 
     @Test
@@ -75,43 +79,27 @@ class DefaultChangeRequestDiscussionServiceTest
         DiscussionContext crContext = mock(DiscussionContext.class);
         DiscussionContext fileDiffContext = mock(DiscussionContext.class);
         DiscussionContext lineDiffContext = mock(DiscussionContext.class);
+        AbstractChangeRequestDiscussionContextReference changeRequestReference =
+            mock(AbstractChangeRequestDiscussionContextReference.class);
+        AbstractChangeRequestDiscussionContextReference lineDiffReference =
+            mock(AbstractChangeRequestDiscussionContextReference.class);
+        AbstractChangeRequestDiscussionContextReference fileDiffReference =
+            mock(AbstractChangeRequestDiscussionContextReference.class);
 
-        DiscussionContextReference contextReference = mock(DiscussionContextReference.class);
-        when(contextReference.getApplicationHint()).thenReturn(ChangeRequestDiscussionService.APPLICATION_HINT);
-        when(crContext.getReference()).thenReturn(contextReference);
-        when(fileDiffContext.getReference()).thenReturn(contextReference);
-        when(lineDiffContext.getReference()).thenReturn(contextReference);
-
-        DiscussionContextEntityReference contextEntityReference1 = mock(DiscussionContextEntityReference.class);
-        when(contextEntityReference1.getType()).thenReturn("changerequest-change_request");
-        when(contextEntityReference1.getReference()).thenReturn("CR1");
-        ChangeRequestReference changeRequestReference = new ChangeRequestReference("CR1");
-
-        DiscussionContextEntityReference contextEntityReference2 = mock(DiscussionContextEntityReference.class);
-        when(contextEntityReference2.getType()).thenReturn("changerequest-file_diff");
-        when(contextEntityReference2.getReference()).thenReturn("CR1_filechange-1.2-1243456789");
-        ChangeRequestFileDiffReference fileDiffReference =
-            new ChangeRequestFileDiffReference("filechange-1.2-1243456789", "CR1");
-
-        DiscussionContextEntityReference contextEntityReference3 = mock(DiscussionContextEntityReference.class);
-        when(contextEntityReference3.getType()).thenReturn("changerequest-line_diff");
-        when(contextEntityReference3.getReference()).thenReturn("CR1_filechange-1.2-1243456789_CONTENT_178_ADDED");
-        ChangeRequestLineDiffReference lineDiffReference =
-            new ChangeRequestLineDiffReference(
-                "filechange-1.2-1243456789",
-                "CR1",
-                MergeDocumentResult.DocumentPart.CONTENT,
-                178,
-                ChangeRequestLineDiffReference.LineChange.ADDED);
-
-        when(crContext.getEntityReference()).thenReturn(contextEntityReference1);
-        when(fileDiffContext.getEntityReference()).thenReturn(contextEntityReference2);
-        when(lineDiffContext.getEntityReference()).thenReturn(contextEntityReference3);
+        when(this.discussionReferenceUtils.computeReferenceFromContext(crContext, null))
+            .thenReturn(changeRequestReference);
+        when(this.discussionReferenceUtils.computeReferenceFromContext(lineDiffContext, changeRequestReference))
+            .thenReturn(lineDiffReference);
+        when(this.discussionReferenceUtils.computeReferenceFromContext(fileDiffContext, lineDiffReference))
+            .thenReturn(lineDiffReference);
+        when(this.discussionReferenceUtils.computeReferenceFromContext(fileDiffContext, changeRequestReference))
+            .thenReturn(fileDiffReference);
 
         DiscussionReference discussionReference = mock(DiscussionReference.class);
         when(discussion.getReference()).thenReturn(discussionReference);
         when(discussionContextService.findByDiscussionReference(discussionReference)).thenReturn(
             Collections.singletonList(crContext));
+
         assertEquals(changeRequestReference, this.changeRequestDiscussionService.getReferenceFrom(discussion));
 
         when(discussionContextService.findByDiscussionReference(discussionReference)).thenReturn(Arrays.asList(
@@ -119,6 +107,7 @@ class DefaultChangeRequestDiscussionServiceTest
             lineDiffContext,
             fileDiffContext
         ));
+
         assertEquals(lineDiffReference, this.changeRequestDiscussionService.getReferenceFrom(discussion));
 
         when(discussionContextService.findByDiscussionReference(discussionReference)).thenReturn(Arrays.asList(

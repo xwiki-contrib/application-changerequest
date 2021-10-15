@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -35,12 +33,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
-import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestCommentReference;
-import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestDiscussionReferenceType;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
 import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionService;
@@ -48,9 +43,7 @@ import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
-import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
 import org.xwiki.localization.ContextualLocalizationManager;
-import org.xwiki.store.merge.MergeDocumentResult;
 
 /**
  * Default implementation of {@link ChangeRequestDiscussionService}.
@@ -62,16 +55,6 @@ import org.xwiki.store.merge.MergeDocumentResult;
 @Singleton
 public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscussionService
 {
-    private static final String REFERENCE_TYPE_GROUP = "referenceType";
-    private static final Pattern ENTITY_REFERENCE_TYPE_PATTERN =
-        Pattern.compile(String.format("^changerequest-(?<%s>\\w+)$", REFERENCE_TYPE_GROUP));
-
-    private static final String CHANGE_REQUEST_ID_GROUP = "changeRequestId";
-    private static final String REFERENCE_ID_GROUP = "referenceId";
-
-    private static final Pattern ENTITY_REFERENCE_REFERENCE_PATTERN =
-        Pattern.compile(String.format("^(?<%s>[\\w-]+)_(?<%s>.+)$", CHANGE_REQUEST_ID_GROUP, REFERENCE_ID_GROUP));
-
     private static final String DISCUSSION_CONTEXT_TRANSLATION_PREFIX = "changerequest.discussion.context.";
     private static final String DISCUSSION_TRANSLATION_PREFIX = "changerequest.discussion.";
 
@@ -84,42 +67,14 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     @Inject
     private ContextualLocalizationManager localizationManager;
 
-    private String getLineDiffRepresentation(ChangeRequestLineDiffReference lineDiffReference)
-    {
-        return String.format("%s %s %s",
-            lineDiffReference.getDocumentPart(),
-            lineDiffReference.getLineChange().name(),
-            lineDiffReference.getLineNumber());
-    }
+    @Inject
+    private ChangeRequestDiscussionReferenceUtils discussionReferenceUtils;
 
     private <T extends AbstractChangeRequestDiscussionContextReference> String getTitleTranslation(String prefix,
         T reference)
     {
         String translationKey = String.format("%s%s.title", prefix, reference.getType().name().toLowerCase());
-        List<Object> parameters = new ArrayList<>();
-        switch (reference.getType()) {
-            case CHANGE_REQUEST:
-            case CHANGE_REQUEST_COMMENT:
-            case REVIEWS:
-                break;
-
-            case REVIEW:
-                parameters.add(((ChangeRequestReviewReference) reference).getReviewId());
-                break;
-
-            case FILE_DIFF:
-                parameters.add(((ChangeRequestFileDiffReference) reference).getFileChangeId());
-                break;
-
-            case LINE_DIFF:
-                ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
-                parameters.add(getLineDiffRepresentation(lineDiffReference));
-                parameters.add(lineDiffReference.getFileChangeId());
-                break;
-
-            default:
-                break;
-        }
+        List<Object> parameters = this.discussionReferenceUtils.getTranslationParameters(reference);
 
         return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
     }
@@ -130,29 +85,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         String translationKey = String.format("%s%s.description", prefix, reference.getType().name().toLowerCase());
         List<Object> parameters = new ArrayList<>();
         parameters.add(reference.getChangeRequestId());
-        switch (reference.getType()) {
-            case CHANGE_REQUEST:
-            case CHANGE_REQUEST_COMMENT:
-            case REVIEWS:
-                break;
-
-            case REVIEW:
-                parameters.add(((ChangeRequestReviewReference) reference).getReviewId());
-                break;
-
-            case FILE_DIFF:
-                parameters.add(((ChangeRequestFileDiffReference) reference).getFileChangeId());
-                break;
-
-            case LINE_DIFF:
-                ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
-                parameters.add(getLineDiffRepresentation(lineDiffReference));
-                parameters.add(lineDiffReference.getFileChangeId());
-                break;
-
-            default:
-                break;
-        }
+        parameters.addAll(this.discussionReferenceUtils.getTranslationParameters(reference));
 
         return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
     }
@@ -208,9 +141,6 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
 
         contextList.add(this.getOrCreateContextFor(new ChangeRequestReference(reference.getChangeRequestId())));
         switch (reference.getType()) {
-            case CHANGE_REQUEST:
-                break;
-
             case CHANGE_REQUEST_COMMENT:
             case REVIEWS:
             case FILE_DIFF:
@@ -231,6 +161,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                         lineDiffReference.getChangeRequestId())));
                 break;
 
+            case CHANGE_REQUEST:
             default:
                 break;
         }
@@ -250,83 +181,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         }
     }
 
-    private AbstractChangeRequestDiscussionContextReference computeReferenceFromContext(
-        DiscussionContext discussionContext, AbstractChangeRequestDiscussionContextReference previousReference)
-    {
-        AbstractChangeRequestDiscussionContextReference reference = previousReference;
-        DiscussionContextReference contextReference = discussionContext.getReference();
-        DiscussionContextEntityReference entityReference = discussionContext.getEntityReference();
-        Matcher typeMatcher = ENTITY_REFERENCE_TYPE_PATTERN.matcher(entityReference.getType());
-        if (ChangeRequestDiscussionService.APPLICATION_HINT.equals(contextReference.getApplicationHint())
-            && typeMatcher.matches()) {
-            ChangeRequestDiscussionReferenceType referenceType =
-                ChangeRequestDiscussionReferenceType.valueOf(typeMatcher.group(REFERENCE_TYPE_GROUP).toUpperCase());
-            Matcher referenceMatcher;
-            switch (referenceType) {
-                case CHANGE_REQUEST_COMMENT:
-                    reference = new ChangeRequestCommentReference(entityReference.getReference());
-                    break;
 
-                case REVIEWS:
-                    if (reference == null
-                        || reference.getType() == ChangeRequestDiscussionReferenceType.CHANGE_REQUEST) {
-                        reference = new ChangeRequestReviewsReference(entityReference.getReference());
-                    }
-                    break;
-
-                case REVIEW:
-                    referenceMatcher =
-                        ENTITY_REFERENCE_REFERENCE_PATTERN.matcher(entityReference.getReference());
-                    if (referenceMatcher.matches()) {
-                        reference = new ChangeRequestReviewReference(referenceMatcher.group(REFERENCE_ID_GROUP),
-                            referenceMatcher.group(CHANGE_REQUEST_ID_GROUP));
-                    }
-                    break;
-
-                case FILE_DIFF:
-                    referenceMatcher =
-                        ENTITY_REFERENCE_REFERENCE_PATTERN.matcher(entityReference.getReference());
-                    if ((reference == null
-                        || reference.getType() == ChangeRequestDiscussionReferenceType.CHANGE_REQUEST)
-                        && referenceMatcher.matches()) {
-                        reference = new ChangeRequestFileDiffReference(referenceMatcher.group(REFERENCE_ID_GROUP),
-                            referenceMatcher.group(CHANGE_REQUEST_ID_GROUP));
-                    }
-                    break;
-
-                case LINE_DIFF:
-                    referenceMatcher =
-                        ENTITY_REFERENCE_REFERENCE_PATTERN.matcher(entityReference.getReference());
-                    if (referenceMatcher.matches()) {
-                        String changeRequestId = referenceMatcher.group(CHANGE_REQUEST_ID_GROUP);
-                        String lineDiffReference = referenceMatcher.group(REFERENCE_ID_GROUP);
-                        Matcher lineDiffReferenceMatcher =
-                            ChangeRequestLineDiffReference.REFERENCE_PATTERN.matcher(lineDiffReference);
-                        if (lineDiffReferenceMatcher.matches()) {
-                            String fileChangeId = lineDiffReferenceMatcher.group("fileChangeId");
-                            MergeDocumentResult.DocumentPart documentPart =
-                                MergeDocumentResult.DocumentPart.valueOf(
-                                    lineDiffReferenceMatcher.group("documentPart").toUpperCase());
-                            long lineNumber = Long.parseLong(lineDiffReferenceMatcher.group("lineNumber"));
-                            ChangeRequestLineDiffReference.LineChange lineChange =
-                                ChangeRequestLineDiffReference.LineChange.valueOf(
-                                    lineDiffReferenceMatcher.group("lineChange"));
-                            reference = new ChangeRequestLineDiffReference(fileChangeId, changeRequestId, documentPart,
-                                lineNumber, lineChange);
-                        }
-                    }
-                    break;
-
-                case CHANGE_REQUEST:
-                default:
-                    if (reference == null) {
-                        reference = new ChangeRequestReference(entityReference.getReference());
-                    }
-                    break;
-            }
-        }
-        return reference;
-    }
 
     @Override
     public <T extends AbstractChangeRequestDiscussionContextReference> List<Discussion> getDiscussionsFrom(T reference)
@@ -346,7 +201,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         AbstractChangeRequestDiscussionContextReference reference = null;
 
         for (DiscussionContext discussionContext : discussionContexts) {
-            reference = this.computeReferenceFromContext(discussionContext, reference);
+            reference = this.discussionReferenceUtils.computeReferenceFromContext(discussionContext, reference);
         }
 
         if (reference != null) {
