@@ -114,5 +114,6 @@ changerequest.timeline.changerequest.filechange.added={0} a ajouté une modifica
 changerequest.timeline.changerequest.status.modified={0} a modifié le statut de la demande de modification de {1} à {2}
 changerequest.timeline.changerequest.review.added.approval={0} a ajouté une demande d''approbation
 changerequest.timeline.changerequest.review.added.requestchanges={0} a ajouté une demande d''approbation des modifications
+changerequest.timeline.changerequest.discussions={0} a ajouté un nouveau message
 </content>
 </xwikidoc>
