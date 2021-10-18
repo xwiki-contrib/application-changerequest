@@ -56,11 +56,11 @@
     #if (!$mergeDocumentOpt.isPresent())
       #set ($discard = $response.sendError(500, "Cannot perform merge"))
     #else
-      #set ($mergeDocument = $mergeDocumentOpt.get())
+      #set ($crMergeDocument = $mergeDocumentOpt.get())
       #if ("$!request.get('decision')" == '')
 {{html clean="false"}}
 #set ($discard = $services.template.execute('diff_macros.vm'))
-
+#set ($mergeDocument = $crMergeDocument.wrappedResult)
 #set ($versions = {
   'PREVIOUS': $mergeDocument.previousDocument,
   'CURRENT': $mergeDocument.currentDocument,
