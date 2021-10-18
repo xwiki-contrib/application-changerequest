@@ -44,7 +44,7 @@ public class ChangeRequestPage extends ViewPage
      */
     public String getDescription()
     {
-        return getDriver().findElementById("home").getText();
+        return getDriver().findElementByClassName("cr-description").getText();
     }
 
     /**
