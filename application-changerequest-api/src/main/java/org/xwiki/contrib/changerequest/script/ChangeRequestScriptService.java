@@ -260,6 +260,7 @@ public class ChangeRequestScriptService implements ScriptService
     public void setReadyForReview(ChangeRequest changeRequest) throws ChangeRequestException
     {
         setStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
+        this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
     }
 
     /**
@@ -378,7 +379,9 @@ public class ChangeRequestScriptService implements ScriptService
             ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
             review.setComment(comment);
             this.reviewStorageManager.save(review);
+            changeRequest.addReview(review);
             this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
+            this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
             result = true;
         } else {
             logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
@@ -439,6 +442,7 @@ public class ChangeRequestScriptService implements ScriptService
             review.setValid(isValid);
             review.setSaved(false);
             this.reviewStorageManager.save(review);
+            this.changeRequestManager.computeReadyForMergingStatus(review.getChangeRequest());
             return true;
         }
         return false;

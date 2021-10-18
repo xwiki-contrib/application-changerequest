@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -58,6 +59,7 @@ import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -119,6 +121,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @Inject
+    private ObservationManager observationManager;
 
     private XarExtensionScriptService xarExtensionScriptService;
 
@@ -243,14 +248,35 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     @Override
     public boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException
     {
-        boolean result = false;
-        if (changeRequest.getStatus() == ChangeRequestStatus.READY_FOR_REVIEW) {
+        return changeRequest.getStatus() == ChangeRequestStatus.READY_FOR_MERGING;
+    }
+
+    @Override
+    public void computeReadyForMergingStatus(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        ChangeRequestStatus status = changeRequest.getStatus();
+        boolean readyForMerging = false;
+        if (status == ChangeRequestStatus.READY_FOR_REVIEW || status == ChangeRequestStatus.READY_FOR_MERGING) {
             MergeApprovalStrategy mergeApprovalStrategy = getMergeApprovalStrategy();
             if (mergeApprovalStrategy.canBeMerged(changeRequest)) {
-                result = !this.hasConflict(changeRequest);
+                readyForMerging = !this.hasConflict(changeRequest);
             }
         }
-        return result;
+        boolean update = false;
+        ChangeRequestStatus newStatus = null;
+        if (status == ChangeRequestStatus.READY_FOR_REVIEW && readyForMerging) {
+            newStatus = ChangeRequestStatus.READY_FOR_MERGING;
+            update = true;
+        } else if (status == ChangeRequestStatus.READY_FOR_MERGING && !readyForMerging) {
+            newStatus = ChangeRequestStatus.READY_FOR_REVIEW;
+            update = true;
+        }
+        if (update) {
+            changeRequest.setStatus(newStatus);
+            this.changeRequestStorageManager.save(changeRequest);
+            this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
+                new ChangeRequestStatus[] {status, newStatus});
+        }
     }
 
     private boolean hasConflict(ChangeRequest changeRequest) throws ChangeRequestException
@@ -437,6 +463,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
                 changeRequest.addFileChange(mergeFileChange);
                 this.changeRequestStorageManager.save(changeRequest);
+                this.computeReadyForMergingStatus(changeRequest);
                 return true;
             }
         } else {

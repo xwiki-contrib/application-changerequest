@@ -19,32 +19,25 @@
  */
 package org.xwiki.contrib.changerequest.internal.descriptors;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.eventstream.RecordableEventDescriptor;
 
 /**
- * Descriptor related to {@link ChangeRequestCreatedRecordableEvent}.
+ * Abstract descriptor to define common properties of all change request event descriptors.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.6
  */
-@Component
-@Singleton
-@Named(ChangeRequestCreatedRecordableEvent.EVENT_NAME)
-public class ChangeRequestCreatedEventDescriptor extends AbstractChangeRequestEventDescriptor
+public abstract class AbstractChangeRequestEventDescriptor implements RecordableEventDescriptor
 {
     @Override
-    public String getEventType()
+    public String getApplicationName()
     {
-        return ChangeRequestCreatedRecordableEvent.EVENT_NAME;
+        return "changerequest.application.name";
     }
 
     @Override
-    public String getDescription()
+    public String getApplicationIcon()
     {
-        return "changerequest.event.created.description";
+        return "branch";
     }
 }

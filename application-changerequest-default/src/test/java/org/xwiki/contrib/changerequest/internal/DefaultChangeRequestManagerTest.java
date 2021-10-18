@@ -41,10 +41,13 @@ import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -69,7 +72,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -107,6 +112,12 @@ class DefaultChangeRequestManagerTest
 
     @MockComponent
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @MockComponent
+    private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @MockComponent
+    private ObservationManager observationManager;
 
     private XarExtensionScriptService xarExtensionScriptService;
 
@@ -210,12 +221,23 @@ class DefaultChangeRequestManagerTest
     void canBeMerged() throws Exception
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
+        assertFalse(this.manager.canBeMerged(changeRequest));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_MERGING);
+        assertTrue(this.manager.canBeMerged(changeRequest));
+    }
+
+    @Test
+    void computeReadyForMergingStatus() throws Exception
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
         assertFalse(this.manager.canBeMerged(changeRequest));
         verify(this.configuration, never()).getMergeApprovalStrategy();
 
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
-        assertFalse(this.manager.canBeMerged(changeRequest));
+        this.manager.computeReadyForMergingStatus(changeRequest);
+        verifyNoInteractions(this.changeRequestStorageManager);
         verify(this.configuration, never()).getMergeApprovalStrategy();
 
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
@@ -224,9 +246,10 @@ class DefaultChangeRequestManagerTest
         MergeApprovalStrategy strategy =
             this.componentManager.registerMockComponent(MergeApprovalStrategy.class, approvalStrategyHint);
         when(strategy.canBeMerged(changeRequest)).thenReturn(false);
-        assertFalse(this.manager.canBeMerged(changeRequest));
+        this.manager.computeReadyForMergingStatus(changeRequest);
         verify(strategy).canBeMerged(changeRequest);
         verify(changeRequest, never()).getFileChanges();
+        verifyNoInteractions(this.changeRequestStorageManager);
 
         when(strategy.canBeMerged(changeRequest)).thenReturn(true);
         FileChange fileChangeA1 = mock(FileChange.class);
@@ -258,8 +281,8 @@ class DefaultChangeRequestManagerTest
         MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
         when(this.mergeManager.mergeDocument(any(), any(), any(), any())).thenReturn(mergeDocumentResult);
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
-
-        assertFalse(this.manager.canBeMerged(changeRequest));
+        this.manager.computeReadyForMergingStatus(changeRequest);
+        verifyNoInteractions(this.changeRequestStorageManager);
         verify(mergeDocumentResult).hasConflicts();
         verify(this.fileChangeStorageManager).getModifiedDocumentFromFileChange(fileChangeA2);
 
@@ -270,7 +293,22 @@ class DefaultChangeRequestManagerTest
         verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeA1);
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);
-        assertTrue(this.manager.canBeMerged(changeRequest));
+        when(changeRequest.getId()).thenReturn("someId");
+        this.manager.computeReadyForMergingStatus(changeRequest);
+        verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_MERGING);
+        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
+            eq(new ChangeRequestStatus[] {
+                ChangeRequestStatus.READY_FOR_REVIEW, ChangeRequestStatus.READY_FOR_MERGING }));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_MERGING);
+        when(strategy.canBeMerged(changeRequest)).thenReturn(false);
+        this.manager.computeReadyForMergingStatus(changeRequest);
+        verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
+        verify(this.changeRequestStorageManager, times(2)).save(changeRequest);
+        verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
+            eq(new ChangeRequestStatus[] {
+                ChangeRequestStatus.READY_FOR_MERGING, ChangeRequestStatus.READY_FOR_REVIEW }));
     }
 
     @Test

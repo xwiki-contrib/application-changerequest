@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
@@ -72,6 +74,9 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
+    @Inject
+    private ChangeRequestManager changeRequestManager;
+
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
      * @param changeRequestReference the request reference leading to this.
@@ -81,6 +86,16 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
         HttpServletRequest request = this.prepareRequest();
+        ChangeRequest changeRequest = getChangeRequest(request);
+        this.storageManager.save(changeRequest);
+        this.copyApprovers(changeRequest);
+        this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+        this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
+        this.redirectToChangeRequest(changeRequest);
+    }
+
+    private ChangeRequest getChangeRequest(HttpServletRequest request) throws ChangeRequestException
+    {
         boolean isDeletion = "1".equals(request.getParameter("deletion"));
 
         XWikiDocument modifiedDocument = null;
@@ -127,10 +142,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             changeRequest.setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
         }
 
-        this.storageManager.save(changeRequest);
-        this.copyApprovers(documentReference, changeRequest);
-        this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
-        this.redirectToChangeRequest(changeRequest);
+        return changeRequest;
     }
 
     private FileChange getFileChange(ChangeRequest changeRequest, boolean isDeletion,
@@ -168,13 +180,15 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         return fileChange;
     }
 
-    private void copyApprovers(DocumentReference originalReference, ChangeRequest changeRequest)
+    private void copyApprovers(ChangeRequest changeRequest)
         throws ChangeRequestException
     {
-        Set<UserReference> usersApprovers =
-            this.documentReferenceApproversManager.getAllApprovers(originalReference, false);
-        Set<DocumentReference> groupsApprovers =
-            this.documentReferenceApproversManager.getGroupsApprovers(originalReference);
+        Set<UserReference> usersApprovers = new HashSet<>();
+        Set<DocumentReference> groupsApprovers = new HashSet<>();
+        for (DocumentReference originalReference : changeRequest.getModifiedDocuments()) {
+            usersApprovers.addAll(this.documentReferenceApproversManager.getAllApprovers(originalReference, false));
+            groupsApprovers.addAll(this.documentReferenceApproversManager.getGroupsApprovers(originalReference));
+        }
 
         if (!groupsApprovers.isEmpty()) {
             this.changeRequestApproversManager.setGroupsApprovers(groupsApprovers, changeRequest);

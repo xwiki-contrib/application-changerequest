@@ -23,28 +23,28 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 
 /**
- * Descriptor related to {@link ChangeRequestCreatedRecordableEvent}.
+ * Descriptor to enable notifications related with {@link ChangeRequestReviewAddedRecordableEvent}.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.6
  */
 @Component
 @Singleton
-@Named(ChangeRequestCreatedRecordableEvent.EVENT_NAME)
-public class ChangeRequestCreatedEventDescriptor extends AbstractChangeRequestEventDescriptor
+@Named(ChangeRequestReviewAddedRecordableEvent.EVENT_NAME)
+public class ChangeRequestReviewAddedEventDescriptor extends AbstractChangeRequestEventDescriptor
 {
     @Override
     public String getEventType()
     {
-        return ChangeRequestCreatedRecordableEvent.EVENT_NAME;
+        return ChangeRequestReviewAddedRecordableEvent.EVENT_NAME;
     }
 
     @Override
     public String getDescription()
     {
-        return "changerequest.event.created.description";
+        return "changerequest.event.review.added.description";
     }
 }

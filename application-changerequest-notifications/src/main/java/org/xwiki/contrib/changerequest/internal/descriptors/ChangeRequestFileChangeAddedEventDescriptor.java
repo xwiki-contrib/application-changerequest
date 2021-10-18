@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
-import org.xwiki.eventstream.RecordableEventDescriptor;
 
 /**
  * Descriptor related to {@link ChangeRequestFileChangeAddedEventDescriptor}.
@@ -35,7 +34,7 @@ import org.xwiki.eventstream.RecordableEventDescriptor;
 @Component
 @Singleton
 @Named(ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME)
-public class ChangeRequestFileChangeAddedEventDescriptor implements RecordableEventDescriptor
+public class ChangeRequestFileChangeAddedEventDescriptor extends AbstractChangeRequestEventDescriptor
 {
     @Override
     public String getEventType()
@@ -44,20 +43,8 @@ public class ChangeRequestFileChangeAddedEventDescriptor implements RecordableEv
     }
 
     @Override
-    public String getApplicationName()
-    {
-        return "changerequest.application.name";
-    }
-
-    @Override
     public String getDescription()
     {
         return "changerequest.event.filechange.added.description";
-    }
-
-    @Override
-    public String getApplicationIcon()
-    {
-        return "branch";
     }
 }

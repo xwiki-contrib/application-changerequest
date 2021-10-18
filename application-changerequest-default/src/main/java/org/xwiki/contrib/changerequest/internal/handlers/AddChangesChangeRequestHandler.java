@@ -103,6 +103,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.storageManager.save(changeRequest);
                 this.addApprovers(documentReference, changeRequest);
                 this.invalidateApprovals(changeRequest);
+                this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
                 this.observationManager
                     .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
                 this.redirectToChangeRequest(changeRequest);

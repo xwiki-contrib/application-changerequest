@@ -8,3 +8,5 @@ org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestDiscussionEventL
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestFileChangeAddedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestReviewAddedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestStatusChangedEventListener
+org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestReviewAddedEventDescriptor
+org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestStatusChangedEventDescriptor

@@ -52,39 +52,44 @@ import org.xwiki.eventstream.RecordableEventConverter;
 public class ChangeRequestRecordableEventConverter implements RecordableEventConverter
 {
     /**
+     * Global prefix to be used for any parameters in events related to change requests.
+     */
+    public static final String CHANGE_REQUEST_PREFIX_PARAMETER_KEY = "changerequest.";
+
+    /**
      * Key used for event parameter to store the change request ID.
      */
-    public static final String CHANGE_REQUEST_ID_PARAMETER_KEY = "changerequest.id";
+    public static final String CHANGE_REQUEST_ID_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "id";
 
     /**
      * Key used for event parameter to store the file change ID.
      */
-    public static final String FILECHANGE_ID_PARAMETER_KEY = "changerequest.filechange.id";
+    public static final String FILECHANGE_ID_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "filechange.id";
 
     /**
      * Key used for event parameter to store the review ID.
      */
-    public static final String REVIEW_ID_PARAMETER_KEY = "changerequest.review.id";
+    public static final String REVIEW_ID_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "review.id";
 
     /**
      * Key used for event parameter to store the old status.
      */
-    public static final String OLD_STATUS_PARAMETER_KEY = "changerequest.status.old";
+    public static final String OLD_STATUS_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "status.old";
 
     /**
      * Key used for event parameter to store the new status.
      */
-    public static final String NEW_STATUS_PARAMETER_KEY = "changerequest.status.new";
+    public static final String NEW_STATUS_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "status.new";
 
     /**
      * Key used for event parameter to store a discussion type.
      */
-    public static final String DISCUSSION_TYPE_KEY = "changerequest.discussion.type";
+    public static final String DISCUSSION_TYPE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "discussion.type";
 
     /**
      * Key used for event parameter to store a discussion reference.
      */
-    public static final String DISCUSSION_REFERENCE_KEY = "changerequest.discussion.reference";
+    public static final String DISCUSSION_REFERENCE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "discussion.reference";
 
     @Inject
     private RecordableEventConverter defaultConverter;

@@ -174,4 +174,15 @@ public interface ChangeRequestManager
     {
         return false;
     }
+
+    /**
+     * Check if the given change request is ready for merging, and change its status accordingly.
+     *
+     * @param changeRequest the change request to be checked
+     * @throws ChangeRequestException in case of problem during the checks.
+     * @since 0.6
+     */
+    default void computeReadyForMergingStatus(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+    }
 }

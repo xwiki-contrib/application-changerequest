@@ -54,6 +54,7 @@ changerequest.savemodal.edit.input.selector=Choose an existing change request
 changerequest.sheet.status.draft=Draft
 changerequest.sheet.status.merged=Merged
 changerequest.sheet.status.ready_for_review=Ready for review
+changerequest.sheet.status.ready_for_merging=Ready for merging
 changerequest.sheet.merge.button=Merge
 changerequest.sheet.merge.button.title=Merge this change request
 changerequest.sheet.pagechanges=Changes requested in pages:
