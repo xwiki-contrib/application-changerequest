@@ -31,6 +31,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
@@ -333,6 +334,25 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
             default:
                 throw new ChangeRequestException("Unknown file change type: " + fileChange.getType());
+        }
+    }
+
+    @Override
+    public void rebase(FileChange fileChange) throws ChangeRequestException
+    {
+        FileChange clone = fileChange.clone();
+        XWikiContext context = this.contextProvider.get();
+        try {
+            XWikiDocument document = context.getWiki().getDocument(clone.getTargetEntity(), context);
+            clone.setPreviousPublishedVersion(document.getVersion())
+                .setPreviousVersion(fileChange.getVersion())
+                .setVersion(this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), false));
+            this.save(clone);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while trying to access published document from [%s] to get its version: [%s]",
+                    clone.getTargetEntity(),
+                    ExceptionUtils.getRootCauseMessage(e)));
         }
     }
 

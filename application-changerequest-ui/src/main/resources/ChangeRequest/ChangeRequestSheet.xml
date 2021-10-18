@@ -2708,6 +2708,17 @@ tr.discussion-line:hover {
     $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
     &lt;/a&gt;
   #end
+  &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
+    &lt;span class="caret"&gt;&lt;/span&gt;
+    &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;ul class="dropdown-menu"&gt;
+    &lt;li class=""&gt;
+      &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
+        $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
+      &lt;/a&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
 &lt;/div&gt;
 {{/html}}
 #end

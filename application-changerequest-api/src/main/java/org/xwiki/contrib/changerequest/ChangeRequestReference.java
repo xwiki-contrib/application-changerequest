@@ -60,7 +60,13 @@ public class ChangeRequestReference extends AbstractResourceReference
         /**
          * For adding new changes to an existing change request.
          */
-        ADDCHANGES
+        ADDCHANGES,
+
+        /**
+         * Rebase the change request so the diff are compared to current version of the documents.
+         * @since 0.6
+         */
+        REBASE
     }
 
     private ChangeRequestAction action;

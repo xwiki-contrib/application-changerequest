@@ -67,6 +67,14 @@ public interface FileChangeStorageManager
     void merge(FileChange fileChange) throws ChangeRequestException;
 
     /**
+     * Rebase the given file change so the diff is made against current version of the document.
+     *
+     * @param fileChange the file change to rebase.
+     * @throws ChangeRequestException in case of problem when saving the new file change.
+     */
+    void rebase(FileChange fileChange) throws ChangeRequestException;
+
+    /**
      * Retrieve the modified file change in a {@link DocumentModelBridge} in order to be used in the diff APIs.
      *
      * @param fileChange an instance of a file change.

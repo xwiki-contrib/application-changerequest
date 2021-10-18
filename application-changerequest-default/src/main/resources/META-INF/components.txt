@@ -27,3 +27,4 @@ org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer
 org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer
 org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer
 org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer
+org.xwiki.contrib.changerequest.internal.handlers.RebaseChangeRequestHandler

@@ -300,6 +300,25 @@ public class FileChange
         return type;
     }
 
+    /**
+     * Clone the current file change with all data, except the id (see {@link #getId()}).
+     * Note that the {@link #isSaved()} flag returns false for the created element of the clone.
+     *
+     * @return a cloned instance of the file change.
+     * @since 0.6
+     */
+    public FileChange clone()
+    {
+        return new FileChange(this.changeRequest, this.type)
+            .setVersion(this.version)
+            .setCreationDate(this.creationDate)
+            .setAuthor(this.author)
+            .setModifiedDocument(this.modifiedDocument)
+            .setTargetEntity(this.targetEntity)
+            .setPreviousPublishedVersion(this.previousPublishedVersion)
+            .setPreviousVersion(this.previousVersion);
+    }
+
     @Override
     public boolean equals(Object o)
     {
