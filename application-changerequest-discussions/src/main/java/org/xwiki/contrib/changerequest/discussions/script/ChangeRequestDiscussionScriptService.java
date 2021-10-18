@@ -32,6 +32,7 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussion;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestCommentReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
 import org.xwiki.contrib.discussions.domain.Discussion;
@@ -75,6 +76,21 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
     {
         ChangeRequestLineDiffReference reference = new ChangeRequestLineDiffReference(fileChangeId, changeRequestId,
             documentPart, lineNumber, lineChange);
+        return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
+    }
+
+    /**
+     * Create or get a discussion for commenting a change request.
+     *
+     * @see ChangeRequestCommentReference
+     * @param changeRequestId the id of the change request for which to create the discussion
+     * @return the reference of the attached discussion
+     * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
+     */
+    public DiscussionReference createChangeRequestCommentDiscussion(String changeRequestId)
+        throws ChangeRequestDiscussionException
+    {
+        ChangeRequestCommentReference reference = new ChangeRequestCommentReference(changeRequestId);
         return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
     }
 
