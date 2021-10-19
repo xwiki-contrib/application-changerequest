@@ -158,7 +158,7 @@ class CreateChangeRequestHandlerTest
         DocumentReference crDocReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(expectedChangeRequest)).thenReturn(crDocReference);
         String expectedURL = "/mycr";
-        when(this.xWiki.getURL(crDocReference, this.context)).thenReturn(expectedURL);
+        when(this.xWiki.getURL(crDocReference, "edit", this.context)).thenReturn(expectedURL);
 
         this.handler.handle(null);
         verify(this.storageManager).save(expectedChangeRequest);

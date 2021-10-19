@@ -119,7 +119,7 @@ class MergeChangeRequestHandlerTest
         when(this.resolver.resolve(changeRequest)).thenReturn(documentReference);
         XWiki wiki = mock(XWiki.class);
         when(this.context.getWiki()).thenReturn(wiki);
-        when(wiki.getURL(documentReference, this.context)).thenReturn("/my/change/request");
+        when(wiki.getURL(documentReference, "view", this.context)).thenReturn("/my/change/request");
 
         this.handler.handle(changeRequestReference);
         verify(this.storageManager).merge(changeRequest);

@@ -91,7 +91,9 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         this.copyApprovers(changeRequest);
         this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
-        this.redirectToChangeRequest(changeRequest);
+
+        // We're redirecting to edit to allow the creator to set the description.
+        this.redirectToChangeRequest(changeRequest, "edit");
     }
 
     private ChangeRequest getChangeRequest(HttpServletRequest request) throws ChangeRequestException

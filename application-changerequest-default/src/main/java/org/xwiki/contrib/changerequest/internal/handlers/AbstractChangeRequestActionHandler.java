@@ -87,10 +87,15 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     protected void redirectToChangeRequest(ChangeRequest changeRequest) throws IOException
     {
+        this.redirectToChangeRequest(changeRequest, "view");
+    }
+
+    protected void redirectToChangeRequest(ChangeRequest changeRequest, String action) throws IOException
+    {
         XWikiContext context = this.contextProvider.get();
         DocumentReference changeRequestDocumentReference =
             this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-        String url = context.getWiki().getURL(changeRequestDocumentReference, context);
+        String url = context.getWiki().getURL(changeRequestDocumentReference, action, context);
         context.getResponse().sendRedirect(url);
     }
 

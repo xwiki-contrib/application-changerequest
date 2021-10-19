@@ -181,9 +181,8 @@
   &lt;!-- Tab panes --&gt;
   &lt;div class="tab-content change-request-sheet"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;
-      #if ("$!doc.content" != "")
-      &lt;div class="cr-description well"&gt;$doc.content&lt;/div&gt;
-      #end
+    ## We split the HTML macro because we rely on AWM.Content for displaying the field content which inject an HTML macro too.
+      &lt;div class="cr-description well"&gt;{{/html}}$doc.display('content'){{html clean="false"}}&lt;/div&gt;
       &lt;div id="timeline-content"&gt;
         &lt;ul class="timeline"&gt;
         #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))

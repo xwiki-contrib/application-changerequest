@@ -148,7 +148,7 @@ class AddChangesChangeRequestHandlerTest
         DocumentReference changeRequestDocReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
         String url = "some url";
-        when(wiki.getURL(changeRequestDocReference, context)).thenReturn(url);
+        when(wiki.getURL(changeRequestDocReference, "view", context)).thenReturn(url);
 
         this.handler.handle(changeRequestReference);
         verify(this.requestParameterConverter).convert(request, response);
@@ -221,7 +221,7 @@ class AddChangesChangeRequestHandlerTest
         DocumentReference changeRequestDocReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
         String url = "some url";
-        when(wiki.getURL(changeRequestDocReference, context)).thenReturn(url);
+        when(wiki.getURL(changeRequestDocReference, "view", context)).thenReturn(url);
 
         this.handler.handle(changeRequestReference);
 

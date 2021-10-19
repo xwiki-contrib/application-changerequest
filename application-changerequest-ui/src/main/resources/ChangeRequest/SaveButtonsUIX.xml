@@ -68,10 +68,6 @@
                 &lt;label for="crTitle"&gt;$services.localization.render('changerequest.savemodal.create.input.title')&lt;/label&gt;
                 &lt;input type="text" class="form-control" id="crTitle" /&gt;
               &lt;/div&gt;
-              &lt;div class="form-group"&gt;
-                &lt;label for="crDescription"&gt;$services.localization.render('changerequest.savemodal.create.input.description')&lt;/label&gt;
-                &lt;textarea class="form-control" rows="3" id="crDescription"&gt;&lt;/textarea&gt;
-              &lt;/div&gt;
               &lt;div class="checkbox"&gt;
                 &lt;label for="crDraft"&gt;
                 &lt;input type="checkbox" id="crDraft" value="1" /&gt; $services.localization.render('changerequest.savemodal.create.input.draft')
@@ -215,14 +211,7 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
         'value': $('#crTitle').val()
       });
       form.append(crTitleField);
-      
-      var crDescriptionField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'crDescription',
-        'value': $('#crDescription').val()
-      });
-      form.append(crDescriptionField);
-      
+
       var crDraftField = $("&lt;input&gt;", {
         'type': 'hidden',
         'name': 'crDraft',
@@ -278,7 +267,6 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
   var createChangeRequestModal = function () {
     if ($('#changeRequestModal').length &gt; 0) {
       $('#changeRequestModal').modal('show');
-      $('#crDescription').val($('#commentinput').val());
     } else {
       var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
       var urlParams = new URLSearchParams(window.location.search);
@@ -293,7 +281,6 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
         $('#saveChangeRequest').on('click', saveChangeRequest);
         $('#crTitle').on('change', validateForm);
         $('#existingCRSelector').on('change', validateForm);
-        $('#crDescription').val($('#commentinput').val());
         $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
       }).fail(function (data) {
         console.log(data);
