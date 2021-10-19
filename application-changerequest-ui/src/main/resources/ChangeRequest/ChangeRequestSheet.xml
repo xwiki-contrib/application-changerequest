@@ -1419,34 +1419,33 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <code>'use strict';
-define('CommentModal', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-bridge'], function ($, xm) {
-  var commentModal = function (requestData) {
+define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-bridge'], function ($, xm) {
+  var commentEditor = function (element, requestData) {
     var self = this;
+    self.element = element;
     self.requestData = requestData;
     var currentReference = xm.documentReference;
     var changeRequestDiscussionRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestDiscussion");
     self.postUrl = new XWiki.Document(changeRequestDiscussionRef).getURL('get');
     
-    self.requestModal = function() {
+    self.requestEditor = function() {
       var notification = new XWiki.widgets.Notification('Requesting discussion modal...','inprogress');
       var params = {
-        'action': 'displayModal',
+        'action': 'displayEditor',
         'form_token': xm.form_token
       };
       $.extend(params, self.requestData)
       $.post(self.postUrl, params).done(function (data) {
         notification.hide();
-        $('body').append(data);
-        $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestDiscussionModal').toArray()});
-        self.initModal();
+        self.initEditor(data);
       }).fail(function (data) {
         notification.replace(new XWiki.widgets.Notification('Error while getting discussion information.','error'));
       });
     };
     
     self.submitAction = function () {
-      var modal = $('#changeRequestDiscussionModal');
-      var form = modal.find('form');
+      var button = $(this);
+      var form = button.parent('form');
       var url = form.attr('action');
       var notification = new XWiki.widgets.Notification('Submitting message...','inprogress');
       // We need to call beforeSave first to put the data in the actual content field.
@@ -1455,33 +1454,47 @@ define('CommentModal', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-bridg
       $(document).trigger('xwiki:actions:cancel');
       $.post(url, data).done(function (data) {
         notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
-        modal.modal('hide');
+        self.editorDiv.remove();
         window.location.reload();
       }).fail(function (data) {
         console.error(data);
         notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
       });
+    };
+    
+    self.cancelAction = function () {
+      $(document).trigger('xwiki:actions:cancel');
+      self.editorDiv.remove();
+    };
+    
+    var getLine = function (element) {
+      var parent;
+      if (element.prop('tagName') === 'TR') {
+        parent = element;
+      } else {
+        parent = element.parents('tr');
+      }
+      return parent;
     }
     
-    self.initModal = function () {
-      var modal = $('#changeRequestDiscussionModal');
-
-      if (modal) {
-        modal.on('hidden.bs.modal', function (e) {
-          modal.remove();
-          $('div.modal-backdrop').remove();
-        });
-
-        $('#changeRequestDiscussionSubmitButton').on('click', self.submitAction);
-        modal.modal('show');
+    self.initEditor = function (data) {
+      if (self.requestData.type == 'diffLine') {
+        var currentLine = getLine(self.element);
+        var newLine = $('&lt;tr class="discussion-line"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+        newLine.insertAfter(currentLine);
+        newLine.find('td').append($(data));
+        self.editorDiv = newLine;
       }
+      $(document).trigger('xwiki:dom:updated', {'elements': self.editorDiv.toArray()});
+      self.editorDiv.find('.comment-button').on('click', self.submitAction);
+      self.editorDiv.find('.cancel-button').on('click', self.cancelAction);
     }
   }
-  return commentModal;
+  return commentEditor;
 })</code>
     </property>
     <property>
-      <name>Comment modal</name>
+      <name>Comment editor</name>
     </property>
     <property>
       <parse>0</parse>
@@ -1578,7 +1591,7 @@ define('CommentModal', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-bridg
     </property>
     <property>
       <code>'use strict';
-require(['CommentModal', 'jquery', 'xwiki-meta'], function (CommentModal, $, xm) {
+require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, xm) {
   var hasLineNumber = function (element) {
     return (element.hasClass('diff-line-number') &amp;&amp; element.text() !== "");
   }
@@ -1618,7 +1631,7 @@ require(['CommentModal', 'jquery', 'xwiki-meta'], function (CommentModal, $, xm)
       var lineNumber = getLineNumber($(this));
       var changeType = getChangeType($(this));
       var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
-      var modal = new CommentModal({
+      var editor = new CommentEditor($(this), {
         'type': 'diffLine',
         'fileChangeId': fileChangeId,
         'documentPart': documentPart,
@@ -1626,7 +1639,7 @@ require(['CommentModal', 'jquery', 'xwiki-meta'], function (CommentModal, $, xm)
         'changeType': changeType,
         'changeRequestId': changeRequestId
       });
-      modal.requestModal();
+      editor.requestEditor();
     });
   };
   

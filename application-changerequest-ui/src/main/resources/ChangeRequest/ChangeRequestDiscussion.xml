@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content>{{include reference='Discussions.Code.DisplayMessage' /}}
 {{velocity}}
-#if ($request.method == 'POST' &amp;&amp; $request.get('action') == 'displayModal' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')))
+#if ($request.method == 'POST' &amp;&amp; $request.get('action') == 'displayEditor' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')))
   #set ($changeRequestId = $request.get('changeRequestId'))
   #if ($request.get('type') == 'diffLine')
     #set ($fileChangeId = $request.get('fileChangeId'))
@@ -48,30 +48,18 @@
     #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileChangeId, $changeRequestId, $documentPart, $lineNumber, $lineChange))
   #end
 {{html clean="false"}}
-&lt;div class="modal text-left" id="changeRequestDiscussionModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
-  &lt;div class="modal-dialog modal-lg"&gt;
-    &lt;div class="modal-content"&gt;
-      &lt;div class="modal-header"&gt;
-        &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
-        &lt;div class="modal-title" id="changeRequestDiscussionModalTitle"&gt;Comment&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class="modal-body"&gt;
-        #set ($reference = $services.discussions.serialize($discussionReference))
-        #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($reference)")
-        &lt;form method="post" action="$url" class="message-form"&gt;
-        &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequestId" /&gt;
-        &lt;input type="hidden" name="async" value="1" /&gt;
-        &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
-        &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($reference)" /&gt;
-        #displayMessageContentField()
-        &lt;/form&gt;
-      &lt;/div&gt;
-      &lt;div class="modal-footer"&gt;
-        &lt;input type="button" id="changeRequestDiscussionSubmitButton" class="btn btn-primary" value="$services.localization.render('save')" /&gt;
-        &lt;input type="button" id="changeRequestDiscussionCancelButton" class="btn btn-default" value="$services.localization.render('cancel')" data-dismiss="modal" aria-hidden="true" /&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+&lt;div class="add-comment"&gt;
+  #set ($reference = $services.discussions.serialize($discussionReference))
+  #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($reference)")
+  &lt;form method="post" action="$url" class="message-form"&gt;
+    &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequestId" /&gt;
+    &lt;input type="hidden" name="async" value="1" /&gt;
+    &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
+    &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($reference)" /&gt;
+    #displayMessageContentField()
+    &lt;input type="button" class="btn btn-primary comment-button" value="$services.localization.render('save')" /&gt;
+    &lt;input type="button" class="btn btn-default cancel-button" value="$services.localization.render('cancel')" /&gt;
+  &lt;/form&gt;
 &lt;/div&gt;
 {{/html}}
 #else
