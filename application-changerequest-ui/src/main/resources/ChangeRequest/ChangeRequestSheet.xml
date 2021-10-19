@@ -1614,7 +1614,7 @@ require(['CommentModal', 'jquery', 'xwiki-meta'], function (CommentModal, $, xm)
   var initialize = function() {
     $('.diff-container tr').on('click', function () {
       var fileChangeId = $(this).parents('.diff-body').attr('data-filechange');
-      var documentPart = $.trim($(this).parents('.diff-container').parent().parent().find('.diff-header').text());
+      var documentPart = $(this).parents('.diff-container').parent().prev('.diff-header').attr('data-property-name');
       var lineNumber = getLineNumber($(this));
       var changeType = getChangeType($(this));
       var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
@@ -1757,7 +1757,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       var fileDiffContainer = $('.diff-body[data-filechange="' + filename +'"]');
 
       // FIXME: this will need to be fixed, we don't necessarily have document parts... 
-      var partDiffContainer = fileDiffContainer.find('.diff-header[data-property-name="' + documentPart.toLowerCase() + '"]').parent().find('.diff-container');
+      var partDiffContainer = fileDiffContainer.find('.diff-header[data-property-name="' + documentPart.toLowerCase() + '"]').next().find('.diff-container');
 
       var searchingClass;
       if (lineChange === "ADDED") {
