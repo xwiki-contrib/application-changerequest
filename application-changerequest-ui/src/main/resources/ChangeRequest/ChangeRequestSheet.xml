@@ -36,10 +36,32 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference='Discussions.Code.DisplayMessage' /}}
-{{include reference='ChangeRequest.ChangeRequestMacros' /}}
-{{velocity}}
-#if ($xcontext.action == 'get' &amp;&amp; $request.get('changerequest') != '' &amp;&amp; $request.get('setstatus') != '')
+  <content>{{include reference="Discussions.Code.DisplayMessage"/}}
+
+{{velocity output="false"}}#template('display_macros.vm')
+#macro (displayMessageContentField) 
+  #set ($docMessageClass = $xwiki.getDocument('Discussions.Code.MessageClass'))
+  #set ($messageClass = $docMessageClass.getxWikiClass())
+  #set ($messageObj = $doc.newObject('Discussions.Code.MessageClass'))
+  #set ($contentField = $messageClass.get('content'))
+  #initRequiredSkinExtensions()
+  ## TODO: duplicate of getRequiredSkinExtensions from display_macro.vm
+  $doc.displayEdit($contentField, '', $messageObj)
+  #set ($macro.importStrings = [])
+  #foreach ($entry in $requiredSkinExtensionsMap.entrySet())
+    #set ($macro.importString = $xwiki.get($entry.key).importString)
+    ## Remove the always used skin extensions, keep only those that have been requested by the display macros above.
+    #set ($discard = $macro.importStrings.add($!stringtool.removeStart($macro.importString, $entry.value).trim()))
+  #end
+  #set ($macro.importStrings = $stringtool.join($macro.importStrings, ''))
+  #set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $macro.importStrings))
+#end{{/velocity}}{{velocity}}#if ($request.showContentField == 'show')
+{{html}}#displayMessageContentField(){{/html}}
+#end{{/velocity}}
+
+
+{{include reference="ChangeRequest.ChangeRequestMacros"/}}
+{{velocity}}#if ($xcontext.action == 'get' &amp;&amp; $request.get('changerequest') != '' &amp;&amp; $request.get('setstatus') != '')
 #if (!$services.csrf.isTokenValid($request.get('form_token')))
   #set ($discard = $response.sendError(401, "Wrong CSRF token."))
 #else
@@ -215,10 +237,13 @@
           &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
           &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($discussionCommentReferenceString)" /&gt;
           &lt;div class="comment-editor hidden"&gt;
-          #displayMessageContentField()
+            #displayMessageContentField()
           &lt;/div&gt;
           &lt;button type="button" class="btn btn-default comment-button"&gt;
           $services.icon.renderHTML('comment') Comment
+          &lt;/button&gt;
+          &lt;button type="button" class="btn btn-default cancel-button hidden"&gt;
+          Cancel
           &lt;/button&gt;
           &lt;/form&gt;
         &lt;/div&gt;
@@ -466,8 +491,9 @@
 #else
     No change request corresponding to the current id.
 #end
-#end
-{{/velocity}}</content>
+#end{{/velocity}}
+
+ </content>
   <object>
     <name>ChangeRequest.ChangeRequestSheet</name>
     <number>0</number>
@@ -1914,15 +1940,28 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   };
   
   var initialize = function () {
-    $('.comment-button').on('click', function (event) {
+    $('.add-comment .comment-button').on('click', function (event) {
       var commentEditor = $(this).siblings('.comment-editor');
+      var cancelButton = $(this).siblings('.cancel-button');
       if (commentEditor) {
         if (commentEditor.hasClass('hidden')) {
           commentEditor.removeClass('hidden');
+          cancelButton.removeClass('hidden');
+          $(this).removeClass('btn-default');
+          $(this).addClass('btn-primary');
         } else {
           submitComment($(this).parent('form'));
         }
       }
+    });
+    $('.add-comment .cancel-button').on('click', function () {
+      var commentEditor = $(this).siblings('.comment-editor');
+      var commentButton = $(this).siblings('.comment-button');
+      $(document).trigger('xwiki:actions:cancel');
+      commentEditor.addClass('hidden');
+      $(this).addClass('hidden');
+      commentButton.removeClass('btn-primary');
+      commentButton.addClass('btn-default');
     });
   };
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
