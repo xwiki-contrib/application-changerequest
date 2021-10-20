@@ -159,6 +159,11 @@
         <artifactId>xwiki-platform-container-servlet</artifactId>
         <version>${platform.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-icon-api</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 </project>

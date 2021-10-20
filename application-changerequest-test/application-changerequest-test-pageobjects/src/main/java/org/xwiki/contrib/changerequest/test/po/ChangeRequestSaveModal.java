@@ -79,15 +79,6 @@ public class ChangeRequestSaveModal extends BaseModal
     }
 
     /**
-     * Set the description of a new change request.
-     * @param description the description of the change request.
-     */
-    public void setChangeRequestDescription(String description)
-    {
-        this.getDriver().findElementById("crDescription").sendKeys(description);
-    }
-
-    /**
      * Check or uncheck the checkbox to create the change request as draft or as ready for review.
      * @param value if {@code true} the checkbox is checked.
      */
@@ -117,11 +108,11 @@ public class ChangeRequestSaveModal extends BaseModal
      * Save the changes.
      * @return a new change request page.
      */
-    public ChangeRequestPage clickSave()
+    public ChangeRequestEditPage clickSave()
     {
         getDriver().findElementById("saveChangeRequest").click();
-        ChangeRequestPage changeRequestPage = new ChangeRequestPage();
-        changeRequestPage.waitUntilPageIsLoaded();
-        return changeRequestPage;
+        ChangeRequestEditPage changeRequestEditPage = new ChangeRequestEditPage();
+        changeRequestEditPage.waitUntilPageIsLoaded();
+        return changeRequestEditPage;
     }
 }
