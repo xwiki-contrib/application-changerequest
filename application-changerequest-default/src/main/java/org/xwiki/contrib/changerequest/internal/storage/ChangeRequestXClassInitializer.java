@@ -41,7 +41,6 @@ import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
-import com.xpn.xwiki.objects.classes.ComputedFieldClass;
 
 /**
  * Component responsible to initialize the change request xclass.
@@ -97,13 +96,6 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
 
             xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
             xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
-
-            // TODO: should be removed whenever https://jira.xwiki.org/browse/XWIKI-19064
-            ComputedFieldClass computedFieldClass = new ComputedFieldClass();
-            computedFieldClass.setName(CONTENT_FIELD);
-            computedFieldClass.setPrettyName(CONTENT_FIELD);
-            computedFieldClass.setCustomDisplay("{{include reference=\"AppWithinMinutes.Content\"/}}");
-            xClass.put(CONTENT_FIELD, computedFieldClass);
 
             XWikiContext context = contextProvider.get();
             BaseObject xObject = document.getXObject(CLASS_SHEET_BINDING_XCLASS, true, context);

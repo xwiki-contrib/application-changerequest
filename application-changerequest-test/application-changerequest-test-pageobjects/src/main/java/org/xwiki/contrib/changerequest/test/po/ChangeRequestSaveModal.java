@@ -108,11 +108,11 @@ public class ChangeRequestSaveModal extends BaseModal
      * Save the changes.
      * @return a new change request page.
      */
-    public ChangeRequestEditPage clickSave()
+    public ChangeRequestPage clickSave()
     {
         getDriver().findElementById("saveChangeRequest").click();
-        ChangeRequestEditPage changeRequestEditPage = new ChangeRequestEditPage();
-        changeRequestEditPage.waitUntilPageIsLoaded();
-        return changeRequestEditPage;
+        ChangeRequestPage changeRequestPage = new ChangeRequestPage();
+        changeRequestPage.waitUntilPageIsLoaded();
+        return changeRequestPage;
     }
 }

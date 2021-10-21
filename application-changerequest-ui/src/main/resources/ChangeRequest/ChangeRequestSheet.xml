@@ -150,6 +150,52 @@
   &lt;/li&gt;
   #end
 #end
+
+#macro (displayDescription)
+  ## Code inspired from AWM.Content page
+  #if ("$!request.edit" == 'description')
+    
+    #set ($name = 'content')
+    #set ($editedDocument = $doc)
+    ## Use the preferred content editor.
+    #set ($useWysiwygEditor = $xwiki.getUserPreference('editor') == 'Wysiwyg')
+    #set ($saveDescriptionUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
+    #set ($saveDescriptionUrl = "${saveDescriptionUrl}?form_token=$services.csrf.token")
+    &lt;form method="post" action="$saveDescriptionUrl"&gt;
+    ## The "content" id is expected by some JavaScript and CSS code.
+    #set ($id = 'content')
+    #if (!$useWysiwygEditor)
+      &lt;div id="xwikieditcontentinner"&gt;
+        ## The tool bar may have an entry to insert an HTML macro. Make sure it doesn't break the HTML macro we are currently in.
+        #set ($toolBar = "#template('simpleedittoolbar.vm')")
+        $!toolBar.replace('{{', '&amp;#123;&amp;#123;')
+        ## Display a simple textarea.
+        &lt;textarea id="$id" cols="80" rows="25" name="$name"&gt;$escapetool.xml($editedDocument.content)&lt;/textarea&gt;
+      &lt;/div&gt;
+    #else
+      $!services.edit.syntaxContent.wysiwyg($editedDocument.content, $editedDocument.syntax, {
+        'id': "$id",
+        'name': "$name",
+        'rows': 25,
+        'cols': 80,
+        'full': true
+      })
+    #end
+    &lt;div class="description-button-wrapper"&gt;
+      &lt;input type="button" id="cancel-description" class="btn btn-default" value="Cancel" /&gt;
+      &lt;input type="submit" id="save-description" class="btn btn-primary" value="Save" /&gt;
+    &lt;/div&gt;
+    &lt;/form&gt;
+  #else
+    &lt;a class="edit-description" role="button" title="Edit" href="$doc.getURL('view', 'edit=description')"&gt;
+      $services.icon.renderHTML('pencil')
+      &lt;span class="sr-only"&gt;Edit&lt;/span&gt;
+    &lt;/a&gt;
+    ## Include the content of the current document.
+    ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
+    $doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')
+  #end
+#end
 {{html clean="false"}}
 &lt;div class="cr-main-div" data-changerequest-id="$changeRequestId"&gt;
   &lt;div id="discussions" class="hidden"&gt;
@@ -203,8 +249,9 @@
   &lt;!-- Tab panes --&gt;
   &lt;div class="tab-content change-request-sheet"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;
-    ## We split the HTML macro because we rely on AWM.Content for displaying the field content which inject an HTML macro too.
-      &lt;div class="cr-description well"&gt;{{/html}}$doc.display('content'){{html clean="false"}}&lt;/div&gt;
+      &lt;div class="cr-description well"&gt;
+        #displayDescription()
+      &lt;/div&gt;&lt;!-- End description --&gt;
       &lt;div id="timeline-content"&gt;
         &lt;ul class="timeline"&gt;
         #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
@@ -1979,6 +2026,129 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   </object>
   <object>
     <name>ChangeRequest.ChangeRequestSheet</name>
+    <number>10</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>18a7666e-e031-4751-aff2-053b23280ec0</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var cancelled = false;
+  var saveDescription = function (event) {
+    if (cancelled) {
+      return;
+    }
+    event.preventDefault();
+    $(document).trigger('xwiki:actions:cancel');
+    cancelled = true;
+    $(this).trigger('click');
+  };
+  
+  var cancelDescription = function () {
+    $(document).trigger('xwiki:actions:cancel');
+    window.location.href = new XWiki.Document(xm.documentReference).getURL('view');
+  };
+  
+  var initialize = function () {
+    $("#save-description").on('click', saveDescription);
+    $("#cancel-description").on('click', cancelDescription);
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+})</code>
+    </property>
+    <property>
+      <name>description edit</name>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use/>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
@@ -2098,6 +2268,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
 }
 .add-comment {
   width: 66%;
+}
+.edit-description {
+  float: right;
 }</code>
     </property>
     <property>

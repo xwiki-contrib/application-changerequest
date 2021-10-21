@@ -66,7 +66,13 @@ public class ChangeRequestReference extends AbstractResourceReference
          * Rebase the change request so the diff are compared to current version of the documents.
          * @since 0.6
          */
-        REBASE
+        REBASE,
+
+        /**
+         * Save description changes.
+         * @since 0.6
+         */
+        SAVE
     }
 
     private ChangeRequestAction action;

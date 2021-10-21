@@ -65,12 +65,5 @@
       <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
-    <!-- Needed for the reference to AppWithinMinutes.Content that we are using in the ChangeRequestClass reference -->
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-appwithinminutes-ui</artifactId>
-      <version>${platform.version}</version>
-      <type>xar</type>
-    </dependency>
   </dependencies>
 </project>

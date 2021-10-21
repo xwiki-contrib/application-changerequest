@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.xwiki.contrib.changerequest.test.po.ChangeRequestEditPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
@@ -89,11 +88,9 @@ class ChangeRequestCreationIT
 
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.setChangeRequestTitle("CR1");
-        ChangeRequestEditPage changeRequestEditPage = changeRequestSaveModal.clickSave();
-        changeRequestEditPage.setDescription("Some changes in the test page");
-        ChangeRequestPage changeRequestPage = changeRequestEditPage.clickSaveAndViewChangeRequest();
+        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
 
-        assertEquals("Some changes in the test page", changeRequestPage.getDescription());
+        //assertEquals("Some changes in the test page", changeRequestPage.getDescription());
         assertEquals("Ready for review", changeRequestPage.getStatusLabel());
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
