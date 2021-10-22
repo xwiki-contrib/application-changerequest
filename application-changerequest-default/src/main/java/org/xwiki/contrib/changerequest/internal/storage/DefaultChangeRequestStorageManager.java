@@ -139,7 +139,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
             xObject.set(STATUS_FIELD, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
 
-            List<String> serializedReferences = changeRequest.getFileChanges().keySet().stream()
+            List<String> serializedReferences = changeRequest.getModifiedDocuments().stream()
                 .map(target -> this.localEntityReferenceSerializer.serialize(target))
                 .collect(Collectors.toList());
             xObject.set(CHANGED_DOCUMENTS_FIELD, serializedReferences, context);
@@ -245,18 +245,15 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
-        SpaceReference changeRequestSpaceLocation = this.configuration.getChangeRequestSpaceLocation();
-        String statement = String.format("where doc.space like :space and doc.object(%s).%s like :reference",
+        String statement = String.format("where :reference member of doc.object(%s).%s",
             this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_FIELD);
         try {
             Query query = this.queryManager.createQuery(statement, Query.XWQL);
-            query.bindValue("space", this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation));
-            query.bindValue(REFERENCE, String.format("%%%s%%",
-                this.localEntityReferenceSerializer.serialize(documentReference)));
+            query.bindValue(REFERENCE, this.localEntityReferenceSerializer.serialize(documentReference));
             List<String> changeRequestDocuments = query.execute();
             for (String changeRequestDocument : changeRequestDocuments) {
                 DocumentReference crReference = this.documentReferenceResolver.resolve(changeRequestDocument);
-                this.load(crReference.getName()).ifPresent(result::add);
+                this.load(crReference.getLastSpaceReference().getName()).ifPresent(result::add);
             }
         } catch (QueryException e) {
             throw new ChangeRequestException(

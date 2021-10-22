@@ -237,15 +237,12 @@ class DefaultChangeRequestStorageManagerTest
     void findChangeRequestTargeting() throws Exception
     {
         DocumentReference targetReference = mock(DocumentReference.class);
-        SpaceReference crLocation = mock(SpaceReference.class);
-        when(this.configuration.getChangeRequestSpaceLocation()).thenReturn(crLocation);
-        when(this.localEntityReferenceSerializer.serialize(crLocation)).thenReturn("XWiki.ChangeRequest");
         when(this.localEntityReferenceSerializer.serialize(targetReference)).thenReturn("Foo.MyPage");
 
         when(this.entityReferenceSerializer.serialize(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS))
             .thenReturn("ChangeRequest.ChangeRequestClass");
-        String expectedStatement = "where doc.space like :space and "
-            + "doc.object(ChangeRequest.ChangeRequestClass).changedDocuments like :reference";
+        String expectedStatement =
+            "where :reference member of doc.object(ChangeRequest.ChangeRequestClass).changedDocuments";
         Query query = mock(Query.class);
         when(queryManager.createQuery(expectedStatement, Query.XWQL)).thenReturn(query);
 
@@ -262,11 +259,11 @@ class DefaultChangeRequestStorageManagerTest
         when(this.changeRequestDocumentReferenceResolver.resolve(any())).thenAnswer(invocationOnMock -> {
             ChangeRequest actualChangeRequest = invocationOnMock.getArgument(0);
             switch (actualChangeRequest.getId()) {
-                case "ref1":
+                case "Space1":
                     return ref1;
-                case "ref2":
+                case "Space2":
                     return ref2;
-                case "ref3":
+                case "Space3":
                     return ref3;
                 default:
                     fail(String.format("Wrong change request id: [%s]", actualChangeRequest.getId()));
@@ -299,7 +296,7 @@ class DefaultChangeRequestStorageManagerTest
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(doc2.getCreationDate()).thenReturn(new Date(42));
         ChangeRequest cr2 = new ChangeRequest();
-        cr2.setId("ref2")
+        cr2.setId("Space2")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreator(userReference)
             .setTitle(title)
@@ -325,7 +322,7 @@ class DefaultChangeRequestStorageManagerTest
         when(xobject2.getStringValue("status")).thenReturn("draft");
         when(doc3.getCreationDate()).thenReturn(new Date(16));
         ChangeRequest cr3 = new ChangeRequest();
-        cr3.setId("ref3")
+        cr3.setId("Space3")
             .setStatus(ChangeRequestStatus.DRAFT)
             .setCreator(userReference2)
             .setTitle(title2)
@@ -333,7 +330,6 @@ class DefaultChangeRequestStorageManagerTest
             .setCreationDate(new Date(16));
 
         assertEquals(Arrays.asList(cr2, cr3), this.storageManager.findChangeRequestTargeting(targetReference));
-        verify(query).bindValue("space", "XWiki.ChangeRequest");
-        verify(query).bindValue("reference", "%Foo.MyPage%");
+        verify(query).bindValue("reference", "Foo.MyPage");
     }
 }
