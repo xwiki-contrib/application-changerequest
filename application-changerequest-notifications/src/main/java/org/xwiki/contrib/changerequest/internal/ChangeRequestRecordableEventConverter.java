@@ -103,6 +103,11 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             AbstractChangeRequestRecordableEvent crEvent = (AbstractChangeRequestRecordableEvent) recordableEvent;
             parameters.put(CHANGE_REQUEST_ID_PARAMETER_KEY, crEvent.getChangeRequestId());
             result.setType(crEvent.getEventName());
+
+            // We put a specific groupId to avoid having events grouped with other events performed during same request
+            // this might happen in particular when a review is performed leading to the change of a change request
+            // status, or when a page is updated which also leads to a change of change request status.
+            result.setGroupId(crEvent.getEventName());
         }
         if (recordableEvent instanceof ChangeRequestFileChangeAddedRecordableEvent) {
             ChangeRequestFileChangeAddedRecordableEvent crEvent =
