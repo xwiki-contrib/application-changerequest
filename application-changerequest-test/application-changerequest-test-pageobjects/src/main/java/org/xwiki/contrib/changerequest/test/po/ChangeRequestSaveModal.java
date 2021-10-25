@@ -56,7 +56,7 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public void openCreateChangeRequestCollapse()
     {
-        WebElement collapseLink = getDriver().findElementByLinkText("Create new change request");
+        WebElement collapseLink = getDriver().findElement(By.linkText("Create new change request"));
         this.openCollapsed(collapseLink);
     }
 
@@ -65,7 +65,7 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public void openAddChangesToExistingChangeRequestCollapse()
     {
-        WebElement collapseLink = getDriver().findElementByLinkText("Add changes to existing change request");
+        WebElement collapseLink = getDriver().findElement(By.linkText("Add changes to existing change request"));
         this.openCollapsed(collapseLink);
     }
 
@@ -75,7 +75,7 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public void setChangeRequestTitle(String title)
     {
-        this.getDriver().findElementById("crTitle").sendKeys(title);
+        this.getDriver().findElement(By.id("crTitle")).sendKeys(title);
     }
 
     /**
@@ -84,7 +84,7 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public void setDraftCheckbox(boolean value)
     {
-        WebElement crDraft = this.getDriver().findElementById("crDraft");
+        WebElement crDraft = this.getDriver().findElement(By.id("crDraft"));
         boolean selected = crDraft.isSelected();
         if (selected != value) {
             crDraft.click();
@@ -98,7 +98,7 @@ public class ChangeRequestSaveModal extends BaseModal
     public void selectExistingChangeRequest(String changeRequestName)
     {
         SuggestInputElement suggestInputElement =
-            new SuggestInputElement(this.getDriver().findElementById("existingCRSelector"));
+            new SuggestInputElement(this.getDriver().findElement(By.id("existingCRSelector")));
         suggestInputElement.sendKeys(changeRequestName);
         suggestInputElement.waitForSuggestions();
         suggestInputElement.selectTypedText();

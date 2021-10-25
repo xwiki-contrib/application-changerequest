@@ -50,7 +50,7 @@ public class ExtendedViewPage extends ViewPage
      */
     public ExtendedEditPage<WYSIWYGEditPage> clickChangeRequestEdit()
     {
-        getDriver().findElementById(CR_EDIT_ID).findElement(By.className("btn-default")).click();
+        getDriver().findElement(By.id(CR_EDIT_ID)).findElement(By.className("btn-default")).click();
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
         extendedEditPage.getEditor().waitUntilPageIsLoaded();
         return extendedEditPage;

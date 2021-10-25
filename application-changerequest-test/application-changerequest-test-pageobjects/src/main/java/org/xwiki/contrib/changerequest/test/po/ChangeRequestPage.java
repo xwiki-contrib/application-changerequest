@@ -44,7 +44,7 @@ public class ChangeRequestPage extends ViewPage
      */
     public String getDescription()
     {
-        return getDriver().findElementByClassName("cr-description").getText();
+        return getDriver().findElement(By.className("cr-description")).getText();
     }
 
     /**
@@ -55,9 +55,9 @@ public class ChangeRequestPage extends ViewPage
     public FileChangesPane openFileChanges()
     {
 
-        WebElement filechanges = getDriver().findElementById("filechanges");
+        WebElement filechanges = getDriver().findElement(By.id("filechanges"));
         if (!filechanges.getAttribute("class").contains("active")) {
-            getDriver().findElementByCssSelector("a[aria-controls=filechanges]").click();
+            getDriver().findElement(By.cssSelector("a[aria-controls=filechanges]")).click();
         }
         return new FileChangesPane(filechanges);
     }

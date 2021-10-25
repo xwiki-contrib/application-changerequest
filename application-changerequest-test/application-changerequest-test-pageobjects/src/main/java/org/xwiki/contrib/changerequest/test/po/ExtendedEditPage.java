@@ -68,7 +68,7 @@ public class ExtendedEditPage<T> extends BaseElement
      */
     public ChangeRequestSaveModal clickSaveAsChangeRequest()
     {
-        this.getDriver().findElementById(SAVE_CHANGE_REQUEST_ID).click();
+        this.getDriver().findElement(By.id(SAVE_CHANGE_REQUEST_ID)).click();
         return new ChangeRequestSaveModal();
     }
 }
