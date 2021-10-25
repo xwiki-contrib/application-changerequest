@@ -36,7 +36,7 @@ public class ChangeRequestPage extends ViewPage
      */
     public String getStatusLabel()
     {
-        return getDriver().findElementByClassName("document-info").findElement(By.className("label")).getText();
+        return getDriver().findElement(By.className("document-info")).findElement(By.className("label")).getText();
     }
 
     /**
