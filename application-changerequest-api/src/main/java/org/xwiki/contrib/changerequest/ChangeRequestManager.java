@@ -185,4 +185,32 @@ public interface ChangeRequestManager
     default void computeReadyForMergingStatus(ChangeRequest changeRequest) throws ChangeRequestException
     {
     }
+
+    /**
+     * Define if the given user is authorized to change the status of the given change request.
+     * Only change request that are not merged can have their status changed, and only authors or administrators of the
+     * wiki could change it.
+     * @param userReference the user for which to check rights.
+     * @param changeRequest the change request to check if the status can be changed.
+     * @return {@code true} if the given user can change the status, {@code false otherwise}.
+     * @since 0.6
+     */
+    default boolean isAuthorizedToChangeStatus(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return false;
+    }
+
+    /**
+     * Update the status of the given change request with the new status, only if it's not set yet.
+     * This method also triggers {@link #computeReadyForMergingStatus(ChangeRequest)} after the status change and
+     * triggers a {@link org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent}.
+     *
+     * @param changeRequest the change request for which to change the status.
+     * @param newStatus the new status to be set.
+     * @throws ChangeRequestException in case of problem when saving the change request.
+     * @since 0.6
+     */
+    default void updateStatus(ChangeRequest changeRequest, ChangeRequestStatus newStatus) throws ChangeRequestException
+    {
+    }
 }

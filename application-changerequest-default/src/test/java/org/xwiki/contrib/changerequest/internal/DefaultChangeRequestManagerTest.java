@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -47,6 +48,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
@@ -118,6 +120,9 @@ class DefaultChangeRequestManagerTest
 
     @MockComponent
     private ObservationManager observationManager;
+
+    @MockComponent
+    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     private XarExtensionScriptService xarExtensionScriptService;
 
@@ -370,5 +375,54 @@ class DefaultChangeRequestManagerTest
         expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult, "fileChangeId")
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
+    }
+
+    @Test
+    void isAuthorizedToChangeStatus()
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        UserReference userReference = mock(UserReference.class);
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(changeRequest.getAuthors())
+            .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
+        assertFalse(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
+        assertTrue(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        DocumentReference changeRequestDoc = mock(DocumentReference.class);
+
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
+        assertFalse(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
+        assertTrue(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+    }
+
+    @Test
+    void updateStatus() throws ChangeRequestException
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
+
+        this.manager.updateStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
+        verifyNoInteractions(this.changeRequestStorageManager);
+        verifyNoInteractions(this.observationManager);
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
+        when(changeRequest.getId()).thenReturn("someId");
+        this.manager.updateStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
+
+        verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
+        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
+            eq(new ChangeRequestStatus[] {ChangeRequestStatus.DRAFT, ChangeRequestStatus.READY_FOR_REVIEW}));
+
+
     }
 }

@@ -59,6 +59,7 @@ import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
@@ -124,6 +125,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Inject
     private ObservationManager observationManager;
+
+    @Inject
+    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     private XarExtensionScriptService xarExtensionScriptService;
 
@@ -508,5 +512,35 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToChangeStatus(UserReference userReference, ChangeRequest changeRequest)
+    {
+        boolean result = false;
+        if (changeRequest.getStatus() != ChangeRequestStatus.MERGED) {
+            if (changeRequest.getAuthors().contains(userReference)) {
+                result = true;
+            } else {
+                DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+                DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+                result = this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void updateStatus(ChangeRequest changeRequest, ChangeRequestStatus newStatus)
+        throws ChangeRequestException
+    {
+        ChangeRequestStatus oldStatus = changeRequest.getStatus();
+        if (oldStatus != newStatus) {
+            changeRequest.setStatus(newStatus);
+            this.changeRequestStorageManager.save(changeRequest);
+            this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
+                new ChangeRequestStatus[] {oldStatus, newStatus});
+            this.computeReadyForMergingStatus(changeRequest);
+        }
     }
 }

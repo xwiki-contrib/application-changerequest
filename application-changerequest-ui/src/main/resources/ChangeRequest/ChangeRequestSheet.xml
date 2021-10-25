@@ -423,14 +423,21 @@
     #if ($isNotMerged)
     &lt;div role="tabpanel" class="tab-pane" id="merge"&gt;
     &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
-       #set ($isStatusReady = $changeRequest.status == "READY_FOR_REVIEW")
-       #if ($isStatusReady)
-         #set ($statusPanelClass = "panel-success")
+       #if ($changeRequest.status == "READY_FOR_REVIEW")
+         #set ($statusPanelClass = "panel-primary")
          #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.ready_for_review'))
          #set ($statusIcon = $checkIconSuccess)
-       #else
+       #elseif ($changeRequest.status == "DRAFT")
          #set ($statusPanelClass = "panel-warning")
          #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.draft'))
+         #set ($statusIcon = $checkIconProblem)
+       #elseif ($changeRequest.status == "READY_FOR_MERGING")
+         #set ($statusPanelClass = "panel-success")
+         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.ready_for_merging'))
+         #set ($statusIcon = $checkIconSuccess)
+       #elseif ($changeRequest.status == "CLOSED")
+         #set ($statusPanelClass = "panel-danger")
+         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.closed'))
          #set ($statusIcon = $checkIconProblem)
        #end
        &lt;div class="panel $statusPanelClass"&gt;
@@ -446,19 +453,26 @@
             #set ($sheetRef = "ChangeRequest.ChangeRequestSheet")
             #set ($sheetDoc = $xwiki.getDocument($sheetRef))
             #set ($canStatusBeChanged = $services.changerequest.canStatusBeChanged($changeRequest))
-            #if ($isStatusReady)
+            #if ($changeRequest.status == "READY_FOR_REVIEW" || $changeRequest.status == "READY_FOR_MERGING")
               &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.ready.explanation')&lt;/div&gt;
               #if ($canStatusBeChanged)
               &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning" title="$services.localization.render('changerequest.sheet.markdraft.button.title')"&gt;
                 $services.localization.render('changerequest.sheet.markdraft.button')
               &lt;/a&gt;
               #end
-            #else
+            #elseif ($changeRequest.status == "DRAFT")
               &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.draft.explanation')&lt;/div&gt;
               #if ($canStatusBeChanged)
               &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary" title="$services.localization.render('changerequest.sheet.markready.button.title')"&gt;
                $services.localization.render('changerequest.sheet.markready.button')
               &lt;/a&gt;
+              #end
+            #elseif ($changeRequest.status == "CLOSED")
+              &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.closed.explanation')&lt;/div&gt;
+              #if ($canStatusBeChanged)
+                &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary"&gt;
+               $services.icon.renderHTML('unlock') $services.localization.render('changerequest.sheet.open.button')
+                &lt;/a&gt;
               #end
             #end
           &lt;/div&gt;
@@ -2767,7 +2781,11 @@ tr.discussion-line:hover {
 #elseif ($status == 'merged')
   #set ($statusClass = "success")
 #elseif ($status == 'ready_for_review')
+  #set ($statusClass = "info")
+#elseif ($status == 'ready_for_merging')
   #set ($statusClass = "primary")
+#elseif ($status == 'closed')
+  #set ($statusClass = "danger")
 #end
 #set ($statusText = $services.localization.render("changerequest.sheet.status.$status"))
 
@@ -2920,7 +2938,9 @@ tr.discussion-line:hover {
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
 #set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
-#if ($changeRequest.status != "MERGED" &amp;&amp; $isAuthorizedToMerge)
+#set ($statusCanBeChanged = $services.changerequest.canStatusBeChanged($changeRequest))
+#set ($closeUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=closed&amp;form_token=$services.csrf.token")
+#if ($changeRequest.status != "MERGED" &amp;&amp; $changeRequest.status != "CLOSED" &amp;&amp; $isAuthorizedToMerge)
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
@@ -2940,11 +2960,43 @@ tr.discussion-line:hover {
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
     &lt;li class=""&gt;
-      &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
+      &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
+    #if ($statusCanBeChanged)
+    &lt;li class="btn-warning"&gt;
+      &lt;a href="$closeUrl" title="$services.localization.render('changerequest.sheet.close.button.title')" rel="nofollow"&gt;
+        $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
+      &lt;/a&gt;
+    &lt;/li&gt;
+    #end
   &lt;/ul&gt;
+&lt;/div&gt;
+{{/html}}
+#elseif ($changeRequest.status != 'MERGED' &amp;&amp; $statusCanBeChanged)
+{{html}}
+&lt;div class="btn-group" id="changeRequestButtons"&gt;
+#if ($changeRequest.status == 'CLOSED')
+  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary"&gt;
+      $services.icon.renderHTML('unlock') $services.localization.render('changerequest.sheet.open.button')
+  &lt;/a&gt;
+  &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
+    &lt;span class="caret"&gt;&lt;/span&gt;
+    &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;ul class="dropdown-menu"&gt;
+    &lt;li&gt;
+      &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=draft&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open_draft.button.title')"&gt;
+      $services.localization.render('changerequest.sheet.open_draft.button')
+      &lt;/a&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+#else
+  &lt;a href="$closeUrl" title="$services.localization.render('changerequest.sheet.close.button.title')" class="btn btn-warning"&gt;
+      $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
+  &lt;/a&gt;
+#end
 &lt;/div&gt;
 {{/html}}
 #end

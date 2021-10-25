@@ -44,7 +44,6 @@ import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
-import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.diff.Conflict;
@@ -236,19 +235,7 @@ public class ChangeRequestScriptService implements ScriptService
     public boolean canStatusBeChanged(ChangeRequest changeRequest)
     {
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return changeRequest.getStatus() != ChangeRequestStatus.MERGED
-            && changeRequest.getAuthors().contains(currentUser);
-    }
-
-    private void setStatus(ChangeRequest changeRequest, ChangeRequestStatus status) throws ChangeRequestException
-    {
-        ChangeRequestStatus oldStatus = changeRequest.getStatus();
-        if (oldStatus != status) {
-            changeRequest.setStatus(status);
-            this.changeRequestStorageManager.save(changeRequest);
-            this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
-                new ChangeRequestStatus[] {oldStatus, status});
-        }
+        return this.changeRequestManager.isAuthorizedToChangeStatus(currentUser, changeRequest);
     }
 
     /**
@@ -259,8 +246,7 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public void setReadyForReview(ChangeRequest changeRequest) throws ChangeRequestException
     {
-        setStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
-        this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+        this.changeRequestManager.updateStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
     }
 
     /**
@@ -271,7 +257,20 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public void setDraft(ChangeRequest changeRequest) throws ChangeRequestException
     {
-        setStatus(changeRequest, ChangeRequestStatus.DRAFT);
+        this.changeRequestManager.updateStatus(changeRequest, ChangeRequestStatus.DRAFT);
+    }
+
+    /**
+     * Mark the given change request as closed.
+     *
+     * @param changeRequest the change request for which to change the status.
+     * @throws ChangeRequestException in case of problem when saving the status.
+     *
+     * @since 0.6
+     */
+    public void setClose(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        this.changeRequestManager.updateStatus(changeRequest, ChangeRequestStatus.CLOSED);
     }
 
     /**

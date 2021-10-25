@@ -62,6 +62,7 @@ import org.xwiki.user.UserReferenceResolver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -196,44 +197,36 @@ class ChangeRequestScriptServiceTest
         UserReference userReference = mock(UserReference.class);
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(this.changeRequestManager.isAuthorizedToChangeStatus(userReference, changeRequest))
+            .thenReturn(false);
         assertFalse(this.scriptService.canStatusBeChanged(changeRequest));
 
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
-        UserReference otherUser = mock(UserReference.class);
-        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(otherUser));
-        assertFalse(this.scriptService.canStatusBeChanged(changeRequest));
-
-        when(changeRequest.getAuthors()).thenReturn(new HashSet<>(Arrays.asList(otherUser, userReference)));
-        assertTrue(this.scriptService.canStatusBeChanged(changeRequest));
+        verify(this.changeRequestManager).isAuthorizedToChangeStatus(userReference, changeRequest);
     }
 
     @Test
     void setReadyForReview() throws ChangeRequestException
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
         this.scriptService.setReadyForReview(changeRequest);
 
-        verify(this.changeRequestStorageManager, never()).save(changeRequest);
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
-        this.scriptService.setReadyForReview(changeRequest);
-        verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
-        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.changeRequestManager).updateStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
     }
 
     @Test
     void setDraft() throws ChangeRequestException
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
         this.scriptService.setDraft(changeRequest);
+        verify(this.changeRequestManager).updateStatus(changeRequest, ChangeRequestStatus.DRAFT);
+    }
 
-        verify(this.changeRequestStorageManager, never()).save(changeRequest);
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
-        this.scriptService.setDraft(changeRequest);
-        verify(changeRequest).setStatus(ChangeRequestStatus.DRAFT);
-        verify(this.changeRequestStorageManager).save(changeRequest);
+    @Test
+    void setClose() throws ChangeRequestException
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        this.scriptService.setClose(changeRequest);
+        verify(this.changeRequestManager).updateStatus(changeRequest, ChangeRequestStatus.CLOSED);
     }
 
     @Test
@@ -447,5 +440,25 @@ class ChangeRequestScriptServiceTest
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.changeRequestApproversManager.getAllApprovers(changeRequest, true)).thenReturn(userReferenceSet);
         assertEquals(userReferenceSet, this.scriptService.getApprovers(changeRequest));
+    }
+
+    @Test
+    void getFileChange()
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        FileChange fileChange1 = mock(FileChange.class);
+        FileChange fileChange2 = mock(FileChange.class);
+        FileChange fileChange3 = mock(FileChange.class);
+        FileChange fileChange4 = mock(FileChange.class);
+        when(changeRequest.getAllFileChanges()).thenReturn(Arrays.asList(
+            fileChange1,
+            fileChange2,
+            fileChange3,
+            fileChange4));
+        String fileChangeId = "someId42";
+        when(fileChange3.getId()).thenReturn(fileChangeId);
+        when(fileChange4.getId()).thenReturn(fileChangeId);
+        assertEquals(Optional.of(fileChange3), this.scriptService.getFileChange(changeRequest, fileChangeId));
+        assertEquals(Optional.empty(), this.scriptService.getFileChange(changeRequest, "anything"));
     }
 }

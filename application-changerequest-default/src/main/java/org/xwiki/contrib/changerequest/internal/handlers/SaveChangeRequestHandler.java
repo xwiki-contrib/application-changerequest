@@ -34,7 +34,9 @@ import org.xwiki.container.servlet.ServletRequest;
 import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.csrf.CSRFToken;
 import org.xwiki.wysiwyg.converter.HTMLConverter;
 
@@ -55,6 +57,8 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
 
     private static final String CONTENT_SYNTAX_PARAMETER = "content_syntax";
 
+    private static final String STATUS_PARAMETER = "status";
+
     @Inject
     private HTMLConverter htmlConverter;
 
@@ -63,6 +67,9 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
 
     @Inject
     private Container container;
+
+    @Inject
+    private ChangeRequestManager changeRequestManager;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
@@ -76,11 +83,36 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong CSRF token");
         } else {
             ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
-            String content = getContent(request);
-            changeRequest.setDescription(content);
-            this.storageManager.save(changeRequest);
-            this.redirectToChangeRequest(changeRequest);
+            if ("GET".equals(request.getMethod())) {
+                this.handleStatusUpdate(request, response, changeRequest);
+            } else {
+                this.handleDescriptionUpdate(request, changeRequest);
+            }
+
         }
+    }
+
+    private void handleStatusUpdate(HttpServletRequest request, HttpServletResponse response,
+        ChangeRequest changeRequest) throws IOException, ChangeRequestException
+    {
+        String statusParameter = request.getParameter(STATUS_PARAMETER);
+        try {
+            ChangeRequestStatus changeRequestStatus = ChangeRequestStatus.valueOf(statusParameter.toUpperCase());
+            this.changeRequestManager.updateStatus(changeRequest, changeRequestStatus);
+            this.redirectToChangeRequest(changeRequest);
+        } catch (IllegalArgumentException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                String.format("Wrong status parameter: [%s]", statusParameter));
+        }
+    }
+
+    private void handleDescriptionUpdate(HttpServletRequest request, ChangeRequest changeRequest)
+        throws ChangeRequestException, IOException
+    {
+        String content = getContent(request);
+        changeRequest.setDescription(content);
+        this.storageManager.save(changeRequest);
+        this.redirectToChangeRequest(changeRequest);
     }
 
     // Code inspired from DiscussionsResourceReferenceHandler
