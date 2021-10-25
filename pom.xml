@@ -25,8 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-platform</artifactId>
-    <!-- FIXME: we need to depend on 13.9 to have metadata on diff UI -->
-    <version>13.6</version>
+    <version>13.9</version>
   </parent>
   <groupId>org.xwiki.contrib.changerequest</groupId>
   <artifactId>application-changerequest</artifactId>
@@ -58,7 +57,7 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <discussions.version>2.0-SNAPSHOT</discussions.version>
+    <discussions.version>2.0-rc-1</discussions.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
