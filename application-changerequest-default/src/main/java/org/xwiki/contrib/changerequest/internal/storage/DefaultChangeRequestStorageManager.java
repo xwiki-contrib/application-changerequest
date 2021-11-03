@@ -20,8 +20,11 @@
 package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,15 +37,21 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
+import org.xwiki.job.JobException;
+import org.xwiki.job.JobExecutor;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -51,6 +60,9 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
+import org.xwiki.refactoring.job.EntityRequest;
+import org.xwiki.refactoring.job.RefactoringJobs;
+import org.xwiki.refactoring.script.RequestFactory;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
 
@@ -120,7 +132,19 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private ReviewStorageManager reviewStorageManager;
 
     @Inject
+    private ChangeRequestDiscussionService discussionService;
+
+    @Inject
     private ObservationManager observationManager;
+
+    @Inject
+    private RequestFactory refactoringRequestFactory;
+
+    @Inject
+    private JobExecutor jobExecutor;
+
+    @Inject
+    private ChangeRequestRightsManager changeRequestRightsManager;
 
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
@@ -259,6 +283,67 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             throw new ChangeRequestException(
                 String.format("Error while trying to get change request for document [%s]", documentReference), e);
         }
+
+        return result;
+    }
+
+    @Override
+    public List<ChangeRequest> findChangeRequestTargeting(SpaceReference spaceReference)
+        throws ChangeRequestException
+    {
+        return ChangeRequestStorageManager.super.findChangeRequestTargeting(spaceReference);
+    }
+
+    @Override
+    public List<ChangeRequest> split(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        List<ChangeRequest> result = new ArrayList<>();
+        Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
+
+        for (Map.Entry<DocumentReference, Deque<FileChange>> entry : fileChanges.entrySet()) {
+            ChangeRequest splittedChangeRequest = changeRequest.cloneWithoutFileChanges();
+
+            for (FileChange fileChange : entry.getValue()) {
+                FileChange clonedFileChange = fileChange.cloneWithChangeRequest(splittedChangeRequest);
+                splittedChangeRequest.addFileChange(clonedFileChange);
+            }
+
+            this.save(splittedChangeRequest);
+            for (ChangeRequestReview review : changeRequest.getReviews()) {
+                ChangeRequestReview clonedReview = review.cloneWithChangeRequest(splittedChangeRequest);
+
+                // we consider reviews as outdated for splitted change requests
+                // and we keep same id to avoid having to perform a mapping old/new reviews
+                clonedReview
+                    .setValid(false)
+                    .setId(review.getId());
+
+                splittedChangeRequest.addReview(review);
+                this.reviewStorageManager.save(clonedReview);
+            }
+            this.changeRequestRightsManager.copyAllButViewRights(changeRequest, splittedChangeRequest);
+            this.changeRequestRightsManager.copyViewRights(splittedChangeRequest, entry.getKey());
+            result.add(splittedChangeRequest);
+        }
+
+        this.discussionService.moveDiscussions(changeRequest, result);
+
+        DocumentReference changeRequestDocument = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        EntityRequest deleteRequest =
+            this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(changeRequestDocument));
+        deleteRequest.setDeep(true);
+        deleteRequest.setCheckAuthorRights(false);
+        deleteRequest.setCheckRights(false);
+        try {
+            this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
+        } catch (JobException e) {
+            throw new ChangeRequestException(
+                String.format("Error while performing deletion of change request document [%s]", changeRequestDocument),
+                e);
+        }
+        // TODO: put placeholder with redirect
+
+        this.observationManager.notify(new SplittedChangeRequestEvent(), changeRequest.getId(), result);
 
         return result;
     }

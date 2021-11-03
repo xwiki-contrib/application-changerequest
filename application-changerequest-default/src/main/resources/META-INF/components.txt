@@ -29,4 +29,6 @@ org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer
 org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer
 org.xwiki.contrib.changerequest.internal.handlers.RebaseChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.handlers.SaveChangeRequestHandler
-org.xwiki.contrib.changerequest.internal.DocumentUpdatedListener
+org.xwiki.contrib.changerequest.internal.listeners.DocumentUpdatedListener
+org.xwiki.contrib.changerequest.internal.listeners.RightsUpdatedListener
+org.xwiki.contrib.changerequest.internal.DefaultChangeRequestRightsManager

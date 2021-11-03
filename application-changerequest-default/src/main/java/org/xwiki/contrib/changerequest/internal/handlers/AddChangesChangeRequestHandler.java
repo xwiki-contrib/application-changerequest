@@ -38,6 +38,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
@@ -81,6 +82,9 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
     @Inject
     private ReviewStorageManager reviewStorageManager;
+
+    @Inject
+    private ChangeRequestRightsManager changeRequestRightsManager;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
@@ -139,6 +143,14 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     return null;
                 }
             } else {
+                if (!this.changeRequestRightsManager
+                    .isViewAccessConsistent(changeRequest, modifiedDocument.getDocumentReferenceWithLocale())) {
+
+                    // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
+                    // as a needed precondition for the request to be handled.
+                    this.contextProvider.get().getResponse().sendError(412, "Rights conflicts found in the changes.");
+                    return null;
+                }
                 String fileChangeVersion =
                     this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
                 fileChange

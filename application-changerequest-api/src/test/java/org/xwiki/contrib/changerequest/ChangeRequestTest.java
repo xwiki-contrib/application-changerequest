@@ -33,8 +33,10 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.UserReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -306,5 +308,39 @@ public class ChangeRequestTest
             .setCreationDate(new Date(48))
             .setTitle("Another title");
         assertNotEquals(changeRequest, otherChangeRequest);
+    }
+
+    @Test
+    void cloneWithoutFileChanges()
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("Another title");
+
+        ChangeRequest otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setTitle("Another title");
+
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getTargetEntity()).thenReturn(mock(DocumentReference.class));
+        changeRequest.addFileChange(fileChange);
+
+        assertFalse(changeRequest.getFileChanges().isEmpty());
+
+        ChangeRequest clone = changeRequest.cloneWithoutFileChanges();
+        assertTrue(clone.getFileChanges().isEmpty());
+
+        assertNotEquals(otherChangeRequest, clone);
+        otherChangeRequest.setCreationDate(clone.getCreationDate());
+        assertNotEquals(otherChangeRequest, clone);
     }
 }

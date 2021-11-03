@@ -73,6 +73,16 @@
       <artifactId>xwiki-platform-extension-handler-xar</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.contrib.api-rights</groupId>
+      <artifactId>api-rights-bridge</artifactId>
+      <version>${rights-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.contrib.changerequest</groupId>
+      <artifactId>application-changerequest-discussions</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

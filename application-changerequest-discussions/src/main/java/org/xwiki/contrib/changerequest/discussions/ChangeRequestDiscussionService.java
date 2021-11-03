@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.discussions;
 import java.util.List;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.stability.Unstable;
@@ -77,4 +78,19 @@ public interface ChangeRequestDiscussionService
      */
     AbstractChangeRequestDiscussionContextReference getReferenceFrom(Discussion discussion)
         throws ChangeRequestDiscussionException;
+
+    /**
+     * Allow to move all discussions related to the original change request, in the given splitted change requests.
+     * Global discussions should be copied in all splitted change requests, while specific file discussions should
+     * target specific change request.
+     *
+     * @param originalChangeRequest the original change request containing all discussions.
+     * @param splittedChangeRequest the splitted change requests where to copy the discussions.
+     * @throws ChangeRequestDiscussionException in case of problem during the move.
+     * @since 0.7
+     */
+    default void moveDiscussions(ChangeRequest originalChangeRequest, List<ChangeRequest> splittedChangeRequest) throws
+        ChangeRequestDiscussionException
+    {
+    }
 }

@@ -309,7 +309,20 @@ public class FileChange
      */
     public FileChange clone()
     {
-        return new FileChange(this.changeRequest, this.type)
+        return this.cloneWithChangeRequest(this.changeRequest);
+    }
+
+    /**
+     * Clone the current instance and mark it as depending from the given change request.
+     * Note that the original creation date of the file change is kept.
+     *
+     * @param changeRequest the change request the clone is attached to
+     * @return the cloned file change.
+     * @since 0.7
+     */
+    public FileChange cloneWithChangeRequest(ChangeRequest changeRequest)
+    {
+        return new FileChange(changeRequest, this.type)
             .setVersion(this.version)
             .setCreationDate(this.creationDate)
             .setAuthor(this.author)

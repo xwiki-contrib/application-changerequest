@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -39,6 +40,7 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestRevie
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 
 /**
@@ -52,6 +54,9 @@ import org.xwiki.store.merge.MergeDocumentResult;
 @Singleton
 public class ChangeRequestDiscussionReferenceUtils
 {
+    static final String DISCUSSION_CONTEXT_TRANSLATION_PREFIX = "changerequest.discussion.context.";
+    static final String DISCUSSION_TRANSLATION_PREFIX = "changerequest.discussion.";
+
     private static final String REFERENCE_TYPE_GROUP = "referenceType";
     private static final Pattern ENTITY_REFERENCE_TYPE_PATTERN =
         Pattern.compile(String.format("^changerequest-(?<%s>\\w+)$", REFERENCE_TYPE_GROUP));
@@ -61,6 +66,9 @@ public class ChangeRequestDiscussionReferenceUtils
 
     private static final Pattern ENTITY_REFERENCE_REFERENCE_PATTERN =
         Pattern.compile(String.format("^(?<%s>[\\w-]+)_(?<%s>.+)$", CHANGE_REQUEST_ID_GROUP, REFERENCE_ID_GROUP));
+
+    @Inject
+    private ContextualLocalizationManager localizationManager;
 
     private String getLineDiffRepresentation(ChangeRequestLineDiffReference lineDiffReference)
     {
@@ -204,5 +212,25 @@ public class ChangeRequestDiscussionReferenceUtils
             reference = this.computeReferenceFromType(referenceType, entityReference.getReference(), previousReference);
         }
         return reference;
+    }
+
+    <T extends AbstractChangeRequestDiscussionContextReference> String getTitleTranslation(String prefix,
+        T reference)
+    {
+        String translationKey = String.format("%s%s.title", prefix, reference.getType().name().toLowerCase());
+        List<Object> parameters = this.getTranslationParameters(reference);
+
+        return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
+    }
+
+    <T extends AbstractChangeRequestDiscussionContextReference> String getDescriptionTranslation(String prefix,
+        T reference)
+    {
+        String translationKey = String.format("%s%s.description", prefix, reference.getType().name().toLowerCase());
+        List<Object> parameters = new ArrayList<>();
+        parameters.add(reference.getChangeRequestId());
+        parameters.addAll(this.getTranslationParameters(reference));
+
+        return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
     }
 }

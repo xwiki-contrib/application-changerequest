@@ -181,6 +181,23 @@ public class ChangeRequestReview
         return this;
     }
 
+    /**
+     * Clone a review and assign it to the given change request. Note that the cloned review is marked as not saved by
+     * default.
+     *
+     * @param changeRequest the change request to which the clone should be assigned to.
+     * @return a clone of the current instance attached to the given change request.
+     * @since 0.7
+     */
+    public ChangeRequestReview cloneWithChangeRequest(ChangeRequest changeRequest)
+    {
+        return new ChangeRequestReview(changeRequest, this.approved, this.author)
+            .setReviewDate(this.reviewDate)
+            .setComment(this.comment)
+            .setValid(this.isValid)
+            .setSaved(false);
+    }
+
     @Override
     public boolean equals(Object o)
     {

@@ -3,3 +3,4 @@ org.xwiki.contrib.changerequest.discussions.internal.DefaultChangeRequestDiscuss
 org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService
 org.xwiki.contrib.changerequest.discussions.internal.MessageCreationListener
 org.xwiki.contrib.changerequest.discussions.internal.ChangeRequestDiscussionReferenceUtils
+org.xwiki.contrib.changerequest.discussions.internal.ChangeRequestDiscussionFactory

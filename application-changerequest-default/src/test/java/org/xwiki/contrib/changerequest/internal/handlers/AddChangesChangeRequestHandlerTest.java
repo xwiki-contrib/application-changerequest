@@ -28,6 +28,7 @@ import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
@@ -102,6 +103,9 @@ class AddChangesChangeRequestHandlerTest
     @MockComponent
     private RequestParameterConverter requestParameterConverter;
 
+    @MockComponent
+    private ChangeRequestRightsManager changeRequestRightsManager;
+
     @Test
     void handleFileChangeNotExisting() throws Exception
     {
@@ -145,6 +149,7 @@ class AddChangesChangeRequestHandlerTest
             expectedFileChange.setCreationDate(fileChange.getCreationDate());
             return null;
         });
+        when(this.changeRequestRightsManager.isViewAccessConsistent(changeRequest, documentReference)).thenReturn(true);
         DocumentReference changeRequestDocReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
         String url = "some url";

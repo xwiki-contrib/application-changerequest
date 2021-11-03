@@ -27,6 +27,7 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
 /**
  * Define the API for the storage manager of change request.
@@ -77,6 +78,20 @@ public interface ChangeRequestStorageManager
     }
 
     /**
+     * Find all change requests that contains a file change inside the given reference.
+     *
+     * @param spaceReference reference of a space that might be targeted by a change
+     * @return a list of change request.
+     * @throws ChangeRequestException in case of problem to find the change requests.
+     * @since 0.7
+     */
+    default List<ChangeRequest> findChangeRequestTargeting(SpaceReference spaceReference)
+        throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
+    /**
      * Search for change requests document references that are matching the given title.
      *
      * @param title a partial title for finding change requests.
@@ -85,6 +100,22 @@ public interface ChangeRequestStorageManager
      * @since 0.3
      */
     default List<DocumentReference> getChangeRequestMatchingName(String title) throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Allow to split a change request in as many change requests as there is modified documents in it.
+     * Each splitted change request will only contain the file changes corresponding to one document reference,
+     * global comments and reviews are copied in all new change requests, specific comments regarding documents will be
+     * placed in specific change requests. The original change request is deleted at the end of the operation.
+     *
+     * @param changeRequest the change request to split
+     * @return a list of change requests created by the split
+     * @throws ChangeRequestException in case of problem during the splitting.
+     * @since 0.7
+     */
+    default List<ChangeRequest> split(ChangeRequest changeRequest) throws ChangeRequestException
     {
         return Collections.emptyList();
     }

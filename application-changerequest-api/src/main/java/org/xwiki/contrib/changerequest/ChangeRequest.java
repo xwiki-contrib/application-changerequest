@@ -173,6 +173,17 @@ public class ChangeRequest
     }
 
     /**
+     * @param authors the authors of the change request.
+     * @return the current instance
+     * @since 0.7
+     */
+    public ChangeRequest setAuthors(Set<UserReference> authors)
+    {
+        this.authors = authors;
+        return this;
+    }
+
+    /**
      * @return the title of this change request.
      */
     public String getTitle()
@@ -290,6 +301,24 @@ public class ChangeRequest
     {
         this.reviews.addFirst(review);
         return this;
+    }
+
+    /**
+     * Allow to clone the current change request instance, without the file changes information, and with a new
+     * creation date.
+     *
+     * @return a clone of the current instance, without the file changes information.
+     * @since 0.7
+     */
+    public ChangeRequest cloneWithoutFileChanges()
+    {
+        return new ChangeRequest()
+            .setTitle(this.title)
+            .setStatus(this.status)
+            .setCreator(this.creator)
+            .setCreationDate(new Date())
+            .setDescription(this.description)
+            .setAuthors(this.authors);
     }
 
     @Override

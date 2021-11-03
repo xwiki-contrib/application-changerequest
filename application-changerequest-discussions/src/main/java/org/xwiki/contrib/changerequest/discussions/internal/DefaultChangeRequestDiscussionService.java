@@ -20,30 +20,33 @@
 package org.xwiki.contrib.changerequest.discussions.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestCommentReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
 import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionService;
-import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
-import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
-import org.xwiki.localization.ContextualLocalizationManager;
 
 /**
  * Default implementation of {@link ChangeRequestDiscussionService}.
@@ -55,9 +58,6 @@ import org.xwiki.localization.ContextualLocalizationManager;
 @Singleton
 public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscussionService
 {
-    private static final String DISCUSSION_CONTEXT_TRANSLATION_PREFIX = "changerequest.discussion.context.";
-    private static final String DISCUSSION_TRANSLATION_PREFIX = "changerequest.discussion.";
-
     @Inject
     private DiscussionContextService discussionContextService;
 
@@ -65,73 +65,10 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     private DiscussionService discussionService;
 
     @Inject
-    private ContextualLocalizationManager localizationManager;
-
-    @Inject
     private ChangeRequestDiscussionReferenceUtils discussionReferenceUtils;
 
-    private <T extends AbstractChangeRequestDiscussionContextReference> String getTitleTranslation(String prefix,
-        T reference)
-    {
-        String translationKey = String.format("%s%s.title", prefix, reference.getType().name().toLowerCase());
-        List<Object> parameters = this.discussionReferenceUtils.getTranslationParameters(reference);
-
-        return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
-    }
-
-    private <T extends AbstractChangeRequestDiscussionContextReference> String getDescriptionTranslation(String prefix,
-        T reference)
-    {
-        String translationKey = String.format("%s%s.description", prefix, reference.getType().name().toLowerCase());
-        List<Object> parameters = new ArrayList<>();
-        parameters.add(reference.getChangeRequestId());
-        parameters.addAll(this.discussionReferenceUtils.getTranslationParameters(reference));
-
-        return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
-    }
-
-    private <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContextEntityReference
-        createContextEntityReferenceFor(T reference)
-    {
-        String entityReference;
-        if (!StringUtils.isEmpty(reference.getReference())) {
-            entityReference = String.format("%s_%s", reference.getChangeRequestId(), reference.getReference());
-        } else {
-            entityReference = reference.getChangeRequestId();
-        }
-        return new DiscussionContextEntityReference(
-            String.format("changerequest-%s", reference.getType().name().toLowerCase()),
-            entityReference
-        );
-    }
-
-    private <T extends AbstractChangeRequestDiscussionContextReference> DiscussionStoreConfigurationParameters
-        createDiscussionStoreConfigurationParametersFor(T reference)
-    {
-        DiscussionStoreConfigurationParameters configurationParameters = new DiscussionStoreConfigurationParameters();
-        configurationParameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
-            reference.getChangeRequestId());
-        return configurationParameters;
-    }
-
-    private <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContext getOrCreateContextFor(
-        T reference)
-        throws ChangeRequestDiscussionException
-    {
-        DiscussionContextEntityReference contextEntityReference = this.createContextEntityReferenceFor(reference);
-        Optional<DiscussionContext> discussionContext = this.discussionContextService.getOrCreate(
-            ChangeRequestDiscussionService.APPLICATION_HINT,
-            getTitleTranslation(DISCUSSION_CONTEXT_TRANSLATION_PREFIX, reference),
-            getDescriptionTranslation(DISCUSSION_CONTEXT_TRANSLATION_PREFIX, reference),
-            contextEntityReference,
-            createDiscussionStoreConfigurationParametersFor(reference));
-        if (discussionContext.isPresent()) {
-            return discussionContext.get();
-        } else {
-            throw new ChangeRequestDiscussionException(
-                String.format("Error while getting or creating discussion context for reference [%s]", reference));
-        }
-    }
+    @Inject
+    private ChangeRequestDiscussionFactory changeRequestDiscussionFactory;
 
     @Override
     public <T extends AbstractChangeRequestDiscussionContextReference> Discussion getOrCreateDiscussionFor(T reference)
@@ -139,24 +76,25 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     {
         List<DiscussionContext> contextList = new ArrayList<>();
 
-        contextList.add(this.getOrCreateContextFor(new ChangeRequestReference(reference.getChangeRequestId())));
+        contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(
+            new ChangeRequestReference(reference.getChangeRequestId())));
         switch (reference.getType()) {
             case CHANGE_REQUEST_COMMENT:
             case REVIEWS:
             case FILE_DIFF:
-                contextList.add(this.getOrCreateContextFor(reference));
+                contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(reference));
                 break;
 
             case REVIEW:
-                contextList.add(this.getOrCreateContextFor(reference));
-                contextList.add(this.getOrCreateContextFor(
+                contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(reference));
+                contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(
                     new ChangeRequestReviewsReference(reference.getChangeRequestId())));
                 break;
 
             case LINE_DIFF:
-                contextList.add(this.getOrCreateContextFor(reference));
+                contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(reference));
                 ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
-                contextList.add(this.getOrCreateContextFor(
+                contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(
                     new ChangeRequestFileDiffReference(lineDiffReference.getFileChangeId(),
                         lineDiffReference.getChangeRequestId())));
                 break;
@@ -168,10 +106,12 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
 
         Optional<Discussion> discussionOptional = this.discussionService.getOrCreate(
             ChangeRequestDiscussionService.APPLICATION_HINT,
-            getTitleTranslation(DISCUSSION_TRANSLATION_PREFIX, reference),
-            getDescriptionTranslation(DISCUSSION_TRANSLATION_PREFIX, reference),
+            this.discussionReferenceUtils.getTitleTranslation(
+                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+            this.discussionReferenceUtils.getDescriptionTranslation(
+                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
             contextList.stream().map(DiscussionContext::getReference).collect(Collectors.toList()),
-            this.createDiscussionStoreConfigurationParametersFor(reference)
+            this.changeRequestDiscussionFactory.createDiscussionStoreConfigurationParametersFor(reference)
         );
         if (discussionOptional.isPresent()) {
             return discussionOptional.get();
@@ -187,7 +127,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     public <T extends AbstractChangeRequestDiscussionContextReference> List<Discussion> getDiscussionsFrom(T reference)
         throws ChangeRequestDiscussionException
     {
-        DiscussionContext discussionContext = this.getOrCreateContextFor(reference);
+        DiscussionContext discussionContext = this.changeRequestDiscussionFactory.getOrCreateContextFor(reference);
         return this.discussionService
             .findByDiscussionContexts(Collections.singletonList(discussionContext.getReference()));
     }
@@ -210,6 +150,96 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
             throw new ChangeRequestDiscussionException(
                 String.format("Error while computing reference for contexts [%s] from discussion [%s]",
                     discussionContexts, discussion));
+        }
+    }
+
+    @Override
+    public void moveDiscussions(ChangeRequest originalChangeRequest, List<ChangeRequest> splittedChangeRequests)
+        throws ChangeRequestDiscussionException
+    {
+        ChangeRequestReference changeRequestReference = new ChangeRequestReference(originalChangeRequest.getId());
+        Map<List<String>, ChangeRequest> changeRequestMap = new HashMap<>();
+        for (ChangeRequest splittedChangeRequest : splittedChangeRequests) {
+            List<String> fileChangeIdList =
+                splittedChangeRequest.getAllFileChanges().stream().map(FileChange::getId).collect(Collectors.toList());
+            changeRequestMap.put(fileChangeIdList, splittedChangeRequest);
+        }
+
+        List<Discussion> allDiscussions = this.getDiscussionsFrom(changeRequestReference);
+        for (Discussion discussion : allDiscussions) {
+            this.moveDiscussion(discussion, changeRequestMap);
+        }
+    }
+
+    private void moveDiscussion(Discussion discussion, Map<List<String>, ChangeRequest> splittedChangeRequests)
+        throws ChangeRequestDiscussionException
+    {
+        AbstractChangeRequestDiscussionContextReference reference = this.getReferenceFrom(discussion);
+        switch (reference.getType()) {
+            case FILE_DIFF:
+            case LINE_DIFF:
+                ChangeRequestFileDiffReference fileDiffReference = (ChangeRequestFileDiffReference) reference;
+                ChangeRequest newChangeRequest = null;
+                for (Map.Entry<List<String>, ChangeRequest> entry : splittedChangeRequests.entrySet()) {
+                    if (entry.getKey().contains(fileDiffReference.getFileChangeId())) {
+                        newChangeRequest = entry.getValue();
+                        break;
+                    }
+                }
+
+                this.moveFileDiffDiscussion(fileDiffReference, discussion, newChangeRequest);
+                break;
+
+            case REVIEW:
+            case REVIEWS:
+            case CHANGE_REQUEST:
+            case CHANGE_REQUEST_COMMENT:
+            default:
+                this.moveGlobalDiscussion(reference, discussion, splittedChangeRequests.values());
+        }
+    }
+
+    private void moveFileDiffDiscussion(ChangeRequestFileDiffReference fileDiffReference, Discussion discussion,
+        ChangeRequest newChangeRequest) throws ChangeRequestDiscussionException
+    {
+        AbstractChangeRequestDiscussionContextReference newReference = null;
+        if (fileDiffReference instanceof ChangeRequestLineDiffReference) {
+            ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) fileDiffReference;
+            newReference = new ChangeRequestLineDiffReference(
+                lineDiffReference.getFileChangeId(),
+                newChangeRequest.getId(),
+                lineDiffReference.getDocumentPart(),
+                lineDiffReference.getLineNumber(),
+                lineDiffReference.getLineChange()
+            );
+        } else {
+            newReference = new ChangeRequestFileDiffReference(
+                fileDiffReference.getFileChangeId(),
+                newChangeRequest.getId());
+        }
+        Discussion newDiscussion = this.getOrCreateDiscussionFor(newReference);
+        this.changeRequestDiscussionFactory.copyMessages(discussion, newDiscussion, newReference);
+    }
+
+    private void moveGlobalDiscussion(AbstractChangeRequestDiscussionContextReference reference, Discussion discussion,
+        Collection<ChangeRequest> splittedChangeRequests) throws ChangeRequestDiscussionException
+    {
+        for (ChangeRequest splittedChangeRequest : splittedChangeRequests) {
+            AbstractChangeRequestDiscussionContextReference newReference = null;
+
+            if (reference instanceof ChangeRequestReference) {
+                newReference = new ChangeRequestReference(splittedChangeRequest.getId());
+            } else if (reference instanceof ChangeRequestCommentReference) {
+                newReference = new ChangeRequestCommentReference(splittedChangeRequest.getId());
+            } else if (reference instanceof ChangeRequestReviewsReference) {
+                newReference = new ChangeRequestReviewsReference(splittedChangeRequest.getId());
+            } else if (reference instanceof ChangeRequestReviewReference) {
+                ChangeRequestReviewReference reviewReference = (ChangeRequestReviewReference) reference;
+                newReference = new ChangeRequestReviewReference(reviewReference.getReviewId(),
+                    splittedChangeRequest.getId());
+            }
+            Discussion newDiscussion = this.getOrCreateDiscussionFor(newReference);
+            this.changeRequestDiscussionFactory.copyMessages(discussion, newDiscussion, newReference);
         }
     }
 }
