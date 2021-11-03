@@ -5,7 +5,7 @@ Application allowing to request changes on a wiki without publishing directly th
 * Project Lead: [Simon Urli](http://www.xwiki.org/xwiki/bin/view/XWiki/surli)
 * [Documentation & Downloads](http://extensions.xwiki.org/xwiki/bin/view/Extension/Application%20Change%20Request%20-%20UI/)
 * [Issue Tracker](http://jira.xwiki.org/browse/CRAPP)
-* Communication: [Forum](<https://forum.xwiki.org/>), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat>)
+* Communication: [Forum](<https://forum.xwiki.org/>), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
 * [Development Practices](http://dev.xwiki.org)
 * Minimal XWiki version supported: XWiki 12.10
 * License: LGPL 2.1
