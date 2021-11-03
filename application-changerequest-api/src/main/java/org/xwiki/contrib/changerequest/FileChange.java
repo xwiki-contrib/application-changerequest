@@ -323,6 +323,7 @@ public class FileChange
     public FileChange cloneWithChangeRequest(ChangeRequest changeRequest)
     {
         return new FileChange(changeRequest, this.type)
+            .setId(this.id)
             .setVersion(this.version)
             .setCreationDate(this.creationDate)
             .setAuthor(this.author)
@@ -346,10 +347,10 @@ public class FileChange
         FileChange that = (FileChange) o;
 
         return new EqualsBuilder()
-            .append(saved, that.saved)
             .append(id, that.id)
             .append(targetEntity, that.targetEntity)
             .append(previousVersion, that.previousVersion)
+            .append(previousPublishedVersion, that.previousPublishedVersion)
             .append(author, that.author)
             .append(creationDate, that.creationDate)
             .append(modifiedDocument, that.modifiedDocument)
@@ -365,10 +366,10 @@ public class FileChange
             .append(id)
             .append(targetEntity)
             .append(previousVersion)
+            .append(previousPublishedVersion)
             .append(author)
             .append(creationDate)
             .append(modifiedDocument)
-            .append(saved)
             .append(version)
             .append(type)
             .toHashCode();
@@ -382,6 +383,7 @@ public class FileChange
             .append("targetEntity", targetEntity)
             .append("sourceVersion", previousVersion)
             .append("version", version)
+            .append("previousPublishedVersion", previousPublishedVersion)
             .append("author", author)
             .append("creationDate", creationDate)
             .append("modifiedDocument", modifiedDocument)

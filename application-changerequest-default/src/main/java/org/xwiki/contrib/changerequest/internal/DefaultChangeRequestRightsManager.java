@@ -43,6 +43,7 @@ import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.ReadableSecurityRule;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.security.authorization.RightSet;
 
 import com.xpn.xwiki.XWikiException;
 
@@ -86,10 +87,12 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
             List<ReadableSecurityRule> writableSecurityRules = new ArrayList<>();
 
             for (ReadableSecurityRule actualRule : actualRules) {
-                if (actualRule.getRights().contains(Right.VIEW)) {
+                if (actualRule.match(Right.VIEW)) {
                     WritableSecurityRule rule = this.rightsWriter.createRule(actualRule);
-                    rule.getRights().remove(Right.VIEW);
-                    if (!rule.getRights().isEmpty()) {
+                    RightSet rights = rule.getRights();
+                    rights.remove(Right.VIEW);
+                    if (!rights.isEmpty()) {
+                        rule.setRights(rights);
                         writableSecurityRules.add(rule);
                     }
                 } else {
@@ -117,7 +120,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
                 List<ReadableSecurityRule> actualRules = this.rightsReader.getActualRules(documentReference);
                 List<ReadableSecurityRule> normalizedRules = this.ruleAbacus.normalizeRulesBySubject(actualRules);
                 for (ReadableSecurityRule normalizedRule : normalizedRules) {
-                    if (normalizedRule.getRights().contains(Right.VIEW)) {
+                    if (normalizedRule.match(Right.VIEW)) {
                         subjects.addAll(normalizedRule.getGroups());
                         subjects.addAll(normalizedRule.getUsers());
                     }
@@ -169,13 +172,13 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
             List<ReadableSecurityRule> actualRules =
                 this.rightsReader.getActualRules(changeRequestSpaceReference, false);
             List<ReadableSecurityRule> rules = new ArrayList<>(this.rightsWriter.createRules(actualRules));
-            List<ReadableSecurityRule> documentRules = this.rightsReader.getActualRules(newChange);
+            List<ReadableSecurityRule> documentRules = new ArrayList<>(this.rightsReader.getActualRules(newChange));
             List<ReadableSecurityRule> wikiRules = this.rightsReader.getActualRules(newChange.getWikiReference());
 
             // we filter out the wiki reference rules
             documentRules.removeAll(wikiRules);
             for (ReadableSecurityRule actualRule : documentRules) {
-                if (actualRule.getRights().contains(Right.VIEW)) {
+                if (actualRule.match(Right.VIEW)) {
                     WritableSecurityRule rule = this.rightsWriter.createRule(actualRule);
                     rule.setRights(Collections.singletonList(Right.VIEW));
                     rules.add(rule);

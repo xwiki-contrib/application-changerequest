@@ -144,8 +144,8 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
         for (SecurityRuleDiff securityRuleDiff : securityRuleDiffList) {
             ReadableSecurityRule currentRule = securityRuleDiff.getCurrentRule();
             ReadableSecurityRule previousRule = securityRuleDiff.getPreviousRule();
-            boolean concernsView = (currentRule != null && currentRule.getRights().contains(Right.VIEW))
-                || (previousRule != null && previousRule.getRights().contains(Right.VIEW));
+            boolean concernsView = (currentRule != null && currentRule.match(Right.VIEW))
+                || (previousRule != null && previousRule.match(Right.VIEW));
             if (currentRule != null && concernsView) {
                 ruleSubjects.addAll(currentRule.getUsers());
                 ruleSubjects.addAll(currentRule.getGroups());

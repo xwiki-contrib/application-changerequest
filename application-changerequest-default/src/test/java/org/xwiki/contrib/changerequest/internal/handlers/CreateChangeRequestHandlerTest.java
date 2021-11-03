@@ -132,6 +132,7 @@ class CreateChangeRequestHandlerTest
             .setAuthor(userReference)
             .setTargetEntity(documentReferenceWithLocale)
             .setPreviousVersion(previousVersion)
+            .setPreviousPublishedVersion(previousVersion)
             .setModifiedDocument(modifiedDocument);
 
         String crId = "myCrID";
