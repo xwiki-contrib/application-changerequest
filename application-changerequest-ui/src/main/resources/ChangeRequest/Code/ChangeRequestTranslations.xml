@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.ChangeRequestTranslations" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="">
+  <web>ChangeRequest.Code</web>
   <name>ChangeRequestTranslations</name>
   <language/>
   <defaultLanguage>en</defaultLanguage>
@@ -113,15 +113,15 @@ changerequest.mergeApprovalStrategy.name.allapprovers=Require all approvers to a
 changerequest.mergeApprovalStrategy.name.fixednumberapprovals=Require a fixed number of approvers to approve
 changerequest.mergeApprovalStrategy.name.onlyapproved=Require only approvals
 
-ChangeRequest.ConfigurationClass_approvalStrategy=Merge Approval Strategy
-ChangeRequest.ConfigurationClass_approvalStrategy.hint=Strategy to comply with for allowing merging a change request.
+ChangeRequest.Code.ConfigurationClass_approvalStrategy=Merge Approval Strategy
+ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=Strategy to comply with for allowing merging a change request.
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion
-ChangeRequest.ApproversClass_usersApprovers=Users who can approve
-ChangeRequest.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
-ChangeRequest.ApproversClass_groupsApprovers=Groups who can approve
-ChangeRequest.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.
+ChangeRequest.Code.ApproversClass_usersApprovers=Users who can approve
+ChangeRequest.Code.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
+ChangeRequest.Code.ApproversClass_groupsApprovers=Groups who can approve
+ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.
 
 changerequest.timeline.changerequest.create={0} created the change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
@@ -131,7 +131,7 @@ changerequest.timeline.changerequest.review.added.requestchanges={0} added a new
 changerequest.timeline.changerequest.discussions={0} added a new message
 changerequest.sheet.description.placeholder=Click on the edit link on the right to provide a description.</content>
   <object>
-    <name>ChangeRequest.ChangeRequestTranslations</name>
+    <name>ChangeRequest.Code.ChangeRequestTranslations</name>
     <number>0</number>
     <className>XWiki.TranslationDocumentClass</className>
     <guid>d47038b4-3a5e-4987-9491-25e967ae7643</guid>

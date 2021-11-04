@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.ConfigurationClass" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ConfigurationClass" locale="">
+  <web>ChangeRequest.Code</web>
   <name>ConfigurationClass</name>
   <language/>
   <defaultLanguage/>
@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content>Configuration class for change request.</content>
   <class>
-    <name>ChangeRequest.ConfigurationClass</name>
+    <name>ChangeRequest.Code.ConfigurationClass</name>
     <customClass/>
     <customMapping/>
     <defaultViewSheet/>

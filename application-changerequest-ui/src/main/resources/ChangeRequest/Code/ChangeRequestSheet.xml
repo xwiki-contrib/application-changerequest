@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.ChangeRequestSheet" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
+  <web>ChangeRequest.Code</web>
   <name>ChangeRequestSheet</name>
   <language/>
   <defaultLanguage/>
@@ -31,7 +31,7 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>#if($doc.getObject('ChangeRequest.ChangeRequestClass'))Change Request: $doc.title#{else}Change Request Sheet#end</title>
+  <title>#if($doc.getObject('ChangeRequest.Code.ChangeRequestClass'))Change Request: $doc.title#{else}Change Request Sheet#end</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -60,7 +60,7 @@
 #end{{/velocity}}
 
 
-{{include reference="ChangeRequest.ChangeRequestMacros"/}}
+{{include reference="ChangeRequest.Code.ChangeRequestMacros"/}}
 {{velocity}}#if ($xcontext.action == 'get' &amp;&amp; $request.get('changerequest') != '' &amp;&amp; $request.get('setstatus') != '')
 #if (!$services.csrf.isTokenValid($request.get('form_token')))
   #set ($discard = $response.sendError(401, "Wrong CSRF token."))
@@ -87,14 +87,14 @@
   #end
 #end
 #else
-#set ($discard = $doc.use('ChangeRequest.ChangeRequestClass'))
+#set ($discard = $doc.use('ChangeRequest.Code.ChangeRequestClass'))
 #set ($changeRequestId = $doc.documentReference.lastSpaceReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
 #set ($modifiedFiles = $changeRequest.modifiedDocuments)
-#set ($discard = $xwiki.jsx.use('ChangeRequest.ChangeRequestSheet'))
-#set ($discard = $xwiki.ssx.use('ChangeRequest.ChangeRequestSheet'))
+#set ($discard = $xwiki.jsx.use('ChangeRequest.Code.ChangeRequestSheet'))
+#set ($discard = $xwiki.ssx.use('ChangeRequest.Code.ChangeRequestSheet'))
 #set ($isNotMerged = $changeRequest.status != "MERGED")
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
@@ -309,7 +309,7 @@
    'filechange_author': { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
    '_actions': {'actions': ['edit']}
 })
-#set ($fileChangeLTDoc = $xwiki.getDocument('ChangeRequest.FileChangeLiveTable'))
+#set ($fileChangeLTDoc = $xwiki.getDocument('ChangeRequest.Code.FileChangeLiveTable'))
 #set($options = {
    'rowCount': 10,
    'translationPrefix': 'changerequest.livetable.filechange.',
@@ -450,7 +450,7 @@
         &lt;/div&gt; &lt;!-- End heading status panel --&gt;
         &lt;div id="statusPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingStatusPanel"&gt;
           &lt;div class="panel-body"&gt;
-            #set ($sheetRef = "ChangeRequest.ChangeRequestSheet")
+            #set ($sheetRef = "ChangeRequest.Code.ChangeRequestSheet")
             #set ($sheetDoc = $xwiki.getDocument($sheetRef))
             #set ($canStatusBeChanged = $services.changerequest.canStatusBeChanged($changeRequest))
             #if ($changeRequest.status == "READY_FOR_REVIEW" || $changeRequest.status == "READY_FOR_MERGING")
@@ -556,7 +556,7 @@
 
  </content>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>8c39e9a2-e2ec-4e39-a32f-259c8e8d4446</guid>
@@ -663,7 +663,7 @@ require(['jquery'], function ($) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>1</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>ca32fb8c-d27c-4c25-9116-7d6ddf5b0cd0</guid>
@@ -772,7 +772,7 @@ require(['jquery', 'bootstrap'], function ($) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>2</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>fb3f6f6b-7a15-41ae-9adb-a717fa54d05f</guid>
@@ -866,7 +866,7 @@ require(['jquery', 'bootstrap'], function ($) {
     self.fileChangeReference = fileChangeReference;
     self.fileChangeLocale = fileChangeLocale;
     var currentReference = xm.documentReference;
-    var changeRequestConflictRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestConflict");
+    var changeRequestConflictRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestConflict");
     self.postUrl = new XWiki.Document(changeRequestConflictRef).getURL('get');
     
     self.requestModal = function(previousVersion, nextVersion) {
@@ -987,7 +987,7 @@ require(['jquery', 'bootstrap'], function ($) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>3</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>d36ff964-4454-4e7c-a928-f29636110a96</guid>
@@ -1101,7 +1101,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>4</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>5e6a11b2-96d9-4f13-9d20-484cd485d3a1</guid>
@@ -1193,7 +1193,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var self = this;
     self.changeRequestId = changeRequestId;
     var currentReference = xm.documentReference;
-    var changeRequestReviewRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestReview");
+    var changeRequestReviewRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestReview");
     self.postUrl = new XWiki.Document(changeRequestReviewRef).getURL('get');
     
     self.requestModal = function () {
@@ -1281,7 +1281,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>5</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>1966a41f-f230-4160-8f15-61b681b47304</guid>
@@ -1375,7 +1375,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       var currentReference = xm.documentReference;
       var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
       var currentReference = xm.documentReference;
-      var changeRequestReviewRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestReview");
+      var changeRequestReviewRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestReview");
       var postUrl = new XWiki.Document(changeRequestReviewRef).getURL('get');
       var setValid;
       if (button.hasClass('btn-danger')) {
@@ -1420,7 +1420,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>6</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>ea5056ef-4799-4d88-9265-df9cd9c48978</guid>
@@ -1513,7 +1513,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-brid
     self.element = element;
     self.requestData = requestData;
     var currentReference = xm.documentReference;
-    var changeRequestDiscussionRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), "ChangeRequest", "ChangeRequestDiscussion");
+    var changeRequestDiscussionRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestDiscussion");
     self.postUrl = new XWiki.Document(changeRequestDiscussionRef).getURL('get');
     
     self.requestEditor = function() {
@@ -1592,7 +1592,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-brid
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>7</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>b7c6493f-b4dd-4a49-ad84-0ea565d588ea</guid>
@@ -1745,7 +1745,7 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>8</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>7fa8865f-d219-44cf-b53b-4751e6b4701d</guid>
@@ -1895,7 +1895,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>9</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>9d738b95-e0e7-4882-a98e-1da0cefa97b0</guid>
@@ -2039,7 +2039,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>10</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>18a7666e-e031-4751-aff2-053b23280ec0</guid>
@@ -2162,7 +2162,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
@@ -2304,7 +2304,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>1</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>14ca3d0f-4ea2-4e87-9096-c36a3dad7f3a</guid>
@@ -2499,7 +2499,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>2</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>12f95fb8-3061-431f-9f40-5a038fb099b7</guid>
@@ -2651,7 +2651,7 @@ tr.discussion-line:hover {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>ad7486e2-242f-4f22-8875-2b93ad9852b9</guid>
@@ -2812,7 +2812,7 @@ tr.discussion-line:hover {
     </property>
   </object>
   <object>
-    <name>ChangeRequest.ChangeRequestSheet</name>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>1</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>e6d567c6-41f3-4059-992c-9bc02306bbab</guid>

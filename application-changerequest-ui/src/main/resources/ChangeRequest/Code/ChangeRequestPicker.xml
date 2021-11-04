@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.ChangeRequestPicker" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestPicker" locale="">
+  <web>ChangeRequest.Code</web>
   <name>ChangeRequestPicker</name>
   <language/>
   <defaultLanguage/>
@@ -41,7 +41,7 @@
 #macro (changeRequestPicker_import)
   #initRequiredSkinExtensions()
   #picker_import
-  #set ($discard = $xwiki.jsx.use('ChangeRequest.ChangeRequestPicker'))
+  #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.ChangeRequestPicker'))
   #getRequiredSkinExtensions($requiredSkinExtensions)
   #set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $requiredSkinExtensions))
 #end
@@ -77,7 +77,7 @@
 #end
 {{/velocity}}</content>
   <object>
-    <name>ChangeRequest.ChangeRequestPicker</name>
+    <name>ChangeRequest.Code.ChangeRequestPicker</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>9014f55d-f39b-4197-8f73-b0053a11c1fd</guid>
@@ -174,13 +174,13 @@ define('xwiki-suggestChangeRequest', ['jquery', 'xwiki-selectize'], function($) 
   var getSettings = function(select) {
     return {
       load: function(typedText, callback) {
-        $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest').getURL('get'), {
+        $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest.Code').getURL('get'), {
           text: typedText,
           outputSyntax: 'plain'
         }).done(callback).fail(callback);
       },
       loadSelected: function(typedText, callback) {
-        $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest').getURL('get'), {
+        $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest.Code').getURL('get'), {
           text: typedText,
           exactMatch: true,
           outputSyntax: 'plain'

@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Configuration" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.Configuration" locale="">
+  <web>ChangeRequest.Code</web>
   <name>Configuration</name>
   <language/>
   <defaultLanguage/>
@@ -38,12 +38,12 @@
   <hidden>true</hidden>
   <content>Configuration for change request.</content>
   <object>
-    <name>ChangeRequest.Configuration</name>
+    <name>ChangeRequest.Code.Configuration</name>
     <number>0</number>
-    <className>ChangeRequest.ConfigurationClass</className>
+    <className>ChangeRequest.Code.ConfigurationClass</className>
     <guid>92b28ae4-ac07-47bb-9f5d-bb7a9a2334c0</guid>
     <class>
-      <name>ChangeRequest.ConfigurationClass</name>
+      <name>ChangeRequest.Code.ConfigurationClass</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
@@ -88,7 +88,7 @@
     </property>
   </object>
   <object>
-    <name>ChangeRequest.Configuration</name>
+    <name>ChangeRequest.Code.Configuration</name>
     <number>0</number>
     <className>XWiki.ConfigurableClass</className>
     <guid>d2619282-dafb-46f6-ba15-4e17aacdc2d2</guid>
@@ -306,7 +306,7 @@
       <codeToExecute/>
     </property>
     <property>
-      <configurationClass>ChangeRequest.ConfigurationClass</configurationClass>
+      <configurationClass>ChangeRequest.Code.ConfigurationClass</configurationClass>
     </property>
     <property>
       <configureGlobally>1</configureGlobally>

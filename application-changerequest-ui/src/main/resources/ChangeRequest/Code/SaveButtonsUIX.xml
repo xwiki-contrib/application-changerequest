@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.SaveButtonsUIX" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.SaveButtonsUIX" locale="">
+  <web>ChangeRequest.Code</web>
   <name>SaveButtonsUIX</name>
   <language/>
   <defaultLanguage/>
@@ -36,7 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference='ChangeRequest.ChangeRequestPicker'/}}
+  <content>{{include reference='ChangeRequest.Code.ChangeRequestPicker'/}}
 {{velocity}}
 #if ($request.get('getmodal') == 1)
 #set ($isEditingChangeRequest = ("$!request.get('changerequest')" != ''))
@@ -110,7 +110,7 @@
 #end
 {{/velocity}}</content>
   <object>
-    <name>ChangeRequest.SaveButtonsUIX</name>
+    <name>ChangeRequest.Code.SaveButtonsUIX</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>35af08ef-adff-45fa-9b7a-4462347574e4</guid>
@@ -268,7 +268,7 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
     if ($('#changeRequestModal').length &gt; 0) {
       $('#changeRequestModal').modal('show');
     } else {
-      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
+      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
       var urlParams = new URLSearchParams(window.location.search);
       var queryString = 'getmodal=1&amp;outputSyntax=plain';
       if (urlParams.has('changerequest')) {

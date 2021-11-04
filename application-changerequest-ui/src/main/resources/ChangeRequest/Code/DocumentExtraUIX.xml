@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.DocumentExtraUIX" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.DocumentExtraUIX" locale="">
+  <web>ChangeRequest.Code</web>
   <name>DocumentExtraUIX</name>
   <language/>
   <defaultLanguage/>
@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>ChangeRequest.DocumentExtraUIX</name>
+    <name>ChangeRequest.Code.DocumentExtraUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>25d7f573-abf6-4f3c-b9c3-febe506bb82e</guid>
@@ -172,7 +172,7 @@
 })
 #set ($currentDocCompactSerialization = $services.model.serialize($tdoc.documentReference, "compactwiki"))
 #set($options = { 
-   "className":"ChangeRequest.ChangeRequestClass",
+   "className":"ChangeRequest.Code.ChangeRequestClass",
    "extraParams": "changedDocuments=$currentDocCompactSerialization",
    "rowCount": 10,
    "translationPrefix": "changerequest.livetable."

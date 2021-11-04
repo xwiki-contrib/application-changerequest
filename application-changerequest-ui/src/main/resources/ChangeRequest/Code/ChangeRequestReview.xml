@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.ChangeRequestReview" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestReview" locale="">
+  <web>ChangeRequest.Code</web>
   <name>ChangeRequestReview</name>
   <language/>
   <defaultLanguage/>

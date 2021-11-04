@@ -1,0 +1,69 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestDiscussion" locale="">
+  <web>ChangeRequest.Code</web>
+  <name>ChangeRequestDiscussion</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ChangeRequestDiscussion</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference='Discussions.Code.DisplayMessage' /}}
+{{velocity}}
+#if ($request.method == 'POST' &amp;&amp; $request.get('action') == 'displayEditor' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')))
+  #set ($changeRequestId = $request.get('changeRequestId'))
+  #if ($request.get('type') == 'diffLine')
+    #set ($fileChangeId = $request.get('fileChangeId'))
+    #set ($documentPart = $stringtool.upperCase($request.get('documentPart')))
+    #set ($lineNumber = $numbertool.toNumber($request.get('lineNumber')).longValue())
+    #set ($lineChange = $request.get('changeType'))
+    #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileChangeId, $changeRequestId, $documentPart, $lineNumber, $lineChange))
+  #end
+{{html clean="false"}}
+&lt;div class="add-comment"&gt;
+  #set ($reference = $services.discussions.serialize($discussionReference))
+  #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($reference)")
+  &lt;form method="post" action="$url" class="message-form"&gt;
+    &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequestId" /&gt;
+    &lt;input type="hidden" name="async" value="1" /&gt;
+    &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
+    &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($reference)" /&gt;
+    #displayMessageContentField()
+    &lt;input type="button" class="btn btn-primary comment-button" value="$services.localization.render('save')" /&gt;
+    &lt;input type="button" class="btn btn-default cancel-button" value="$services.localization.render('cancel')" /&gt;
+  &lt;/form&gt;
+&lt;/div&gt;
+{{/html}}
+#else
+  Code for discussions.
+#end
+{{/velocity}}</content>
+</xwikidoc>

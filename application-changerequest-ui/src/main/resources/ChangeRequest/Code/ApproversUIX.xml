@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.ApproversUIX" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.ApproversUIX" locale="">
+  <web>ChangeRequest.Code</web>
   <name>ApproversUIX</name>
   <language/>
   <defaultLanguage/>
@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content>Technical page for handling explicit approvers.</content>
   <object>
-    <name>ChangeRequest.ApproversUIX</name>
+    <name>ChangeRequest.Code.ApproversUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>60bfd5de-585e-4814-a888-8dffdf14283f</guid>
@@ -166,10 +166,10 @@
 #set ($crEditName = "changerequest")
 #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
 #if (!$isReadOnly &amp;&amp; ($hasCREdit || $hasEditRight))
-#if ($doc.getObject('ChangeRequest.ApproversClass'))
-  #set ($handlingURL = $doc.getURL('edit', 'editor=object&amp;classname=ChangeRequest.ApproversClass&amp;object=0'))
+#if ($doc.getObject('ChangeRequest.Code.ApproversClass'))
+  #set ($handlingURL = $doc.getURL('edit', 'editor=object&amp;classname=ChangeRequest.Code.ApproversClass&amp;object=0'))
 #else
-  #set ($handlingURL = $doc.getURL('objectadd', "classname=ChangeRequest.ApproversClass&amp;form_token=$services.csrf.token"))
+  #set ($handlingURL = $doc.getURL('objectadd', "classname=ChangeRequest.Code.ApproversClass&amp;form_token=$services.csrf.token"))
 #end
 {{html clean="false"}} ## we need clean="false" because we want to display the raw content of #submenuitem()
  #template('menus_macros.vm')

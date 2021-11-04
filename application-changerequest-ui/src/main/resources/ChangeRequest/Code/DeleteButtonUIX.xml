@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.DeleteButtonUIX" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.DeleteButtonUIX" locale="">
+  <web>ChangeRequest.Code</web>
   <name>DeleteButtonUIX</name>
   <language/>
   <defaultLanguage/>
@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content>Technical page to allow delete in change request.</content>
   <object>
-    <name>ChangeRequest.DeleteButtonUIX</name>
+    <name>ChangeRequest.Code.DeleteButtonUIX</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>f9626082-5530-4912-987e-ae0e9cfee1d3</guid>
@@ -201,7 +201,7 @@
       $('#changeRequestModal').modal('show');
       $('#crDescription').val($('#commentinput').val());
     } else {
-      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', 'ChangeRequest', 'SaveButtonsUIX'));
+      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
       var urlParams = new URLSearchParams(window.location.search);
       var queryString = 'getmodal=1&amp;outputSyntax=plain';
       if (urlParams.has('changerequest')) {
@@ -256,7 +256,7 @@
     </property>
   </object>
   <object>
-    <name>ChangeRequest.DeleteButtonUIX</name>
+    <name>ChangeRequest.Code.DeleteButtonUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>ce4c895a-5dd4-430c-904c-f06174d960b1</guid>

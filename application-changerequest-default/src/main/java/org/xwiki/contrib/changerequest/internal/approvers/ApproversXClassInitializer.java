@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal.approvers;
 
+import java.util.Arrays;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -47,7 +49,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 public class ApproversXClassInitializer implements MandatoryDocumentInitializer
 {
     static final LocalDocumentReference APPROVERS_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "ApproversClass");
+        new LocalDocumentReference(Arrays.asList("ChangeRequest", "Code"), "ApproversClass");
 
     static final String USERS_APPROVERS_PROPERTY = "usersApprovers";
     static final String GROUPS_APPROVERS_PROPERTY = "groupsApprovers";

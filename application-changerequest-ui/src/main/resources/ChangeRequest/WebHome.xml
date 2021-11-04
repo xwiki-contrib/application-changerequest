@@ -46,7 +46,7 @@
    "changedDocuments" : { "type": "suggest", "html": "true"}
 })
 #set($options = { 
-   "className":"ChangeRequest.ChangeRequestClass",
+   "className":"ChangeRequest.Code.ChangeRequestClass",
    "rowCount": 10,
    "translationPrefix": "changerequest.livetable."
 })

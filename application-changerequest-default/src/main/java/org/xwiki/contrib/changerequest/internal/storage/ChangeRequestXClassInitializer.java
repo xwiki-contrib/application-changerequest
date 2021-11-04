@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Named("org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer")
 public class ChangeRequestXClassInitializer implements MandatoryDocumentInitializer
 {
-    static final String CHANGE_REQUEST_SPACE = "ChangeRequest";
+    static final List<String> CHANGE_REQUEST_SPACE = Arrays.asList("ChangeRequest", "Code");
 
     static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
         new LocalDocumentReference(CHANGE_REQUEST_SPACE, "ChangeRequestClass");

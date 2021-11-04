@@ -47,7 +47,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 public class ReviewXClassInitializer implements MandatoryDocumentInitializer
 {
     static final LocalDocumentReference REVIEW_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "ChangeRequestReviewClass");
+        new LocalDocumentReference(ChangeRequestXClassInitializer.CHANGE_REQUEST_SPACE, "ChangeRequestReviewClass");
 
     static final String AUTHOR_PROPERTY = "author";
     static final String APPROVED_PROPERTY = "approved";

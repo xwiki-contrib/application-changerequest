@@ -52,7 +52,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
 {
     static final LocalDocumentReference FILECHANGE_XCLASS =
-        new LocalDocumentReference("ChangeRequest", "FileChangeClass");
+        new LocalDocumentReference(ChangeRequestXClassInitializer.CHANGE_REQUEST_SPACE, "FileChangeClass");
 
     static final String PREVIOUS_VERSION_PROPERTY = "previousVersion";
     static final String PREVIOUS_PUBLISHED_VERSION_PROPERTY = "previousPublishedVersion";

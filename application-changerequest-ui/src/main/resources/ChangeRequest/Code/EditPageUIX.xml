@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.EditPageUIX" locale="">
-  <web>ChangeRequest</web>
+<xwikidoc version="1.4" reference="ChangeRequest.Code.EditPageUIX" locale="">
+  <web>ChangeRequest.Code</web>
   <name>EditPageUIX</name>
   <language/>
   <defaultLanguage/>
@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>ChangeRequest.EditPageUIX</name>
+    <name>ChangeRequest.Code.EditPageUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>8c1b0aea-f935-457b-8ed3-e34c207969ba</guid>

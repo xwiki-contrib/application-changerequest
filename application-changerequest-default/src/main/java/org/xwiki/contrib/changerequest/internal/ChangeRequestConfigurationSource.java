@@ -19,7 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Named;
@@ -42,7 +42,7 @@ import org.xwiki.model.reference.LocalDocumentReference;
 @Singleton
 public class ChangeRequestConfigurationSource extends AbstractDocumentConfigurationSource
 {
-    private static final List<String> SPACE_NAMES = Collections.singletonList("ChangeRequest");
+    private static final List<String> SPACE_NAMES = Arrays.asList("ChangeRequest", "Code");
 
     private static final LocalDocumentReference CLASS_REFERENCE =
         new LocalDocumentReference(SPACE_NAMES, "ConfigurationClass");
