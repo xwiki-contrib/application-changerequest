@@ -36,8 +36,10 @@ import org.xwiki.contrib.rights.RightsReader;
 import org.xwiki.contrib.rights.RightsWriter;
 import org.xwiki.contrib.rights.SecurityRuleAbacus;
 import org.xwiki.contrib.rights.WritableSecurityRule;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.AuthorizationManager;
@@ -161,7 +163,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
     }
 
     @Override
-    public void copyViewRights(ChangeRequest changeRequest, DocumentReference newChange)
+    public void copyViewRights(ChangeRequest changeRequest, EntityReference newChange)
         throws ChangeRequestException
     {
         DocumentReference changeRequestDocReference =
@@ -173,7 +175,8 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
                 this.rightsReader.getActualRules(changeRequestSpaceReference, false);
             List<ReadableSecurityRule> rules = new ArrayList<>(this.rightsWriter.createRules(actualRules));
             List<ReadableSecurityRule> documentRules = new ArrayList<>(this.rightsReader.getActualRules(newChange));
-            List<ReadableSecurityRule> wikiRules = this.rightsReader.getActualRules(newChange.getWikiReference());
+            List<ReadableSecurityRule> wikiRules =
+                this.rightsReader.getActualRules(newChange.extractReference(EntityType.WIKI));
 
             // we filter out the wiki reference rules
             documentRules.removeAll(wikiRules);

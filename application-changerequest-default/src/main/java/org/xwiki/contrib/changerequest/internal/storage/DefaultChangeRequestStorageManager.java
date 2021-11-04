@@ -291,7 +291,26 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public List<ChangeRequest> findChangeRequestTargeting(SpaceReference spaceReference)
         throws ChangeRequestException
     {
-        return ChangeRequestStorageManager.super.findChangeRequestTargeting(spaceReference);
+        List<ChangeRequest> result = new ArrayList<>();
+        String statement = String.format(", BaseObject as obj, DBStringListProperty as prop join prop.list list "
+            + "where obj.name=doc.fullName and obj.className='%s' and obj.id=prop.id.id and "
+            + "prop.id.name='%s' and list like :reference order by doc.creationDate desc",
+            this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_FIELD);
+        try {
+            Query query = this.queryManager.createQuery(statement, Query.HQL);
+            query.bindValue(REFERENCE,
+                String.format("%%%s%%", this.localEntityReferenceSerializer.serialize(spaceReference)));
+            List<String> changeRequestDocuments = query.execute();
+            for (String changeRequestDocument : changeRequestDocuments) {
+                DocumentReference crReference = this.documentReferenceResolver.resolve(changeRequestDocument);
+                this.load(crReference.getLastSpaceReference().getName()).ifPresent(result::add);
+            }
+        } catch (QueryException e) {
+            throw new ChangeRequestException(
+                String.format("Error while trying to get change request for space [%s]", spaceReference), e);
+        }
+
+        return result;
     }
 
     @Override

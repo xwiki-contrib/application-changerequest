@@ -89,13 +89,15 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
             && !entityReference.hasParent(configuration.getChangeRequestSpaceLocation())) {
             try {
                 DocumentReference reference;
+                List<ChangeRequest> changeRequests;
                 if (entityReference.getType() == EntityType.SPACE) {
-                    reference = new DocumentReference("WebHome", new SpaceReference(entityReference));
+                    SpaceReference spaceReference = new SpaceReference(entityReference);
+                    reference = new DocumentReference("WebHome", spaceReference);
+                    changeRequests = this.changeRequestStorageManager.findChangeRequestTargeting(spaceReference);
                 } else {
                     reference = new DocumentReference(entityReference);
+                    changeRequests = this.changeRequestStorageManager.findChangeRequestTargeting(reference);
                 }
-                List<ChangeRequest> changeRequests =
-                    changeRequestStorageManager.findChangeRequestTargeting(reference);
 
                 Set<DocumentReference> ruleSubjects = this.computeRulesSubjects(securityRuleDiffList);
 
@@ -107,9 +109,9 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
                             continue;
                         // if it's closed, we don't want to split it, we just edit the rights no matter the consequences
                         } else if (status == ChangeRequestStatus.CLOSED) {
-                            this.changeRequestRightsManager.copyViewRights(changeRequest, reference);
+                            this.changeRequestRightsManager.copyViewRights(changeRequest, entityReference);
                         } else {
-                            this.handleOpenChangeRequest(changeRequest, ruleSubjects, reference);
+                            this.handleOpenChangeRequest(changeRequest, ruleSubjects, entityReference);
                         }
                     }
                 }
@@ -121,7 +123,7 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
     }
 
     private void handleOpenChangeRequest(ChangeRequest changeRequest, Set<DocumentReference> ruleSubjects,
-        DocumentReference reference) throws ChangeRequestException
+        EntityReference reference) throws ChangeRequestException
     {
         if (this.changeRequestRightsManager.isViewAccessStillConsistent(changeRequest,
             ruleSubjects)) {
@@ -130,7 +132,15 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
             List<ChangeRequest> splittedChangeRequests =
                 this.changeRequestStorageManager.split(changeRequest);
             for (ChangeRequest splittedChangeRequest : splittedChangeRequests) {
-                if (splittedChangeRequest.getModifiedDocuments().contains(reference)) {
+                boolean concernsIt = false;
+                for (DocumentReference modifiedDocument : splittedChangeRequest.getModifiedDocuments()) {
+                    if (modifiedDocument.equals(reference) || modifiedDocument.hasParent(reference)) {
+                        concernsIt = true;
+                        break;
+                    }
+                }
+
+                if (concernsIt) {
                     this.changeRequestRightsManager.copyViewRights(splittedChangeRequest,
                         reference);
                 }

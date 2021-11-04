@@ -234,7 +234,7 @@ class DefaultChangeRequestStorageManagerTest
     }
 
     @Test
-    void findChangeRequestTargeting() throws Exception
+    void findChangeRequestTargetingDocument() throws Exception
     {
         DocumentReference targetReference = mock(DocumentReference.class);
         when(this.localEntityReferenceSerializer.serialize(targetReference)).thenReturn("Foo.MyPage");
@@ -331,5 +331,105 @@ class DefaultChangeRequestStorageManagerTest
 
         assertEquals(Arrays.asList(cr2, cr3), this.storageManager.findChangeRequestTargeting(targetReference));
         verify(query).bindValue("reference", "Foo.MyPage");
+    }
+
+    @Test
+    void findChangeRequestTargetingSpace() throws Exception
+    {
+        SpaceReference targetReference = mock(SpaceReference.class);
+        when(this.localEntityReferenceSerializer.serialize(targetReference)).thenReturn("Foo.MySpace");
+
+        when(this.entityReferenceSerializer.serialize(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS))
+            .thenReturn("ChangeRequest.ChangeRequestClass");
+        String expectedStatement = ", BaseObject as obj, DBStringListProperty as prop join prop.list list "
+            + "where obj.name=doc.fullName and obj.className='ChangeRequest.ChangeRequestClass' and obj.id=prop.id.id "
+            + "and prop.id.name='changedDocuments' and list like :reference order by doc.creationDate desc";
+        Query query = mock(Query.class);
+        when(queryManager.createQuery(expectedStatement, Query.HQL)).thenReturn(query);
+
+        when(query.execute()).thenReturn(Arrays.asList("Space1.ref1", "Space2.ref2", "Space3.ref3"));
+        DocumentReference ref1 = new DocumentReference("xwiki", "Space1", "ref1");
+        DocumentReference ref2 = new DocumentReference("xwiki", "Space2", "ref2");
+        DocumentReference ref3 = new DocumentReference("xwiki", "Space3", "ref3");
+
+        when(this.documentReferenceResolver.resolve("Space1.ref1")).thenReturn(ref1);
+        when(this.documentReferenceResolver.resolve("Space2.ref2")).thenReturn(ref2);
+        when(this.documentReferenceResolver.resolve("Space3.ref3")).thenReturn(ref3);
+
+        when(this.changeRequestDocumentReferenceResolver.resolve(any())).thenAnswer(invocationOnMock -> {
+            ChangeRequest actualChangeRequest = invocationOnMock.getArgument(0);
+            switch (actualChangeRequest.getId()) {
+                case "Space1":
+                    return ref1;
+                case "Space2":
+                    return ref2;
+                case "Space3":
+                    return ref3;
+                default:
+                    fail(String.format("Wrong change request id: [%s]", actualChangeRequest.getId()));
+                    break;
+            }
+            return null;
+        });
+
+        // skip ref1
+        XWikiDocument doc1 = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(ref1, this.context)).thenReturn(doc1);
+        when(doc1.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(null);
+
+        // ref2
+        XWikiDocument doc2 = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(ref2, this.context)).thenReturn(doc2);
+        BaseObject xobject = mock(BaseObject.class);
+        when(doc2.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        String title = "sometitle";
+        String description = "a description";
+        when(doc2.getTitle()).thenReturn(title);
+        when(doc2.getContent()).thenReturn(description);
+
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        when(doc2.getContentAuthorReference()).thenReturn(userDocReference);
+
+        UserReference userReference = mock(UserReference.class);
+        when(this.userReferenceResolver.resolve(userDocReference)).thenReturn(userReference);
+
+        when(xobject.getStringValue("status")).thenReturn("merged");
+        when(doc2.getCreationDate()).thenReturn(new Date(42));
+        ChangeRequest cr2 = new ChangeRequest();
+        cr2.setId("Space2")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreator(userReference)
+            .setTitle(title)
+            .setDescription(description)
+            .setCreationDate(new Date(42));
+
+        // ref3
+        XWikiDocument doc3 = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(ref3, this.context)).thenReturn(doc3);
+        BaseObject xobject2 = mock(BaseObject.class);
+        when(doc3.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
+        String title2 = "anothertitle";
+        String description2 = "another description";
+        when(doc3.getTitle()).thenReturn(title2);
+        when(doc3.getContent()).thenReturn(description2);
+
+        DocumentReference userDocReference2 = mock(DocumentReference.class);
+        when(doc3.getContentAuthorReference()).thenReturn(userDocReference2);
+
+        UserReference userReference2 = mock(UserReference.class);
+        when(this.userReferenceResolver.resolve(userDocReference2)).thenReturn(userReference2);
+
+        when(xobject2.getStringValue("status")).thenReturn("draft");
+        when(doc3.getCreationDate()).thenReturn(new Date(16));
+        ChangeRequest cr3 = new ChangeRequest();
+        cr3.setId("Space3")
+            .setStatus(ChangeRequestStatus.DRAFT)
+            .setCreator(userReference2)
+            .setTitle(title2)
+            .setDescription(description2)
+            .setCreationDate(new Date(16));
+
+        assertEquals(Arrays.asList(cr2, cr3), this.storageManager.findChangeRequestTargeting(targetReference));
+        verify(query).bindValue("reference", "%Foo.MySpace%");
     }
 }

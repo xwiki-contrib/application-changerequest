@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -80,8 +81,8 @@ public interface ChangeRequestRightsManager
      * Note that all inherited rules are copied too.
      *
      * @param changeRequest the change request in which to copy rights.
-     * @param newChange the document reference from which to get rights to copy.
+     * @param newChange the reference from which to get rights to copy.
      * @throws ChangeRequestException in case of problem for accessing or copying rights.
      */
-    void copyViewRights(ChangeRequest changeRequest, DocumentReference newChange) throws ChangeRequestException;
+    void copyViewRights(ChangeRequest changeRequest, EntityReference newChange) throws ChangeRequestException;
 }

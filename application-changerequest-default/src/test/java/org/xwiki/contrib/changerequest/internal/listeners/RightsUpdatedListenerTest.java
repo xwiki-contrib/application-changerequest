@@ -103,7 +103,7 @@ class RightsUpdatedListenerTest
         source = new SpaceReference("Something", new WikiReference("foo"));
 
         DocumentReference expectedRef = new DocumentReference("WebHome", (SpaceReference) source);
-        when(this.changeRequestStorageManager.findChangeRequestTargeting(expectedRef))
+        when(this.changeRequestStorageManager.findChangeRequestTargeting((SpaceReference) source))
             .thenReturn(Collections.emptyList());
         this.listener.processLocalEvent(event, source, data);
         verifyNoInteractions(this.changeRequestRightsManager);
@@ -112,7 +112,7 @@ class RightsUpdatedListenerTest
         ChangeRequest changeRequest2 = mock(ChangeRequest.class);
         ChangeRequest changeRequest3 = mock(ChangeRequest.class);
 
-        when(this.changeRequestStorageManager.findChangeRequestTargeting(expectedRef))
+        when(this.changeRequestStorageManager.findChangeRequestTargeting((SpaceReference) source))
             .thenReturn(Arrays.asList(changeRequest1, changeRequest2, changeRequest3));
         this.listener.processLocalEvent(event, source, data);
         verifyNoInteractions(this.changeRequestRightsManager);
@@ -121,13 +121,13 @@ class RightsUpdatedListenerTest
         SecurityRuleDiff diff2 = mock(SecurityRuleDiff.class);
         SecurityRuleDiff diff3 = mock(SecurityRuleDiff.class);
         data = Arrays.asList(diff1, diff2, diff3);
-        when(this.changeRequestStorageManager.findChangeRequestTargeting(expectedRef))
+        when(this.changeRequestStorageManager.findChangeRequestTargeting((SpaceReference) source))
             .thenReturn(Collections.emptyList());
 
         this.listener.processLocalEvent(event, source, data);
         verifyNoInteractions(this.changeRequestRightsManager);
 
-        when(this.changeRequestStorageManager.findChangeRequestTargeting(expectedRef))
+        when(this.changeRequestStorageManager.findChangeRequestTargeting((SpaceReference) source))
             .thenReturn(Arrays.asList(changeRequest1, changeRequest2, changeRequest3));
 
         // rule subjects
@@ -176,8 +176,8 @@ class RightsUpdatedListenerTest
         this.listener.processLocalEvent(event, source, data);
         verify(this.changeRequestRightsManager).isViewAccessStillConsistent(changeRequest1,
             Stream.of(user1, user2, groupA, groupB).collect(Collectors.toSet()));
-        verify(this.changeRequestRightsManager).copyViewRights(changeRequest3, expectedRef);
-        verify(this.changeRequestRightsManager).copyViewRights(splitted2, expectedRef);
+        verify(this.changeRequestRightsManager).copyViewRights(changeRequest3, source);
+        verify(this.changeRequestRightsManager).copyViewRights(splitted2, source);
         verify(this.changeRequestStorageManager).split(changeRequest1);
         verify(this.changeRequestRightsManager, never()).copyViewRights(eq(changeRequest2), any());
         verify(this.changeRequestStorageManager, never()).split(changeRequest2);
