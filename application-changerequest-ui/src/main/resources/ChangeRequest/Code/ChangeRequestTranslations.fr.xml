@@ -126,5 +126,6 @@ changerequest.timeline.changerequest.status.modified={0} a modifié le statut de
 changerequest.timeline.changerequest.review.added.approval={0} a ajouté une demande d''approbation
 changerequest.timeline.changerequest.review.added.requestchanges={0} a ajouté une demande d''approbation des modifications
 changerequest.timeline.changerequest.discussions={0} a ajouté un nouveau message
+changerequest.sheet.description.placeholder=Cliquez sur le lien Modifier à droite puis renseignez une description.
 </content>
 </xwikidoc>
