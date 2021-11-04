@@ -191,9 +191,13 @@
       $services.icon.renderHTML('pencil')
       &lt;span class="sr-only"&gt;Edit&lt;/span&gt;
     &lt;/a&gt;
+    #if ("$!doc.content" == "")
+      &lt;span class="description-placeholder"&gt;$services.localization.render('changerequest.sheet.description.placeholder')&lt;/span&gt;
+    #else
     ## Include the content of the current document.
     ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
     $doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')
+    #end
   #end
 #end
 {{html clean="false"}}
@@ -2285,6 +2289,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
 }
 .edit-description {
   float: right;
+}
+.description-placeholder {
+  color: #7b7b7b;
 }</code>
     </property>
     <property>
