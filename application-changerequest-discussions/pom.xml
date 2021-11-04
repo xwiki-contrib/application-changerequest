@@ -42,7 +42,7 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.contrib</groupId>
-      <artifactId>discussions-api</artifactId>
+      <artifactId>discussions-default</artifactId>
       <version>${discussions.version}</version>
       <exclusions>
         <exclusion>
@@ -53,7 +53,7 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.contrib</groupId>
-      <artifactId>discussions-store-api</artifactId>
+      <artifactId>discussions-store-default</artifactId>
       <version>${discussions.version}</version>
       <exclusions>
         <exclusion>
