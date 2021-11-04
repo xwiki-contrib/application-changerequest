@@ -221,14 +221,6 @@
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
     &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;
       $services.localization.render('changerequest.sheet.tab.description.title')
-    &lt;/a&gt;&lt;/li&gt;
-    &lt;li role="presentation"&gt;&lt;a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab"&gt;
-      $services.localization.render('changerequest.sheet.tab.reviews.title')
-      &lt;span class="label label-default"&gt;$changeRequest.reviews.size()&lt;/span&gt;
-      &lt;/a&gt;
-    &lt;/li&gt;
-    &lt;li role="presentation"&gt;&lt;a href="#approvers" aria-controls="approvers" role="tab" data-toggle="tab"&gt;
-      $services.localization.render('changerequest.sheet.tab.approvers.title')
       &lt;/a&gt;
     &lt;/li&gt;
     &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;
@@ -236,6 +228,12 @@
       &lt;span class="label label-default"&gt;$modifiedFiles.size()&lt;/span&gt;
       &lt;/a&gt;
     &lt;/li&gt;
+    &lt;li role="presentation"&gt;&lt;a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab"&gt;
+      $services.localization.render('changerequest.sheet.tab.reviews.title')
+      &lt;span class="label label-default"&gt;$changeRequest.reviews.size()&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    
     #if ($isNotMerged)
     &lt;li role="presentation"&gt;&lt;a href="#merge" aria-controls="merge" role="tab" data-toggle="tab"&gt;
       $services.localization.render('changerequest.sheet.tab.checks.title')
@@ -301,69 +299,6 @@
         #end
       &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End home --&gt;
-    &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
-    #if ($services.changerequest.isAuthorizedToReview($changeRequest) &amp;&amp; $isNotMerged)
-    &lt;div&gt;&lt;button class="btn btn-primary" id="addReview"&gt;$services.localization.render('changerequest.sheet.tab.review.button.add')&lt;/button&gt;&lt;/div&gt;
-    #end
-    &lt;div id="reviewsContainer"&gt;
-    #foreach ($review in $changeRequest.reviews)
-      #set ($reviewAuthor = $xwiki.getUserName($review.author.reference))
-      #if ($review.valid &amp;&amp; $review.approved)
-        #set ($reviewPanelClass = "panel-success")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
-      #elseif ($review.valid &amp;&amp; !$review.approved)
-        #set ($reviewPanelClass = "panel-warning")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
-      #elseif (!$review.valid &amp;&amp; $review.approved)
-        #set ($reviewPanelClass = "panel-default")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
-      #else
-        #set ($reviewPanelClass = "panel-default")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
-      #end
-      #set ($canEditReview = $services.changerequest.canEditReview($review))
-      &lt;div class="panel $reviewPanelClass"&gt;
-        &lt;div class="panel-heading"&gt;
-           #if ($canEditReview)
-            #if ($review.valid)
-              #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markinvalid.title'))
-              #set($buttonValue = "$services.icon.renderHTML('remove') $services.localization.render('changerequest.sheet.tab.review.button.markinvalid')")
-              #set ($buttonClass = "btn-danger")
-            #else
-              #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markvalid.title') )
-              #set($buttonValue = "$services.icon.renderHTML('check') $services.localization.render('changerequest.sheet.tab.review.button.markvalid')")
-              #set ($buttonClass = "btn-success")
-            #end
-            &lt;button class="btn $buttonClass badge outdated" data-review-id="$review.id" title="$buttonTitle"&gt;$buttonValue&lt;/button&gt;
-          #elseif (!$review.valid)
-            &lt;span class="label label-danger outdated" title="$services.localization.render('changerequest.sheet.tab.review.title.outdated.title')"&gt;$services.localization.render('changerequest.sheet.tab.review.title.outdated')&lt;/span&gt;
-          #end
-          &lt;span class="review-date"&gt;$datetool.format($review.reviewDate)&lt;/span&gt;
-          &lt;h3 class="panel-title"&gt;$reviewPanelTitle&lt;/h3&gt;
-        &lt;/div&gt;
-        #if ("$!review.comment" != "")
-        &lt;div class="panel-body"&gt;
-          $review.comment
-        &lt;/div&gt;
-        #end
-      &lt;/div&gt;
-    #end
-    &lt;/div&gt;
-    &lt;/div&gt;&lt;!-- End reviews --&gt;
-    &lt;div role="tabpanel" class="tab-pane" id="approvers"&gt;
-    #set ($approversList = $services.changerequest.getApprovers($changeRequest))
-    #if ($approversList.isEmpty())
-      No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.
-    #else
-      Approvers of this change request:
-      &lt;ul&gt;
-      #foreach ($userReference in $approversList)
-        #set ($userDocReference = $userReference.reference)
-        &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
-      #end
-      &lt;ul&gt;
-    #end
-    &lt;/div&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
 &lt;div&gt;
 #set ($id = 'changerequest-filechanges')
@@ -424,6 +359,67 @@
 #end
 &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End file changes --&gt;
+    &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
+    #set ($approversList = $services.changerequest.getApprovers($changeRequest))
+    #if ($approversList.isEmpty())
+      No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.
+    #else
+      Approvers of this change request:
+      &lt;ul&gt;
+      #foreach ($userReference in $approversList)
+        #set ($userDocReference = $userReference.reference)
+        &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
+      #end
+      &lt;ul&gt;
+    #end
+    #if ($services.changerequest.isAuthorizedToReview($changeRequest) &amp;&amp; $isNotMerged)
+    &lt;div&gt;&lt;button class="btn btn-primary" id="addReview"&gt;$services.localization.render('changerequest.sheet.tab.review.button.add')&lt;/button&gt;&lt;/div&gt;
+    #end
+    &lt;div id="reviewsContainer"&gt;
+    #foreach ($review in $changeRequest.reviews)
+      #set ($reviewAuthor = $xwiki.getUserName($review.author.reference))
+      #if ($review.valid &amp;&amp; $review.approved)
+        #set ($reviewPanelClass = "panel-success")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
+      #elseif ($review.valid &amp;&amp; !$review.approved)
+        #set ($reviewPanelClass = "panel-warning")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
+      #elseif (!$review.valid &amp;&amp; $review.approved)
+        #set ($reviewPanelClass = "panel-default")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
+      #else
+        #set ($reviewPanelClass = "panel-default")
+        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
+      #end
+      #set ($canEditReview = $services.changerequest.canEditReview($review))
+      &lt;div class="panel $reviewPanelClass"&gt;
+        &lt;div class="panel-heading"&gt;
+           #if ($canEditReview)
+            #if ($review.valid)
+              #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markinvalid.title'))
+              #set($buttonValue = "$services.icon.renderHTML('remove') $services.localization.render('changerequest.sheet.tab.review.button.markinvalid')")
+              #set ($buttonClass = "btn-danger")
+            #else
+              #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markvalid.title') )
+              #set($buttonValue = "$services.icon.renderHTML('check') $services.localization.render('changerequest.sheet.tab.review.button.markvalid')")
+              #set ($buttonClass = "btn-success")
+            #end
+            &lt;button class="btn $buttonClass badge outdated" data-review-id="$review.id" title="$buttonTitle"&gt;$buttonValue&lt;/button&gt;
+          #elseif (!$review.valid)
+            &lt;span class="label label-danger outdated" title="$services.localization.render('changerequest.sheet.tab.review.title.outdated.title')"&gt;$services.localization.render('changerequest.sheet.tab.review.title.outdated')&lt;/span&gt;
+          #end
+          &lt;span class="review-date"&gt;$datetool.format($review.reviewDate)&lt;/span&gt;
+          &lt;h3 class="panel-title"&gt;$reviewPanelTitle&lt;/h3&gt;
+        &lt;/div&gt;
+        #if ("$!review.comment" != "")
+        &lt;div class="panel-body"&gt;
+          $review.comment
+        &lt;/div&gt;
+        #end
+      &lt;/div&gt;
+    #end
+    &lt;/div&gt;
+    &lt;/div&gt;&lt;!-- End reviews --&gt;
     #if ($isNotMerged)
     &lt;div role="tabpanel" class="tab-pane" id="merge"&gt;
     &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
