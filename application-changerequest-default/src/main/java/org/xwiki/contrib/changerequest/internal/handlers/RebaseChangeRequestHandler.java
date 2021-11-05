@@ -55,7 +55,7 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
             for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
                 this.fileChangeStorageManager.rebase(lastFileChange);
             }
-            this.redirectToChangeRequest(changeRequest);
+            this.responseSuccess(changeRequest);
         }
     }
 }

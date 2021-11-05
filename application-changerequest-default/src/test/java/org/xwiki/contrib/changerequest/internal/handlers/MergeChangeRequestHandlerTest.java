@@ -42,6 +42,7 @@ import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.web.XWikiRequest;
 import com.xpn.xwiki.web.XWikiResponse;
 
 import static org.mockito.Mockito.mock;
@@ -77,6 +78,7 @@ class MergeChangeRequestHandlerTest
 
     private XWikiContext context;
     private XWikiResponse response;
+    private XWikiRequest request;
 
     @BeforeEach
     void setup()
@@ -86,6 +88,9 @@ class MergeChangeRequestHandlerTest
 
         this.response = mock(XWikiResponse.class);
         when(this.context.getResponse()).thenReturn(this.response);
+
+        this.request = mock(XWikiRequest.class);
+        when(this.context.getRequest()).thenReturn(this.request);
     }
 
     @Test

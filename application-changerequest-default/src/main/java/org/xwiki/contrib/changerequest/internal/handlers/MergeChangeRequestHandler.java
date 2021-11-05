@@ -73,7 +73,7 @@ public class MergeChangeRequestHandler extends AbstractChangeRequestActionHandle
                         changeRequestReference.getId()));
             } else {
                 this.storageManager.merge(changeRequest);
-                this.redirectToChangeRequest(changeRequest);
+                this.responseSuccess(changeRequest);
             }
         }
     }

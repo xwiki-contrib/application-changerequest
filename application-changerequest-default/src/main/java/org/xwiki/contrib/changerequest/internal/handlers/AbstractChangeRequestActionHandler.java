@@ -20,11 +20,14 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -35,10 +38,12 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
+import com.xpn.xwiki.web.XWikiResponse;
 
 /**
  * Abstract implementation of {@link ChangeRequestActionHandler} which provides some utility methods.
@@ -48,6 +53,8 @@ import com.xpn.xwiki.web.EditForm;
  */
 public abstract class AbstractChangeRequestActionHandler implements ChangeRequestActionHandler
 {
+    private static final String ASYNC_PARAMETER = "async";
+
     @Inject
     protected Provider<XWikiContext> contextProvider;
 
@@ -128,5 +135,46 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
             throw new ChangeRequestException(
                 String.format("Cannot read document [%s]", serializedDocReference), e);
         }
+    }
+
+    protected void responseSuccess(ChangeRequest changeRequest) throws IOException
+    {
+        XWikiContext context = this.contextProvider.get();
+        if (this.isAsync(context.getRequest())) {
+            Map<String, String> json = new HashMap<>();
+            json.put("changeRequestId", changeRequest.getId());
+            DocumentReference changeRequestRef = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+            json.put("changeRequestUrl", context.getWiki().getURL(changeRequestRef, context));
+            this.answerJSON(HttpServletResponse.SC_OK, json);
+        } else {
+            this.redirectToChangeRequest(changeRequest);
+        }
+    }
+
+    protected boolean isAsync(HttpServletRequest request)
+    {
+        return "1".equals(request.getParameter(ASYNC_PARAMETER));
+    }
+
+    /**
+     * Answer to a request with a JSON content.
+     * Note: this method was partially copied from {@link com.xpn.xwiki.web.XWikiAction}.
+     *
+     * @param status the status code to send back.
+     * @param answer the content of the JSON answer.
+     * @throws IOException in case of error during the serialization of the JSON.
+     */
+    protected void answerJSON(int status, Map<String, String> answer) throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        XWikiContext context = contextProvider.get();
+        XWikiResponse response = context.getResponse();
+        String jsonAnswerAsString = mapper.writeValueAsString(answer);
+        response.setContentType("application/json");
+        response.setContentLength(jsonAnswerAsString.length());
+        response.setStatus(status);
+        response.setCharacterEncoding(context.getWiki().getEncoding());
+        response.getWriter().print(jsonAnswerAsString);
+        context.setResponseSent(true);
     }
 }

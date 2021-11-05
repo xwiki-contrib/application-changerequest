@@ -92,7 +92,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
 
-        this.redirectToChangeRequest(changeRequest);
+        this.responseSuccess(changeRequest);
     }
 
     private ChangeRequest getChangeRequest(HttpServletRequest request) throws ChangeRequestException

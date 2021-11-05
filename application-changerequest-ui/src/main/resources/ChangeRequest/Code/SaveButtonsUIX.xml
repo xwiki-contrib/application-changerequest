@@ -198,12 +198,17 @@
     <property>
       <code>// third argument is a polyfill for using URLSearchParam with IE11
 require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-search-params-polyfill', 'index.js')"], function ($, xm) {
-  var saveChangeRequest = function () {
+  var saveChangeRequest = function (event, inplaceEditing) {
     var isNewCR = $('#existingCRSelector').val() === "";
-    var form = $('#save_changerequest').parents('form');
     var CREATE_URL = "$services.changerequest.getChangeRequestURL('create', '')";
     var ADD_CHANGES_URL = "$services.changerequest.getChangeRequestURL('addchanges', '__CR__')";
     var actionURL;
+    var form;
+    if (inplaceEditing) {
+      form = $('.sticky-buttons-wrapper .sticky-buttons').data('fakeForm');
+    } else {
+      form = $('#save_changerequest').parents('form');
+    }
     if (isNewCR) {
       var crTitleField = $("&lt;input&gt;", {
         'type': 'hidden',
@@ -218,23 +223,34 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
         'value': $('#crDraft:checked').val()
       });
       form.append(crDraftField);
-      actionURL = CREATE_URL;
+      actionURL = CREATE_URL + "?async=1";
     } else {
       var urlParams = new URLSearchParams(window.location.search);
-      actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val());
+      actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val()) + "?async=1";
       if (urlParams.has('changerequest')) {
-        actionURL += "?fromchangerequest=1";
+        actionURL += "&amp;fromchangerequest=1";
       }
     }
-    form.attr('action', actionURL);
     var docField = $("&lt;input&gt;", {
       'type': 'hidden',
       'name': 'docReference',
       'value': xm.documentReference
     });
     form.append(docField);
-    $('#saveChangeRequest').trigger('xwiki:document:saved');
-    form.submit();
+    
+    $(document).on('xwiki:document:saved', function(event, data) {
+      if (data.changeRequestId) {
+        window.location.href = data.changeRequestUrl;
+      }
+    });
+    if (inplaceEditing) {
+      form['action'] = actionURL;
+      $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
+    } else {
+      form.attr('action', actionURL);
+      $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
+    }
+    
   };
   
   var validateForm = function () {
@@ -264,7 +280,7 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
     }).appendTo('head');
   };
   
-  var createChangeRequestModal = function () {
+  var createChangeRequestModal = function (inplaceEditing) {
     if ($('#changeRequestModal').length &gt; 0) {
       $('#changeRequestModal').modal('show');
     } else {
@@ -278,7 +294,9 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
         loadRequiredSkinExtensions(jqXHR.getResponseHeader('X-XWIKI-HTML-HEAD'));
         $('body').append(data);
         $('#changeRequestModal').modal('show');
-        $('#saveChangeRequest').on('click', saveChangeRequest);
+        $('#saveChangeRequest').on('click', function (event) {
+          saveChangeRequest(event, inplaceEditing);
+        });
         $('#crTitle').on('change', validateForm);
         $('#existingCRSelector').on('change', validateForm);
         $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
@@ -290,33 +308,45 @@ require(['jquery', 'xwiki-meta', "$services.webjars.url('org.webjars.npm:url-sea
   };
   
   var attachButtons = function (hasEditRight, editExistingCR) {
-    var button = $("&lt;input&gt;", {
-      'type': 'button',
-      'class': 'btn btn-info',
-      'name': 'save_changerequest',
-      'id': 'save_changerequest',
-      'value': 'Save as change request'
-    });
     if ($('#save_changerequest').length == 0) {
+      var button = $("&lt;input&gt;", {
+        'type': 'button',
+        'class': 'btn btn-info',
+        'name': 'save_changerequest',
+        'id': 'save_changerequest',
+        'value': 'Save as change request'
+      });
+      
+      var buttonAdded = false;
+      var inplaceEditing;
       if ($('.bottombuttons').length &gt; 0) {
         $('.bottombuttons .buttons').prepend(button);
+        buttonAdded = true;
+        inplaceEditing = false;
       } else if ($('.inplace-editing-buttons').length &gt; 0) {
+        button.data('inplaceediting', true);
         $('.inplace-editing-buttons .buttons').prepend(button);
+        buttonAdded = true;
+        inplaceEditing = true;
       }
     }
-    // hide minor edit and autosave capabilities
-    if (!hasEditRight || editExistingCR) {
-      $('.meta-minorEdit').remove();
-      $('#autosaveControl').remove();
-      $('input[name=action_save]').parent().remove();
+    if (buttonAdded) {
+      button.on('click', function() {
+        createChangeRequestModal(inplaceEditing);
+      });
+      // hide minor edit and autosave capabilities
+      if (!hasEditRight || editExistingCR) {
+        $('.meta-minorEdit').remove();
+        $('#autosaveControl').remove();
+        $('input[name=action_save]').parent().remove();
+      }
     }
-    button.on('click', function() {
-      createChangeRequestModal();
-    });
   }
   var urlParams = new URLSearchParams(window.location.search);
   var hasEditRight = ("$services.security.authorization.hasAccess('edit', $doc)" === "true");
-  // doesn't work yet for inplace editing: need to find the right event to attach this.
+  $(document).on('xwiki:dom:updated', function () {
+    attachButtons(hasEditRight, urlParams.has('changerequest'))
+  });
   attachButtons(hasEditRight, urlParams.has('changerequest'));
 });</code>
     </property>

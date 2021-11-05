@@ -83,36 +83,40 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong CSRF token");
         } else {
             ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
+            boolean success;
             if ("GET".equals(request.getMethod())) {
-                this.handleStatusUpdate(request, response, changeRequest);
+                success = this.handleStatusUpdate(request, response, changeRequest);
             } else {
-                this.handleDescriptionUpdate(request, changeRequest);
+                success = this.handleDescriptionUpdate(request, changeRequest);
             }
-
+            if (success) {
+                this.responseSuccess(changeRequest);
+            }
         }
     }
 
-    private void handleStatusUpdate(HttpServletRequest request, HttpServletResponse response,
+    private boolean handleStatusUpdate(HttpServletRequest request, HttpServletResponse response,
         ChangeRequest changeRequest) throws IOException, ChangeRequestException
     {
         String statusParameter = request.getParameter(STATUS_PARAMETER);
         try {
             ChangeRequestStatus changeRequestStatus = ChangeRequestStatus.valueOf(statusParameter.toUpperCase());
             this.changeRequestManager.updateStatus(changeRequest, changeRequestStatus);
-            this.redirectToChangeRequest(changeRequest);
+            return true;
         } catch (IllegalArgumentException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST,
                 String.format("Wrong status parameter: [%s]", statusParameter));
+            return false;
         }
     }
 
-    private void handleDescriptionUpdate(HttpServletRequest request, ChangeRequest changeRequest)
+    private boolean handleDescriptionUpdate(HttpServletRequest request, ChangeRequest changeRequest)
         throws ChangeRequestException, IOException
     {
         String content = getContent(request);
         changeRequest.setDescription(content);
         this.storageManager.save(changeRequest);
-        this.redirectToChangeRequest(changeRequest);
+        return true;
     }
 
     // Code inspired from DiscussionsResourceReferenceHandler

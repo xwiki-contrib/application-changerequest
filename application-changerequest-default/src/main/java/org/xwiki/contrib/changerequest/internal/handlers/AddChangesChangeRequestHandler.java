@@ -110,7 +110,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
                 this.observationManager
                     .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
-                this.redirectToChangeRequest(changeRequest);
+
+                this.responseSuccess(changeRequest);
             }
         }
     }
