@@ -19,10 +19,14 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -180,6 +184,33 @@ public class ChangeRequestScriptService implements ScriptService
         throws ChangeRequestException
     {
         return this.changeRequestStorageManager.findChangeRequestTargeting(documentReference);
+    }
+
+    /**
+     * Retrieve change requests that are not closed or merged and which contains a change for one of the given document
+     * reference.
+     *
+     * @param modifiedDocuments the reference of the documents for which to find existing change requests.
+     * @return a map whose keys are the given document references and values the list of found change requests. If no
+     *          change request is found for a given reference, the entry is not added.
+     * @since 0.7
+     */
+    public Map<DocumentReference, List<ChangeRequest>> getOpenChangeRequestsTargeting(
+        Collection<DocumentReference> modifiedDocuments) throws ChangeRequestException
+    {
+        Map<DocumentReference, List<ChangeRequest>> result = new HashMap<>();
+
+        for (DocumentReference modifiedDocument : modifiedDocuments) {
+            List<ChangeRequest> changeRequests = getChangeRequestWithChangesFor(modifiedDocument).stream()
+                .filter(foundCR -> foundCR.getStatus() != ChangeRequestStatus.CLOSED
+                    && foundCR.getStatus() != ChangeRequestStatus.MERGED
+            ).collect(Collectors.toList());
+            if (!changeRequests.isEmpty()) {
+                result.put(modifiedDocument, changeRequests);
+            }
+        }
+
+        return result;
     }
 
     /**

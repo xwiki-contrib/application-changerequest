@@ -38,55 +38,9 @@
   <hidden>true</hidden>
   <content>{{include reference="Discussions.Code.DisplayMessage"/}}
 
-{{velocity output="false"}}#template('display_macros.vm')
-#macro (displayMessageContentField) 
-  #set ($docMessageClass = $xwiki.getDocument('Discussions.Code.MessageClass'))
-  #set ($messageClass = $docMessageClass.getxWikiClass())
-  #set ($messageObj = $doc.newObject('Discussions.Code.MessageClass'))
-  #set ($contentField = $messageClass.get('content'))
-  #initRequiredSkinExtensions()
-  ## TODO: duplicate of getRequiredSkinExtensions from display_macro.vm
-  $doc.displayEdit($contentField, '', $messageObj)
-  #set ($macro.importStrings = [])
-  #foreach ($entry in $requiredSkinExtensionsMap.entrySet())
-    #set ($macro.importString = $xwiki.get($entry.key).importString)
-    ## Remove the always used skin extensions, keep only those that have been requested by the display macros above.
-    #set ($discard = $macro.importStrings.add($!stringtool.removeStart($macro.importString, $entry.value).trim()))
-  #end
-  #set ($macro.importStrings = $stringtool.join($macro.importStrings, ''))
-  #set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $macro.importStrings))
-#end{{/velocity}}{{velocity}}#if ($request.showContentField == 'show')
-{{html}}#displayMessageContentField(){{/html}}
-#end{{/velocity}}
-
-
 {{include reference="ChangeRequest.Code.ChangeRequestMacros"/}}
-{{velocity}}#if ($xcontext.action == 'get' &amp;&amp; $request.get('changerequest') != '' &amp;&amp; $request.get('setstatus') != '')
-#if (!$services.csrf.isTokenValid($request.get('form_token')))
-  #set ($discard = $response.sendError(401, "Wrong CSRF token."))
-#else
-  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
-  #if (!$changeRequestOpt.isPresent())
-    #set ($discard = $response.sendError(404, "Change request not found."))
-  #elseif (!$services.changerequest.canStatusBeChanged($changeRequestOpt.get()))
-    #set ($discard = $response.sendError(403, "You're not allowed to perform this action."))
-  #else
-    #set ($changeRequest = $changeRequestOpt.get())
-    #set ($changeRequestDocReference = $services.changerequest.getChangeRequestDocumentReference($changeRequest))
-    #set ($crDoc = $xwiki.getDocument($changeRequestDocReference))
-    #set ($redirectUrl = $crDoc.getURL('view'))
-    #if ($request.get('setstatus') == 'ready')
-      #set ($discard = $services.changerequest.setReadyForReview($changeRequest))
-      #set ($discard = $response.sendRedirect($redirectUrl))
-    #elseif ($request.get('setstatus') == 'draft')
-      #set ($discard = $services.changerequest.setDraft($changeRequest))
-      #set ($discard = $response.sendRedirect($redirectUrl))
-    #else
-      #set ($discard = $response.sendError(400, "Wrong status argument"))
-    #end
-  #end
-#end
-#else
+
+{{velocity}}
 #set ($discard = $doc.use('ChangeRequest.Code.ChangeRequestClass'))
 #set ($changeRequestId = $doc.documentReference.lastSpaceReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
@@ -100,13 +54,11 @@
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
 #set ($displayDocExtra = false)
-
 #macro (displayEventStatus $status)
   #set ($lowerCaseStatus = $stringtool.lowerCase($status))
   #set ($translation = $services.localization.render("changerequest.sheet.status.$lowerCaseStatus"))
   $stringtool.lowerCase($translation)
 #end
-
 #macro (displayEvent $event)
   ## we skip the document modified events, since they are basically redundant with the filechanges ones.
   #if ($event.type != "changerequest.document.modified")
@@ -150,11 +102,10 @@
   &lt;/li&gt;
   #end
 #end
-
+##
 #macro (displayDescription)
   ## Code inspired from AWM.Content page
   #if ("$!request.edit" == 'description')
-    
     #set ($name = 'content')
     #set ($editedDocument = $doc)
     ## Use the preferred content editor.
@@ -216,7 +167,33 @@
     #end
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
-
+##
+#set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargeting($changeRequest.modifiedDocuments))
+#if (!$otherChangeRequestsWithSamePages.isEmpty())
+&lt;div id="warning-other-changerequests" class="alert alert-warning"&gt;
+$services.localization.render('changerequest.sheet.existingChangeRequestSameChanges')
+#set ($id = "changerequests-samechanges")
+#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
+#set($columnsProperties = {
+   "doc.title" : { "type" : "text", "link": "auto" },
+   "authors": { "type": "suggest", "html": "true" },
+   "status" : { "type" : "suggest" },
+   "changedDocuments" : { "type": "suggest", "html": "true"}
+})
+#set ($changedDocumentFilters = [])
+#foreach ($changedDocument in $changeRequest.changeDocuments)
+  $changedDocumentFilters.add("&amp;changedDocuments=$services.model.serialize(changedDocument)")
+#end
+#set($options = {
+   "className":"ChangeRequest.Code.ChangeRequestClass",
+   "rowCount": 5,
+   "translationPrefix": "changerequest.livetable.",
+   "extraParams": "&amp;status/join_mode=OR&amp;status=draft&amp;status=ready_for_review&amp;status=ready_for_merging&amp;changedDocuments/join_mode=OR$stringtool.join($changedDocumentFilters)",
+   "outputOnlyHtml": true
+})
+#livetable($id $columns $columnsProperties $options)
+&lt;/div&gt;&lt;!-- End div warning other changes --&gt;
+#end
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
     &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;
@@ -425,26 +402,22 @@
     &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
        #if ($changeRequest.status == "READY_FOR_REVIEW")
          #set ($statusPanelClass = "panel-primary")
-         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.ready_for_review'))
          #set ($statusIcon = $checkIconSuccess)
        #elseif ($changeRequest.status == "DRAFT")
          #set ($statusPanelClass = "panel-warning")
-         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.draft'))
          #set ($statusIcon = $checkIconProblem)
        #elseif ($changeRequest.status == "READY_FOR_MERGING")
          #set ($statusPanelClass = "panel-success")
-         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.ready_for_merging'))
          #set ($statusIcon = $checkIconSuccess)
        #elseif ($changeRequest.status == "CLOSED")
          #set ($statusPanelClass = "panel-danger")
-         #set ($statusPanelTitle = $services.localization.render('changerequest.sheet.status.closed'))
          #set ($statusIcon = $checkIconProblem)
        #end
        &lt;div class="panel $statusPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
           &lt;h4 class="panel-title"&gt;
             &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
-              $statusIcon $statusPanelTitle
+              $statusIcon $doc.display('status')
             &lt;/a&gt;
           &lt;/h4&gt;
         &lt;/div&gt; &lt;!-- End heading status panel --&gt;
@@ -456,14 +429,14 @@
             #if ($changeRequest.status == "READY_FOR_REVIEW" || $changeRequest.status == "READY_FOR_MERGING")
               &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.ready.explanation')&lt;/div&gt;
               #if ($canStatusBeChanged)
-              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=draft")" class="btn btn-warning" title="$services.localization.render('changerequest.sheet.markdraft.button.title')"&gt;
+              &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequest.id)?status=draft&amp;form_token=$services.csrf.token" class="btn btn-warning" title="$services.localization.render('changerequest.sheet.markdraft.button.title')"&gt;
                 $services.localization.render('changerequest.sheet.markdraft.button')
               &lt;/a&gt;
               #end
             #elseif ($changeRequest.status == "DRAFT")
               &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.draft.explanation')&lt;/div&gt;
               #if ($canStatusBeChanged)
-              &lt;a href="$sheetDoc.getURL('get', "changerequest=$changeRequest.id&amp;form_token=$services.csrf.token&amp;setstatus=ready")" class="btn btn-primary" title="$services.localization.render('changerequest.sheet.markready.button.title')"&gt;
+              &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequest.id)?status=ready&amp;form_token=$services.csrf.token" class="btn btn-primary" title="$services.localization.render('changerequest.sheet.markready.button.title')"&gt;
                $services.localization.render('changerequest.sheet.markready.button')
               &lt;/a&gt;
               #end
@@ -552,9 +525,7 @@
 #else
     No change request corresponding to the current id.
 #end
-#end{{/velocity}}
-
- </content>
+{{/velocity}}</content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
@@ -2778,7 +2749,7 @@ tr.discussion-line:hover {
 #set ($changeRequestId = $doc.documentReference.lastSpaceReference.name)
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
-#set ($status = $doc.get('status'))
+#set ($status = $doc.getValue('status'))
 #if ($status == 'draft')
   #set ($statusClass = "default")
 #elseif ($status == 'merged')
@@ -2790,10 +2761,9 @@ tr.discussion-line:hover {
 #elseif ($status == 'closed')
   #set ($statusClass = "danger")
 #end
-#set ($statusText = $services.localization.render("changerequest.sheet.status.$status"))
 
 {{html}}
-&lt;span class="label label-$statusClass"&gt;$statusText&lt;/span&gt;
+&lt;span class="label label-$statusClass"&gt;$doc.display('status')&lt;/span&gt;
 {{/html}}
 #end
 {{/velocity}}</content>

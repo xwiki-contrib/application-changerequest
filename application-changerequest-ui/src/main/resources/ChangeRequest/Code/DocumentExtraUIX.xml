@@ -163,11 +163,11 @@
     <property>
       <content>{{velocity}}
 #set ($id = "changerequest-livetable")
-#set ($columns = ["doc.location", "authors", "status", "changedDocuments"])
+#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
 #set($columnsProperties = {
-   "doc.location" : { "type" : "text", "link" : "view" },
+   "doc.title" : { "type" : "text", "link" : "view" },
    "authors": { "type": "suggest", "html": "true" },
-   "status" : { "type" : "text" },
+   "status" : { "type" : "suggest" },
    "changedDocuments" : { "type": "hidden", "filterable": "false"}
 })
 #set ($currentDocCompactSerialization = $services.model.serialize($tdoc.documentReference, "compactwiki"))

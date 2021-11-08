@@ -38,11 +38,11 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 #set ($id = "all-changerequests-livetable")
-#set ($columns = ["doc.location", "authors", "status", "changedDocuments"])
+#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
 #set($columnsProperties = {
-   "doc.location" : { "type" : "text", "html": "true" },
+   "doc.title" : { "type" : "text", "link": "auto" },
    "authors": { "type": "suggest", "html": "true" },
-   "status" : { "type" : "text" },
+   "status" : { "type" : "suggest" },
    "changedDocuments" : { "type": "suggest", "html": "true"}
 })
 #set($options = { 

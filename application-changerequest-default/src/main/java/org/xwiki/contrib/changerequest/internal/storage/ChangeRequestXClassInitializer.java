@@ -92,7 +92,7 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
             xClass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
                 Arrays.stream(ChangeRequestStatus.values())
                     .map(item -> item.toString().toLowerCase(Locale.ROOT))
-                    .collect(Collectors.joining()),
+                    .collect(Collectors.joining("|")),
                 ChangeRequestStatus.DRAFT.name().toLowerCase(Locale.ROOT));
 
             xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
