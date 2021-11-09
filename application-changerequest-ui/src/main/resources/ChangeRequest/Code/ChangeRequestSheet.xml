@@ -1477,8 +1477,131 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <cache>long</cache>
     </property>
     <property>
+      <code>define('ChangeRequestDiscussionHandler', ['jquery', 'xwiki-meta', 'bootstrap'], function ($, xm) {
+  var currentReference = xm.documentReference;
+  var discussionPageReference = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestDiscussion");
+  var discussionPageUrl = new XWiki.Document(discussionPageReference).getURL('get');
+  
+  var retrieveMessage = function (data) {
+    var messageReference = data.messageReference;
+    $.get(discussionPageUrl, {
+      messageReference: messageReference,
+      form_token: xm.form_token,
+      outputSyntax: 'plain'
+    }).done(function (data) {
+      var discussionContent = $(data);
+      $('#discussions').append(discussionContent);
+      $(document).trigger('xwiki:dom:updated', {elements: $('#discussions').toArray()});
+    }).fail(function (data) {
+       console.error("Error while trying to retrieve message: " + messageReference);
+       console.log(data);
+    });
+  };
+  
+  return {
+    retrieveMessage
+  };
+});</code>
+    </property>
+    <property>
+      <name>Discussion handler</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>7</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>b7c6493f-b4dd-4a49-ad84-0ea565d588ea</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
       <code>'use strict';
-define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-bridge'], function ($, xm) {
+define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'bootstrap', 'xwiki-events-bridge'], function ($, xm, DiscussionHandler) {
   var commentEditor = function (element, requestData) {
     var self = this;
     self.element = element;
@@ -1513,8 +1636,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-brid
       $(document).trigger('xwiki:actions:cancel');
       $.post(url, data).done(function (data) {
         notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
-        self.editorDiv.remove();
-        window.location.reload();
+        DiscussionHandler.retrieveMessage(data);
       }).fail(function (data) {
         console.error(data);
         notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
@@ -1539,7 +1661,10 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-brid
     self.initEditor = function (data) {
       if (self.requestData.type == 'diffLine') {
         var currentLine = getLine(self.element);
-        var newLine = $('&lt;tr class="discussion-line"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+        if (currentLine.next('.discussion-line').length) {
+          currentLine = currentLine.next();
+        }
+        var newLine = $('&lt;tr class="discussion-line discussion-editor"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
         newLine.insertAfter(currentLine);
         newLine.find('td').append($(data));
         self.editorDiv = newLine;
@@ -1564,9 +1689,9 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'bootstrap', 'xwiki-events-brid
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
-    <number>7</number>
+    <number>8</number>
     <className>XWiki.JavaScriptExtension</className>
-    <guid>b7c6493f-b4dd-4a49-ad84-0ea565d588ea</guid>
+    <guid>7fa8865f-d219-44cf-b53b-4751e6b4701d</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -1717,9 +1842,9 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
-    <number>8</number>
+    <number>9</number>
     <className>XWiki.JavaScriptExtension</className>
-    <guid>7fa8865f-d219-44cf-b53b-4751e6b4701d</guid>
+    <guid>9d738b95-e0e7-4882-a98e-1da0cefa97b0</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -1813,45 +1938,66 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       var entityType = discussion.attr('data-type');
       if (entityType === 'LINE_DIFF') {
         placeLineDiffDiscussion(discussion);
+      } else if (entityType === 'CHANGE_REQUEST_COMMENT') {
+        placeCommentDiscussion(discussion);
       }
+    }
+  };
+  
+  var placeCommentDiscussion = function (discussion) {
+    if ($('#discussion-comments .discussion')) {
+      $('#discussion-comments .discussion').append(discussion.find('.message'));
+    } else {
+      discussion.insertBefore($('#discussion-comments .add-comment'));
     }
   };
   
   var placeLineDiffDiscussion = function (discussion) {
     var reference = discussion.attr('data-reference');
-    var match = reference.match(DIFF_LINE_REFERENCE_PATTERN);
-    if (match) {
-      var filename = match[1];
-      var documentPart = match[2];
-      var lineNumber = match[3];
-      var lineChange = match[4];
-      
-      var fileDiffContainer = $('.diff-body[data-filechange="' + filename +'"]');
+    var existingLine = $('tr.discussion-line[data-reference="'+reference+'"]');
+    if (existingLine.length) {
+      existingLine.find('.discussion').append(discussion.find('.message'));
+    } else {
+      var match = reference.match(DIFF_LINE_REFERENCE_PATTERN);
+      if (match) {
+        var filename = match[1];
+        var documentPart = match[2];
+        var lineNumber = match[3];
+        var lineChange = match[4];
 
-      // FIXME: this will need to be fixed, we don't necessarily have document parts... 
-      var partDiffContainer = fileDiffContainer.find('.diff-header[data-property-name="' + documentPart.toLowerCase() + '"]').next().find('.diff-container');
+        var fileDiffContainer = $('.diff-body[data-filechange="' + filename +'"]');
 
-      var searchingClass;
-      if (lineChange === "ADDED") {
-        searchingClass = "diff-line-added";
-      } else if (lineChange === "REMOVED") {
-        searchingClass = "diff-line-deleted";
-      } else {
-        searchingClass = "diff-line-context";
+        // FIXME: this will need to be fixed, we don't necessarily have document parts... 
+        var partDiffContainer = fileDiffContainer.find('.diff-header[data-property-name="' + documentPart.toLowerCase() + '"]').next().find('.diff-container');
+
+        var searchingClass;
+        if (lineChange === "ADDED") {
+          searchingClass = "diff-line-added";
+        } else if (lineChange === "REMOVED") {
+          searchingClass = "diff-line-deleted";
+        } else {
+          searchingClass = "diff-line-context";
+        }
+        var filterLine = function () {
+          var node = $(this);
+          return node.text() === lineNumber &amp;&amp; node.parent().find('.diff-line').hasClass(searchingClass);
+        }
+        var line = partDiffContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).parent();
+        discussion.insertAfter(line);
+        discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
       }
-      var filterLine = function () {
-        var node = $(this);
-        return node.text() === lineNumber &amp;&amp; node.parent().find('.diff-line').hasClass(searchingClass);
-      }
-      var line = partDiffContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).parent();
-      discussion.insertAfter(line);
-      discussion.wrap('&lt;tr class="discussion-line"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
     }
   }
   
-  var initialize = function () {
+  var placeAllDiscussions = function () {
     $('#discussions .discussion').each(placeDiscussions);
   };
+  
+  var initialize = function () {
+    placeAllDiscussions();
+    $(document).on('xwiki:dom:updated', placeAllDiscussions);
+  };
+  
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
 });</code>
     </property>
@@ -1867,9 +2013,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
-    <number>9</number>
+    <number>10</number>
     <className>XWiki.JavaScriptExtension</className>
-    <guid>9d738b95-e0e7-4882-a98e-1da0cefa97b0</guid>
+    <guid>18a7666e-e031-4751-aff2-053b23280ec0</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -1953,8 +2099,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <code>'use strict';
-require(['jquery', 'xwiki-meta'], function ($, xm) {
-  
+require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler'], function ($, xm, DiscussionHandler) {
   var submitComment = function (form) {
     var url = form.attr('action');
     var notification = new XWiki.widgets.Notification('Submitting message...','inprogress');
@@ -1964,7 +2109,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     $(document).trigger('xwiki:actions:cancel');
     $.post(url, data).done(function (data) {
       notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
-      window.location.reload();
+      DiscussionHandler.retrieveMessage(data);
     }).fail(function (data) {
       console.error(data);
       notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
@@ -2011,9 +2156,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
-    <number>10</number>
+    <number>11</number>
     <className>XWiki.JavaScriptExtension</className>
-    <guid>18a7666e-e031-4751-aff2-053b23280ec0</guid>
+    <guid>e8669304-a294-423d-bf0f-b2308119fb5e</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -2126,10 +2271,10 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <name>description edit</name>
     </property>
     <property>
-      <parse/>
+      <parse>0</parse>
     </property>
     <property>
-      <use/>
+      <use>onDemand</use>
     </property>
   </object>
   <object>

@@ -120,4 +120,18 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
             .getDiscussionsFrom(new ChangeRequestReference(changeRequest.getId()));
         return getChangeRequestDiscussions(discussions);
     }
+
+    /**
+     * Retrieve the change request discussion reference from the given discussion.
+     *
+     * @param discussion the discussion from which to retrieve the refererence.
+     * @return an {@link AbstractChangeRequestDiscussionContextReference} corresponding to the discussion.
+     * @throws ChangeRequestDiscussionException in case of problem to compute the exception
+     * @since 0.7
+     */
+    public AbstractChangeRequestDiscussionContextReference getReference(Discussion discussion)
+        throws ChangeRequestDiscussionException
+    {
+        return this.changeRequestDiscussionService.getReferenceFrom(discussion);
+    }
 }

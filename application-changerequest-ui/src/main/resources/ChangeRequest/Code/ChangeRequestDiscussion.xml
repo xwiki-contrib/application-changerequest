@@ -37,6 +37,9 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{include reference='Discussions.Code.DisplayMessage' /}}
+
+{{include reference='ChangeRequest.Code.ChangeRequestMacros' /}}
+
 {{velocity}}
 #if ($request.method == 'POST' &amp;&amp; $request.get('action') == 'displayEditor' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')))
   #set ($changeRequestId = $request.get('changeRequestId'))
@@ -62,6 +65,12 @@
   &lt;/form&gt;
 &lt;/div&gt;
 {{/html}}
+#elseif ($request.method == 'GET' &amp;&amp; $xcontext.action == 'get' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')) &amp;&amp; "$!request.get('messageReference')" != "")
+  #set ($message = $services.discussions.getMessage($request.get('messageReference')))
+  #set ($reference = $services.changerequest.discussion.getReference($message.discussion))
+  &lt;div class="discussion" data-type="$reference.type" data-reference="$reference.reference"&gt;
+  #displayMessage($message)
+  &lt;/div&gt;
 #else
   Code for discussions.
 #end
