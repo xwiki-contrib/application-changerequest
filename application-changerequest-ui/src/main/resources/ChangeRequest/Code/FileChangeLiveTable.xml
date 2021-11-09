@@ -56,6 +56,11 @@ Technical page for getting livetable data for change request file changes.
     #set ($rows = [])
     #foreach ($docReference in $references)
       #set ($concernedDoc = $xwiki.getDocument($docReference))
+      #set ($hasConflicts = false)
+      #set ($mergedDocumentResultOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $docReference))
+      #if ($mergedDocumentResultOpt.isPresent())
+        #set ($hasConflicts = $mergedDocumentResultOpt.get().hasConflicts())
+      #end
       #set ($viewUrl = $concernedDoc.getURL('view'))
       #set ($editUrl = $concernedDoc.getURL('editcr', "changerequest=$changeRequest.id"))
       #set ($isExtensionPage = $services.extension.xar.isExtensionDocument($docReference))
@@ -75,13 +80,21 @@ Technical page for getting livetable data for change request file changes.
           'doc_url': $xwiki.getURL($docReference),
           'doc_space_url': $xwiki.getURL($docReference.parent),
           'doc_wiki': $docReference.wikiReference.name,
-          'doc_wiki_url': $xwiki.getURL($docReference.wikiReference)
+          'doc_wiki_url': $xwiki.getURL($docReference.wikiReference),
+          'filechange_locale': $docReference.locale
         })
         #if ($lastFileChange.type == 'EDITION' &amp;&amp; $hasCREdit &amp;&amp; !$isMerged)
           #set ($discard = $row.put('doc_hasedit', true))
           #set ($discard = $row.put('doc_edit_url', $xwiki.getURL($docReference, 'editcr', "changerequest=$changeRequest.id")))
         #else
           #set ($discard = $row.put('doc_hasedit', false))
+        #end
+        #if ($hasConflicts)
+          #set ($discard = $row.put('doc_hasfixconflict', true))
+          #set ($conflictUrl = "&amp;reference=$services.model.serialize($docReference, 'local')&amp;locale=$docReference.locale")
+          #set ($discard = $row.put('doc_fixconflict_url', $conflictUrl))
+        #else
+          #set ($discard = $row.put('doc_hasfixconflict', false))
         #end
         #set ($discard = $rows.add($row))
       #end

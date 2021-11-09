@@ -287,7 +287,12 @@ $services.localization.render('changerequest.sheet.existingChangeRequestSameChan
    'doc.location' : { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
    'filechange_type': { 'type' : 'text', 'filterable': 'false', 'sortable': 'false' },
    'filechange_author': { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
-   '_actions': {'actions': ['edit']}
+   '_actions': {'actions': ['edit', {
+     'id': 'fixconflict',
+     'label': $services.localization.render('changerequest.sheet.fixconflict.button'),
+     'icon': 'wrench',
+     'async': 'false'
+   }]}
 })
 #set ($fileChangeLTDoc = $xwiki.getDocument('ChangeRequest.Code.FileChangeLiveTable'))
 #set($options = {
@@ -1048,7 +1053,8 @@ require(['jquery', 'bootstrap'], function ($) {
     </property>
     <property>
       <code>'use strict';
-require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm, ConflictModal) {
+// last argument is a polyfill to use URLSearchParams with IE11
+require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal', "$services.webjars.url('org.webjars.npm:url-search-params-polyfill', 'index.js')"], function ($, xm, ConflictModal) {
   var initialize = function () {
     $(".conflictFixing").on('click', function () {
       var button = $(this);
@@ -1056,6 +1062,19 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
       var locale = button.attr('data-locale');
       var currentReference = xm.documentReference;
       var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
+      var modal = new ConflictModal(changeRequestId, reference, locale);
+      modal.requestModal('NEXT', 'MERGED');
+    });
+    
+    $(".actionfixconflict").on('click', function (event) {
+      event.preventDefault();
+      var currentReference = xm.documentReference;
+      var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
+      var button = $(this);
+      var link = button.attr('href');
+      var urlParams = new URLSearchParams(link);
+      var reference = urlParams.get('reference');
+      var locale = urlParams.get('locale');
       var modal = new ConflictModal(changeRequestId, reference, locale);
       modal.requestModal('NEXT', 'MERGED');
     });
@@ -1068,7 +1087,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
       <name>Handle conflict button</name>
     </property>
     <property>
-      <parse>0</parse>
+      <parse>1</parse>
     </property>
     <property>
       <use>currentPage</use>
