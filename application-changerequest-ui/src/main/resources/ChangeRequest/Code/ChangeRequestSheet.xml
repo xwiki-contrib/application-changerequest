@@ -168,7 +168,7 @@
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
 ##
-#set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargeting($changeRequest.modifiedDocuments))
+#set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargetingSame($changeRequest))
 #if (!$otherChangeRequestsWithSamePages.isEmpty())
 &lt;div id="warning-other-changerequests" class="alert alert-warning"&gt;
 &lt;button type="button" class="close" data-dismiss="alert" aria-label="Close"&gt;
@@ -184,14 +184,14 @@ $services.localization.render('changerequest.sheet.existingChangeRequestSameChan
    "changedDocuments" : { "type": "suggest", "html": "true"}
 })
 #set ($changedDocumentFilters = [])
-#foreach ($changedDocument in $changeRequest.changeDocuments)
-  $changedDocumentFilters.add("&amp;changedDocuments=$services.model.serialize(changedDocument)")
+#foreach ($changedDocument in $changeRequest.modifiedDocuments)
+  #set ($discard = $changedDocumentFilters.add("&amp;changedDocuments=$services.model.serialize($changedDocument)"))
 #end
 #set($options = {
    "className":"ChangeRequest.Code.ChangeRequestClass",
    "rowCount": 5,
    "translationPrefix": "changerequest.livetable.",
-   "extraParams": "&amp;status/join_mode=OR&amp;status=draft&amp;status=ready_for_review&amp;status=ready_for_merging&amp;changedDocuments/join_mode=OR$stringtool.join($changedDocumentFilters)",
+   "extraParams": "&amp;status/join_mode=OR&amp;status=draft&amp;status=ready_for_review&amp;status=ready_for_merging&amp;changedDocuments/join_mode=OR$stringtool.join($changedDocumentFilters, '')",
    "outputOnlyHtml": true
 })
 #livetable($id $columns $columnsProperties $options)
