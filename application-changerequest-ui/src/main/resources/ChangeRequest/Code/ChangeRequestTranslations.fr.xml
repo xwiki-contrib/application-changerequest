@@ -40,7 +40,7 @@
 changerequest.livetable.status=Statut
 changerequest.livetable.changedDocuments=Documents concernés
 changerequest.livetable.authors=Auteurs
-changerequest.docextra.title=Requêtes de changements
+changerequest.docextra.title=Demandes de modification
 changerequest.application.label=Demande de modification
 changerequest.picker.placeholder=Saisissez un nom pour la demande de modification
 changerequest.savemodal.header.title=Enregistrer comme demande de modification
@@ -122,7 +122,7 @@ changerequest.timeline.changerequest.review.added.approval={0} a ajouté une dem
 changerequest.timeline.changerequest.review.added.requestchanges={0} a ajouté une demande d''approbation des modifications
 changerequest.timeline.changerequest.discussions={0} a ajouté un nouveau message
 changerequest.sheet.description.placeholder=Cliquez sur le lien Modifier à droite puis renseignez une description.
-### Missing: changerequest.sheet.existingChangeRequestSameChanges=Other change requests exist targeting one or several of the pages modified here:
+changerequest.sheet.existingChangeRequestSameChanges=D'autres demandes de modification ciblent les pages modifiées ici :
 
 ## changerequest.sheet.status.draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_draft=Brouillon
