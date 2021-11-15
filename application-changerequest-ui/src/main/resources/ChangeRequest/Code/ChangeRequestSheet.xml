@@ -168,35 +168,6 @@
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
 ##
-#set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargetingSame($changeRequest))
-#if (!$otherChangeRequestsWithSamePages.isEmpty())
-&lt;div id="warning-other-changerequests" class="alert alert-warning"&gt;
-&lt;button type="button" class="close" data-dismiss="alert" aria-label="Close"&gt;
-  &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
-&lt;/button&gt;
-$services.localization.render('changerequest.sheet.existingChangeRequestSameChanges')
-#set ($id = "changerequests-samechanges")
-#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
-#set($columnsProperties = {
-   "doc.title" : { "type" : "text", "link": "auto" },
-   "authors": { "type": "suggest", "html": "true" },
-   "status" : { "type" : "suggest" },
-   "changedDocuments" : { "type": "suggest", "html": "true"}
-})
-#set ($changedDocumentFilters = [])
-#foreach ($changedDocument in $changeRequest.modifiedDocuments)
-  #set ($discard = $changedDocumentFilters.add("&amp;changedDocuments=$services.model.serialize($changedDocument)"))
-#end
-#set($options = {
-   "className":"ChangeRequest.Code.ChangeRequestClass",
-   "rowCount": 5,
-   "translationPrefix": "changerequest.livetable.",
-   "extraParams": "&amp;status/join_mode=OR&amp;status=draft&amp;status=ready_for_review&amp;status=ready_for_merging&amp;changedDocuments/join_mode=OR$stringtool.join($changedDocumentFilters, '')",
-   "outputOnlyHtml": true
-})
-#livetable($id $columns $columnsProperties $options)
-&lt;/div&gt;&lt;!-- End div warning other changes --&gt;
-#end
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
     &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;
@@ -204,25 +175,25 @@ $services.localization.render('changerequest.sheet.existingChangeRequestSameChan
       &lt;/a&gt;
     &lt;/li&gt;
     &lt;li role="presentation"&gt;&lt;a href="#filechanges" aria-controls="filechanges" role="tab" data-toggle="tab"&gt;
-      $services.localization.render('changerequest.sheet.tab.filechanges.title')
       &lt;span class="label label-default"&gt;$modifiedFiles.size()&lt;/span&gt;
+      $services.localization.render('changerequest.sheet.tab.filechanges.title')
       &lt;/a&gt;
     &lt;/li&gt;
     &lt;li role="presentation"&gt;&lt;a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab"&gt;
-      $services.localization.render('changerequest.sheet.tab.reviews.title')
       &lt;span class="label label-default"&gt;$changeRequest.reviews.size()&lt;/span&gt;
+      $services.localization.render('changerequest.sheet.tab.reviews.title')
       &lt;/a&gt;
     &lt;/li&gt;
     
     #if ($isNotMerged)
-    &lt;li role="presentation"&gt;&lt;a href="#merge" aria-controls="merge" role="tab" data-toggle="tab"&gt;
-      $services.localization.render('changerequest.sheet.tab.checks.title')
+    &lt;li role="presentation"&gt;&lt;a href="#checks" aria-controls="checks" role="tab" data-toggle="tab"&gt;
       #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
       #if ($canBeMerged)
         &lt;span class="label label-success"&gt;$checkIconSuccess&lt;/span&gt;
       #else
         &lt;span class="label label-danger"&gt;$checkIconProblem&lt;/span&gt;
       #end
+      $services.localization.render('changerequest.sheet.tab.checks.title')
       &lt;/a&gt;
     &lt;/li&gt;
     #end
@@ -406,8 +377,45 @@ $services.localization.render('changerequest.sheet.existingChangeRequestSameChan
     &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End reviews --&gt;
     #if ($isNotMerged)
-    &lt;div role="tabpanel" class="tab-pane" id="merge"&gt;
+    &lt;div role="tabpanel" class="tab-pane" id="checks"&gt;
     &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
+    #set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargetingSame($changeRequest))
+    #if (!$otherChangeRequestsWithSamePages.isEmpty())
+      &lt;div class="panel panel-info"&gt;
+        &lt;div class="panel-heading" role="tab" id="headingOtherCRPanel"&gt;
+          &lt;h4 class="panel-title"&gt;
+            &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
+              $services.icon.renderHTML('info') $services.localization.render('changerequest.sheet.checks.otherCR.title')
+            &lt;/a&gt;
+          &lt;/h4&gt;
+        &lt;/div&gt; &lt;!-- End heading other CR panel --&gt;
+        &lt;div id="otherCRPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOtherCRPanel"&gt;
+          &lt;div class="panel-body"&gt;
+            $services.localization.render('changerequest.sheet.existingChangeRequestSameChanges')
+            #set ($id = "changerequests-samechanges")
+            #set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
+            #set($columnsProperties = {
+               "doc.title" : { "type" : "text", "link": "auto" },
+               "authors": { "type": "suggest", "html": "true" },
+               "status" : { "type" : "suggest" },
+               "changedDocuments" : { "type": "suggest", "html": "true"}
+            })
+            #set ($changedDocumentFilters = [])
+            #foreach ($changedDocument in $changeRequest.modifiedDocuments)
+              #set ($discard = $changedDocumentFilters.add("&amp;changedDocuments=$services.model.serialize($changedDocument)"))
+            #end
+            #set($options = {
+               "className":"ChangeRequest.Code.ChangeRequestClass",
+               "rowCount": 5,
+               "translationPrefix": "changerequest.livetable.",
+               "extraParams": "&amp;status/join_mode=OR&amp;status=draft&amp;status=ready_for_review&amp;status=ready_for_merging&amp;changedDocuments/join_mode=OR$stringtool.join($changedDocumentFilters, '')",
+               "outputOnlyHtml": true
+            })
+            #livetable($id $columns $columnsProperties $options)
+        &lt;/div&gt;
+      &lt;/div&gt;&lt;!-- End otherCR panel body --&gt;
+     &lt;/div&gt;&lt;!-- End otherCR panel --&gt;
+      #end
        #if ($changeRequest.status == "READY_FOR_REVIEW")
          #set ($statusPanelClass = "panel-primary")
          #set ($statusIcon = $checkIconSuccess)
