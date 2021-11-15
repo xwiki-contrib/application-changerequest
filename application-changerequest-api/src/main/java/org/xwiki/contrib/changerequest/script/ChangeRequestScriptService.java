@@ -446,6 +446,19 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
+     * Check if the current user is authorized to rebase the given change request.
+     *
+     * @param changeRequest the change request about to be rebased.
+     * @return {@code true} if the change request can be rebased by current user.
+     * @since 0.7
+     */
+    public boolean isAuthorizedToRebase(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestManager.isAuthorizedToRebase(currentUserReference, changeRequest);
+    }
+
+    /**
      * Retrieve a review based on its identifier.
      *
      * @param changeRequest the change request for which to retrieve a review.

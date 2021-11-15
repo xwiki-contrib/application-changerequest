@@ -36,6 +36,9 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
+import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,6 +75,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private RequestParameterConverter requestParameterConverter;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
 
     protected HttpServletRequest prepareRequest() throws ChangeRequestException
     {
@@ -176,5 +182,10 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         response.setCharacterEncoding(context.getWiki().getEncoding());
         response.getWriter().print(jsonAnswerAsString);
         context.setResponseSent(true);
+    }
+
+    protected UserReference getCurrentUser()
+    {
+        return this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
     }
 }

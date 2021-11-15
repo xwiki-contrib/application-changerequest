@@ -24,10 +24,14 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletResponse;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.container.Container;
+import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -46,16 +50,29 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
     @Inject
     private FileChangeStorageManager fileChangeStorageManager;
 
+    @Inject
+    private ChangeRequestManager changeRequestManager;
+
+    @Inject
+    private Container container;
+
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
         throws ChangeRequestException, IOException
     {
         ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
+        HttpServletResponse response =
+            ((ServletResponse) this.container.getResponse()).getHttpServletResponse();
+
         if (changeRequest != null) {
-            for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
-                this.fileChangeStorageManager.rebase(lastFileChange);
+            if (this.changeRequestManager.isAuthorizedToRebase(this.getCurrentUser(), changeRequest)) {
+                for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
+                    this.fileChangeStorageManager.rebase(lastFileChange);
+                }
+                this.responseSuccess(changeRequest);
+            } else {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not authorized to perform a rebase.");
             }
-            this.responseSuccess(changeRequest);
         }
     }
 }

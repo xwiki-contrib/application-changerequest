@@ -543,4 +543,16 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             this.computeReadyForMergingStatus(changeRequest);
         }
     }
+
+    @Override
+    public boolean isAuthorizedToRebase(UserReference userReference, ChangeRequest changeRequest)
+    {
+        if (changeRequest.getAuthors().contains(userReference)) {
+            return true;
+        } else {
+            DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+            DocumentReference userDoc = this.userReferenceConverter.convert(userReference);
+            return this.authorizationManager.hasAccess(Right.ADMIN, userDoc, changeRequestDoc);
+        }
+    }
 }

@@ -60,6 +60,19 @@ public interface ChangeRequestManager
     boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest) throws ChangeRequestException;
 
     /**
+     * Check if the given user is authorized to perform a rebase on the given change request.
+     *
+     * @param userReference the user for which to check the authorizations
+     * @param changeRequest the change request to check
+     * @return {@code true} if the user has the appropriate rights to perform the rebase.
+     * @since 0.7
+     */
+    default boolean isAuthorizedToRebase(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return false;
+    }
+
+    /**
      * Check if all conditions are met so that a change request can be merged.
      * This method checks in particular if there's no conflict in the change request, if it's status allows is to be
      * merged, and if the approval strategy is met.
