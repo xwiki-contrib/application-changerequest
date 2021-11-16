@@ -306,6 +306,7 @@
     &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
       &lt;h4 class="panel-title"&gt;
         &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
+          &lt;span class="label label-default commentcounter hidden"&gt;$services.icon.renderHTML('envelope') &lt;span class="counter" data-filechange="$crMergeDocumentResult.fileChangeId"&gt;0&lt;/span&gt;&lt;/span&gt;
           $services.localization.render('changerequest.sheet.difftitle', [$renderedTitle])
         &lt;/a&gt;
       &lt;/h4&gt;
@@ -1952,6 +1953,13 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     }
   };
   
+  var incrementCounter = function (filename) {
+    var currentCounterSpan = $('.counter[data-filechange="' + filename +'"]');
+    var counter = parseInt(currentCounterSpan.text()) + 1;
+    currentCounterSpan.text(counter);
+    currentCounterSpan.parent().removeClass('hidden');
+  };
+  
   var placeLineDiffDiscussion = function (discussion) {
     var reference = discussion.attr('data-reference');
     var existingLine = $('tr.discussion-line[data-reference="'+reference+'"]');
@@ -1983,8 +1991,13 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           return node.text() === lineNumber &amp;&amp; node.parent().find('.diff-line').hasClass(searchingClass);
         }
         var line = partDiffContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).parent();
-        discussion.insertAfter(line);
-        discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+        if (line.length &gt; 0) {
+          discussion.insertAfter(line);
+          discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+          incrementCounter(filename);
+        } else {
+          console.warn("Cannot find proper line for: " + reference);
+        }
       }
     }
   }
@@ -2751,6 +2764,9 @@ tr.discussion-line:hover {
 }
 .message-content {
   padding: 1em;
+}
+.commentcounter {
+  float: right;
 }</code>
     </property>
     <property>
