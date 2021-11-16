@@ -105,6 +105,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             if (fileChange != null) {
                 changeRequest.addFileChange(fileChange);
                 this.storageManager.save(changeRequest);
+                this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
                 this.addApprovers(documentReference, changeRequest);
                 this.invalidateApprovals(changeRequest);
                 this.changeRequestManager.computeReadyForMergingStatus(changeRequest);

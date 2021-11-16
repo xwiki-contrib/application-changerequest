@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -77,6 +78,9 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     @Inject
     private ChangeRequestManager changeRequestManager;
 
+    @Inject
+    private ChangeRequestRightsManager changeRequestRightsManager;
+
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
      * @param changeRequestReference the request reference leading to this.
@@ -88,6 +92,8 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         HttpServletRequest request = this.prepareRequest();
         ChangeRequest changeRequest = getChangeRequest(request);
         this.storageManager.save(changeRequest);
+        this.changeRequestRightsManager.copyViewRights(changeRequest,
+            changeRequest.getModifiedDocuments().iterator().next());
         this.copyApprovers(changeRequest);
         this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
