@@ -57,7 +57,7 @@
 #set ($displayDocExtra = false)
 #macro (displayEventStatus $status)
   #set ($lowerCaseStatus = $stringtool.lowerCase($status))
-  #set ($translation = $services.localization.render("changerequest.sheet.status.$lowerCaseStatus"))
+  #set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
   $stringtool.lowerCase($translation)
 #end
 #macro (displayEvent $event)
