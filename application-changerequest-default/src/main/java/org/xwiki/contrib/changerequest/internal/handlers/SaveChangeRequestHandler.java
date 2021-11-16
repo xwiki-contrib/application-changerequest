@@ -83,14 +83,20 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong CSRF token");
         } else {
             ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
-            boolean success;
-            if ("GET".equals(request.getMethod())) {
-                success = this.handleStatusUpdate(request, response, changeRequest);
+
+            if ((!this.changeRequestManager.isAuthorizedToEdit(getCurrentUser(), changeRequest))) {
+                response
+                    .sendError(HttpServletResponse.SC_FORBIDDEN, "You don't have right to edit this change request");
             } else {
-                success = this.handleDescriptionUpdate(request, changeRequest);
-            }
-            if (success) {
-                this.responseSuccess(changeRequest);
+                boolean success;
+                if ("GET".equals(request.getMethod())) {
+                    success = this.handleStatusUpdate(request, response, changeRequest);
+                } else {
+                    success = this.handleDescriptionUpdate(request, changeRequest);
+                }
+                if (success) {
+                    this.responseSuccess(changeRequest);
+                }
             }
         }
     }

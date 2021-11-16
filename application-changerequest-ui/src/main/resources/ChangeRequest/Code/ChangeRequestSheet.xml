@@ -53,6 +53,7 @@
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
+#set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
 #set ($displayDocExtra = false)
 #macro (displayEventStatus $status)
   #set ($lowerCaseStatus = $stringtool.lowerCase($status))
@@ -105,7 +106,7 @@
 ##
 #macro (displayDescription)
   ## Code inspired from AWM.Content page
-  #if ("$!request.edit" == 'description')
+  #if ("$!request.edit" == 'description' &amp;&amp; $canBeEdited)
     #set ($name = 'content')
     #set ($editedDocument = $doc)
     ## Use the preferred content editor.
@@ -137,7 +138,7 @@
       &lt;input type="submit" id="save-description" class="btn btn-primary" value="Save" /&gt;
     &lt;/div&gt;
     &lt;/form&gt;
-  #else
+  #elseif ($canBeEdited)
     &lt;a class="edit-description" role="button" title="Edit" href="$doc.getURL('view', 'edit=description')"&gt;
       $services.icon.renderHTML('pencil')
       &lt;span class="sr-only"&gt;Edit&lt;/span&gt;
@@ -149,6 +150,8 @@
     ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
     $doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')
     #end
+  #else
+    $doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')
   #end
 #end
 {{html clean="false"}}
@@ -3053,7 +3056,6 @@ tr.discussion-line:hover {
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
 #set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
-#set ($statusCanBeChanged = $services.changerequest.canStatusBeChanged($changeRequest))
 #set ($closeUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=closed&amp;form_token=$services.csrf.token")
 #set ($readyForReviewUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token")
 #set ($draftUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token")
@@ -3062,8 +3064,8 @@ tr.discussion-line:hover {
 #set ($status = $changeRequest.status)
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
 #set ($canBeReviewed = $services.changerequest.isAuthorizedToReview($changeRequest))
-#set ($canBeRebased = $services.changerequest.isAuthorizedToRebase($changeRequest))
-#if ($status == 'DRAFT' &amp;&amp; $statusCanBeChanged)
+#set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
+#if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
   &lt;a href="$readyForReviewUrl" title="$services.localization.render('changerequest.sheet.ready.button.title')" rel="nofollow" class="btn btn-primary"&gt;
@@ -3074,13 +3076,11 @@ tr.discussion-line:hover {
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
-    #if ($canBeRebased)
     &lt;li class=""&gt;
       &lt;a href="$rebaseUrl" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
-    #end
     &lt;li class=""&gt;
       &lt;a href="$closeUrl" title="$services.localization.render('changerequest.sheet.close.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
@@ -3101,20 +3101,17 @@ tr.discussion-line:hover {
       $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
     &lt;/a&gt;
   #end
-  #if ($canBeRebased || $statusCanBeChanged)
+  #if ($canBeEdited)
   &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
     &lt;span class="caret"&gt;&lt;/span&gt;
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
-    #if ($canBeRebased)
     &lt;li class=""&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
-    #end
-    #if ($statusCanBeChanged)
     &lt;li class=""&gt;
       &lt;a href="$draftUrl" title="$services.localization.render('changerequest.sheet.markdraft.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('coffee') $services.localization.render('changerequest.sheet.markdraft.button')
@@ -3125,7 +3122,6 @@ tr.discussion-line:hover {
         $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
       &lt;/a&gt;
     &lt;/li&gt;
-    #end
   &lt;/ul&gt;
   #end
 &lt;/div&gt;
@@ -3133,10 +3129,10 @@ tr.discussion-line:hover {
 #elseif ($changeRequest.status == 'CLOSED')
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
-  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary" #if(!$statusCanBeChanged)disabled="disabled"#end&gt;
+  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary" #if(!$canBeEdited)disabled="disabled"#end&gt;
       $services.icon.renderHTML('unlock') $services.localization.render('changerequest.sheet.open.button')
   &lt;/a&gt;
-  #if ($statusCanBeChanged)
+  #if ($canBeEdited)
   &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
     &lt;span class="caret"&gt;&lt;/span&gt;
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;

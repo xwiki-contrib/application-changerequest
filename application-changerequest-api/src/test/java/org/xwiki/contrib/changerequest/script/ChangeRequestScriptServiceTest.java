@@ -192,16 +192,16 @@ class ChangeRequestScriptServiceTest
     }
 
     @Test
-    void canStatusBeChanged()
+    void isAuthorizedToEdit()
     {
         UserReference userReference = mock(UserReference.class);
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToChangeStatus(userReference, changeRequest))
+        when(this.changeRequestManager.isAuthorizedToEdit(userReference, changeRequest))
             .thenReturn(false);
-        assertFalse(this.scriptService.canStatusBeChanged(changeRequest));
+        assertFalse(this.scriptService.isAuthorizedToEdit(changeRequest));
 
-        verify(this.changeRequestManager).isAuthorizedToChangeStatus(userReference, changeRequest);
+        verify(this.changeRequestManager).isAuthorizedToEdit(userReference, changeRequest);
     }
 
     @Test

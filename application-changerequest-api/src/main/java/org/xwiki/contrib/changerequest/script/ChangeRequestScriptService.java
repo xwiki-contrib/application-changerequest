@@ -262,12 +262,12 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeRequest the change request for which to check the authors.
      * @return {@code true} if the current user is one of the author of the given change request and the change request
      *          is not merged yet.
-     * @since 0.4
+     * @since 0.7
      */
-    public boolean canStatusBeChanged(ChangeRequest changeRequest)
+    public boolean isAuthorizedToEdit(ChangeRequest changeRequest)
     {
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToChangeStatus(currentUser, changeRequest);
+        return this.changeRequestManager.isAuthorizedToEdit(currentUser, changeRequest);
     }
 
     /**
@@ -443,19 +443,6 @@ public class ChangeRequestScriptService implements ScriptService
     {
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
-    }
-
-    /**
-     * Check if the current user is authorized to rebase the given change request.
-     *
-     * @param changeRequest the change request about to be rebased.
-     * @return {@code true} if the change request can be rebased by current user.
-     * @since 0.7
-     */
-    public boolean isAuthorizedToRebase(ChangeRequest changeRequest) throws ChangeRequestException
-    {
-        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToRebase(currentUserReference, changeRequest);
     }
 
     /**

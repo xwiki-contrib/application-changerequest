@@ -119,6 +119,19 @@
                   <new>method void org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::rebase(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
                   <justification>Unstable API: the API was missing for rebase feature.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestManager::isAuthorizedToChangeStatus(org.xwiki.user.UserReference, org.xwiki.contrib.changerequest.ChangeRequest)</old>
+                  <justification>Unstable API: this method was made more generic and renamed isAuthorizedToEdit.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::canStatusBeChanged(org.xwiki.contrib.changerequest.ChangeRequest)</old>
+                  <justification>Unstable API: this method was made more generic and renamed isAuthorizedToEdit.</justification>
+                </item>
+
               </differences>
             </revapi.differences>
           </analysisConfiguration>

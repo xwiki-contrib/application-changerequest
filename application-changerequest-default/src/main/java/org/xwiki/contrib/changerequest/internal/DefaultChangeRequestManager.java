@@ -515,7 +515,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     }
 
     @Override
-    public boolean isAuthorizedToChangeStatus(UserReference userReference, ChangeRequest changeRequest)
+    public boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest)
     {
         boolean result = false;
         if (changeRequest.getStatus() != ChangeRequestStatus.MERGED) {
@@ -541,18 +541,6 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
                 new ChangeRequestStatus[] {oldStatus, newStatus});
             this.computeReadyForMergingStatus(changeRequest);
-        }
-    }
-
-    @Override
-    public boolean isAuthorizedToRebase(UserReference userReference, ChangeRequest changeRequest)
-    {
-        if (changeRequest.getAuthors().contains(userReference)) {
-            return true;
-        } else {
-            DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-            DocumentReference userDoc = this.userReferenceConverter.convert(userReference);
-            return this.authorizationManager.hasAccess(Right.ADMIN, userDoc, changeRequestDoc);
         }
     }
 }

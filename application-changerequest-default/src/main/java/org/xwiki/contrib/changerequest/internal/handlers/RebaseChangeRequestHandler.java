@@ -65,7 +65,7 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
             ((ServletResponse) this.container.getResponse()).getHttpServletResponse();
 
         if (changeRequest != null) {
-            if (this.changeRequestManager.isAuthorizedToRebase(this.getCurrentUser(), changeRequest)) {
+            if (this.changeRequestManager.isAuthorizedToEdit(this.getCurrentUser(), changeRequest)) {
                 for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
                     this.fileChangeStorageManager.rebase(lastFileChange);
                 }

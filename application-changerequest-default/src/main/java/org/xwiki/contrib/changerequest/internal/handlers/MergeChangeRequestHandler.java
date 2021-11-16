@@ -24,6 +24,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletResponse;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -64,11 +65,11 @@ public class MergeChangeRequestHandler extends AbstractChangeRequestActionHandle
         if (changeRequest != null) {
             UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
             if (!this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)) {
-                this.contextProvider.get().getResponse().sendError(403,
+                this.contextProvider.get().getResponse().sendError(HttpServletResponse.SC_FORBIDDEN,
                     String.format("You're not authorized to merge change request [%s].",
                         changeRequestReference.getId()));
             } else if (!this.changeRequestManager.canBeMerged(changeRequest)) {
-                this.contextProvider.get().getResponse().sendError(409,
+                this.contextProvider.get().getResponse().sendError(HttpServletResponse.SC_CONFLICT,
                     String.format("The change request [%s] cannot be merged.",
                         changeRequestReference.getId()));
             } else {

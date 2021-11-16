@@ -60,19 +60,6 @@ public interface ChangeRequestManager
     boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest) throws ChangeRequestException;
 
     /**
-     * Check if the given user is authorized to perform a rebase on the given change request.
-     *
-     * @param userReference the user for which to check the authorizations
-     * @param changeRequest the change request to check
-     * @return {@code true} if the user has the appropriate rights to perform the rebase.
-     * @since 0.7
-     */
-    default boolean isAuthorizedToRebase(UserReference userReference, ChangeRequest changeRequest)
-    {
-        return false;
-    }
-
-    /**
      * Check if all conditions are met so that a change request can be merged.
      * This method checks in particular if there's no conflict in the change request, if it's status allows is to be
      * merged, and if the approval strategy is met.
@@ -200,15 +187,16 @@ public interface ChangeRequestManager
     }
 
     /**
-     * Define if the given user is authorized to change the status of the given change request.
-     * Only change request that are not merged can have their status changed, and only authors or administrators of the
-     * wiki could change it.
+     * Define if the given user is authorized to edit the given change request. An edition can be either changing the
+     * status, modifying the description, or even rebasing the change request.
+     * Only change request that are not merged can be edited, and only authors or administrators of the change request
+     * document are authorized to do it.
      * @param userReference the user for which to check rights.
-     * @param changeRequest the change request to check if the status can be changed.
-     * @return {@code true} if the given user can change the status, {@code false otherwise}.
-     * @since 0.6
+     * @param changeRequest the change request to check if it can be edited.
+     * @return {@code true} if the given user can edit the change request, {@code false otherwise}.
+     * @since 0.7
      */
-    default boolean isAuthorizedToChangeStatus(UserReference userReference, ChangeRequest changeRequest)
+    default boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest)
     {
         return false;
     }

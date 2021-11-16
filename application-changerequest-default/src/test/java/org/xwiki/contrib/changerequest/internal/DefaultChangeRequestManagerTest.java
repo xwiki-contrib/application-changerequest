@@ -378,7 +378,7 @@ class DefaultChangeRequestManagerTest
     }
 
     @Test
-    void isAuthorizedToChangeStatus()
+    void isAuthorizedToEdit()
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         UserReference userReference = mock(UserReference.class);
@@ -386,10 +386,10 @@ class DefaultChangeRequestManagerTest
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
         when(changeRequest.getAuthors())
             .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
-        assertFalse(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+        assertFalse(this.manager.isAuthorizedToEdit(userReference, changeRequest));
 
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
-        assertTrue(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+        assertTrue(this.manager.isAuthorizedToEdit(userReference, changeRequest));
 
         when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
         DocumentReference userDocReference = mock(DocumentReference.class);
@@ -398,10 +398,10 @@ class DefaultChangeRequestManagerTest
         when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
         when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
-        assertFalse(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+        assertFalse(this.manager.isAuthorizedToEdit(userReference, changeRequest));
 
         when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
-        assertTrue(this.manager.isAuthorizedToChangeStatus(userReference, changeRequest));
+        assertTrue(this.manager.isAuthorizedToEdit(userReference, changeRequest));
     }
 
     @Test
