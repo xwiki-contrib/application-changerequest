@@ -95,8 +95,8 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(reference));
                 ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
                 contextList.add(this.changeRequestDiscussionFactory.getOrCreateContextFor(
-                    new ChangeRequestFileDiffReference(lineDiffReference.getFileChangeId(),
-                        lineDiffReference.getChangeRequestId())));
+                    new ChangeRequestFileDiffReference(lineDiffReference.getChangeRequestId(),
+                        lineDiffReference.getLineDiffLocation().getFileDiffLocation())));
                 break;
 
             case CHANGE_REQUEST:
@@ -181,7 +181,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 ChangeRequestFileDiffReference fileDiffReference = (ChangeRequestFileDiffReference) reference;
                 ChangeRequest newChangeRequest = null;
                 for (Map.Entry<List<String>, ChangeRequest> entry : splittedChangeRequests.entrySet()) {
-                    if (entry.getKey().contains(fileDiffReference.getFileChangeId())) {
+                    if (entry.getKey().contains(fileDiffReference.getFileDiffLocation().getFileChangeId())) {
                         newChangeRequest = entry.getValue();
                         break;
                     }
@@ -199,24 +199,21 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         }
     }
 
+    private void moveLineDiffDiscussion(ChangeRequestLineDiffReference lineDiffReference, Discussion discussion,
+        ChangeRequest newChangeRequest) throws ChangeRequestDiscussionException
+    {
+        ChangeRequestLineDiffReference newReference = new ChangeRequestLineDiffReference(newChangeRequest.getId(),
+            lineDiffReference.getLineDiffLocation()
+        );
+        Discussion newDiscussion = this.getOrCreateDiscussionFor(newReference);
+        this.changeRequestDiscussionFactory.copyMessages(discussion, newDiscussion, newReference);
+    }
+
     private void moveFileDiffDiscussion(ChangeRequestFileDiffReference fileDiffReference, Discussion discussion,
         ChangeRequest newChangeRequest) throws ChangeRequestDiscussionException
     {
-        AbstractChangeRequestDiscussionContextReference newReference = null;
-        if (fileDiffReference instanceof ChangeRequestLineDiffReference) {
-            ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) fileDiffReference;
-            newReference = new ChangeRequestLineDiffReference(
-                lineDiffReference.getFileChangeId(),
-                newChangeRequest.getId(),
-                lineDiffReference.getDocumentPart(),
-                lineDiffReference.getLineNumber(),
-                lineDiffReference.getLineChange()
-            );
-        } else {
-            newReference = new ChangeRequestFileDiffReference(
-                fileDiffReference.getFileChangeId(),
-                newChangeRequest.getId());
-        }
+        ChangeRequestFileDiffReference newReference = new ChangeRequestFileDiffReference(newChangeRequest.getId(),
+            fileDiffReference.getFileDiffLocation());
         Discussion newDiscussion = this.getOrCreateDiscussionFor(newReference);
         this.changeRequestDiscussionFactory.copyMessages(discussion, newDiscussion, newReference);
     }

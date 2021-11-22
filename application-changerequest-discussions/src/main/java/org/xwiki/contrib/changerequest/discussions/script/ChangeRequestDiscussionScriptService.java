@@ -33,13 +33,15 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionExcept
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestCommentReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.discussions.references.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
-import org.xwiki.store.merge.MergeDocumentResult;
 
 /**
  * Script service for using discussions in change request.
@@ -57,25 +59,53 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
     private ChangeRequestDiscussionService changeRequestDiscussionService;
 
     /**
+     * Create a reference with the given information, to be used in {@link #createDiffDiscussion(
+     * ChangeRequestFileDiffReference, LineDiffLocation.DiffDocumentPart, String, long, LineDiffLocation.LineChange)}.
+     *
+     * @param changeRequestId the identifier of the change request.
+     * @param targetReference the reference of the document displayed in the diff
+     * @param fileChangeId the identifier of the file change used in the diff
+     * @param diffId the unique identifier of the diff
+     * @return a reference that can be used to create discussion.
+     * @since 0.7
+     */
+    public ChangeRequestFileDiffReference createFileDiffReference(String changeRequestId,
+        String targetReference, String fileChangeId, String diffId)
+    {
+        FileDiffLocation fileDiffLocation = new FileDiffLocation(fileChangeId, diffId, targetReference);
+        return new ChangeRequestFileDiffReference(changeRequestId, fileDiffLocation);
+    }
+
+    /**
      * Create or get a discussion for a diff line. All the arguments allow to uniquely identify where to attach the
      * discussion.
      *
      * @see ChangeRequestLineDiffReference
-     * @param fileChangeId the id of the filechange involved in the diff
-     * @param changeRequestId the id of the change request for which to create the discussion
+     * @param fileDiffReference the reference of the file diff where the discussion takes place
      * @param documentPart the part of the document diff where the discussion will be attached
+     * @param documentPartLocation a more specific information to be used along the document part to know where to
+     *                             attach the discussion. See {@link LineDiffLocation.DiffDocumentPart} for details.
      * @param lineNumber the line number of the document diff part where the discussion will be attached
      * @param lineChange the type of change of the line number to identify where to attach the discussion
      * @return the reference of the attached discussion
      * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
      */
-    public DiscussionReference createDiffDiscussion(String fileChangeId, String changeRequestId,
-        MergeDocumentResult.DocumentPart documentPart, long lineNumber,
-        ChangeRequestLineDiffReference.LineChange lineChange)
+    public DiscussionReference createDiffDiscussion(ChangeRequestFileDiffReference fileDiffReference,
+        LineDiffLocation.DiffDocumentPart documentPart, String documentPartLocation, long lineNumber,
+        LineDiffLocation.LineChange lineChange)
         throws ChangeRequestDiscussionException
     {
-        ChangeRequestLineDiffReference reference = new ChangeRequestLineDiffReference(fileChangeId, changeRequestId,
-            documentPart, lineNumber, lineChange);
+        LineDiffLocation lineDiffLocation = new LineDiffLocation(
+            fileDiffReference.getFileDiffLocation(),
+            documentPart,
+            documentPartLocation,
+            lineNumber,
+            lineChange
+        );
+        ChangeRequestLineDiffReference reference = new ChangeRequestLineDiffReference(
+            fileDiffReference.getChangeRequestId(),
+            lineDiffLocation
+        );
         return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
     }
 

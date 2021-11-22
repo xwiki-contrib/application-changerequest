@@ -24,6 +24,8 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionServic
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.discussions.references.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
@@ -66,20 +68,18 @@ class ChangeRequestDiscussionReferenceUtilsTest
 
         DiscussionContextEntityReference contextEntityReference2 = mock(DiscussionContextEntityReference.class);
         when(contextEntityReference2.getType()).thenReturn("changerequest-file_diff");
-        when(contextEntityReference2.getReference()).thenReturn("CR1_filechange-1.2-1243456789");
+        when(contextEntityReference2.getReference()).thenReturn("CR1_xwiki:Main.WebHome_filechange-3.2-243435_34343");
+        FileDiffLocation fileDiffLocation = FileDiffLocation.parse("xwiki:Main.WebHome_filechange-3.2-243435_34343");
         ChangeRequestFileDiffReference fileDiffReference =
-            new ChangeRequestFileDiffReference("filechange-1.2-1243456789", "CR1");
+            new ChangeRequestFileDiffReference("CR1", fileDiffLocation);
 
         DiscussionContextEntityReference contextEntityReference3 = mock(DiscussionContextEntityReference.class);
         when(contextEntityReference3.getType()).thenReturn("changerequest-line_diff");
-        when(contextEntityReference3.getReference()).thenReturn("CR1_filechange-1.2-1243456789_CONTENT_178_ADDED");
-        ChangeRequestLineDiffReference lineDiffReference =
-            new ChangeRequestLineDiffReference(
-                "filechange-1.2-1243456789",
-                "CR1",
-                MergeDocumentResult.DocumentPart.CONTENT,
-                178,
-                ChangeRequestLineDiffReference.LineChange.ADDED);
+        String reference = "xwiki:Main.WebHome_filechange-1.2_1243456789_CONTENT_content_ADDED_178";
+        when(contextEntityReference3.getReference())
+            .thenReturn("CR1_" + reference);
+        LineDiffLocation lineDiffLocation = LineDiffLocation.parse(reference);
+        ChangeRequestLineDiffReference lineDiffReference = new ChangeRequestLineDiffReference("CR1", lineDiffLocation);
 
         when(crContext.getEntityReference()).thenReturn(contextEntityReference1);
         when(fileDiffContext.getEntityReference()).thenReturn(contextEntityReference2);

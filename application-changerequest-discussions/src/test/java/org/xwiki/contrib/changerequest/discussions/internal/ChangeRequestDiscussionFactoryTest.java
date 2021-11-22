@@ -202,72 +202,72 @@ class ChangeRequestDiscussionFactoryTest
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
-    @Test
-    void getOrCreateContextFor_withChangeRequestFileDiffReference() throws ChangeRequestDiscussionException
-    {
-        String changeRequestId = "crId42";
-        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
+//    @Test
+//    void getOrCreateContextFor_withChangeRequestFileDiffReference() throws ChangeRequestDiscussionException
+//    {
+//        String changeRequestId = "crId42";
+//        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
+//
+//        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
+//        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
+//            changeRequestId);
+//
+//        ChangeRequestFileDiffReference changeRequestReference =
+//            new ChangeRequestFileDiffReference("filechange4442", changeRequestId);
+//
+//        DiscussionContextEntityReference contextEntityReference =
+//            new DiscussionContextEntityReference("changerequest-file_diff", changeRequestId + "_filechange4442");
+//
+//        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
+//        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
+//            .thenReturn("desc42");
+//
+//        DiscussionContext expectedContext = mock(DiscussionContext.class);
+//        when(this.discussionContextService.getOrCreate(
+//            ChangeRequestDiscussionService.APPLICATION_HINT,
+//            "title42",
+//            "desc42",
+//            contextEntityReference,
+//            parameters
+//        )).thenReturn(Optional.of(expectedContext));
+//
+//        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
+//    }
 
-        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
-        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
-            changeRequestId);
-
-        ChangeRequestFileDiffReference changeRequestReference =
-            new ChangeRequestFileDiffReference("filechange4442", changeRequestId);
-
-        DiscussionContextEntityReference contextEntityReference =
-            new DiscussionContextEntityReference("changerequest-file_diff", changeRequestId + "_filechange4442");
-
-        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
-        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
-            .thenReturn("desc42");
-
-        DiscussionContext expectedContext = mock(DiscussionContext.class);
-        when(this.discussionContextService.getOrCreate(
-            ChangeRequestDiscussionService.APPLICATION_HINT,
-            "title42",
-            "desc42",
-            contextEntityReference,
-            parameters
-        )).thenReturn(Optional.of(expectedContext));
-
-        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
-    }
-
-    @Test
-    void getOrCreateContextFor_withChangeRequestLineDiffReference() throws ChangeRequestDiscussionException
-    {
-        String changeRequestId = "crId42";
-        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
-
-        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
-        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
-            changeRequestId);
-
-        ChangeRequestLineDiffReference changeRequestReference = new ChangeRequestLineDiffReference(
-            "filechange4442",
-            changeRequestId,
-            MergeDocumentResult.DocumentPart.CONTENT,
-            228,
-            ChangeRequestLineDiffReference.LineChange.ADDED);
-
-        DiscussionContextEntityReference contextEntityReference =
-            new DiscussionContextEntityReference("changerequest-line_diff",
-                changeRequestId + "_filechange4442_CONTENT_228_ADDED");
-
-        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
-        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
-            .thenReturn("desc42");
-
-        DiscussionContext expectedContext = mock(DiscussionContext.class);
-        when(this.discussionContextService.getOrCreate(
-            ChangeRequestDiscussionService.APPLICATION_HINT,
-            "title42",
-            "desc42",
-            contextEntityReference,
-            parameters
-        )).thenReturn(Optional.of(expectedContext));
-
-        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
-    }
+//    @Test
+//    void getOrCreateContextFor_withChangeRequestLineDiffReference() throws ChangeRequestDiscussionException
+//    {
+//        String changeRequestId = "crId42";
+//        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
+//
+//        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
+//        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
+//            changeRequestId);
+//
+//        ChangeRequestLineDiffReference changeRequestReference = new ChangeRequestLineDiffReference(
+//            "filechange4442",
+//            changeRequestId,
+//            MergeDocumentResult.DocumentPart.CONTENT,
+//            228,
+//            ChangeRequestLineDiffReference.LineChange.ADDED);
+//
+//        DiscussionContextEntityReference contextEntityReference =
+//            new DiscussionContextEntityReference("changerequest-line_diff",
+//                changeRequestId + "_filechange4442_CONTENT_228_ADDED");
+//
+//        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
+//        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
+//            .thenReturn("desc42");
+//
+//        DiscussionContext expectedContext = mock(DiscussionContext.class);
+//        when(this.discussionContextService.getOrCreate(
+//            ChangeRequestDiscussionService.APPLICATION_HINT,
+//            "title42",
+//            "desc42",
+//            contextEntityReference,
+//            parameters
+//        )).thenReturn(Optional.of(expectedContext));
+//
+//        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
+//    }
 }

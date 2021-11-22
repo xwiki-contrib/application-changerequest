@@ -32,40 +32,27 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public class ChangeRequestFileDiffReference extends AbstractChangeRequestDiscussionContextReference
 {
-    protected final String fileChangeId;
+    private final FileDiffLocation fileDiffLocation;
 
     /**
      * Protected constructor to allow inheritance.
      *
-     * @param fileChangeId the identifier of the file change involved in the diff
      * @param changeRequestId the identifier of the related change request
-     * @param type the actual type of reference
-     * @param reference the concrete reference to be used
+     * @param fileDiffLocation the actual file diff location for this reference
      */
-    protected ChangeRequestFileDiffReference(String fileChangeId, String changeRequestId,
-        ChangeRequestDiscussionReferenceType type, String reference)
+    public ChangeRequestFileDiffReference(String changeRequestId, FileDiffLocation fileDiffLocation)
     {
-        super(changeRequestId, type, reference);
-        this.fileChangeId = fileChangeId;
+        super(changeRequestId, ChangeRequestDiscussionReferenceType.FILE_DIFF,
+            fileDiffLocation.getSerializedReference());
+        this.fileDiffLocation = fileDiffLocation;
     }
 
     /**
-     * Default constructor.
-     *
-     * @param fileChangeId the identifier of the file change involved in the diff
-     * @param changeRequestId the identifier of the related change request
+     * @return the actual location of the reference.
      */
-    public ChangeRequestFileDiffReference(String fileChangeId, String changeRequestId)
+    public FileDiffLocation getFileDiffLocation()
     {
-        this(fileChangeId, changeRequestId, ChangeRequestDiscussionReferenceType.FILE_DIFF, fileChangeId);
-    }
-
-    /**
-     * @return the identifier of the file change involved in the diff
-     */
-    public String getFileChangeId()
-    {
-        return fileChangeId;
+        return fileDiffLocation;
     }
 
     @Override
@@ -82,12 +69,12 @@ public class ChangeRequestFileDiffReference extends AbstractChangeRequestDiscuss
         ChangeRequestFileDiffReference that = (ChangeRequestFileDiffReference) o;
 
         return new EqualsBuilder().appendSuper(super.equals(o))
-            .append(fileChangeId, that.fileChangeId).isEquals();
+            .append(fileDiffLocation, that.fileDiffLocation).isEquals();
     }
 
     @Override
     public int hashCode()
     {
-        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(fileChangeId).toHashCode();
+        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(fileDiffLocation).toHashCode();
     }
 }

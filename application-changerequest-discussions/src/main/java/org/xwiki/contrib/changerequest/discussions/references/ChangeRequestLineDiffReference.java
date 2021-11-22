@@ -19,12 +19,9 @@
  */
 package org.xwiki.contrib.changerequest.discussions.references;
 
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.xwiki.stability.Unstable;
-import org.xwiki.store.merge.MergeDocumentResult;
 
 /**
  * Represents a reference attached to a particular line of a file diff.
@@ -42,81 +39,29 @@ import org.xwiki.store.merge.MergeDocumentResult;
  * @since 0.6
  */
 @Unstable
-public class ChangeRequestLineDiffReference extends ChangeRequestFileDiffReference
+public class ChangeRequestLineDiffReference extends AbstractChangeRequestDiscussionContextReference
 {
-    /**
-     * Pattern used to extract the different information of the actual reference retrieved from {@link #getReference()}.
-     */
-    public static final Pattern REFERENCE_PATTERN = Pattern.compile(
-        "^(?<fileChangeId>.+)_(?<documentPart>\\w+)_(?<lineNumber>\\d+)_(?<lineChange>(ADDED|REMOVED|UNCHANGED))$");
-
-    /**
-     * The type of change a line diff is displaying.
-     */
-    public enum LineChange
-    {
-        /**
-         * When a new line has been added.
-         */
-        ADDED,
-
-        /**
-         * When a line has been removed.
-         */
-        REMOVED,
-
-        /**
-         * When a line is displayed for the context.
-         */
-        UNCHANGED
-    }
-
-    private final long lineNumber;
-    private final MergeDocumentResult.DocumentPart documentPart;
-    private final LineChange lineChange;
+    private final LineDiffLocation lineDiffLocation;
 
     /**
      * Default constructor.
      *
-     * @param fileChangeId identifier of the file change involved in the diff
      * @param changeRequestId identifier of the related change request
-     * @param documentPart part of the document diff where the line is located
-     * @param lineNumber number of the line in the diff
-     * @param lineChange type of change the line number refers to
+     * @param lineDiffLocation the actual exact location of the line diff
      */
-    public ChangeRequestLineDiffReference(String fileChangeId, String changeRequestId,
-        MergeDocumentResult.DocumentPart documentPart, long lineNumber, LineChange lineChange)
+    public ChangeRequestLineDiffReference(String changeRequestId, LineDiffLocation lineDiffLocation)
     {
-        super(fileChangeId, changeRequestId, ChangeRequestDiscussionReferenceType.LINE_DIFF,
-            String.format("%s_%s_%s_%s", fileChangeId, documentPart, lineNumber, lineChange.name()));
-
-        this.lineNumber = lineNumber;
-        this.documentPart = documentPart;
-        this.lineChange = lineChange;
+        super(changeRequestId, ChangeRequestDiscussionReferenceType.LINE_DIFF,
+            lineDiffLocation.getSerializedReference());
+        this.lineDiffLocation = lineDiffLocation;
     }
 
     /**
-     * @return the actual line number in the diff.
+     * @return the actual location of the reference.
      */
-    public long getLineNumber()
+    public LineDiffLocation getLineDiffLocation()
     {
-        return this.lineNumber;
-    }
-
-    /**
-     * @return the diff document part the line belongs to.
-     */
-    public MergeDocumentResult.DocumentPart getDocumentPart()
-    {
-        return this.documentPart;
-    }
-
-    /**
-     * @return the type of change the line refers to.
-     */
-    public LineChange getLineChange()
-    {
-        return lineChange;
+        return lineDiffLocation;
     }
 
     @Override
@@ -133,15 +78,12 @@ public class ChangeRequestLineDiffReference extends ChangeRequestFileDiffReferen
         ChangeRequestLineDiffReference that = (ChangeRequestLineDiffReference) o;
 
         return new EqualsBuilder().appendSuper(super.equals(o))
-            .append(lineNumber, that.lineNumber).append(documentPart, that.documentPart)
-            .append(lineChange, that.lineChange)
-            .isEquals();
+            .append(lineDiffLocation, that.lineDiffLocation).isEquals();
     }
 
     @Override
     public int hashCode()
     {
-        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(lineNumber).append(documentPart)
-            .append(lineChange).toHashCode();
+        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(lineDiffLocation).toHashCode();
     }
 }

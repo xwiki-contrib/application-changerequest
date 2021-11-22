@@ -37,11 +37,12 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineD
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
+import org.xwiki.contrib.changerequest.discussions.references.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
 import org.xwiki.localization.ContextualLocalizationManager;
-import org.xwiki.store.merge.MergeDocumentResult;
 
 /**
  * Component responsible to handle {@link AbstractChangeRequestDiscussionContextReference} and their translation to
@@ -70,17 +71,17 @@ public class ChangeRequestDiscussionReferenceUtils
     @Inject
     private ContextualLocalizationManager localizationManager;
 
-    private String getLineDiffRepresentation(ChangeRequestLineDiffReference lineDiffReference)
+    private String getLineDiffRepresentation(LineDiffLocation lineDiffLocation)
     {
         return String.format("%s %s %s",
-            lineDiffReference.getDocumentPart(),
-            lineDiffReference.getLineChange().name(),
-            lineDiffReference.getLineNumber());
+            lineDiffLocation.getDocumentPart(),
+            lineDiffLocation.getLineChange().name(),
+            lineDiffLocation.getLineNumber());
     }
 
-    List<Object> getTranslationParameters(AbstractChangeRequestDiscussionContextReference reference)
+    private List<String> getTranslationParameters(AbstractChangeRequestDiscussionContextReference reference)
     {
-        List<Object> parameters = new ArrayList<>();
+        List<String> parameters = new ArrayList<>();
         switch (reference.getType()) {
             case CHANGE_REQUEST:
             case CHANGE_REQUEST_COMMENT:
@@ -92,13 +93,14 @@ public class ChangeRequestDiscussionReferenceUtils
                 break;
 
             case FILE_DIFF:
-                parameters.add(((ChangeRequestFileDiffReference) reference).getFileChangeId());
+                parameters.add(((ChangeRequestFileDiffReference) reference).getFileDiffLocation().getFileChangeId());
                 break;
 
             case LINE_DIFF:
                 ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
-                parameters.add(getLineDiffRepresentation(lineDiffReference));
-                parameters.add(lineDiffReference.getFileChangeId());
+                LineDiffLocation lineDiffLocation = lineDiffReference.getLineDiffLocation();
+                parameters.add(getLineDiffRepresentation(lineDiffLocation));
+                parameters.add(lineDiffLocation.getFileDiffLocation().getFileChangeId());
                 break;
 
             default:
@@ -115,19 +117,9 @@ public class ChangeRequestDiscussionReferenceUtils
         if (referenceMatcher.matches()) {
             String changeRequestId = referenceMatcher.group(CHANGE_REQUEST_ID_GROUP);
             String lineDiffReference = referenceMatcher.group(REFERENCE_ID_GROUP);
-            Matcher lineDiffReferenceMatcher =
-                ChangeRequestLineDiffReference.REFERENCE_PATTERN.matcher(lineDiffReference);
-            if (lineDiffReferenceMatcher.matches()) {
-                String fileChangeId = lineDiffReferenceMatcher.group("fileChangeId");
-                MergeDocumentResult.DocumentPart documentPart =
-                    MergeDocumentResult.DocumentPart.valueOf(
-                        lineDiffReferenceMatcher.group("documentPart").toUpperCase());
-                long lineNumber = Long.parseLong(lineDiffReferenceMatcher.group("lineNumber"));
-                ChangeRequestLineDiffReference.LineChange lineChange =
-                    ChangeRequestLineDiffReference.LineChange.valueOf(
-                        lineDiffReferenceMatcher.group("lineChange"));
-                result = new ChangeRequestLineDiffReference(fileChangeId, changeRequestId, documentPart,
-                    lineNumber, lineChange);
+            if (LineDiffLocation.isMatching(lineDiffReference)) {
+                LineDiffLocation lineDiffLocation = LineDiffLocation.parse(lineDiffReference);
+                result = new ChangeRequestLineDiffReference(changeRequestId, lineDiffLocation);
             }
         }
         return result;
@@ -141,8 +133,12 @@ public class ChangeRequestDiscussionReferenceUtils
         if ((previousReference == null
             || previousReference.getType() == ChangeRequestDiscussionReferenceType.CHANGE_REQUEST)
             && referenceMatcher.matches()) {
-            result = new ChangeRequestFileDiffReference(referenceMatcher.group(REFERENCE_ID_GROUP),
-                referenceMatcher.group(CHANGE_REQUEST_ID_GROUP));
+            String changeRequestId = referenceMatcher.group(CHANGE_REQUEST_ID_GROUP);
+            String fileDiffReference = referenceMatcher.group(REFERENCE_ID_GROUP);
+            if (FileDiffLocation.isMatching(fileDiffReference)) {
+                FileDiffLocation fileDiffLocation = FileDiffLocation.parse(fileDiffReference);
+                result = new ChangeRequestFileDiffReference(changeRequestId, fileDiffLocation);
+            }
         }
         return result;
     }
@@ -218,7 +214,7 @@ public class ChangeRequestDiscussionReferenceUtils
         T reference)
     {
         String translationKey = String.format("%s%s.title", prefix, reference.getType().name().toLowerCase());
-        List<Object> parameters = this.getTranslationParameters(reference);
+        List<String> parameters = this.getTranslationParameters(reference);
 
         return this.localizationManager.getTranslationPlain(translationKey, parameters.toArray());
     }
