@@ -19,9 +19,11 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.List;
 import java.util.Set;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.contrib.rights.SecurityRuleDiff;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.stability.Unstable;
@@ -85,4 +87,13 @@ public interface ChangeRequestRightsManager
      * @throws ChangeRequestException in case of problem for accessing or copying rights.
      */
     void copyViewRights(ChangeRequest changeRequest, EntityReference newChange) throws ChangeRequestException;
+
+    /**
+     * Apply the provided right changes to the change request.
+     *
+     * @param changeRequest the change request on which to apply the right changes.
+     * @param ruleDiffList a list of diff changes of rights.
+     * @throws ChangeRequestException in case of problem when applying the changes.
+     */
+    void applyChanges(ChangeRequest changeRequest, List<SecurityRuleDiff> ruleDiffList) throws ChangeRequestException;
 }

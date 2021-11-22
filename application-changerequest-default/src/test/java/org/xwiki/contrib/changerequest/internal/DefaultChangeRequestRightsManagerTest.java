@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,7 +36,9 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.rights.RightsReader;
 import org.xwiki.contrib.rights.RightsWriter;
 import org.xwiki.contrib.rights.SecurityRuleAbacus;
+import org.xwiki.contrib.rights.SecurityRuleDiff;
 import org.xwiki.contrib.rights.WritableSecurityRule;
+import org.xwiki.contrib.rights.internal.WritableSecurityRuleImpl;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.SpaceReference;
@@ -45,6 +48,7 @@ import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.ReadableSecurityRule;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.security.authorization.RightSet;
+import org.xwiki.security.authorization.RuleState;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -53,6 +57,9 @@ import com.xpn.xwiki.XWikiException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -106,7 +113,7 @@ class DefaultChangeRequestRightsManagerTest
         ReadableSecurityRule rule2 = mock(ReadableSecurityRule.class);
         ReadableSecurityRule rule3 = mock(ReadableSecurityRule.class);
 
-        when(this.rightsReader.getActualRules(sourceSpaceReference, false))
+        when(this.rightsReader.getRules(sourceSpaceReference, false))
             .thenReturn(Arrays.asList(rule1, rule2, rule3));
 
         when(rule1.match(Right.VIEW)).thenReturn(true);
@@ -284,7 +291,7 @@ class DefaultChangeRequestRightsManagerTest
         WritableSecurityRule crRule3 = mock(WritableSecurityRule.class);
 
         List<ReadableSecurityRule> crRules = mock(List.class);
-        when(this.rightsReader.getActualRules(changeRequestSpaceReference, false))
+        when(this.rightsReader.getRules(changeRequestSpaceReference, false))
             .thenReturn(crRules);
         when(this.rightsWriter.createRules(crRules)).thenReturn(Arrays.asList(crRule1, crRule2, crRule3));
 
@@ -308,5 +315,236 @@ class DefaultChangeRequestRightsManagerTest
         verify(rule3bis).setRights(Collections.singletonList(Right.VIEW));
         verify(this.rightsWriter).saveRules(Arrays.asList(crRule1, crRule2, crRule3, rule3bis),
             changeRequestSpaceReference);
+    }
+
+    @Test
+    void applyChanges() throws AuthorizationException, ChangeRequestException, XWikiException
+    {
+        // Scenario:
+        // Change request containing following rights:
+        //   - Allow view,edit,script on XWiki.AdminGroup
+        //   - Deny view,edit on XWiki.Foo
+        //   - Deny edit on XWiki.Bar
+        //   - Allow view on XWiki.AllGroup
+        //
+        // Diff contains following changes:
+        //   - Update to remove allow view on XWiki.AdminGroup
+        //   - Update Deny view on XWiki.Foo (2 rules: one to remove Deny view, one to add Allow view)
+        //   - Update deny edit to allow edit on XWiki.bar (2 rules: one to remove Deny edit, one to add Allow edit)
+        //   - Add allow view on XWiki.Buz
+        //   - Remove Allow view on XWiki.AllGroup
+        //
+        // Expected rights after applying:
+        //   - Allow edit,script on XWiki.AdminGroup
+        //   - Deny edit on XWiki.Foo
+        //   - Allow view on XWiki.Foo
+        //   - Deny edit on XWiki.Bar
+        //   - Allow view on XWiki.Buz
+
+        DocumentReference adminGroupRef = new DocumentReference("xwiki", "XWiki", "AdminGroup");
+        DocumentReference allGroupRef = new DocumentReference("xwiki", "XWiki", "AllGroup");
+
+        DocumentReference fooUserRef = new DocumentReference("xwiki", "XWiki", "Foo");
+        DocumentReference barUserRef = new DocumentReference("xwiki", "XWiki", "Bar");
+        DocumentReference buzUserRef = new DocumentReference("xwiki", "XWiki", "Buz");
+
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        // diff1: Update to remove allow view on XWiki.AdminGroup
+        SecurityRuleDiff diff1 = mock(SecurityRuleDiff.class);
+
+        when(diff1.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_UPDATED);
+        ReadableSecurityRule previousRule = mock(ReadableSecurityRule.class);
+        when(diff1.getPreviousRule()).thenReturn(previousRule);
+        when(previousRule.getGroups()).thenReturn(Collections.singletonList(adminGroupRef));
+        when(previousRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW, Right.EDIT, Right.SCRIPT)));
+        when(previousRule.getState()).thenReturn(RuleState.ALLOW);
+        when(previousRule.match(Right.VIEW)).thenReturn(true);
+
+        ReadableSecurityRule currentRule = mock(ReadableSecurityRule.class);
+        when(diff1.getCurrentRule()).thenReturn(currentRule);
+        when(currentRule.getGroups()).thenReturn(Collections.singletonList(adminGroupRef));
+        when(currentRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.EDIT, Right.SCRIPT)));
+        when(currentRule.getState()).thenReturn(RuleState.ALLOW);
+        when(currentRule.match(Right.VIEW)).thenReturn(false);
+
+        // diff2: Update Deny view on XWiki.Foo (2 rules: one to remove Deny view, one to add Allow view)
+        SecurityRuleDiff diff2_1 = mock(SecurityRuleDiff.class);
+
+        when(diff2_1.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_UPDATED);
+        previousRule = mock(ReadableSecurityRule.class);
+        when(diff2_1.getPreviousRule()).thenReturn(previousRule);
+        when(previousRule.getUsers()).thenReturn(Collections.singletonList(fooUserRef));
+        when(previousRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW, Right.EDIT)));
+        when(previousRule.getState()).thenReturn(RuleState.DENY);
+        when(previousRule.match(Right.VIEW)).thenReturn(true);
+
+        currentRule = mock(ReadableSecurityRule.class);
+        when(diff2_1.getCurrentRule()).thenReturn(currentRule);
+        when(currentRule.getUsers()).thenReturn(Collections.singletonList(fooUserRef));
+        when(currentRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.EDIT)));
+        when(currentRule.getState()).thenReturn(RuleState.DENY);
+        when(currentRule.match(Right.VIEW)).thenReturn(false);
+
+        SecurityRuleDiff diff2_2 = mock(SecurityRuleDiff.class);
+
+        when(diff2_2.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_ADDED);
+        currentRule = mock(ReadableSecurityRule.class);
+        when(diff2_2.getCurrentRule()).thenReturn(currentRule);
+        when(currentRule.getUsers()).thenReturn(Collections.singletonList(fooUserRef));
+        when(currentRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW)));
+        when(currentRule.getState()).thenReturn(RuleState.ALLOW);
+        when(currentRule.match(Right.VIEW)).thenReturn(true);
+
+        // diff3: Update deny edit to allow edit on XWiki.bar (2 rules: one to remove Deny edit, one to add Allow edit)
+
+        SecurityRuleDiff diff3_1 = mock(SecurityRuleDiff.class);
+
+        when(diff3_1.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_DELETED);
+        previousRule = mock(ReadableSecurityRule.class);
+        when(diff3_1.getPreviousRule()).thenReturn(previousRule);
+        when(previousRule.getUsers()).thenReturn(Collections.singletonList(barUserRef));
+        when(previousRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.EDIT)));
+        when(previousRule.getState()).thenReturn(RuleState.DENY);
+        when(previousRule.match(Right.VIEW)).thenReturn(false);
+
+        SecurityRuleDiff diff3_2 = mock(SecurityRuleDiff.class);
+
+        when(diff3_2.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_ADDED);
+        currentRule = mock(ReadableSecurityRule.class);
+        when(diff3_2.getCurrentRule()).thenReturn(currentRule);
+        when(currentRule.getUsers()).thenReturn(Collections.singletonList(barUserRef));
+        when(currentRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.EDIT)));
+        when(currentRule.getState()).thenReturn(RuleState.ALLOW);
+        when(currentRule.match(Right.VIEW)).thenReturn(false);
+
+        // diff4: Add allow view on XWiki.Buz
+
+        SecurityRuleDiff diff4 = mock(SecurityRuleDiff.class);
+
+        when(diff4.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_ADDED);
+        currentRule = mock(ReadableSecurityRule.class);
+        when(diff4.getCurrentRule()).thenReturn(currentRule);
+        when(currentRule.getUsers()).thenReturn(Collections.singletonList(buzUserRef));
+        when(currentRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW)));
+        when(currentRule.getState()).thenReturn(RuleState.ALLOW);
+        when(currentRule.match(Right.VIEW)).thenReturn(true);
+
+        // diff5: Remove Allow view on XWiki.AllGroup
+        SecurityRuleDiff diff5 = mock(SecurityRuleDiff.class);
+
+        when(diff5.getChangeType()).thenReturn(SecurityRuleDiff.ChangeType.RULE_DELETED);
+        previousRule = mock(ReadableSecurityRule.class);
+        when(diff5.getPreviousRule()).thenReturn(previousRule);
+        when(previousRule.getGroups()).thenReturn(Collections.singletonList(allGroupRef));
+        when(previousRule.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW)));
+        when(previousRule.getState()).thenReturn(RuleState.ALLOW);
+        when(previousRule.match(Right.VIEW)).thenReturn(true);
+
+        DocumentReference changeRequestDocRef = mock(DocumentReference.class);
+        SpaceReference changeRequestSpaceRef = mock(SpaceReference.class);
+        when(changeRequestDocRef.getLastSpaceReference()).thenReturn(changeRequestSpaceRef);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocRef);
+
+        List rules = mock(List.class);
+        when(this.rightsReader.getRules(changeRequestSpaceRef, false)).thenReturn(rules);
+
+        List<ReadableSecurityRule> normalizedRules = new ArrayList<>();
+
+        // rule1: Allow view,edit,script on XWiki.AdminGroup
+        ReadableSecurityRule rule1 = mock(ReadableSecurityRule.class);
+        when(rule1.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW, Right.EDIT, Right.SCRIPT)));
+        when(rule1.getState()).thenReturn(RuleState.ALLOW);
+        when(rule1.getGroups()).thenReturn(Arrays.asList(adminGroupRef));
+        normalizedRules.add(rule1);
+
+        // rule2: Deny view,edit on XWiki.Foo
+        ReadableSecurityRule rule2 = mock(ReadableSecurityRule.class);
+        when(rule2.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW, Right.EDIT)));
+        when(rule2.getState()).thenReturn(RuleState.DENY);
+        when(rule2.getUsers()).thenReturn(Arrays.asList(fooUserRef));
+        normalizedRules.add(rule2);
+
+        // rule3: Deny edit on XWiki.Bar
+        ReadableSecurityRule rule3 = mock(ReadableSecurityRule.class);
+        when(rule3.getRights()).thenReturn(new RightSet(Arrays.asList(Right.EDIT)));
+        when(rule3.getState()).thenReturn(RuleState.DENY);
+        when(rule3.getUsers()).thenReturn(Arrays.asList(barUserRef));
+        normalizedRules.add(rule3);
+
+        // rule4: Allow view on XWiki.AllGroup
+        ReadableSecurityRule rule4 = mock(ReadableSecurityRule.class);
+        when(rule4.getRights()).thenReturn(new RightSet(Arrays.asList(Right.VIEW)));
+        when(rule4.getState()).thenReturn(RuleState.ALLOW);
+        when(rule4.getGroups()).thenReturn(Arrays.asList(allGroupRef));
+        normalizedRules.add(rule4);
+
+        when(this.ruleAbacus.normalizeRulesBySubject(rules)).thenReturn(normalizedRules);
+        when(this.rightsWriter.createRule(any())).thenAnswer(invocationOnMock -> {
+            ReadableSecurityRule readableSecurityRule = invocationOnMock.getArgument(0);
+            return new WritableSecurityRuleImpl(
+                readableSecurityRule.getGroups(),
+                readableSecurityRule.getUsers(),
+                readableSecurityRule.getRights(),
+                readableSecurityRule.getState());
+        });
+        when(this.rightsWriter.createRule()).thenAnswer(invocationOnMock -> new WritableSecurityRuleImpl());
+
+        // expected1: Allow edit,script on XWiki.AdminGroup
+        WritableSecurityRule expected1 = new WritableSecurityRuleImpl(
+            Collections.singletonList(adminGroupRef),
+            Collections.emptyList(),
+            new RightSet(Arrays.asList(Right.EDIT, Right.SCRIPT)),
+            RuleState.ALLOW
+        );
+
+        // expected2: Deny edit on XWiki.Foo
+        WritableSecurityRule expected2 = new WritableSecurityRuleImpl(
+            Collections.emptyList(),
+            Collections.singletonList(fooUserRef),
+            new RightSet(Arrays.asList(Right.EDIT)),
+            RuleState.DENY
+        );
+
+        // expected3: Allow view on XWiki.Foo
+        WritableSecurityRule expected3 = new WritableSecurityRuleImpl(
+            Collections.emptyList(),
+            Collections.singletonList(fooUserRef),
+            new RightSet(Arrays.asList(Right.VIEW)),
+            RuleState.ALLOW
+        );
+
+        // expected4: Deny edit on XWiki.Bar
+        // this one should not be created but that should be still rule3
+
+        // expected5: Allow view on XWiki.Buz
+        WritableSecurityRule expected5 = new WritableSecurityRuleImpl(
+            Collections.emptyList(),
+            Collections.singletonList(buzUserRef),
+            new RightSet(Arrays.asList(Right.VIEW)),
+            RuleState.ALLOW
+        );
+
+        doAnswer(invocationOnMock -> {
+            List<ReadableSecurityRule> updatedRules = invocationOnMock.getArgument(0);
+            assertTrue(updatedRules.contains(expected1),
+                String.format("rule [%s] seems missing from [%s]", expected1, updatedRules));
+            assertTrue(updatedRules.contains(expected2),
+                String.format("rule [%s] seems missing from [%s]", expected2, updatedRules));
+            assertTrue(updatedRules.contains(expected3),
+                String.format("rule [%s] seems missing from [%s]", expected3, updatedRules));
+            assertTrue(updatedRules.contains(rule3),
+                String.format("rule [%s] seems missing from [%s]", rule3, updatedRules));
+            assertTrue(updatedRules.contains(expected5),
+                String.format("rule [%s] seems missing from [%s]", expected5, updatedRules));
+            return null;
+        }).when(this.rightsWriter).saveRules(any(), eq(changeRequestSpaceRef));
+        this.rightsManager.applyChanges(changeRequest, Arrays.asList(
+            diff1,
+            diff2_1, diff2_2,
+            diff3_1, diff3_2,
+            diff4,
+            diff5));
+        verify(this.rightsWriter).saveRules(any(), eq(changeRequestSpaceRef));
     }
 }

@@ -176,7 +176,7 @@ class RightsUpdatedListenerTest
         this.listener.processLocalEvent(event, source, data);
         verify(this.changeRequestRightsManager).isViewAccessStillConsistent(changeRequest1,
             Stream.of(user1, user2, groupA, groupB).collect(Collectors.toSet()));
-        verify(this.changeRequestRightsManager).copyViewRights(changeRequest3, source);
+        verify(this.changeRequestRightsManager).applyChanges(changeRequest3, data);
         verify(this.changeRequestRightsManager).copyViewRights(splitted2, source);
         verify(this.changeRequestStorageManager).split(changeRequest1);
         verify(this.changeRequestRightsManager, never()).copyViewRights(eq(changeRequest2), any());

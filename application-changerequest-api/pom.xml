@@ -66,6 +66,11 @@
       <artifactId>xwiki-platform-url-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.contrib.api-rights</groupId>
+      <artifactId>api-rights-api</artifactId>
+      <version>${rights-api.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

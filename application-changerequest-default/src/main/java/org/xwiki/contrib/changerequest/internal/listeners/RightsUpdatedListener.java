@@ -109,9 +109,10 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
                             continue;
                         // if it's closed, we don't want to split it, we just edit the rights no matter the consequences
                         } else if (status == ChangeRequestStatus.CLOSED) {
-                            this.changeRequestRightsManager.copyViewRights(changeRequest, entityReference);
+                            this.changeRequestRightsManager.applyChanges(changeRequest, securityRuleDiffList);
                         } else {
-                            this.handleOpenChangeRequest(changeRequest, ruleSubjects, entityReference);
+                            this.handleOpenChangeRequest(changeRequest, ruleSubjects, entityReference,
+                                securityRuleDiffList);
                         }
                     }
                 }
@@ -123,11 +124,11 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
     }
 
     private void handleOpenChangeRequest(ChangeRequest changeRequest, Set<DocumentReference> ruleSubjects,
-        EntityReference reference) throws ChangeRequestException
+        EntityReference reference, List<SecurityRuleDiff> securityRuleDiffList) throws ChangeRequestException
     {
         if (this.changeRequestRightsManager.isViewAccessStillConsistent(changeRequest,
             ruleSubjects)) {
-            this.changeRequestRightsManager.copyViewRights(changeRequest, reference);
+            this.changeRequestRightsManager.applyChanges(changeRequest, securityRuleDiffList);
         } else {
             List<ChangeRequest> splittedChangeRequests =
                 this.changeRequestStorageManager.split(changeRequest);
