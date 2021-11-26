@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 
@@ -43,6 +44,7 @@ public class ChangeRequestMergeDocumentResult
     private MergeDocumentResult wrappedResult;
     private final boolean isConflictingDeletion;
     private String documentTitle;
+    private DocumentReference documentReference;
 
     /**
      * Constructor to use in case of {@link FileChange.FileChangeType#EDITION}.
@@ -56,6 +58,7 @@ public class ChangeRequestMergeDocumentResult
         this.type = FileChange.FileChangeType.EDITION;
         this.isConflictingDeletion = false;
         this.fileChangeId = fileChangeId;
+        this.documentReference = mergeDocumentResult.getMergeResult().getDocumentReference();
     }
 
     /**
@@ -126,6 +129,28 @@ public class ChangeRequestMergeDocumentResult
         return fileChangeId;
     }
 
+    /**
+     * Define the reference of the document for which this result is obtained.
+     *
+     * @param documentReference the reference of the document concerned by this result.
+     * @return current instance for builder pattern
+     * @since 0.7
+     */
+    public ChangeRequestMergeDocumentResult setDocumentReference(DocumentReference documentReference)
+    {
+        this.documentReference = documentReference;
+        return this;
+    }
+
+    /**
+     * @return the reference of the document for which this result is obtained.
+     * @since 0.7
+     */
+    public DocumentReference getDocumentReference()
+    {
+        return documentReference;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -145,6 +170,7 @@ public class ChangeRequestMergeDocumentResult
             .append(wrappedResult, that.wrappedResult)
             .append(documentTitle, that.documentTitle)
             .append(fileChangeId, that.fileChangeId)
+            .append(documentReference, that.documentReference)
             .isEquals();
     }
 
@@ -157,6 +183,7 @@ public class ChangeRequestMergeDocumentResult
             .append(wrappedResult)
             .append(isConflictingDeletion)
             .append(documentTitle)
+            .append(documentReference)
             .toHashCode();
     }
 
@@ -169,6 +196,7 @@ public class ChangeRequestMergeDocumentResult
             .append("wrappedResult", wrappedResult)
             .append("isConflictingDeletion", isConflictingDeletion)
             .append("documentTitle", documentTitle)
+            .append("documentReference", documentReference)
             .toString();
     }
 }

@@ -48,7 +48,7 @@ public class LineDiffLocation
      * {@link #getSerializedReference()}.
      * Pattern output:
      * ^(?<fileDiffLocation>.+)_(?<documentPart>(CONTENT|XOBJECT|XCLASS|METADATA))_
-     * (?<documentPartLocation>.+)_(?<lineChange>(ADDED|DELETED|UNCHANGED))_(?<lineNumber>\d+)$
+     * (?<documentPartLocation>.+)_(?<lineChange>(ADDED|REMOVED|UNCHANGED))_(?<lineNumber>\d+)$
      */
     private static final Pattern REFERENCE_PATTERN = Pattern.compile(
         String.format("^(?<%s>.+)_(?<%s>(%s))_(?<%s>.+)_(?<%s>(%s))_(?<%s>\\d+)$", FILE_DIFF_LOCATION,

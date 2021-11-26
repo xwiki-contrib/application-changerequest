@@ -46,9 +46,13 @@
   #if ($request.get('type') == 'diffLine')
     #set ($fileChangeId = $request.get('fileChangeId'))
     #set ($documentPart = $stringtool.upperCase($request.get('documentPart')))
+    #set ($documentPartLocation = $request.get('documentPartLocation'))
+    #set ($diffId = $request.get('diffId'))
+    #set ($targetReference = $request.get('targetReference'))
     #set ($lineNumber = $numbertool.toNumber($request.get('lineNumber')).longValue())
     #set ($lineChange = $request.get('changeType'))
-    #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileChangeId, $changeRequestId, $documentPart, $lineNumber, $lineChange))
+    #set ($fileDiffReference = $services.changerequest.discussion.createFileDiffReference($changeRequestId, $targetReference, $fileChangeId, $diffId))
+    #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileDiffReference, $documentPart, $documentPartLocation, $lineNumber, $lineChange))
   #end
 {{html clean="false"}}
 &lt;div class="add-comment"&gt;

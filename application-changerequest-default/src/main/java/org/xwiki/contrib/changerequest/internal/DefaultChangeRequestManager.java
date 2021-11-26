@@ -313,7 +313,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             boolean deletionConflict = xwikiCurrentDoc.isNew()
                 || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
             result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange.getId())
-                .setDocumentTitle(getTitle(xwikiCurrentDoc));
+                .setDocumentTitle(getTitle(xwikiCurrentDoc))
+                .setDocumentReference(fileChange.getTargetEntity());
         } else {
             DocumentModelBridge previousDoc =
                 this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
