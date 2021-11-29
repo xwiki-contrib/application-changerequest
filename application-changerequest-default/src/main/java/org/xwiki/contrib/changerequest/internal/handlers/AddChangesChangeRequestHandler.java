@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,7 @@ import com.xpn.xwiki.web.EditForm;
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
     static final String PREVIOUS_VERSION_PARAMETER = "previousVersion";
+    static final String PREVIOUS_DATE_VERSION_PARAMETER = "editingVersionDate";
 
     @Inject
     private ChangeRequestManager changeRequestManager;
@@ -130,13 +132,15 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
             fileChange
                 .setPreviousVersion(previousVersion)
-                .setPreviousPublishedVersion(previousVersion)
+                .setPreviousPublishedVersion(previousVersion, modifiedDocument.getDate())
                 .setVersion(fileChangeVersion);
         } else {
             fileChange = new FileChange(changeRequest);
 
             Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
             String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
+            Date previousPublishedVersionDate =
+                new Date(Long.parseLong(request.getParameter(PREVIOUS_DATE_VERSION_PARAMETER)));
 
             if (optionalFileChange.isPresent()) {
                 if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
@@ -157,7 +161,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
                 fileChange
                     .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousVersion)
+                    .setPreviousPublishedVersion(previousVersion, previousPublishedVersionDate)
                     .setVersion(fileChangeVersion)
                     .setModifiedDocument(modifiedDocument);
             }
@@ -179,6 +183,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             previousVersion = this.fileChangeVersionManager.getFileChangeVersion(previousVersion);
         }
         String previousPublishedVersion = latestFileChange.getPreviousPublishedVersion();
+        Date previousPublishedVersionDate = latestFileChange.getPreviousPublishedVersionDate();
         Optional<MergeDocumentResult> optionalMergeDocumentResult =
             this.changeRequestManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
         if (optionalMergeDocumentResult.isPresent()) {
@@ -186,7 +191,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             String fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, true);
             if (!mergeDocumentResult.hasConflicts()) {
                 currentFileChange
-                    .setPreviousPublishedVersion(previousPublishedVersion)
+                    .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
                     .setPreviousVersion(previousVersion)
                     .setVersion(fileChangeVersion)
                     .setModifiedDocument(mergeDocumentResult.getMergeResult());

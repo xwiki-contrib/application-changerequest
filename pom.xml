@@ -94,17 +94,19 @@
                 </item>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.numberOfParametersChanged</code>
-                  <old>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(boolean)</old>
-                  <new>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(boolean, java.lang.String)</new>
-                  <justification>Unstable API: add missing information to be able to retrieve the file change from a merge result.</justification>
+                  <code>java.method.parameterTypeChanged</code>
+                  <old>parameter void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(boolean, ===java.lang.String===)</old>
+                  <new>parameter void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(boolean, ===org.xwiki.contrib.changerequest.FileChange===)</new>
+                  <parameterIndex>1</parameterIndex>
+                  <justification>Unstable API: change the parameter to allow retrieve more information.</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.numberOfParametersChanged</code>
-                  <old>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(org.xwiki.store.merge.MergeDocumentResult)</old>
-                  <new>method void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(org.xwiki.store.merge.MergeDocumentResult, java.lang.String)</new>
-                  <justification>Unstable API: add missing information to be able to retrieve the file change from a merge result.</justification>
+                  <code>java.method.parameterTypeChanged</code>
+                  <old>parameter void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(org.xwiki.store.merge.MergeDocumentResult, ===java.lang.String===)</old>
+                  <new>parameter void org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::&lt;init&gt;(org.xwiki.store.merge.MergeDocumentResult, ===org.xwiki.contrib.changerequest.FileChange===)</new>
+                  <parameterIndex>1</parameterIndex>
+                  <justification>Unstable API: change the parameter to allow retrieve more information.</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
@@ -232,6 +234,19 @@
                   <new>parameter org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createDiffDiscussion(org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference, org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation.DiffDocumentPart, java.lang.String, long, ===org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation.LineChange===) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</new>
                   <parameterIndex>4</parameterIndex>
                   <justification>Unstable API: refactoring of the line diff references for fixing a bug and support more usecases.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.lang.String org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult::getFileChangeId()</old>
+                  <justification>Unstable API: in order to simplify the API for future changes, we directly return the file change through #getFileChange().</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.FileChange::setPreviousPublishedVersion(java.lang.String)</old>
+                  <new>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.FileChange::setPreviousPublishedVersion(java.lang.String, java.util.Date)</new>
+                  <justification>Unstable API: both the version and the version date should be set for comparison.</justification>
                 </item>
               </differences>
             </revapi.differences>

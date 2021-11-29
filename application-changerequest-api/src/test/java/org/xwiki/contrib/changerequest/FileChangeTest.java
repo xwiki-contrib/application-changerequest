@@ -49,7 +49,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         FileChange otherFileChange = new FileChange(changeRequest, FileChange.FileChangeType.EDITION)
@@ -58,7 +58,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertEquals(fileChange, otherFileChange);
@@ -69,7 +69,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -81,7 +81,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertEquals(fileChange, otherFileChange);
@@ -92,7 +92,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -103,7 +103,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -114,7 +114,7 @@ class FileChangeTest
             .setId("otherId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -125,7 +125,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -136,7 +136,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(mock(DocumentReference.class))
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -147,7 +147,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1-filechange")
+            .setPreviousPublishedVersion("1.1-filechange", new Date(42))
             .setCreationDate(new Date(21));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -158,7 +158,18 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(43))
+            .setCreationDate(new Date(21));
+
+        assertNotEquals(fileChange, otherFileChange);
+
+        otherFileChange = new FileChange(changeRequest, FileChange.FileChangeType.EDITION)
+            .setVersion("2.1-filechange")
+            .setAuthor(user1)
+            .setId("someId")
+            .setPreviousVersion("1.1-filechange")
+            .setTargetEntity(targetEntity)
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(22));
 
         assertNotEquals(fileChange, otherFileChange);
@@ -176,7 +187,7 @@ class FileChangeTest
             .setId("someId")
             .setPreviousVersion("1.1-filechange")
             .setTargetEntity(targetEntity)
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(42))
             .setCreationDate(new Date(21));
 
         ChangeRequest otherChangeRequest = mock(ChangeRequest.class);

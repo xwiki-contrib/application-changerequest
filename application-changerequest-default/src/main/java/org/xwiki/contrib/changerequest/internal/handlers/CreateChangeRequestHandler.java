@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -134,8 +135,10 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         ChangeRequest changeRequest = new ChangeRequest();
 
         String previousVersion = request.getParameter("previousVersion");
+        Date previousVersionDate = new Date(Long.parseLong(request.getParameter("editingVersionDate")));
         FileChange fileChange =
-            getFileChange(changeRequest, isDeletion, documentReference, modifiedDocument, previousVersion);
+            getFileChange(changeRequest, isDeletion, documentReference, modifiedDocument, previousVersion,
+                previousVersionDate);
 
         changeRequest
             .setTitle(title)
@@ -153,7 +156,8 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     }
 
     private FileChange getFileChange(ChangeRequest changeRequest, boolean isDeletion,
-        DocumentReference documentReference, XWikiDocument modifiedDocument, String requestPreviousVersion)
+        DocumentReference documentReference, XWikiDocument modifiedDocument, String requestPreviousVersion,
+        Date previousVersionDate)
         throws ChangeRequestException
     {
         FileChange fileChange;
@@ -165,7 +169,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
                 String previousVersion = document.getVersion();
                 fileChange
                     .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousVersion);
+                    .setPreviousPublishedVersion(previousVersion, document.getDate());
             } catch (XWikiException e) {
                 throw new
                     ChangeRequestException("Cannot access the document for which a deletion request is performed.", e);
@@ -174,7 +178,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             fileChange = new FileChange(changeRequest);
             fileChange
                 .setPreviousVersion(requestPreviousVersion)
-                .setPreviousPublishedVersion(requestPreviousVersion)
+                .setPreviousPublishedVersion(requestPreviousVersion, previousVersionDate)
                 .setModifiedDocument(modifiedDocument);
         }
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);

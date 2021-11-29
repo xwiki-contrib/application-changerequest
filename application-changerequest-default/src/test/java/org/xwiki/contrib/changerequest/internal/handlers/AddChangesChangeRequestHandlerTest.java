@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal.handlers;
 
+import java.util.Date;
 import java.util.Optional;
 
 import javax.inject.Provider;
@@ -136,12 +137,13 @@ class AddChangesChangeRequestHandlerTest
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.empty());
         when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_VERSION_PARAMETER)).thenReturn("2.1");
+        when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_DATE_VERSION_PARAMETER)).thenReturn("4100");
         when(this.fileChangeVersionManager.getNextFileChangeVersion("2.1", false)).thenReturn("filechange-3.1");
         FileChange expectedFileChange = new FileChange(changeRequest)
             .setAuthor(userReference)
             .setTargetEntity(documentReference)
             .setPreviousVersion("2.1")
-            .setPreviousPublishedVersion("2.1")
+            .setPreviousPublishedVersion("2.1", new Date(4100))
             .setVersion("filechange-3.1")
             .setModifiedDocument(document);
         when(changeRequest.addFileChange(any())).then(invocationOnMock -> {
@@ -199,10 +201,12 @@ class AddChangesChangeRequestHandlerTest
         UserReference userReference = mock(UserReference.class);
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_VERSION_PARAMETER)).thenReturn("2.1");
+        when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_DATE_VERSION_PARAMETER)).thenReturn("485");
 
         FileChange existingFileChange = mock(FileChange.class);
         when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.of(existingFileChange));
         when(existingFileChange.getPreviousPublishedVersion()).thenReturn("1.1");
+        when(existingFileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(58));
         MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
         when(this.changeRequestManager.mergeDocumentChanges(document, "2.1", changeRequest))
             .thenReturn(Optional.of(mergeDocumentResult));
@@ -214,7 +218,7 @@ class AddChangesChangeRequestHandlerTest
             .setAuthor(userReference)
             .setTargetEntity(documentReference)
             .setPreviousVersion("2.1")
-            .setPreviousPublishedVersion("1.1")
+            .setPreviousPublishedVersion("1.1", new Date(58))
             .setVersion("filechange-2.2")
             .setModifiedDocument(mergedDocument);
 

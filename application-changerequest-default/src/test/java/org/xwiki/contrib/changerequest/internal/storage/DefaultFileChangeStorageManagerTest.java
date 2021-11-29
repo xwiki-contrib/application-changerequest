@@ -246,6 +246,8 @@ public class DefaultFileChangeStorageManagerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(fileChange.getPreviousPublishedVersion()).thenReturn("4.3");
         when(this.documentRevisionProvider.getRevision(targetEntity, "4.3")).thenReturn(document);
+        when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(598));
+        when(document.getDate()).thenReturn(new Date(598));
         assertEquals(document, this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange));
     }
 
@@ -366,6 +368,8 @@ public class DefaultFileChangeStorageManagerTest
             .thenReturn(filename1);
         when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
             .thenReturn("2.3");
+        when(fileChangeObj1.getDateValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY))
+            .thenReturn(new Date(666));
         when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY))
             .thenReturn("2.3");
         when(fileChangeObj1.getStringValue(FileChangeXClassInitializer.VERSION_PROPERTY))
@@ -385,6 +389,8 @@ public class DefaultFileChangeStorageManagerTest
             .thenReturn(filename2);
         when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
             .thenReturn("2.3");
+        when(fileChangeObj2.getDateValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY))
+            .thenReturn(new Date(1234));
         when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY))
             .thenReturn("filechange-3.1");
         when(fileChangeObj2.getStringValue(FileChangeXClassInitializer.VERSION_PROPERTY))
@@ -404,6 +410,8 @@ public class DefaultFileChangeStorageManagerTest
             .thenReturn(filename3);
         when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY))
             .thenReturn("3.3");
+        when(fileChangeObj3.getDateValue(FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY))
+            .thenReturn(new Date(48));
         when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY))
             .thenReturn("filechange-3.2");
         when(fileChangeObj3.getStringValue(FileChangeXClassInitializer.VERSION_PROPERTY))
@@ -444,7 +452,7 @@ public class DefaultFileChangeStorageManagerTest
             .setId("file1")
             .setTargetEntity(targetEntity)
             .setPreviousVersion("2.3")
-            .setPreviousPublishedVersion("2.3")
+            .setPreviousPublishedVersion("2.3", new Date(666))
             .setVersion("filechange-3.1");
 
         FileChange expected2 = new FileChange(changeRequest)
@@ -454,7 +462,7 @@ public class DefaultFileChangeStorageManagerTest
             .setId("file2")
             .setTargetEntity(targetEntity)
             .setPreviousVersion("filechange-3.1")
-            .setPreviousPublishedVersion("2.3")
+            .setPreviousPublishedVersion("2.3", new Date(1234))
             .setVersion("filechange-3.2");
 
         FileChange expected3 = new FileChange(changeRequest, FileChange.FileChangeType.DELETION)
@@ -464,7 +472,7 @@ public class DefaultFileChangeStorageManagerTest
             .setId("file3")
             .setTargetEntity(targetEntity)
             .setPreviousVersion("filechange-3.2")
-            .setPreviousPublishedVersion("3.3")
+            .setPreviousPublishedVersion("3.3", new Date(48))
             .setVersion("filechange-3.3");
 
         ArrayList<FileChange> expected = new ArrayList<>(Arrays.asList(expected1, expected2, expected3));
@@ -491,6 +499,8 @@ public class DefaultFileChangeStorageManagerTest
         XWikiDocument previousDocument = mock(XWikiDocument.class);
         when(fileChange.getPreviousPublishedVersion()).thenReturn("1.3");
         when(this.documentRevisionProvider.getRevision(targetEntity, "1.3")).thenReturn(previousDocument);
+        when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(42));
+        when(previousDocument.getDate()).thenReturn(new Date(42));
 
         XWikiDocument currentDocument = mock(XWikiDocument.class);
         when(this.xWiki.getDocument(targetEntity, this.context)).thenReturn(currentDocument);

@@ -312,9 +312,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
             boolean deletionConflict = xwikiCurrentDoc.isNew()
                 || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
-            result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange.getId())
-                .setDocumentTitle(getTitle(xwikiCurrentDoc))
-                .setDocumentReference(fileChange.getTargetEntity());
+            result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange)
+                .setDocumentTitle(getTitle(xwikiCurrentDoc));
         } else {
             DocumentModelBridge previousDoc =
                 this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
@@ -333,7 +332,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             mergeConfiguration.setProvidedVersionsModifiables(false);
             MergeDocumentResult mergeDocumentResult =
                 mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
-            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange.getId())
+            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange)
                 .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
         }
         return result;
@@ -454,6 +453,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             } else {
                 String previousVersion = fileChange.getVersion();
                 String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
+                Date previousPublishedVersionDate = ((XWikiDocument) mergeDocumentResult.getCurrentDocument())
+                    .getDate();
                 String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
 
                 ChangeRequest changeRequest = fileChange.getChangeRequest();
@@ -461,7 +462,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                     .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
                     .setCreationDate(new Date())
                     .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousPublishedVersion)
+                    .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
                     .setVersion(version)
                     .setModifiedDocument(mergeDocumentResult.getMergeResult())
                     .setTargetEntity(targetEntity);

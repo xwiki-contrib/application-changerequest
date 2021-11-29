@@ -67,6 +67,7 @@ import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassI
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.CREATION_DATE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILECHANGE_XCLASS;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILENAME_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY;
@@ -295,6 +296,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         String previousVersion = fileChangeObject.getStringValue(PREVIOUS_VERSION_PROPERTY);
         String previousPublishedVersion =
             fileChangeObject.getStringValue(PREVIOUS_PUBLISHED_VERSION_PROPERTY);
+        Date previousPublishedVersionDate = fileChangeObject.getDateValue(PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY);
         String version = fileChangeObject.getStringValue(VERSION_PROPERTY);
         String authorString = fileChangeObject.getStringValue(AUTHOR_PROPERTY);
         UserReference author = this.stringUserReferenceResolver.resolve(authorString);
@@ -309,7 +311,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             .setId(this.getIdFromFilename(filename))
             .setTargetEntity(documentReference)
             .setPreviousVersion(previousVersion)
-            .setPreviousPublishedVersion(previousPublishedVersion)
+            .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
             .setVersion(version)
             .setCreationDate(creationDate)
             .setAuthor(author)
@@ -344,7 +346,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWikiContext context = this.contextProvider.get();
         try {
             XWikiDocument document = context.getWiki().getDocument(clone.getTargetEntity(), context);
-            clone.setPreviousPublishedVersion(document.getVersion())
+            clone.setPreviousPublishedVersion(document.getVersion(), document.getDate())
                 .setPreviousVersion(fileChange.getVersion())
                 .setVersion(this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), false));
             this.save(clone);
@@ -408,7 +410,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         }
     }
 
-    private DocumentModelBridge getDocumentFromFileChange(FileChange fileChange, DocumentVersion version)
+    private XWikiDocument getDocumentFromFileChange(FileChange fileChange, DocumentVersion version)
         throws ChangeRequestException
     {
         XWikiContext context = contextProvider.get();
@@ -457,7 +459,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     public DocumentModelBridge getPreviousDocumentFromFileChange(FileChange fileChange)
         throws ChangeRequestException
     {
-        return getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
+        XWikiDocument result = getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
+        if (!result.getDate().equals(fileChange.getPreviousPublishedVersionDate())) {
+            throw new ChangeRequestException("The previous version of the document has been removed, "
+                + "comparison is not possible.");
+        } else {
+            return result;
+        }
     }
 
     @Override

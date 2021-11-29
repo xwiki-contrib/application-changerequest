@@ -88,16 +88,6 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
     {
         boolean result = false;
         if (document.isNew()) {
-            BaseClass xClass = document.getXClass();
-            xClass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
-                Arrays.stream(ChangeRequestStatus.values())
-                    .map(item -> item.toString().toLowerCase(Locale.ROOT))
-                    .collect(Collectors.joining("|")),
-                ChangeRequestStatus.DRAFT.name().toLowerCase(Locale.ROOT));
-
-            xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
-            xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
-
             XWikiContext context = contextProvider.get();
             BaseObject xObject = document.getXObject(CLASS_SHEET_BINDING_XCLASS, true, context);
             xObject.setStringValue("sheet", this.entityReferenceSerializer.serialize(SHEET_REFERENCE));
@@ -108,6 +98,17 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
             document.setAuthorReference(userReference);
             result = true;
         }
+
+        BaseClass xClass = document.getXClass();
+        result = result || xClass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
+            Arrays.stream(ChangeRequestStatus.values())
+                .map(item -> item.toString().toLowerCase(Locale.ROOT))
+                .collect(Collectors.joining("|")),
+            ChangeRequestStatus.DRAFT.name().toLowerCase(Locale.ROOT));
+
+        result = result || xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
+        result = result || xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
+
         return result;
     }
 }

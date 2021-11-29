@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 
@@ -39,39 +38,41 @@ import org.xwiki.store.merge.MergeDocumentResult;
 @Unstable
 public class ChangeRequestMergeDocumentResult
 {
-    private final String fileChangeId;
-    private final FileChange.FileChangeType type;
+    private final FileChange fileChange;
     private MergeDocumentResult wrappedResult;
     private final boolean isConflictingDeletion;
     private String documentTitle;
-    private DocumentReference documentReference;
+
+    private ChangeRequestMergeDocumentResult(FileChange fileChange, boolean isConflictingDeletion)
+    {
+        this.fileChange = fileChange;
+        this.isConflictingDeletion = isConflictingDeletion;
+    }
 
     /**
      * Constructor to use in case of {@link FileChange.FileChangeType#EDITION}.
      *
      * @param mergeDocumentResult the result of the merge that will be wrapped
-     * @param fileChangeId the identifier of the file change used to compute this merge result
+     * @param fileChange the file change used for computing this merge
      */
-    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, String fileChangeId)
+    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, FileChange fileChange)
     {
+        this(fileChange, false);
         this.wrappedResult = mergeDocumentResult;
-        this.type = FileChange.FileChangeType.EDITION;
-        this.isConflictingDeletion = false;
-        this.fileChangeId = fileChangeId;
-        this.documentReference = mergeDocumentResult.getMergeResult().getDocumentReference();
     }
 
     /**
      * Constructor to use in case of {@link FileChange.FileChangeType#DELETION}.
      *
      * @param conflictingDeletion {@code true} if there's a conflict with this deletion
-     * @param fileChangeId the identifier of the file change used to compute this merge result
+     * @param fileChange the file change used for computing this merge
      */
-    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion, String fileChangeId)
+    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion, FileChange fileChange)
     {
-        this.isConflictingDeletion = conflictingDeletion;
-        this.type = FileChange.FileChangeType.DELETION;
-        this.fileChangeId = fileChangeId;
+        this(fileChange, conflictingDeletion);
+        if (fileChange.getType() != FileChange.FileChangeType.DELETION) {
+            throw new IllegalArgumentException("This constructor should only be used for deletion file changes.");
+        }
     }
 
     /**
@@ -81,8 +82,8 @@ public class ChangeRequestMergeDocumentResult
      */
     public boolean hasConflicts()
     {
-        return (type == FileChange.FileChangeType.DELETION && this.isConflictingDeletion)
-            || (type == FileChange.FileChangeType.EDITION && this.wrappedResult.hasConflicts());
+        return (getType() == FileChange.FileChangeType.DELETION && this.isConflictingDeletion)
+            || (getType() == FileChange.FileChangeType.EDITION && this.wrappedResult.hasConflicts());
     }
 
     /**
@@ -108,7 +109,7 @@ public class ChangeRequestMergeDocumentResult
      */
     public FileChange.FileChangeType getType()
     {
-        return type;
+        return fileChange.getType();
     }
 
     /**
@@ -121,34 +122,12 @@ public class ChangeRequestMergeDocumentResult
     }
 
     /**
-     * @return the identifier of the file change used to compute this merge result.
-     * @since 0.6
-     */
-    public String getFileChangeId()
-    {
-        return fileChangeId;
-    }
-
-    /**
-     * Define the reference of the document for which this result is obtained.
-     *
-     * @param documentReference the reference of the document concerned by this result.
-     * @return current instance for builder pattern
+     * @return the file change concerned for this merge.
      * @since 0.7
      */
-    public ChangeRequestMergeDocumentResult setDocumentReference(DocumentReference documentReference)
+    public FileChange getFileChange()
     {
-        this.documentReference = documentReference;
-        return this;
-    }
-
-    /**
-     * @return the reference of the document for which this result is obtained.
-     * @since 0.7
-     */
-    public DocumentReference getDocumentReference()
-    {
-        return documentReference;
+        return fileChange;
     }
 
     @Override
@@ -166,11 +145,9 @@ public class ChangeRequestMergeDocumentResult
 
         return new EqualsBuilder()
             .append(isConflictingDeletion, that.isConflictingDeletion)
-            .append(type, that.type)
+            .append(fileChange, that.fileChange)
             .append(wrappedResult, that.wrappedResult)
             .append(documentTitle, that.documentTitle)
-            .append(fileChangeId, that.fileChangeId)
-            .append(documentReference, that.documentReference)
             .isEquals();
     }
 
@@ -178,12 +155,10 @@ public class ChangeRequestMergeDocumentResult
     public int hashCode()
     {
         return new HashCodeBuilder(17, 37)
-            .append(type)
-            .append(fileChangeId)
+            .append(fileChange)
             .append(wrappedResult)
             .append(isConflictingDeletion)
             .append(documentTitle)
-            .append(documentReference)
             .toHashCode();
     }
 
@@ -191,12 +166,10 @@ public class ChangeRequestMergeDocumentResult
     public String toString()
     {
         return new ToStringBuilder(this)
-            .append("type", type)
-            .append("fileChangeId", fileChangeId)
             .append("wrappedResult", wrappedResult)
             .append("isConflictingDeletion", isConflictingDeletion)
             .append("documentTitle", documentTitle)
-            .append("documentReference", documentReference)
+            .append("fileChange", fileChange)
             .toString();
     }
 }

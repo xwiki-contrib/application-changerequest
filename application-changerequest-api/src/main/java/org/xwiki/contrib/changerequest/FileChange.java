@@ -71,13 +71,14 @@ public class FileChange
     private final ChangeRequest changeRequest;
     private DocumentReference targetEntity;
     private String previousVersion;
+    private Date previousPublishedVersionDate;
     private String previousPublishedVersion;
     private String version;
     private UserReference author;
     private Date creationDate;
     private DocumentModelBridge modifiedDocument;
     private boolean saved;
-    private FileChangeType type;
+    private final FileChangeType type;
 
     /**
      * Creates a new file change edition related to the given change request.
@@ -155,7 +156,7 @@ public class FileChange
 
     /**
      * See {@link #getPreviousVersion()} for details and distinction between this method and
-     * {@link #setPreviousPublishedVersion(String)}.
+     * {@link #setPreviousPublishedVersion(String,Date)}.
      *
      * @param previousVersion the version from which the changes have been made.
      * @return the current instance.
@@ -178,14 +179,28 @@ public class FileChange
     }
 
     /**
+     * @see #getPreviousPublishedVersion()
+     * @return the date of the previous published version.
+     * @since 0.7
+     */
+    public Date getPreviousPublishedVersionDate()
+    {
+        return previousPublishedVersionDate;
+    }
+
+    /**
      * See {@link #getPreviousVersion()} and {@link #getPreviousPublishedVersion()}.
      *
      * @param previousPublishedVersion the version of the document for which the changes have been made.
+     * @param previousPublishedVersionDate the date of the version to ensure of the authenticity of the version (it's
+     *                                     possible to re-create a version of a document by deleting a version and
+     *                                     saving it back)
      * @return the current instance.
      */
-    public FileChange setPreviousPublishedVersion(String previousPublishedVersion)
+    public FileChange setPreviousPublishedVersion(String previousPublishedVersion, Date previousPublishedVersionDate)
     {
         this.previousPublishedVersion = previousPublishedVersion;
+        this.previousPublishedVersionDate = previousPublishedVersionDate;
         return this;
     }
 
@@ -329,7 +344,7 @@ public class FileChange
             .setAuthor(this.author)
             .setModifiedDocument(this.modifiedDocument)
             .setTargetEntity(this.targetEntity)
-            .setPreviousPublishedVersion(this.previousPublishedVersion)
+            .setPreviousPublishedVersion(this.previousPublishedVersion, this.previousPublishedVersionDate)
             .setPreviousVersion(this.previousVersion);
     }
 
@@ -351,6 +366,7 @@ public class FileChange
             .append(targetEntity, that.targetEntity)
             .append(previousVersion, that.previousVersion)
             .append(previousPublishedVersion, that.previousPublishedVersion)
+            .append(previousPublishedVersionDate, that.previousPublishedVersionDate)
             .append(author, that.author)
             .append(creationDate, that.creationDate)
             .append(modifiedDocument, that.modifiedDocument)
@@ -367,6 +383,7 @@ public class FileChange
             .append(targetEntity)
             .append(previousVersion)
             .append(previousPublishedVersion)
+            .append(previousPublishedVersionDate)
             .append(author)
             .append(creationDate)
             .append(modifiedDocument)
@@ -384,6 +401,7 @@ public class FileChange
             .append("sourceVersion", previousVersion)
             .append("version", version)
             .append("previousPublishedVersion", previousPublishedVersion)
+            .append("previousPublishedVersionDate", previousPublishedVersionDate)
             .append("author", author)
             .append("creationDate", creationDate)
             .append("modifiedDocument", modifiedDocument)

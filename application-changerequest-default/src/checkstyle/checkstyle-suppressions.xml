@@ -36,4 +36,5 @@
   <suppress checks="ClassFanOutComplexity" files="DefaultFileChangeStorageManager.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestManager.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestStorageManager.java"/>
+  <suppress checks="ClassFanOutComplexity" files="AddChangesChangeRequestHandler.java"/>
 </suppressions>

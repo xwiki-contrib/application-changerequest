@@ -126,13 +126,14 @@ class CreateChangeRequestHandlerTest
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         String previousVersion = "3.2";
         when(this.httpServletRequest.getParameter("previousVersion")).thenReturn(previousVersion);
+        when(this.httpServletRequest.getParameter("editingVersionDate")).thenReturn("458");
         ChangeRequest expectedChangeRequest = new ChangeRequest();
         FileChange expectedFileChange = new FileChange(expectedChangeRequest);
         expectedFileChange
             .setAuthor(userReference)
             .setTargetEntity(documentReferenceWithLocale)
             .setPreviousVersion(previousVersion)
-            .setPreviousPublishedVersion(previousVersion)
+            .setPreviousPublishedVersion(previousVersion, new Date(458))
             .setModifiedDocument(modifiedDocument);
 
         String crId = "myCrID";

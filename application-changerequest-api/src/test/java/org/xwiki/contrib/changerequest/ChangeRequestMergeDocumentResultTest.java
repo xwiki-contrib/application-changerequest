@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  * @since 0.5
  */
-public class ChangeRequestMergeDocumentResultTest
+class ChangeRequestMergeDocumentResultTest
 {
     @Test
     void hasConflicts()
@@ -41,17 +41,20 @@ public class ChangeRequestMergeDocumentResultTest
         MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);
 
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, "");
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange);
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
 
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false, "");
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false, fileChange);
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true, "");
+        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true, fileChange);
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
     }
 }
