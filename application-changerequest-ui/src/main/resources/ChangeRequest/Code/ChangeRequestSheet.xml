@@ -3074,7 +3074,7 @@ tr.discussion-line:hover {
 #set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
 #set ($closeUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=closed&amp;form_token=$services.csrf.token")
 #set ($readyForReviewUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token")
-#set ($draftUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token")
+#set ($draftUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=draft&amp;form_token=$services.csrf.token")
 #set ($rebaseUrl = "$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token")
 #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
 #set ($status = $changeRequest.status)
