@@ -77,11 +77,25 @@
       <groupId>org.xwiki.contrib.api-rights</groupId>
       <artifactId>api-rights-bridge</artifactId>
       <version>${rights-api.version}</version>
+      <exclusions>
+        <!-- Security bridge was moved in  13.10 so we need to exclude it to avoid enforcer issues -->
+        <exclusion>
+          <groupId>org.xwiki.platform</groupId>
+          <artifactId>xwiki-platform-security-bridge</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.xwiki.contrib.changerequest</groupId>
       <artifactId>application-changerequest-discussions</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <!-- Security bridge was moved in  13.10 so we need to exclude it to avoid enforcer issues -->
+        <exclusion>
+          <groupId>org.xwiki.platform</groupId>
+          <artifactId>xwiki-platform-security-bridge</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- Test dependencies -->
     <dependency>

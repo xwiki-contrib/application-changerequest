@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-platform</artifactId>
-    <version>13.9</version>
+    <version>13.10</version>
   </parent>
   <groupId>org.xwiki.contrib.changerequest</groupId>
   <artifactId>application-changerequest</artifactId>
@@ -57,8 +57,8 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <discussions.version>2.0-rc-1</discussions.version>
-    <rights-api.version>1.2-SNAPSHOT</rights-api.version>
+    <discussions.version>2.0-rc-2</discussions.version>
+    <rights-api.version>2.0-rc-1</rights-api.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
@@ -179,8 +179,13 @@
       </dependency>
       <dependency>
         <groupId>org.xwiki.platform</groupId>
-        <artifactId>xwiki-platform-security-bridge</artifactId>
+        <artifactId>xwiki-platform-security-authorization-bridge</artifactId>
         <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-text</artifactId>
+        <version>${commons.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
