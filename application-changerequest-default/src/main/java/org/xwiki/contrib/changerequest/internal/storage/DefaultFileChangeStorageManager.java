@@ -232,6 +232,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         fileChangeObject.set(REFERENCE_PROPERTY, this.entityReferenceSerializer.serialize(documentReferenceWithLocale),
             context);
         fileChangeObject.set(PREVIOUS_PUBLISHED_VERSION_PROPERTY, fileChange.getPreviousPublishedVersion(), context);
+        fileChangeObject.set(PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY,
+            fileChange.getPreviousPublishedVersionDate(), context);
         fileChangeObject.set(CREATION_DATE_PROPERTY, fileChange.getCreationDate(), context);
         fileChangeObject.set(AUTHOR_PROPERTY, this.userReferenceConverter.convert(fileChange.getAuthor()), context);
         Locale locale = documentReferenceWithLocale.getLocale();

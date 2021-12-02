@@ -33,7 +33,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
@@ -47,6 +46,7 @@ import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionService;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 
 /**
  * Default implementation of {@link ChangeRequestDiscussionService}.
@@ -69,6 +69,9 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
 
     @Inject
     private ChangeRequestDiscussionFactory changeRequestDiscussionFactory;
+
+    @Inject
+    private EntityReferenceSerializer<String> stringEntityReferenceSerializer;
 
     @Override
     public <T extends AbstractChangeRequestDiscussionContextReference> Discussion getOrCreateDiscussionFor(T reference)
@@ -161,7 +164,9 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         Map<List<String>, ChangeRequest> changeRequestMap = new HashMap<>();
         for (ChangeRequest splittedChangeRequest : splittedChangeRequests) {
             List<String> fileChangeIdList =
-                splittedChangeRequest.getAllFileChanges().stream().map(FileChange::getId).collect(Collectors.toList());
+                splittedChangeRequest.getModifiedDocuments().stream()
+                    .map(reference -> stringEntityReferenceSerializer.serialize(reference))
+                    .collect(Collectors.toList());
             changeRequestMap.put(fileChangeIdList, splittedChangeRequest);
         }
 
@@ -181,7 +186,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 ChangeRequestFileDiffReference fileDiffReference = (ChangeRequestFileDiffReference) reference;
                 ChangeRequest newChangeRequest = null;
                 for (Map.Entry<List<String>, ChangeRequest> entry : splittedChangeRequests.entrySet()) {
-                    if (entry.getKey().contains(fileDiffReference.getFileDiffLocation().getFileChangeId())) {
+                    if (entry.getKey().contains(fileDiffReference.getFileDiffLocation().getTargetReference())) {
                         newChangeRequest = entry.getValue();
                         break;
                     }

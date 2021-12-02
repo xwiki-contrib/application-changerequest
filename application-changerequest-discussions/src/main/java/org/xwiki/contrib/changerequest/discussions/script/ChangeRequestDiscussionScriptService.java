@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussion;
@@ -36,10 +37,12 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestComme
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.discussions.references.FileDiffLocation;
-import org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
+import org.xwiki.model.reference.EntityReference;
+import org.xwiki.properties.ConverterManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
@@ -55,24 +58,27 @@ import org.xwiki.stability.Unstable;
 @Singleton
 public class ChangeRequestDiscussionScriptService implements ScriptService
 {
+    private static final String UNDERSCORE = "_";
+
     @Inject
     private ChangeRequestDiscussionService changeRequestDiscussionService;
 
+    @Inject
+    private ConverterManager converterManager;
+
     /**
-     * Create a reference with the given information, to be used in {@link #createDiffDiscussion(
-     * ChangeRequestFileDiffReference, LineDiffLocation.DiffDocumentPart, String, long, LineDiffLocation.LineChange)}.
+     * Create a reference with the given information, to be used in for creating diff discussion.
      *
      * @param changeRequestId the identifier of the change request.
      * @param targetReference the reference of the document displayed in the diff
-     * @param fileChangeId the identifier of the file change used in the diff
      * @param diffId the unique identifier of the diff
      * @return a reference that can be used to create discussion.
      * @since 0.7
      */
     public ChangeRequestFileDiffReference createFileDiffReference(String changeRequestId,
-        String targetReference, String fileChangeId, String diffId)
+        String targetReference, String diffId)
     {
-        FileDiffLocation fileDiffLocation = new FileDiffLocation(fileChangeId, diffId, targetReference);
+        FileDiffLocation fileDiffLocation = new FileDiffLocation(diffId, targetReference);
         return new ChangeRequestFileDiffReference(changeRequestId, fileDiffLocation);
     }
 
@@ -82,23 +88,48 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
      *
      * @see ChangeRequestLineDiffReference
      * @param fileDiffReference the reference of the file diff where the discussion takes place
-     * @param documentPart the part of the document diff where the discussion will be attached
-     * @param documentPartLocation a more specific information to be used along the document part to know where to
-     *                             attach the discussion. See {@link LineDiffLocation.DiffDocumentPart} for details.
+     * @param entityReference the reference of the specific entity where the discussion takes place, e.g. an xobject or
+     *                        an xclass
+     * @param diffBlockId the specific name of the property discussed
      * @param lineNumber the line number of the document diff part where the discussion will be attached
      * @param lineChange the type of change of the line number to identify where to attach the discussion
      * @return the reference of the attached discussion
      * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
      */
     public DiscussionReference createDiffDiscussion(ChangeRequestFileDiffReference fileDiffReference,
-        LineDiffLocation.DiffDocumentPart documentPart, String documentPartLocation, long lineNumber,
+        EntityReference entityReference, String diffBlockId, long lineNumber,
         LineDiffLocation.LineChange lineChange)
         throws ChangeRequestDiscussionException
     {
+        LineDiffLocation.DiffDocumentPart documentPart;
+        // We rely on the ConverterManager and not on the serializer here, to keep the syntax containing the
+        // entity reference type.
+        String serializedEntityReference = this.converterManager.convert(String.class, entityReference);
+        if (serializedEntityReference.equals(fileDiffReference.getReference())) {
+            serializedEntityReference = UNDERSCORE;
+            documentPart = LineDiffLocation.DiffDocumentPart.METADATA;
+        } else {
+            switch (entityReference.getType()) {
+                case OBJECT_PROPERTY:
+                    documentPart = LineDiffLocation.DiffDocumentPart.XOBJECT;
+                    break;
+
+                case CLASS_PROPERTY:
+                    documentPart = LineDiffLocation.DiffDocumentPart.XCLASS;
+                    break;
+
+                default:
+                    documentPart = LineDiffLocation.DiffDocumentPart.METADATA;
+                    break;
+            }
+        }
+        String diffBlockIdNormalized = (StringUtils.isEmpty(diffBlockId)) ? UNDERSCORE : diffBlockId;
+
         LineDiffLocation lineDiffLocation = new LineDiffLocation(
             fileDiffReference.getFileDiffLocation(),
             documentPart,
-            documentPartLocation,
+            serializedEntityReference,
+            diffBlockIdNormalized,
             lineNumber,
             lineChange
         );

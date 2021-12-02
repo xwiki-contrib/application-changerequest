@@ -17,46 +17,42 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.discussions.references;
+package org.xwiki.contrib.changerequest.discussions.references.difflocation;
 
 import org.junit.jupiter.api.Test;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FileDiffLocationTest
+class FileDiffLocationTest
 {
     @Test
     void getSerializedReference()
     {
         FileDiffLocation fileDiffLocation =
-            new FileDiffLocation("filechange-3.2-243435", "34343", "xwiki:Main.WebHome");
+            new FileDiffLocation("filechange-1.1_2.3_484848", "xwiki:Main.WebHome");
         String serializedReference = fileDiffLocation.getSerializedReference();
-        assertEquals("xwiki:Main.WebHome_filechange-3.2-243435_34343", serializedReference);
-    }
+        assertEquals("xwiki:Main.WebHome/filechange-1.1_2.3_484848", serializedReference);
 
-    @Test
-    void isMatching()
-    {
-        assertTrue(FileDiffLocation.isMatching("xwiki:Main.WebHome_filechange-3.2-243435_34343"));
-        assertTrue(FileDiffLocation.isMatching("Main.WebHome_filechange-3.2-243435_34343"));
-        assertTrue(FileDiffLocation.isMatching("Main12365_455.WebHome_filechange-653.6-243435_34343"));
-        assertFalse(FileDiffLocation.isMatching("filechange-653.6-243435_34343"));
-        assertFalse(FileDiffLocation.isMatching("Main.WebHome_filechange-3.2"));
+        fileDiffLocation =
+            new FileDiffLocation("filechange-1.1_2.3_484848", "xwiki:Mai/n.Web\\Home");
+        serializedReference = fileDiffLocation.getSerializedReference();
+        assertEquals("xwiki:Mai\\/n.Web\\\\Home/filechange-1.1_2.3_484848", serializedReference);
     }
 
     @Test
     void parse()
     {
-        FileDiffLocation fileDiffLocation = FileDiffLocation.parse("xwiki:Main.WebHome_filechange-3.2-243435_34343");
+        FileDiffLocation fileDiffLocation = FileDiffLocation.parse("xwiki:Main.WebHome/filechange-1.1_2.3_484848");
         FileDiffLocation expected =
-            new FileDiffLocation("filechange-3.2-243435", "34343", "xwiki:Main.WebHome");
+            new FileDiffLocation("filechange-1.1_2.3_484848", "xwiki:Main.WebHome");
         assertEquals(expected, fileDiffLocation);
 
-        fileDiffLocation = FileDiffLocation.parse("Main12365_455.WebHome_filechange-653.6-243435_34343");
+        fileDiffLocation = FileDiffLocation.parse("xwiki:Mai\\/n.Web\\\\Home/filechange-1.1_2.3_484848");
         expected =
-            new FileDiffLocation("filechange-653.6-243435", "34343", "Main12365_455.WebHome");
+            new FileDiffLocation("filechange-1.1_2.3_484848", "xwiki:Mai/n.Web\\Home");
         assertEquals(expected, fileDiffLocation);
     }
 }

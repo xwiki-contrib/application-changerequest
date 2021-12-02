@@ -17,12 +17,11 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.discussions.references;
+package org.xwiki.contrib.changerequest.discussions.references.difflocation;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -35,54 +34,29 @@ import org.xwiki.stability.Unstable;
  * @since 0.7
  */
 @Unstable
-public class LineDiffLocation
+public class LineDiffLocation extends AbstractDiffLocation
 {
-    private static final String FILE_DIFF_LOCATION = "fileDiffLocation";
-    private static final String DOCUMENT_PART = "documentPart";
-    private static final String DOCUMENT_PART_LOCATION = "documentPartLocation";
-    private static final String LINE_CHANGE = "lineChange";
-    private static final String LINE_NUMBER = "lineNumber";
-
-    /**
-     * Pattern used to extract the different information of the actual reference serialized in
-     * {@link #getSerializedReference()}.
-     * Pattern output:
-     * ^(?<fileDiffLocation>.+)_(?<documentPart>(CONTENT|XOBJECT|XCLASS|METADATA))_
-     * (?<documentPartLocation>.+)_(?<lineChange>(ADDED|REMOVED|UNCHANGED))_(?<lineNumber>\d+)$
-     */
-    private static final Pattern REFERENCE_PATTERN = Pattern.compile(
-        String.format("^(?<%s>.+)_(?<%s>(%s))_(?<%s>.+)_(?<%s>(%s))_(?<%s>\\d+)$", FILE_DIFF_LOCATION,
-            DOCUMENT_PART, StringUtils.join(DiffDocumentPart.values(), '|'),
-            DOCUMENT_PART_LOCATION,
-            LINE_CHANGE, StringUtils.join(LineChange.values(), '|'),
-            LINE_NUMBER));
-
     /**
      * Represents the different part of a document that are displayed in a diff.
      */
     public enum DiffDocumentPart
     {
         /**
-         * The actual content change of the document.
-         * Note that when it's used, the document part location should be also {@code content} by convention.
-         */
-        CONTENT,
-
-        /**
-         * Any xobject change of the document: when used the document part location should be the full reference of
-         * the xobject property modified.
+         * Any xobject property change of the document: when used the entity reference should be the reference of
+         * the object, and the diffBlockId should be the name of the property.
          */
         XOBJECT,
 
         /**
-         * Any xclass change of the document: when used the document part location should be the name of the property
-         * modified.
+         * Any xclass property change of the document: when used the entity reference should be the reference of
+         * the xclass, and the diffBlockId should be the name of the property.
          */
         XCLASS,
 
         /**
-         * Any other metadata of the document: it can be the title, the author, the date etc. When used, the document
-         * part location should be the actual name of the property.
+         * Any metadata of the document: it can be the content, the title, the author, the date etc. When used,
+         * the entity reference can be either {@code _} to represent the reference contained in the file diff location,
+         * or the explicit reference. The diffBlockId should be the name of the property.
          */
         METADATA
     }
@@ -110,7 +84,8 @@ public class LineDiffLocation
 
     private final long lineNumber;
     private final DiffDocumentPart documentPart;
-    private final String documentPartLocation;
+    private final String entityReference;
+    private final String diffBlockId;
     private final LineChange lineChange;
     private final FileDiffLocation fileDiffLocation;
 
@@ -119,16 +94,18 @@ public class LineDiffLocation
      *
      * @param fileDiffLocation the file diff in which this line appears.
      * @param documentPart the part of the document concerned by this location.
-     * @param documentPartLocation specify the document part (see {@link DiffDocumentPart} for details)
+     * @param entityReference the reference of the modified entity referenced.
+     * @param diffBlockId the name of the concerned property.
      * @param lineNumber the line number concerned.
      * @param lineChange define if the line number is among the added, removed or context lines.
      */
     public LineDiffLocation(FileDiffLocation fileDiffLocation, DiffDocumentPart documentPart,
-        String documentPartLocation, long lineNumber, LineChange lineChange)
+        String entityReference, String diffBlockId, long lineNumber, LineChange lineChange)
     {
         this.fileDiffLocation = fileDiffLocation;
         this.documentPart = documentPart;
-        this.documentPartLocation = documentPartLocation;
+        this.entityReference = entityReference;
+        this.diffBlockId = diffBlockId;
         this.lineChange = lineChange;
         this.lineNumber = lineNumber;
     }
@@ -160,9 +137,17 @@ public class LineDiffLocation
     /**
      * @return the specific location in the diff.
      */
-    public String getDocumentPartLocation()
+    public String getDiffBlockId()
     {
-        return documentPartLocation;
+        return diffBlockId;
+    }
+
+    /**
+     * @return the reference of the specific entity referred to here.
+     */
+    public String getEntityReference()
+    {
+        return entityReference;
     }
 
     /**
@@ -174,39 +159,32 @@ public class LineDiffLocation
     }
 
     /**
-     * Verify if the given reference can be parsed to create a {@link LineDiffLocation}.
-     *
-     * @see #parse(String)
-     * @param reference the reference for which to check if it can be parsed
-     * @return {@code true} only if the given reference can be parsed
-     */
-    public static boolean isMatching(String reference)
-    {
-        return REFERENCE_PATTERN.matcher(reference).matches();
-    }
-
-    /**
      * Parse the given reference to create a new instance of {@link LineDiffLocation}.
      * Note that if the reference cannot be parsed, it will throw a {@link IllegalArgumentException}.
      *
-     * @see #isMatching(String)
      * @param reference the reference to be parsed.
      * @return a new instance of {@link LineDiffLocation} with the information contained in the reference.
      * @throws IllegalArgumentException if the reference is not using the right format.
      */
     public static LineDiffLocation parse(String reference)
     {
-        Matcher matcher = REFERENCE_PATTERN.matcher(reference);
-        if (matcher.matches()) {
-            FileDiffLocation fileDiffLocation = FileDiffLocation.parse(matcher.group(FILE_DIFF_LOCATION));
-            DiffDocumentPart documentPart = DiffDocumentPart.valueOf(matcher.group(DOCUMENT_PART));
-            String documentPartLocation = matcher.group(DOCUMENT_PART_LOCATION);
-            long lineNumber = Long.parseLong(matcher.group(LINE_NUMBER));
-            LineChange lineChange = LineChange.valueOf(matcher.group(LINE_CHANGE));
-            return new LineDiffLocation(fileDiffLocation, documentPart, documentPartLocation, lineNumber, lineChange);
-        } else {
+        List<String> stringList = LineDiffLocation.parseToList(reference);
+        // We should obtain 7 tokens:
+        // 2 first for FileDiffLocation
+        // 5 then for remaining fields of LineDiffLocation
+
+        if (stringList.size() != 7) {
             throw new IllegalArgumentException(
-                    String.format("[%s] cannot be parsed to a line diff reference.", reference));
+                String.format("Error when parsing [%s] to line diff location.", reference));
+        } else {
+            FileDiffLocation fileDiffLocation = FileDiffLocation.parseList(stringList);
+            DiffDocumentPart documentPart = DiffDocumentPart.valueOf(stringList.get(2));
+            String entityReference = stringList.get(3);
+            String diffBlockId = stringList.get(4);
+            LineChange lineChange = LineChange.valueOf(stringList.get(5));
+            long lineNumber = Long.parseLong(stringList.get(6));
+            return new LineDiffLocation(fileDiffLocation, documentPart, entityReference, diffBlockId,
+                lineNumber, lineChange);
         }
     }
 
@@ -219,12 +197,13 @@ public class LineDiffLocation
      */
     public String getSerializedReference()
     {
-        return String.format("%s_%s_%s_%s_%s",
-            this.fileDiffLocation.getSerializedReference(),
+        String serializedString = this.getSerializedString(Arrays.asList(
             this.documentPart.name(),
-            this.documentPartLocation,
+            this.entityReference,
+            this.diffBlockId,
             this.lineChange.name(),
-            this.lineNumber);
+            String.valueOf(this.lineNumber)));
+        return this.fileDiffLocation.getSerializedReference() + SEPARATOR + serializedString;
     }
 
     @Override
@@ -240,27 +219,38 @@ public class LineDiffLocation
 
         LineDiffLocation that = (LineDiffLocation) o;
 
-        return new EqualsBuilder().append(lineNumber, that.lineNumber)
-            .append(documentPart, that.documentPart).append(documentPartLocation, that.documentPartLocation)
-            .append(lineChange, that.lineChange).append(fileDiffLocation, that.fileDiffLocation).isEquals();
+        return new EqualsBuilder()
+            .append(lineNumber, that.lineNumber)
+            .append(documentPart, that.documentPart)
+            .append(entityReference, that.entityReference)
+            .append(diffBlockId, that.diffBlockId)
+            .append(lineChange, that.lineChange)
+            .append(fileDiffLocation, that.fileDiffLocation).isEquals();
     }
 
     @Override
     public int hashCode()
     {
-        return new HashCodeBuilder(17, 37).append(lineNumber).append(documentPart).append(documentPartLocation)
-            .append(lineChange).append(fileDiffLocation).toHashCode();
+        return new HashCodeBuilder(63, 37)
+            .append(lineNumber)
+            .append(documentPart)
+            .append(entityReference)
+            .append(diffBlockId)
+            .append(lineChange)
+            .append(fileDiffLocation)
+            .toHashCode();
     }
 
     @Override
     public String toString()
     {
         return new ToStringBuilder(this)
-            .append(FILE_DIFF_LOCATION, fileDiffLocation)
-            .append(DOCUMENT_PART, documentPart)
-            .append(DOCUMENT_PART_LOCATION, documentPartLocation)
-            .append(LINE_CHANGE, lineChange)
-            .append(LINE_NUMBER, lineNumber)
+            .append("lineNumber", lineNumber)
+            .append("documentPart", documentPart)
+            .append("entityReference", entityReference)
+            .append("diffBlockId", diffBlockId)
+            .append("lineChange", lineChange)
+            .append("fileDiffLocation", fileDiffLocation)
             .toString();
     }
 }

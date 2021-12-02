@@ -162,7 +162,9 @@
     #if ($reference.type != "CHANGE_REQUEST_COMMENT")
       ## TODO: handle pagination
       #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
-      &lt;div class="discussion" data-type="$reference.type" data-reference="$reference.reference"&gt;
+      #set ($dataAttributes = $NULL)
+      #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
+      &lt;div class="discussion" ${dataAttributes} &gt;
         #foreach ($message in $messages)
           #displayMessage($message)
         #end
@@ -291,28 +293,29 @@
       #set ($discard = $conflictingFiles.put($ref, $crMergeDocumentResult))
     #end
     #set ($renderedTitle = $crMergeDocumentResult.documentTitle)
+    #set ($diffKey = $crMergeDocumentResult.identifier)
     #if ($crMergeDocumentResult.type == "DELETION")
-      #set ($diffKey = $crMergeDocumentResult.hashCode())
       #set ($diffContent = "Deletion of the whole file.")
     #else
       #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
       #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
       #set ($currentDoc = $mergeDocumentResult.currentDocument)
-      #set ($diffKey = $stringtool.toAlphaNumeric($modifiedDoc.getKey()))
+      ## We wrap the XWikiDocument in Document so that the diff macros behave correctly
+      #set ($wrappedDocs = $xwiki.wrapDocs([$currentDoc, $modifiedDoc]))
       #define ($diffContent)
-        #displayDocumentRawChanges($currentDoc, $modifiedDoc)
+        #displayDocumentRawChanges($wrappedDocs.get(0), $wrappedDocs.get(1))
       #end
     #end
     &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
       &lt;h4 class="panel-title"&gt;
         &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
-          &lt;span class="label label-default commentcounter hidden"&gt;$services.icon.renderHTML('envelope') &lt;span class="counter" data-filechange="$crMergeDocumentResult.fileChangeId"&gt;0&lt;/span&gt;&lt;/span&gt;
+          &lt;span class="label label-default commentcounter hidden"&gt;$services.icon.renderHTML('envelope') &lt;span class="counter" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;0&lt;/span&gt;&lt;/span&gt;
           $services.localization.render('changerequest.sheet.difftitle', [$renderedTitle])
         &lt;/a&gt;
       &lt;/h4&gt;
     &lt;/div&gt;
     &lt;div id="diff-$diffKey" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
-      &lt;div class="panel-body diff-body" data-filechange="$crMergeDocumentResult.fileChangeId"&gt;$diffContent&lt;/div&gt;
+      &lt;div class="panel-body diff-body" data-diffId="$escapetool.xml($diffKey)" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;$diffContent&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   #end
@@ -1809,20 +1812,33 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
     }
   }
   
+  // this function returns an array of two element:
+  // first element is the entity reference,
+  // second element is the diffBlockId
+  var getEntityReferenceAndDiffBlock = function (element) {
+    var diffBlockId = element.parents('.diff-container').parent().prev('.diff-header').attr('data-property-name');
+    var entityReference = element.parents('.diff-group').children('dt').first().attr('data-reference');
+    return [entityReference, diffBlockId];
+  }
+  
   var initialize = function() {
     $('.diff-container tr').on('click', function () {
-      var fileChangeId = $(this).parents('.diff-body').attr('data-filechange');
-      var documentPart = $(this).parents('.diff-container').parent().prev('.diff-header').attr('data-property-name');
+      var diffBody = $(this).parents('.diff-body');
+      var diffId = diffBody.attr('data-diffid');
+      var targetReference = diffBody.attr('data-documentreference');
+      var documentParts = getEntityReferenceAndDiffBlock($(this));
       var lineNumber = getLineNumber($(this));
       var changeType = getChangeType($(this));
       var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
       var editor = new CommentEditor($(this), {
         'type': 'diffLine',
-        'fileChangeId': fileChangeId,
-        'documentPart': documentPart,
+        'changeRequestId': changeRequestId,
+        'diffId': diffId,
         'lineNumber': lineNumber,
         'changeType': changeType,
-        'changeRequestId': changeRequestId
+        'targetReference': targetReference,
+        'entityReference': documentParts[0],
+        'diffBlockId': documentParts[1]
       });
       editor.requestEditor();
     });
@@ -1930,9 +1946,6 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
     <property>
       <code>'use strict';
 require(['jquery', 'xwiki-meta'], function ($, xm) {
-  // This pattern should be the same than the one defined in Java code
-  // We don't use a service for perf reasons. Note that currently regex groups are not supported in the version of javascript we use.
-  const DIFF_LINE_REFERENCE_PATTERN = /^(.+)_(\w+)_(\d+)_(ADDED|REMOVED|UNCHANGED)$/
   var placeDiscussions = function (index, element) {
     var discussion = $(element);
     if (discussion.find('.message').length &gt; 0) {
@@ -1953,31 +1966,56 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     }
   };
   
-  var incrementCounter = function (filename) {
-    var currentCounterSpan = $('.counter[data-filechange="' + filename +'"]');
+  var incrementCounter = function (reference) {
+    var currentCounterSpan = $('.counter[data-documentReference="' + reference +'"]');
     var counter = parseInt(currentCounterSpan.text()) + 1;
     currentCounterSpan.text(counter);
     currentCounterSpan.parent().removeClass('hidden');
   };
   
-  var placeLineDiffDiscussion = function (discussion) {
-    var reference = discussion.attr('data-reference');
-    var existingLine = $('tr.discussion-line[data-reference="'+reference+'"]');
-    if (existingLine.length) {
-      existingLine.find('.discussion').append(discussion.find('.message'));
+  var findLineContainer = function (discussion) {
+    var targetReference = discussion.attr('data-targetreference');
+    var diffId = discussion.attr('data-diffid');
+    
+    // try first to find the diff file with same exact id
+    var mainContainer = $('.diff-body[data-diffid="' + diffId + '"]');
+    var outdated = false;
+    var line;
+    
+    // if we did not find it, it means the diff is outdated, we fallback on the diff concerning same document
+    if (mainContainer.length == 0) {
+      mainContainer = $('.diff-body[data-documentreference="' + targetReference + '"]');
+      outdated = true;
+    }
+    
+    // if we did not find the diff about same document, then it's another issue, we log an error.
+    if (mainContainer.length == 0) {
+      console.error("Cannot attach the discussion {0} to the window since there's no diff about {1}. The discussion will remain hidden.", discussion, targetReference);
+      return;
+    }
+    
+    // Now we have the main container, we need to find if it's about the main document metadata, its xclass or one of its xobject metadata.
+    var entityReference = discussion.attr('data-entityreference');
+    // FIXME: this is a hack to use uppercase characters for entity type, because right now the diff macros
+    // do not use the converter for serializing their references.
+    entityReference = getUpperCaseTypeReference(entityReference);
+    var diffRefContainer = mainContainer.find('.diff-group &gt; dt[data-reference="' + entityReference +'"]');
+    // if we did not find the part of the diff related to the entity reference,
+    // it means that we need to attach the comment to the whole diff.
+    if (diffRefContainer.length == 0) {
+      line = mainContainer;
+      outdated = true;
     } else {
-      var match = reference.match(DIFF_LINE_REFERENCE_PATTERN);
-      if (match) {
-        var filename = match[1];
-        var documentPart = match[2];
-        var lineNumber = match[3];
-        var lineChange = match[4];
-
-        var fileDiffContainer = $('.diff-body[data-filechange="' + filename +'"]');
-
-        // FIXME: this will need to be fixed, we don't necessarily have document parts... 
-        var partDiffContainer = fileDiffContainer.find('.diff-header[data-property-name="' + documentPart.toLowerCase() + '"]').next().find('.diff-container');
-
+      // we have the entity reference diff container, now we can look for the specific property change
+      var diffBlockId = discussion.attr('data-diffblockid');
+      var diffBlockContainer = diffRefContainer.parent('.diff-group').find('.diff-header[data-property-name="' + diffBlockId + '"]').next().find('.diff-container');
+      
+      if (diffBlockContainer.length == 0) {
+        line = diffRefContainer;
+        outdated = true;
+      } else {
+        var lineChange = discussion.attr('data-linechange');
+        var lineNumber = discussion.attr('data-linenumber');
         var searchingClass;
         if (lineChange === "ADDED") {
           searchingClass = "diff-line-added";
@@ -1990,15 +2028,47 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           var node = $(this);
           return node.text() === lineNumber &amp;&amp; node.parent().find('.diff-line').hasClass(searchingClass);
         }
-        var line = partDiffContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).parent();
-        if (line.length &gt; 0) {
-          discussion.insertAfter(line);
-          discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
-          incrementCounter(filename);
-        } else {
-          console.warn("Cannot find proper line for: " + reference);
+
+        line = diffBlockContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).parent();
+
+        // if we did not find the line, then it's outdated and we should attach the discussion to the entity reference container.
+        if (line.length == 0) {
+          line = diffRefContainer;
+          outdated = true;
         }
       }
+    }
+    return {'line': line, 'outdated': outdated};
+  }
+  
+  var getUpperCaseTypeReference = function (entityReference) {
+    var firstSemicolonIndex = entityReference.indexOf(':');
+    var type = entityReference.substr(0, firstSemicolonIndex);
+    var reference = entityReference.substr(firstSemicolonIndex+1);
+    return type.toUpperCase() + ":" + reference;
+  };
+  
+  var insertLineDiffDiscussion = function (discussion) {
+    var lineResult = findLineContainer(discussion);
+    if (lineResult) {
+      var targetReference = discussion.attr('data-targetreference');
+      var reference = discussion.attr('data-reference');
+      discussion.insertAfter(lineResult.line);
+      discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+      if (lineResult.outdated) {
+        discussion.addClass('discussion-outdated');
+      }
+      incrementCounter(targetReference);
+    }
+  };
+  
+  var placeLineDiffDiscussion = function (discussion) {
+    var reference = discussion.attr('data-reference');
+    var existingLine = $('tr.discussion-line[data-reference="'+reference+'"]');
+    if (existingLine.length) {
+      existingLine.find('.discussion').append(discussion.find('.message'));
+    } else {
+      insertLineDiffDiscussion(discussion);
     }
   }
   

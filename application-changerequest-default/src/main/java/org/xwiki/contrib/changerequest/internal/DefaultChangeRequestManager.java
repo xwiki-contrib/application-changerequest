@@ -308,11 +308,12 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         DocumentModelBridge currentDoc =
             this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
         ChangeRequestMergeDocumentResult result;
+        XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
         if (fileChange.getType() == FileChange.FileChangeType.DELETION) {
-            XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
             boolean deletionConflict = xwikiCurrentDoc.isNew()
                 || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
-            result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange)
+            result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange, xwikiCurrentDoc.getVersion(),
+                xwikiCurrentDoc.getDate())
                 .setDocumentTitle(getTitle(xwikiCurrentDoc));
         } else {
             DocumentModelBridge previousDoc =
@@ -332,7 +333,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             mergeConfiguration.setProvidedVersionsModifiables(false);
             MergeDocumentResult mergeDocumentResult =
                 mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
-            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange)
+            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, xwikiCurrentDoc.getVersion(),
+                xwikiCurrentDoc.getDate())
                 .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
         }
         return result;

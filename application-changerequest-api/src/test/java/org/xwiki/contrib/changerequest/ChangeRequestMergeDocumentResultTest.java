@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.Date;
+
 import org.junit.jupiter.api.Test;
 import org.xwiki.store.merge.MergeDocumentResult;
 
@@ -44,17 +46,17 @@ class ChangeRequestMergeDocumentResultTest
         FileChange fileChange = mock(FileChange.class);
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange);
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, "1.3", new Date(45));
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
 
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false, fileChange);
+        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false, fileChange, "1.3", new Date(45));
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true, fileChange);
+        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true, fileChange, "1.3", new Date(45));
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
     }
 }

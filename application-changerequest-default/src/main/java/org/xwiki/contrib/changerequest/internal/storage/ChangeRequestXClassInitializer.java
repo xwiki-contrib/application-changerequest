@@ -100,14 +100,14 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
         }
 
         BaseClass xClass = document.getXClass();
-        result = result || xClass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
+        result |= xClass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
             Arrays.stream(ChangeRequestStatus.values())
                 .map(item -> item.toString().toLowerCase(Locale.ROOT))
                 .collect(Collectors.joining("|")),
             ChangeRequestStatus.DRAFT.name().toLowerCase(Locale.ROOT));
 
-        result = result || xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
-        result = result || xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
+        result |= xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
+        result |= xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
 
         return result;
     }

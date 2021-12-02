@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -326,9 +327,11 @@ class DefaultChangeRequestManagerTest
         when(currentDoc.getVersion()).thenReturn("1.2");
         when(fileChange.getPreviousPublishedVersion()).thenReturn("1.1");
         when(currentDoc.isNew()).thenReturn(false);
+        when(currentDoc.getDate()).thenReturn(new Date(45));
         when(currentDoc.getRenderedTitle(this.context)).thenReturn("Some title");
         when(fileChange.getId()).thenReturn("fileChangeId");
-        ChangeRequestMergeDocumentResult expectedResult = new ChangeRequestMergeDocumentResult(true, fileChange)
+        ChangeRequestMergeDocumentResult expectedResult = new ChangeRequestMergeDocumentResult(true, fileChange,
+            "1.2", new Date(45))
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -337,7 +340,7 @@ class DefaultChangeRequestManagerTest
         DocumentReference documentReference = mock(DocumentReference.class);
         when(currentDoc.getDocumentReference()).thenReturn(documentReference);
         when(documentReference.toString()).thenReturn("Some.Reference");
-        expectedResult = new ChangeRequestMergeDocumentResult(true, fileChange)
+        expectedResult = new ChangeRequestMergeDocumentResult(true, fileChange, "1.1", new Date(45))
             .setDocumentTitle("Some.Reference");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -345,7 +348,7 @@ class DefaultChangeRequestManagerTest
         when(fileChange.getPreviousPublishedVersion()).thenReturn("1.2");
         when(currentDoc.isNew()).thenReturn(false);
 
-        expectedResult = new ChangeRequestMergeDocumentResult(false, fileChange)
+        expectedResult = new ChangeRequestMergeDocumentResult(false, fileChange, "1.2", new Date(45))
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -372,7 +375,7 @@ class DefaultChangeRequestManagerTest
             return mergeDocumentResult;
         });
 
-        expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange)
+        expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, "1.2", new Date(45))
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
     }

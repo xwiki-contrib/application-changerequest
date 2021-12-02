@@ -24,12 +24,11 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionServic
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.discussions.references.FileDiffLocation;
-import org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
-import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 
@@ -68,14 +67,16 @@ class ChangeRequestDiscussionReferenceUtilsTest
 
         DiscussionContextEntityReference contextEntityReference2 = mock(DiscussionContextEntityReference.class);
         when(contextEntityReference2.getType()).thenReturn("changerequest-file_diff");
-        when(contextEntityReference2.getReference()).thenReturn("CR1_xwiki:Main.WebHome_filechange-3.2-243435_34343");
-        FileDiffLocation fileDiffLocation = FileDiffLocation.parse("xwiki:Main.WebHome_filechange-3.2-243435_34343");
+        String reference = "xwiki:Main.WebHome/filechange-1.1_2.3_484848";
+        when(contextEntityReference2.getReference()).thenReturn("CR1_" + reference);
+        FileDiffLocation fileDiffLocation = FileDiffLocation.parse(reference);
         ChangeRequestFileDiffReference fileDiffReference =
             new ChangeRequestFileDiffReference("CR1", fileDiffLocation);
 
         DiscussionContextEntityReference contextEntityReference3 = mock(DiscussionContextEntityReference.class);
         when(contextEntityReference3.getType()).thenReturn("changerequest-line_diff");
-        String reference = "xwiki:Main.WebHome_filechange-1.2_1243456789_CONTENT_content_ADDED_178";
+        reference = "xwiki:Main.WebHome/filechange-1.1_2.3_484848/XOBJECT/"
+            + "xwiki:Main.WebHome^XWiki.StyleSheetExtension[0]/code/ADDED/38";
         when(contextEntityReference3.getReference())
             .thenReturn("CR1_" + reference);
         LineDiffLocation lineDiffLocation = LineDiffLocation.parse(reference);

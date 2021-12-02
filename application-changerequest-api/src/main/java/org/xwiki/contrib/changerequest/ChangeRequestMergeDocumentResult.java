@@ -19,6 +19,9 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -42,11 +45,16 @@ public class ChangeRequestMergeDocumentResult
     private MergeDocumentResult wrappedResult;
     private final boolean isConflictingDeletion;
     private String documentTitle;
+    private final String currentVersion;
+    private final Date currentVersionDate;
 
-    private ChangeRequestMergeDocumentResult(FileChange fileChange, boolean isConflictingDeletion)
+    private ChangeRequestMergeDocumentResult(FileChange fileChange, boolean isConflictingDeletion,
+        String currentVersion, Date currentVersionDate)
     {
         this.fileChange = fileChange;
         this.isConflictingDeletion = isConflictingDeletion;
+        this.currentVersion = currentVersion;
+        this.currentVersionDate = currentVersionDate;
     }
 
     /**
@@ -54,10 +62,13 @@ public class ChangeRequestMergeDocumentResult
      *
      * @param mergeDocumentResult the result of the merge that will be wrapped
      * @param fileChange the file change used for computing this merge
+     * @param currentVersion the current version of the document used to perform the merge
+     * @param currentVersionDate the date of the version of the document used to perform the merge
      */
-    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, FileChange fileChange)
+    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, FileChange fileChange,
+        String currentVersion, Date currentVersionDate)
     {
-        this(fileChange, false);
+        this(fileChange, false, currentVersion, currentVersionDate);
         this.wrappedResult = mergeDocumentResult;
     }
 
@@ -66,10 +77,13 @@ public class ChangeRequestMergeDocumentResult
      *
      * @param conflictingDeletion {@code true} if there's a conflict with this deletion
      * @param fileChange the file change used for computing this merge
+     * @param currentVersion the current version of the document used to perform the merge
+     * @param currentVersionDate the date of the version of the document used to perform the merge
      */
-    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion, FileChange fileChange)
+    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion, FileChange fileChange,
+        String currentVersion, Date currentVersionDate)
     {
-        this(fileChange, conflictingDeletion);
+        this(fileChange, conflictingDeletion, currentVersion, currentVersionDate);
         if (fileChange.getType() != FileChange.FileChangeType.DELETION) {
             throw new IllegalArgumentException("This constructor should only be used for deletion file changes.");
         }
@@ -128,6 +142,15 @@ public class ChangeRequestMergeDocumentResult
     public FileChange getFileChange()
     {
         return fileChange;
+    }
+
+    /**
+     * @return a unique identifier for that merge.
+     */
+    public String getIdentifier()
+    {
+        return StringUtils.replace(String.format("%s_%s_%s", fileChange.getVersion(),
+            currentVersion, currentVersionDate.getTime()), ".", "dot");
     }
 
     @Override

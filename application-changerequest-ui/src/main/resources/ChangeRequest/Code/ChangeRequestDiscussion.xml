@@ -44,15 +44,14 @@
 #if ($request.method == 'POST' &amp;&amp; $request.get('action') == 'displayEditor' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')))
   #set ($changeRequestId = $request.get('changeRequestId'))
   #if ($request.get('type') == 'diffLine')
-    #set ($fileChangeId = $request.get('fileChangeId'))
-    #set ($documentPart = $stringtool.upperCase($request.get('documentPart')))
-    #set ($documentPartLocation = $request.get('documentPartLocation'))
     #set ($diffId = $request.get('diffId'))
     #set ($targetReference = $request.get('targetReference'))
+    #set ($entityReference = $request.get('entityReference'))
+    #set ($diffBlockId = $request.get('diffBlockId'))
     #set ($lineNumber = $numbertool.toNumber($request.get('lineNumber')).longValue())
     #set ($lineChange = $request.get('changeType'))
-    #set ($fileDiffReference = $services.changerequest.discussion.createFileDiffReference($changeRequestId, $targetReference, $fileChangeId, $diffId))
-    #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileDiffReference, $documentPart, $documentPartLocation, $lineNumber, $lineChange))
+    #set ($fileDiffReference = $services.changerequest.discussion.createFileDiffReference($changeRequestId, $targetReference, $diffId))
+    #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileDiffReference, $entityReference, $diffBlockId, $lineNumber, $lineChange))
   #end
 {{html clean="false"}}
 &lt;div class="add-comment"&gt;
@@ -71,8 +70,9 @@
 {{/html}}
 #elseif ($request.method == 'GET' &amp;&amp; $xcontext.action == 'get' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')) &amp;&amp; "$!request.get('messageReference')" != "")
   #set ($message = $services.discussions.getMessage($request.get('messageReference')))
-  #set ($reference = $services.changerequest.discussion.getReference($message.discussion))
-  &lt;div class="discussion" data-type="$reference.type" data-reference="$reference.reference"&gt;
+  #set ($dataAttributes = $NULL)
+  #set ($discard = "#getDiscussionDataAttributes($message.discussion, $dataAttributes)")
+  &lt;div class="discussion" ${dataAttributes} &gt;
   #displayMessage($message)
   &lt;/div&gt;
 #else

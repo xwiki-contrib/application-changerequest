@@ -37,8 +37,8 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineD
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
-import org.xwiki.contrib.changerequest.discussions.references.FileDiffLocation;
-import org.xwiki.contrib.changerequest.discussions.references.LineDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
@@ -93,14 +93,14 @@ public class ChangeRequestDiscussionReferenceUtils
                 break;
 
             case FILE_DIFF:
-                parameters.add(((ChangeRequestFileDiffReference) reference).getFileDiffLocation().getFileChangeId());
+                parameters.add(((ChangeRequestFileDiffReference) reference).getFileDiffLocation().getTargetReference());
                 break;
 
             case LINE_DIFF:
                 ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
                 LineDiffLocation lineDiffLocation = lineDiffReference.getLineDiffLocation();
                 parameters.add(getLineDiffRepresentation(lineDiffLocation));
-                parameters.add(lineDiffLocation.getFileDiffLocation().getFileChangeId());
+                parameters.add(lineDiffLocation.getFileDiffLocation().getTargetReference());
                 break;
 
             default:
@@ -117,10 +117,8 @@ public class ChangeRequestDiscussionReferenceUtils
         if (referenceMatcher.matches()) {
             String changeRequestId = referenceMatcher.group(CHANGE_REQUEST_ID_GROUP);
             String lineDiffReference = referenceMatcher.group(REFERENCE_ID_GROUP);
-            if (LineDiffLocation.isMatching(lineDiffReference)) {
-                LineDiffLocation lineDiffLocation = LineDiffLocation.parse(lineDiffReference);
-                result = new ChangeRequestLineDiffReference(changeRequestId, lineDiffLocation);
-            }
+            LineDiffLocation lineDiffLocation = LineDiffLocation.parse(lineDiffReference);
+            result = new ChangeRequestLineDiffReference(changeRequestId, lineDiffLocation);
         }
         return result;
     }
@@ -135,10 +133,8 @@ public class ChangeRequestDiscussionReferenceUtils
             && referenceMatcher.matches()) {
             String changeRequestId = referenceMatcher.group(CHANGE_REQUEST_ID_GROUP);
             String fileDiffReference = referenceMatcher.group(REFERENCE_ID_GROUP);
-            if (FileDiffLocation.isMatching(fileDiffReference)) {
-                FileDiffLocation fileDiffLocation = FileDiffLocation.parse(fileDiffReference);
-                result = new ChangeRequestFileDiffReference(changeRequestId, fileDiffLocation);
-            }
+            FileDiffLocation fileDiffLocation = FileDiffLocation.parse(fileDiffReference);
+            result = new ChangeRequestFileDiffReference(changeRequestId, fileDiffLocation);
         }
         return result;
     }

@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.discussions.references;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.stability.Unstable;
 
 /**

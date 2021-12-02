@@ -88,22 +88,23 @@ public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
         }
 
         BaseClass xClass = document.getXClass();
-        result = result || xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
-        result = result || xClass.addDateField(CREATION_DATE_PROPERTY, CREATION_DATE_PROPERTY);
-        result = result || xClass.addTextField(FILENAME_PROPERTY, FILENAME_PROPERTY, 30);
-        result = result || xClass.addTextField(PREVIOUS_VERSION_PROPERTY, PREVIOUS_VERSION_PROPERTY, 30);
-        result = result
-            || xClass.addDateField(PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY, PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY);
-        result = result
-            || xClass.addTextField(PREVIOUS_PUBLISHED_VERSION_PROPERTY, PREVIOUS_PUBLISHED_VERSION_PROPERTY, 30);
-        result = result || xClass.addTextField(VERSION_PROPERTY, VERSION_PROPERTY, 30);
-        result = result || xClass.addPageField(REFERENCE_PROPERTY, REFERENCE_PROPERTY, 1);
-        result = result || xClass.addTextField(REFERENCE_LOCALE_PROPERTY, REFERENCE_LOCALE_PROPERTY, 10);
-        result = result || xClass.addStaticListField(TYPE_PROPERTY, TYPE_PROPERTY,
+        result |= xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
+        result |= xClass.addDateField(CREATION_DATE_PROPERTY, CREATION_DATE_PROPERTY);
+        result |= xClass.addTextField(FILENAME_PROPERTY, FILENAME_PROPERTY, 30);
+        result |= xClass.addTextField(PREVIOUS_VERSION_PROPERTY, PREVIOUS_VERSION_PROPERTY, 30);
+        result |= xClass
+            .addDateField(PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY, PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY);
+        result |= xClass.addTextField(PREVIOUS_PUBLISHED_VERSION_PROPERTY, PREVIOUS_PUBLISHED_VERSION_PROPERTY, 30);
+        result |= xClass.addTextField(VERSION_PROPERTY, VERSION_PROPERTY, 30);
+        result |= xClass.addPageField(REFERENCE_PROPERTY, REFERENCE_PROPERTY, 1);
+        result |= xClass.addTextField(REFERENCE_LOCALE_PROPERTY, REFERENCE_LOCALE_PROPERTY, 10);
+        result |= xClass.addStaticListField(TYPE_PROPERTY, TYPE_PROPERTY,
             Arrays.stream(FileChange.FileChangeType.values())
                 .map(value -> value.name().toLowerCase(Locale.ROOT))
                 .collect(Collectors.joining()));
 
         return result;
     }
+
+
 }
