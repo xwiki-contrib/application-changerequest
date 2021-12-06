@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -51,6 +52,7 @@ import org.xwiki.user.UserReferenceResolver;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.XWikiDocumentArchive;
 import com.xpn.xwiki.web.EditForm;
 
 /**
@@ -102,17 +104,13 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         this.responseSuccess(changeRequest);
     }
 
-    private ChangeRequest getChangeRequest(HttpServletRequest request) throws ChangeRequestException
+    private XWikiDocument getModifiedDocument(HttpServletRequest request, boolean isDeletion, XWikiContext context)
+        throws ChangeRequestException
     {
-        boolean isDeletion = "1".equals(request.getParameter("deletion"));
-
-        XWikiDocument modifiedDocument = null;
-        DocumentReference documentReference;
-
+        XWikiDocument modifiedDocument;
         if (!isDeletion) {
             EditForm editForm = this.prepareForm(request);
             modifiedDocument = this.prepareDocument(request, editForm);
-            documentReference = modifiedDocument.getDocumentReferenceWithLocale();
         } else {
             // TODO: Handle affectChildren
             String serializedReference = request.getParameter("docReference");
@@ -124,8 +122,24 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             } else {
                 locale = LocaleUtils.toLocale(localeString);
             }
-            documentReference = new DocumentReference(referenceWithoutLocale, locale);
+            DocumentReference documentReference = new DocumentReference(referenceWithoutLocale, locale);
+            try {
+                modifiedDocument = context.getWiki().getDocument(documentReference, context);
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Cannot read document [%s]", documentReference), e);
+            }
         }
+        return modifiedDocument;
+    }
+
+    private ChangeRequest getChangeRequest(HttpServletRequest request) throws ChangeRequestException
+    {
+        boolean isDeletion = "1".equals(request.getParameter("deletion"));
+
+        XWikiContext context = this.contextProvider.get();
+        XWikiDocument modifiedDocument = getModifiedDocument(request, isDeletion, context);
+        DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
 
         String title = request.getParameter("crTitle");
         String description = request.getParameter("crDescription");
@@ -135,10 +149,19 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         ChangeRequest changeRequest = new ChangeRequest();
 
         String previousVersion = request.getParameter("previousVersion");
-        Date previousVersionDate = new Date(Long.parseLong(request.getParameter("editingVersionDate")));
+        XWikiDocument previousDoc;
+        try {
+            XWikiDocumentArchive xWikiDocumentArchive =
+                context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
+            previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
+                    modifiedDocument), e);
+        }
         FileChange fileChange =
             getFileChange(changeRequest, isDeletion, documentReference, modifiedDocument, previousVersion,
-                previousVersionDate);
+                previousDoc.getDate());
 
         changeRequest
             .setTitle(title)

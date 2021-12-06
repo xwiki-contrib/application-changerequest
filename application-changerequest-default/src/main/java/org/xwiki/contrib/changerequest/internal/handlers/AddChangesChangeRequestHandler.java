@@ -32,6 +32,7 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -50,7 +51,10 @@ import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.XWikiDocumentArchive;
 import com.xpn.xwiki.web.EditForm;
 
 /**
@@ -65,7 +69,6 @@ import com.xpn.xwiki.web.EditForm;
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
     static final String PREVIOUS_VERSION_PARAMETER = "previousVersion";
-    static final String PREVIOUS_DATE_VERSION_PARAMETER = "editingVersionDate";
 
     @Inject
     private ChangeRequestManager changeRequestManager;
@@ -139,8 +142,17 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
             Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
             String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
-            Date previousPublishedVersionDate =
-                new Date(Long.parseLong(request.getParameter(PREVIOUS_DATE_VERSION_PARAMETER)));
+            XWikiContext context = this.contextProvider.get();
+            XWikiDocument previousDoc;
+            try {
+                XWikiDocumentArchive xWikiDocumentArchive =
+                    context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
+                previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
+                        modifiedDocument), e);
+            }
 
             if (optionalFileChange.isPresent()) {
                 if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
@@ -154,14 +166,14 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
                     // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
                     // as a needed precondition for the request to be handled.
-                    this.contextProvider.get().getResponse().sendError(412, "Rights conflicts found in the changes.");
+                    context.getResponse().sendError(412, "Rights conflicts found in the changes.");
                     return null;
                 }
                 String fileChangeVersion =
                     this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
                 fileChange
                     .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousVersion, previousPublishedVersionDate)
+                    .setPreviousPublishedVersion(previousVersion, previousDoc.getDate())
                     .setVersion(fileChangeVersion)
                     .setModifiedDocument(modifiedDocument);
             }

@@ -24,7 +24,10 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Provider;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
@@ -44,6 +47,8 @@ import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.XWikiDocumentArchive;
+import com.xpn.xwiki.store.XWikiVersioningStoreInterface;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xpn.xwiki.web.XWikiResponse;
 
@@ -92,18 +97,28 @@ class CreateChangeRequestHandlerTest
     private XWikiRequest httpServletRequest;
     private XWikiResponse httpServletResponse;
     private XWiki xWiki;
+    private XWikiVersioningStoreInterface versioningStore;
+
+    @BeforeEach
+    void setup()
+    {
+        this.context = mock(XWikiContext.class);
+        when(contextProvider.get()).thenReturn(context);
+
+        this.xWiki = mock(XWiki.class);
+        when(this.context.getWiki()).thenReturn(this.xWiki);
+
+        this.versioningStore = mock(XWikiVersioningStoreInterface.class);
+        when(this.xWiki.getVersioningStore()).thenReturn(this.versioningStore);
+    }
 
     @Test
     void handle() throws Exception
     {
-        this.context = mock(XWikiContext.class);
-        when(this.contextProvider.get()).thenReturn(this.context);
         this.httpServletRequest = mock(XWikiRequest.class);
         when(this.context.getRequest()).thenReturn(this.httpServletRequest);
         this.httpServletResponse = mock(XWikiResponse.class);
         when(this.context.getResponse()).thenReturn(this.httpServletResponse);
-        this.xWiki = mock(XWiki.class);
-        when(this.context.getWiki()).thenReturn(this.xWiki);
 
         when(this.requestParameterConverter.convert(this.httpServletRequest, this.httpServletResponse))
             .thenReturn(Optional.of(this.httpServletRequest));
@@ -126,7 +141,12 @@ class CreateChangeRequestHandlerTest
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         String previousVersion = "3.2";
         when(this.httpServletRequest.getParameter("previousVersion")).thenReturn(previousVersion);
-        when(this.httpServletRequest.getParameter("editingVersionDate")).thenReturn("458");
+        XWikiDocumentArchive documentArchive = mock(XWikiDocumentArchive.class);
+        when(versioningStore.getXWikiDocumentArchive(modifiedDocument, context)).thenReturn(documentArchive);
+        XWikiDocument previousVersionDoc = mock(XWikiDocument.class);
+        when(documentArchive.loadDocument(new Version("3.2"), context)).thenReturn(previousVersionDoc);
+        when(previousVersionDoc.getDate()).thenReturn(new Date(458));
+
         ChangeRequest expectedChangeRequest = new ChangeRequest();
         FileChange expectedFileChange = new FileChange(expectedChangeRequest);
         expectedFileChange

@@ -24,7 +24,9 @@ import java.util.Optional;
 
 import javax.inject.Provider;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -49,6 +51,8 @@ import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.XWikiDocumentArchive;
+import com.xpn.xwiki.store.XWikiVersioningStoreInterface;
 import com.xpn.xwiki.web.EditForm;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xpn.xwiki.web.XWikiResponse;
@@ -107,11 +111,27 @@ class AddChangesChangeRequestHandlerTest
     @MockComponent
     private ChangeRequestRightsManager changeRequestRightsManager;
 
+    private XWikiContext context;
+    private XWiki wiki;
+    private XWikiVersioningStoreInterface versioningStore;
+
+    @BeforeEach
+    void setup()
+    {
+        this.context = mock(XWikiContext.class);
+        when(contextProvider.get()).thenReturn(context);
+
+        this.wiki = mock(XWiki.class);
+        when(this.context.getWiki()).thenReturn(this.wiki);
+
+        this.versioningStore = mock(XWikiVersioningStoreInterface.class);
+        when(this.wiki.getVersioningStore()).thenReturn(this.versioningStore);
+    }
+
     @Test
     void handleFileChangeNotExisting() throws Exception
     {
-        XWikiContext context = mock(XWikiContext.class);
-        when(contextProvider.get()).thenReturn(context);
+
         XWikiRequest request = mock(XWikiRequest.class);
         when(context.getRequest()).thenReturn(request);
         XWikiResponse response = mock(XWikiResponse.class);
@@ -121,8 +141,6 @@ class AddChangesChangeRequestHandlerTest
         when(request.getParameter("docReference")).thenReturn(docReference);
         DocumentReference documentReference = mock(DocumentReference.class);
         when(this.documentReferenceResolver.resolve(docReference)).thenReturn(documentReference);
-        XWiki wiki = mock(XWiki.class);
-        when(context.getWiki()).thenReturn(wiki);
         XWikiDocument document = mock(XWikiDocument.class);
         when(wiki.getDocument(documentReference, context)).thenReturn(document);
         when(document.clone()).thenReturn(document);
@@ -137,7 +155,11 @@ class AddChangesChangeRequestHandlerTest
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.empty());
         when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_VERSION_PARAMETER)).thenReturn("2.1");
-        when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_DATE_VERSION_PARAMETER)).thenReturn("4100");
+        XWikiDocumentArchive documentArchive = mock(XWikiDocumentArchive.class);
+        when(versioningStore.getXWikiDocumentArchive(document, context)).thenReturn(documentArchive);
+        XWikiDocument previousVersionDoc = mock(XWikiDocument.class);
+        when(documentArchive.loadDocument(new Version("2.1"), context)).thenReturn(previousVersionDoc);
+        when(previousVersionDoc.getDate()).thenReturn(new Date(4100));
         when(this.fileChangeVersionManager.getNextFileChangeVersion("2.1", false)).thenReturn("filechange-3.1");
         FileChange expectedFileChange = new FileChange(changeRequest)
             .setAuthor(userReference)
@@ -175,8 +197,6 @@ class AddChangesChangeRequestHandlerTest
     @Test
     void handleFileChangeExistingNoConflict() throws Exception
     {
-        XWikiContext context = mock(XWikiContext.class);
-        when(contextProvider.get()).thenReturn(context);
         XWikiRequest request = mock(XWikiRequest.class);
         when(context.getRequest()).thenReturn(request);
         XWikiResponse response = mock(XWikiResponse.class);
@@ -186,8 +206,6 @@ class AddChangesChangeRequestHandlerTest
         when(request.getParameter("docReference")).thenReturn(docReference);
         DocumentReference documentReference = mock(DocumentReference.class);
         when(this.documentReferenceResolver.resolve(docReference)).thenReturn(documentReference);
-        XWiki wiki = mock(XWiki.class);
-        when(context.getWiki()).thenReturn(wiki);
         XWikiDocument document = mock(XWikiDocument.class);
         when(wiki.getDocument(documentReference, context)).thenReturn(document);
         when(document.clone()).thenReturn(document);
@@ -201,7 +219,12 @@ class AddChangesChangeRequestHandlerTest
         UserReference userReference = mock(UserReference.class);
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_VERSION_PARAMETER)).thenReturn("2.1");
-        when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_DATE_VERSION_PARAMETER)).thenReturn("485");
+
+        XWikiDocumentArchive documentArchive = mock(XWikiDocumentArchive.class);
+        when(versioningStore.getXWikiDocumentArchive(document, context)).thenReturn(documentArchive);
+        XWikiDocument previousVersionDoc = mock(XWikiDocument.class);
+        when(documentArchive.loadDocument(new Version("2.1"), context)).thenReturn(previousVersionDoc);
+        when(previousVersionDoc.getDate()).thenReturn(new Date(478));
 
         FileChange existingFileChange = mock(FileChange.class);
         when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.of(existingFileChange));
