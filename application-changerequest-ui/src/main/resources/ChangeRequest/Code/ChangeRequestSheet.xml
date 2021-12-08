@@ -842,15 +842,15 @@ require(['jquery', 'bootstrap'], function ($) {
     
     self.requestModal = function(previousVersion, nextVersion) {
       var warningConflictAction = $('#changeRequestConflictModal input[name=warningConflictAction]:checked').val();
-      if ($('#changeRequestConflictModal')) {
-        $('#changeRequestConflictModal').remove();
-      }
       if (previousVersion &amp;&amp; nextVersion) {
         var original = previousVersion;
         var revised = nextVersion;
       } else if ($('select[name=original]').length &gt; 0 &amp;&amp; $('select[name=revised]').length &gt; 0) {
         var original = $('#modalConflictSelectVersion select[name=original]').val();
         var revised = $('#modalConflictSelectVersion select[name=revised]').val();
+      }
+      if ($('#changeRequestConflictModal')) {
+        $('#changeRequestConflictModal').remove();
       }
       
       var params = {
