@@ -43,6 +43,11 @@
   &lt;div class="message-metadata"&gt;
     &lt;span class="message-author"&gt;#displayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
     &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
+    &lt;span class="outdated-message hidden"&gt;
+      &lt;span class="label label-danger" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.outdated.title'))"&gt;
+        $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.message.outdated')
+      &lt;/span&gt;
+    &lt;/span&gt;
   &lt;/div&gt;
   &lt;div class="message-content"&gt;
     $services.discussions.renderMessageContent($messageReference)

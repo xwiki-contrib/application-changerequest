@@ -299,9 +299,9 @@
     #else
       #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
       #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
-      #set ($currentDoc = $mergeDocumentResult.currentDocument)
+      #set ($previousDoc = $mergeDocumentResult.previousDocument)
       ## We wrap the XWikiDocument in Document so that the diff macros behave correctly
-      #set ($wrappedDocs = $xwiki.wrapDocs([$currentDoc, $modifiedDoc]))
+      #set ($wrappedDocs = $xwiki.wrapDocs([$previousDoc, $modifiedDoc]))
       #define ($diffContent)
         #displayDocumentRawChanges($wrappedDocs.get(0), $wrappedDocs.get(1))
       #end
@@ -309,7 +309,16 @@
     &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
       &lt;h4 class="panel-title"&gt;
         &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
-          &lt;span class="label label-default commentcounter hidden"&gt;$services.icon.renderHTML('envelope') &lt;span class="counter" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;0&lt;/span&gt;&lt;/span&gt;
+          &lt;span class="diff-labels"&gt;
+            &lt;span class="label label-default commentcounter hidden"&gt;
+              $services.icon.renderHTML('envelope') &lt;span class="counter" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;0&lt;/span&gt;
+            &lt;/span&gt;
+            #if ($crMergeDocumentResult.hasConflicts())
+              &lt;span class="label label-warning label-diff-conflict" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.conflictLabel.title'))"&gt;
+                $services.icon.renderHTML('wrench') $services.localization.render('changerequest.sheet.diff.conflictLabel')
+              &lt;/span&gt;
+            #end
+          &lt;/span&gt;
           $services.localization.render('changerequest.sheet.difftitle', [$renderedTitle])
         &lt;/a&gt;
       &lt;/h4&gt;
@@ -2054,9 +2063,14 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       var targetReference = discussion.attr('data-targetreference');
       var reference = discussion.attr('data-reference');
       discussion.insertAfter(lineResult.line);
-      discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+      if (lineResult.line.parents('table').length &gt; 0) {
+        discussion.wrap('&lt;tr class="discussion-line" data-reference="'+reference+'"&gt;&lt;td colspan="3"&gt;&lt;/td&gt;&lt;/tr&gt;');
+      } else {
+        discussion.wrap('&lt;div class="discussion-line" data-reference="'+reference+'"&gt;&lt;/div&gt;');
+      }
       if (lineResult.outdated) {
         discussion.addClass('discussion-outdated');
+        discussion.find('.outdated-message').removeClass('hidden');
       }
       incrementCounter(targetReference);
     }
@@ -2064,7 +2078,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   
   var placeLineDiffDiscussion = function (discussion) {
     var reference = discussion.attr('data-reference');
-    var existingLine = $('tr.discussion-line[data-reference="'+reference+'"]');
+    var existingLine = $('.discussion-line[data-reference="'+reference+'"]');
     if (existingLine.length) {
       existingLine.find('.discussion').append(discussion.find('.message'));
     } else {
@@ -2835,7 +2849,14 @@ tr.discussion-line:hover {
 .message-content {
   padding: 1em;
 }
-.commentcounter {
+.diff-labels {
+  float: right;
+
+  .label {
+    margin: 5px;
+  }
+}
+.outdated-message {
   float: right;
 }</code>
     </property>

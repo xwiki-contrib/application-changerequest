@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
@@ -309,15 +310,15 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
         ChangeRequestMergeDocumentResult result;
         XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
+        XWikiDocument previousDoc =
+            (XWikiDocument) this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
         if (fileChange.getType() == FileChange.FileChangeType.DELETION) {
             boolean deletionConflict = xwikiCurrentDoc.isNew()
                 || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
-            result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange, xwikiCurrentDoc.getVersion(),
-                xwikiCurrentDoc.getDate())
+            result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange, previousDoc.getVersion(),
+                previousDoc.getDate())
                 .setDocumentTitle(getTitle(xwikiCurrentDoc));
         } else {
-            DocumentModelBridge previousDoc =
-                this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
             DocumentModelBridge nextDoc =
                 this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
 
@@ -333,8 +334,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             mergeConfiguration.setProvidedVersionsModifiables(false);
             MergeDocumentResult mergeDocumentResult =
                 mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
-            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, xwikiCurrentDoc.getVersion(),
-                xwikiCurrentDoc.getDate())
+            result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, previousDoc.getVersion(),
+                previousDoc.getDate())
                 .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
         }
         return result;
@@ -472,6 +473,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 changeRequest.addFileChange(mergeFileChange);
                 this.changeRequestStorageManager.save(changeRequest);
                 this.computeReadyForMergingStatus(changeRequest);
+                this.observationManager
+                    .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), mergeFileChange);
                 return true;
             }
         } else {

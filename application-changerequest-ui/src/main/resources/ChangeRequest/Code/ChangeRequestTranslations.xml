@@ -133,6 +133,10 @@ changerequest.sheet.draft.button.title=Convert this change request as a draft
 changerequest.sheet.draft.button=Convert to draft
 changerequest.sheet.review.button.title=Review the current change request
 changerequest.sheet.review.button=Review
+changerequest.sheet.diff.conflictLabel=Conflicts
+changerequest.sheet.diff.conflictLabel.title=Those changes are in conflict with the new published version of the document. You must fix the conflicts for allowing to merge.
+changerequest.sheet.message.outdated=outdated
+changerequest.sheet.message.outdated.title=This message is outdated: the diff changed since it was written.
 
 ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_merged=Merged
