@@ -31,7 +31,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
@@ -43,7 +42,6 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
-import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
@@ -68,16 +66,11 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
-    static final String PREVIOUS_VERSION_PARAMETER = "previousVersion";
-
     @Inject
     private ChangeRequestManager changeRequestManager;
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
-
-    @Inject
-    private FileChangeVersionManager fileChangeVersionManager;
 
     @Inject
     private ApproversManager<DocumentReference> documentReferenceApproversManager;
@@ -96,9 +89,10 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     {
         HttpServletRequest request = this.prepareRequest();
         EditForm editForm = this.prepareForm(request);
-        XWikiDocument modifiedDocument = this.prepareDocument(request, editForm);
-        DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
         ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
+        XWikiDocument modifiedDocument = this.prepareDocument(request, editForm, changeRequest);
+        DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
+
         boolean isDeletion = "1".equals(request.getParameter("deletion"));
 
         if (changeRequest != null) {
@@ -190,10 +184,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         throws ChangeRequestException, IOException
     {
         boolean result = false;
-        String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
-        if (StringUtils.equals(request.getParameter("fromchangerequest"), "1")) {
-            previousVersion = this.fileChangeVersionManager.getFileChangeVersion(previousVersion);
-        }
+        String previousVersion = getPreviousVersion(request);
         String previousPublishedVersion = latestFileChange.getPreviousPublishedVersion();
         Date previousPublishedVersionDate = latestFileChange.getPreviousPublishedVersionDate();
         Optional<MergeDocumentResult> optionalMergeDocumentResult =

@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,10 +30,14 @@ import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
@@ -56,6 +61,8 @@ import com.xpn.xwiki.web.XWikiResponse;
  */
 public abstract class AbstractChangeRequestActionHandler implements ChangeRequestActionHandler
 {
+    static final String PREVIOUS_VERSION_PARAMETER = "previousVersion";
+    static final String FROM_CHANGE_REQUEST_PARAMETER = "fromchangerequest";
     private static final String ASYNC_PARAMETER = "async";
 
     @Inject
@@ -72,6 +79,12 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     protected DocumentReferenceResolver<String> documentReferenceResolver;
+
+    @Inject
+    protected FileChangeStorageManager fileChangeStorageManager;
+
+    @Inject
+    protected FileChangeVersionManager fileChangeVersionManager;
 
     @Inject
     private RequestParameterConverter requestParameterConverter;
@@ -126,13 +139,49 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         return null;
     }
 
-    protected XWikiDocument prepareDocument(HttpServletRequest request, EditForm editForm) throws ChangeRequestException
+    protected boolean isFromChangeRequest(HttpServletRequest request)
+    {
+        return StringUtils.equals(request.getParameter(FROM_CHANGE_REQUEST_PARAMETER), "1");
+    }
+
+    protected String getPreviousVersion(HttpServletRequest request)
+    {
+        String previousVersionParameter = request.getParameter(PREVIOUS_VERSION_PARAMETER);
+        if (isFromChangeRequest(request)) {
+            return this.fileChangeVersionManager.getFileChangeVersion(previousVersionParameter);
+        } else {
+            return previousVersionParameter;
+        }
+    }
+
+    protected XWikiDocument prepareDocument(HttpServletRequest request, EditForm editForm, ChangeRequest changeRequest)
+        throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         String serializedDocReference = request.getParameter("docReference");
         DocumentReference documentReference = this.documentReferenceResolver.resolve(serializedDocReference);
+
+        XWikiDocument modifiedDocument = null;
         try {
-            XWikiDocument modifiedDocument = context.getWiki().getDocument(documentReference, context);
+            if (isFromChangeRequest(request) && changeRequest != null) {
+                List<FileChange> fileChangeList = this.fileChangeStorageManager.load(changeRequest, documentReference);
+                String previousVersion = getPreviousVersion(request);
+                FileChange fileChange = null;
+                for (FileChange change : fileChangeList) {
+                    if (change.getVersion().equals(previousVersion)) {
+                        fileChange = change;
+                        break;
+                    }
+                }
+                if (fileChange != null) {
+                    modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
+                } else {
+                    throw new ChangeRequestException(
+                        String.format("Cannot find file change with version [%s]", previousVersion));
+                }
+            } else {
+                modifiedDocument = context.getWiki().getDocument(documentReference, context);
+            }
             // cloning the document to ensure we don't impact the document in cache.
             modifiedDocument = modifiedDocument.clone();
             modifiedDocument.readFromForm(editForm, context);

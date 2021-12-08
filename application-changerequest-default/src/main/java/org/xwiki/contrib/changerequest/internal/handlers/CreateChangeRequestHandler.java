@@ -110,7 +110,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         XWikiDocument modifiedDocument;
         if (!isDeletion) {
             EditForm editForm = this.prepareForm(request);
-            modifiedDocument = this.prepareDocument(request, editForm);
+            modifiedDocument = this.prepareDocument(request, editForm, null);
         } else {
             // TODO: Handle affectChildren
             String serializedReference = request.getParameter("docReference");
