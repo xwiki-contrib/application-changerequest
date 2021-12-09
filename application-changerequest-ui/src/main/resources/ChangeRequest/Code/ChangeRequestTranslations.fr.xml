@@ -130,6 +130,10 @@ changerequest.sheet.draft.button.title=Basculer cette demande de modification en
 changerequest.sheet.draft.button=Basculer en brouillon
 changerequest.sheet.review.button.title=Réviser la demande de modification actuelle
 changerequest.sheet.review.button=Réviser
+changerequest.sheet.diff.conflictLabel=Conflits
+changerequest.sheet.diff.conflictLabel.title=Ces modifications sont en conflit avec la nouvelle version du document. Vous devez résoudre ce conflit avant de fusionner.
+changerequest.sheet.message.outdated=périmé
+changerequest.sheet.message.outdated.title=Ce message est périmé : le diff n'est pas à jour.
 
 ## changerequest.sheet.status.draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_draft=Brouillon
