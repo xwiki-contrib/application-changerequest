@@ -48,6 +48,7 @@ import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityRe
 @Singleton
 public class ChangeRequestDiscussionFactory
 {
+    static final String CR_ID_REF_ID_SEPARATOR = "__CRREF__";
     @Inject
     private ChangeRequestDiscussionReferenceUtils discussionReferenceUtils;
 
@@ -62,7 +63,8 @@ public class ChangeRequestDiscussionFactory
     {
         String entityReference;
         if (!StringUtils.isEmpty(reference.getReference())) {
-            entityReference = String.format("%s_%s", reference.getChangeRequestId(), reference.getReference());
+            entityReference = String.format("%s%s%s",
+                reference.getChangeRequestId(), CR_ID_REF_ID_SEPARATOR, reference.getReference());
         } else {
             entityReference = reference.getChangeRequestId();
         }

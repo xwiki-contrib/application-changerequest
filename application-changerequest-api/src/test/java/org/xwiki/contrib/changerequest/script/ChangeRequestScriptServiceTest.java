@@ -20,8 +20,6 @@
 package org.xwiki.contrib.changerequest.script;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,13 +32,11 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.diff.Chunk;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
@@ -62,10 +58,8 @@ import org.xwiki.user.UserReferenceResolver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -97,9 +91,6 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private DocumentReferenceResolver<ChangeRequest> documentReferenceResolver;
-
-    @MockComponent
-    private ReviewStorageManager reviewStorageManager;
 
     @MockComponent
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
@@ -326,102 +317,11 @@ class ChangeRequestScriptServiceTest
     }
 
     @Test
-    void isAuthorizedToReview() throws ChangeRequestException
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest)).thenReturn(true);
-        assertTrue(this.scriptService.isAuthorizedToReview(changeRequest));
-        verify(this.changeRequestManager).isAuthorizedToReview(userReference, changeRequest);
-    }
-
-    @Test
-    void addReview() throws ChangeRequestException
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest)).thenReturn(true);
-        String comment = "Some review.";
-        ChangeRequestReview review = new ChangeRequestReview(changeRequest, false, userReference);
-        review.setComment(comment);
-        doAnswer(invocationOnMock -> {
-            ChangeRequestReview review1 = invocationOnMock.getArgument(0);
-            review.setReviewDate(review1.getReviewDate());
-            return null;
-        }).when(this.reviewStorageManager).save(any());
-        assertTrue(this.scriptService.addReview(changeRequest, false, comment));
-        verify(this.reviewStorageManager).save(review);
-    }
-
-    @Test
     void getMergeApprovalStrategy() throws ChangeRequestException
     {
         MergeApprovalStrategy mergeApprovalStrategy = mock(MergeApprovalStrategy.class);
         when(this.changeRequestManager.getMergeApprovalStrategy()).thenReturn(mergeApprovalStrategy);
         assertEquals(mergeApprovalStrategy, this.scriptService.getMergeApprovalStrategy());
-    }
-
-    @Test
-    void getReview()
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        String reviewId = "some id";
-        when(changeRequest.getReviews()).thenReturn(Collections.emptyList());
-        assertEquals(Optional.empty(), this.scriptService.getReview(changeRequest, reviewId));
-
-        when(changeRequest.getReviews()).thenReturn(Arrays.asList(
-            mock(ChangeRequestReview.class),
-            mock(ChangeRequestReview.class),
-            mock(ChangeRequestReview.class)
-        ));
-        assertEquals(Optional.empty(), this.scriptService.getReview(changeRequest, reviewId));
-
-        ChangeRequestReview review = mock(ChangeRequestReview.class);
-        when(changeRequest.getReviews()).thenReturn(Arrays.asList(
-            mock(ChangeRequestReview.class),
-            mock(ChangeRequestReview.class),
-            review,
-            mock(ChangeRequestReview.class)
-        ));
-        when(review.getId()).thenReturn(reviewId);
-        assertEquals(Optional.of(review), this.scriptService.getReview(changeRequest, reviewId));
-    }
-
-    @Test
-    void canEditReview()
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequestReview review = mock(ChangeRequestReview.class);
-        when(review.getAuthor()).thenReturn(mock(UserReference.class));
-        assertFalse(this.scriptService.canEditReview(review));
-
-        when(review.getAuthor()).thenReturn(userReference);
-        assertTrue(this.scriptService.canEditReview(review));
-    }
-
-    @Test
-    void setReviewValidity() throws ChangeRequestException
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequestReview review = mock(ChangeRequestReview.class);
-        UserReference anotherUser = mock(UserReference.class);
-        when(review.getAuthor()).thenReturn(anotherUser);
-        assertFalse(this.scriptService.setReviewValidity(review, true));
-        assertFalse(this.scriptService.setReviewValidity(review, false));
-        verify(review, never()).setValid(true);
-        verify(review, never()).setValid(false);
-        verify(review, never()).setSaved(false);
-        verify(this.reviewStorageManager, never()).save(review);
-
-        when(review.getAuthor()).thenReturn(userReference);
-        assertTrue(this.scriptService.setReviewValidity(review, true));
-        verify(review).setValid(true);
-        verify(review).setSaved(false);
-        verify(this.reviewStorageManager).save(review);
     }
 
     @Test

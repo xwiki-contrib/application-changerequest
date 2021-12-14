@@ -37,9 +37,12 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestComme
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.Discussion;
+import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.properties.ConverterManager;
@@ -153,6 +156,59 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
     {
         ChangeRequestCommentReference reference = new ChangeRequestCommentReference(changeRequestId);
         return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
+    }
+
+    /**
+     * Create or get a discussion for a specific review of a change request.
+     *
+     * @see ChangeRequestReviewReference
+     * @param changeRequestId the id of the change request for which to create the discussion
+     * @param reviewId the id of the change request for which to create the discussion
+     * @return the reference of the attached discussion
+     * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
+     * @since 0.8
+     */
+    public DiscussionReference createChangeRequestReviewDiscussion(String changeRequestId, String reviewId)
+        throws ChangeRequestDiscussionException
+    {
+        ChangeRequestReviewReference reference = new ChangeRequestReviewReference(reviewId, changeRequestId);
+        return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
+    }
+
+    /**
+     * Create a new discussion for all reviews of a change request.
+     *
+     * @see ChangeRequestReviewsReference
+     * @param changeRequestId the id of the change request for which to create the discussion
+     * @return the reference of the attached discussion
+     * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
+     * @since 0.8
+     */
+    public DiscussionReference createChangeRequestReviewsDiscussion(String changeRequestId)
+        throws ChangeRequestDiscussionException
+    {
+        ChangeRequestReviewsReference reference = new ChangeRequestReviewsReference(changeRequestId);
+        return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
+    }
+
+    /**
+     * Get or create a discussion context for a specific review.
+     * Note that this method returns a {@link DiscussionContextReference} and not {@link DiscussionReference} because
+     * discussions for reviews are created globally for all reviews with
+     * {@link #createChangeRequestReviewsDiscussion(String)} and then attached to the proper context with this method.
+     *
+     * @param changeRequestId the id of the change request for which to create the discussion context
+     * @param reviewId the id of the change request for which to create the discussion context
+     * @return a reference to the {@link org.xwiki.contrib.discussions.domain.DiscussionContext} to attach an existing
+     *         discussion.
+     * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
+     * @since 0.8
+     */
+    public DiscussionContextReference createChangeRequestReviewDiscussionContext(String changeRequestId,
+        String reviewId) throws ChangeRequestDiscussionException
+    {
+        ChangeRequestReviewReference reference = new ChangeRequestReviewReference(reviewId, changeRequestId);
+        return this.changeRequestDiscussionService.getOrCreateDiscussionContextFor(reference).getReference();
     }
 
     private List<ChangeRequestDiscussion> getChangeRequestDiscussions(List<Discussion> discussions)

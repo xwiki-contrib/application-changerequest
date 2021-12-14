@@ -90,8 +90,6 @@ class ChangeRequestCreationIT
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.setChangeRequestTitle("CR1");
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
-
-        //assertEquals("Some changes in the test page", changeRequestPage.getDescription());
         assertEquals("Ready for review", changeRequestPage.getStatusLabel());
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();

@@ -214,6 +214,48 @@
                   <parameterIndex>4</parameterIndex>
                   <justification>Unstable API: Refactoring of FileDiff and LineDiff references to supports outdated comments and xobjects comments.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.lang.String org.xwiki.contrib.changerequest.ChangeRequestReview::getComment()</old>
+                  <justification>Unstable API: review comments are now handled by discussions.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.ChangeRequestReview org.xwiki.contrib.changerequest.ChangeRequestReview::setComment(java.lang.String)</old>
+                  <justification>Unstable API: review comments are now handled by discussions.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::addReview(org.xwiki.contrib.changerequest.ChangeRequest, boolean, java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Unstable API: review comments are now handled by discussions.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::canEditReview(org.xwiki.contrib.changerequest.ChangeRequestReview)</old>
+                  <justification>Unstable API: a script service dedicated to review actions has been created.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.util.Optional&lt;org.xwiki.contrib.changerequest.ChangeRequestReview&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::getReview(org.xwiki.contrib.changerequest.ChangeRequest, java.lang.String)</old>
+                  <justification>Unstable API: a script service dedicated to review actions has been created.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::isAuthorizedToReview(org.xwiki.contrib.changerequest.ChangeRequest) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Unstable API: a script service dedicated to review actions has been created.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::setReviewValidity(org.xwiki.contrib.changerequest.ChangeRequestReview, boolean) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Unstable API: a script service dedicated to review actions has been created.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

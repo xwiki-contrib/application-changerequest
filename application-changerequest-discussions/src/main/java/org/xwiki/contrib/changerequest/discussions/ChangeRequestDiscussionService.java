@@ -25,6 +25,7 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.discussions.domain.Discussion;
+import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -92,5 +93,19 @@ public interface ChangeRequestDiscussionService
     default void moveDiscussions(ChangeRequest originalChangeRequest, List<ChangeRequest> splittedChangeRequest) throws
         ChangeRequestDiscussionException
     {
+    }
+
+    /**
+     * Allow to get or create a discussion context based on the given reference.
+     *
+     * @param reference the reference for which to create the discussion context
+     * @param <T> the concrete type of the reference
+     * @return the discussion context created or retrieved
+     * @throws ChangeRequestDiscussionException in case of problem to create or retrieve one of the element
+     */
+    default <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContext
+        getOrCreateDiscussionContextFor(T reference) throws ChangeRequestDiscussionException
+    {
+        return null;
     }
 }

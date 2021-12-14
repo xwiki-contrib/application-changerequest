@@ -66,7 +66,8 @@ public class ChangeRequestDiscussionReferenceUtils
     private static final String REFERENCE_ID_GROUP = "referenceId";
 
     private static final Pattern ENTITY_REFERENCE_REFERENCE_PATTERN =
-        Pattern.compile(String.format("^(?<%s>[\\w-]+)_(?<%s>.+)$", CHANGE_REQUEST_ID_GROUP, REFERENCE_ID_GROUP));
+        Pattern.compile(String.format("^(?<%s>[\\w-]+)(%s)(?<%s>.+)$",
+            CHANGE_REQUEST_ID_GROUP, ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR, REFERENCE_ID_GROUP));
 
     @Inject
     private ContextualLocalizationManager localizationManager;

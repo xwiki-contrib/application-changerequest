@@ -52,7 +52,6 @@ public class ReviewXClassInitializer implements MandatoryDocumentInitializer
     static final String AUTHOR_PROPERTY = "author";
     static final String APPROVED_PROPERTY = "approved";
     static final String DATE_PROPERTY = "reviewDate";
-    static final String COMMENT_PROPERTY = "comment";
     static final String VALID_PROPERTY = "valid";
 
     @Inject
@@ -74,7 +73,6 @@ public class ReviewXClassInitializer implements MandatoryDocumentInitializer
             xClass.addBooleanField(APPROVED_PROPERTY, APPROVED_PROPERTY);
             xClass.addBooleanField(VALID_PROPERTY, VALID_PROPERTY);
             xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
-            xClass.addTextAreaField(COMMENT_PROPERTY, COMMENT_PROPERTY, 40, 5);
             xClass.addDateField(DATE_PROPERTY, DATE_PROPERTY);
 
             document.setHidden(true);

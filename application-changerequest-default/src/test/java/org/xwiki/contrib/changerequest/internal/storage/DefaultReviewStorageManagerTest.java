@@ -111,7 +111,6 @@ class DefaultReviewStorageManagerTest
         when(review.isValid()).thenReturn(true);
         when(review.getReviewDate()).thenReturn(new Date(34));
         when(review.getAuthor()).thenReturn(userReference);
-        when(review.getComment()).thenReturn("Some thing");
 
         DocumentReference authorReference = mock(DocumentReference.class);
         when(this.userReferenceConverter.convert(userReference)).thenReturn(authorReference);
@@ -123,7 +122,6 @@ class DefaultReviewStorageManagerTest
         verify(baseObject).set(ReviewXClassInitializer.VALID_PROPERTY, 1, this.context);
         verify(baseObject).set(ReviewXClassInitializer.AUTHOR_PROPERTY, authorReference, this.context);
         verify(baseObject).set(ReviewXClassInitializer.DATE_PROPERTY, new Date(34), this.context);
-        verify(baseObject).set(ReviewXClassInitializer.COMMENT_PROPERTY, "Some thing", this.context);
         verify(xWiki).saveDocument(xWikiDocument, "Add new review", this.context);
         verify(xWikiDocument).createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context);
 
@@ -157,14 +155,12 @@ class DefaultReviewStorageManagerTest
 
         when(obj1.getStringValue(ReviewXClassInitializer.APPROVED_PROPERTY)).thenReturn("0");
         when(obj1.getStringValue(ReviewXClassInitializer.AUTHOR_PROPERTY)).thenReturn("author1");
-        when(obj1.getLargeStringValue(ReviewXClassInitializer.COMMENT_PROPERTY)).thenReturn("Some comment");
         when(obj1.getDateValue(ReviewXClassInitializer.DATE_PROPERTY)).thenReturn(new Date(45));
         when(obj1.getStringValue(ReviewXClassInitializer.VALID_PROPERTY)).thenReturn("1");
         when(obj1.getNumber()).thenReturn(13);
 
         when(obj2.getStringValue(ReviewXClassInitializer.APPROVED_PROPERTY)).thenReturn("1");
         when(obj2.getStringValue(ReviewXClassInitializer.AUTHOR_PROPERTY)).thenReturn("author2");
-        when(obj2.getLargeStringValue(ReviewXClassInitializer.COMMENT_PROPERTY)).thenReturn("Some other comment");
         when(obj2.getDateValue(ReviewXClassInitializer.DATE_PROPERTY)).thenReturn(new Date(16));
         when(obj2.getStringValue(ReviewXClassInitializer.VALID_PROPERTY)).thenReturn("0");
         when(obj2.getNumber()).thenReturn(48);
@@ -176,14 +172,12 @@ class DefaultReviewStorageManagerTest
 
         ChangeRequestReview review1 = new ChangeRequestReview(changeRequest, false, author1)
             .setReviewDate(new Date(45))
-            .setComment("Some comment")
             .setSaved(true)
             .setValid(true)
             .setId("xobject_13");
 
         ChangeRequestReview review2 = new ChangeRequestReview(changeRequest, true, author2)
             .setReviewDate(new Date(16))
-            .setComment("Some other comment")
             .setSaved(true)
             .setValid(false)
             .setId("xobject_48");

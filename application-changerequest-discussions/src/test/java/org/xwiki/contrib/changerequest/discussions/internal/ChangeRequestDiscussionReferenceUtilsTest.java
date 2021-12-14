@@ -24,6 +24,7 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionServic
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineDiffReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
@@ -53,12 +54,14 @@ class ChangeRequestDiscussionReferenceUtilsTest
         DiscussionContext crContext = mock(DiscussionContext.class);
         DiscussionContext fileDiffContext = mock(DiscussionContext.class);
         DiscussionContext lineDiffContext = mock(DiscussionContext.class);
+        DiscussionContext reviewContext = mock(DiscussionContext.class);
 
         DiscussionContextReference contextReference = mock(DiscussionContextReference.class);
         when(contextReference.getApplicationHint()).thenReturn(ChangeRequestDiscussionService.APPLICATION_HINT);
         when(crContext.getReference()).thenReturn(contextReference);
         when(fileDiffContext.getReference()).thenReturn(contextReference);
         when(lineDiffContext.getReference()).thenReturn(contextReference);
+        when(reviewContext.getReference()).thenReturn(contextReference);
 
         DiscussionContextEntityReference contextEntityReference1 = mock(DiscussionContextEntityReference.class);
         when(contextEntityReference1.getType()).thenReturn("changerequest-change_request");
@@ -68,7 +71,8 @@ class ChangeRequestDiscussionReferenceUtilsTest
         DiscussionContextEntityReference contextEntityReference2 = mock(DiscussionContextEntityReference.class);
         when(contextEntityReference2.getType()).thenReturn("changerequest-file_diff");
         String reference = "xwiki:Main.WebHome/filechange-1.1_2.3_484848";
-        when(contextEntityReference2.getReference()).thenReturn("CR1_" + reference);
+        when(contextEntityReference2.getReference())
+            .thenReturn("CR1" + ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR + reference);
         FileDiffLocation fileDiffLocation = FileDiffLocation.parse(reference);
         ChangeRequestFileDiffReference fileDiffReference =
             new ChangeRequestFileDiffReference("CR1", fileDiffLocation);
@@ -78,13 +82,23 @@ class ChangeRequestDiscussionReferenceUtilsTest
         reference = "xwiki:Main.WebHome/filechange-1.1_2.3_484848/XOBJECT/"
             + "xwiki:Main.WebHome^XWiki.StyleSheetExtension[0]/code/ADDED/38";
         when(contextEntityReference3.getReference())
-            .thenReturn("CR1_" + reference);
+            .thenReturn("CR1" + ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR + reference);
         LineDiffLocation lineDiffLocation = LineDiffLocation.parse(reference);
         ChangeRequestLineDiffReference lineDiffReference = new ChangeRequestLineDiffReference("CR1", lineDiffLocation);
+
+        DiscussionContextEntityReference contextEntityReference4 = mock(DiscussionContextEntityReference.class);
+        when(contextEntityReference4.getType()).thenReturn("changerequest-review");
+        reference = "another-Foo-bf9c14f5-15a6-4f85-a82e-75ab58f1d1dc" +
+            ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR + "xobject_0";
+        when(contextEntityReference4.getReference())
+            .thenReturn(reference);
+        ChangeRequestReviewReference reviewReference =
+            new ChangeRequestReviewReference("xobject_0", "another-Foo-bf9c14f5-15a6-4f85-a82e-75ab58f1d1dc");
 
         when(crContext.getEntityReference()).thenReturn(contextEntityReference1);
         when(fileDiffContext.getEntityReference()).thenReturn(contextEntityReference2);
         when(lineDiffContext.getEntityReference()).thenReturn(contextEntityReference3);
+        when(reviewContext.getEntityReference()).thenReturn(contextEntityReference4);
 
         assertEquals(changeRequestReference, this.referenceUtils.computeReferenceFromContext(crContext, null));
         assertEquals(lineDiffReference, this.referenceUtils.computeReferenceFromContext(crContext, lineDiffReference));
@@ -101,5 +115,6 @@ class ChangeRequestDiscussionReferenceUtilsTest
             this.referenceUtils.computeReferenceFromContext(fileDiffContext, changeRequestReference));
         assertEquals(fileDiffReference,
             this.referenceUtils.computeReferenceFromContext(fileDiffContext, null));
+        assertEquals(reviewReference, this.referenceUtils.computeReferenceFromContext(reviewContext, null));
     }
 }

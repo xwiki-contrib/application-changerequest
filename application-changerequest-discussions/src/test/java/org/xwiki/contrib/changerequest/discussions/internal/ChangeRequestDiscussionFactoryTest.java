@@ -30,6 +30,8 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineD
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.MessageService;
@@ -181,10 +183,11 @@ class ChangeRequestDiscussionFactoryTest
             changeRequestId);
 
         ChangeRequestReviewReference changeRequestReference =
-            new ChangeRequestReviewReference("review424", changeRequestId);
+            new ChangeRequestReviewReference("review_424", changeRequestId);
 
         DiscussionContextEntityReference contextEntityReference =
-            new DiscussionContextEntityReference("changerequest-review", changeRequestId + "_review424");
+            new DiscussionContextEntityReference("changerequest-review",
+                changeRequestId + ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR + "review_424");
 
         when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
         when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
@@ -202,72 +205,80 @@ class ChangeRequestDiscussionFactoryTest
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
-//    @Test
-//    void getOrCreateContextFor_withChangeRequestFileDiffReference() throws ChangeRequestDiscussionException
-//    {
-//        String changeRequestId = "crId42";
-//        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
-//
-//        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
-//        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
-//            changeRequestId);
-//
-//        ChangeRequestFileDiffReference changeRequestReference =
-//            new ChangeRequestFileDiffReference("filechange4442", changeRequestId);
-//
-//        DiscussionContextEntityReference contextEntityReference =
-//            new DiscussionContextEntityReference("changerequest-file_diff", changeRequestId + "_filechange4442");
-//
-//        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
-//        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
-//            .thenReturn("desc42");
-//
-//        DiscussionContext expectedContext = mock(DiscussionContext.class);
-//        when(this.discussionContextService.getOrCreate(
-//            ChangeRequestDiscussionService.APPLICATION_HINT,
-//            "title42",
-//            "desc42",
-//            contextEntityReference,
-//            parameters
-//        )).thenReturn(Optional.of(expectedContext));
-//
-//        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
-//    }
+    @Test
+    void getOrCreateContextFor_withChangeRequestFileDiffReference() throws ChangeRequestDiscussionException
+    {
+        String changeRequestId = "crId42";
+        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-//    @Test
-//    void getOrCreateContextFor_withChangeRequestLineDiffReference() throws ChangeRequestDiscussionException
-//    {
-//        String changeRequestId = "crId42";
-//        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
-//
-//        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
-//        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
-//            changeRequestId);
-//
-//        ChangeRequestLineDiffReference changeRequestReference = new ChangeRequestLineDiffReference(
-//            "filechange4442",
-//            changeRequestId,
-//            MergeDocumentResult.DocumentPart.CONTENT,
-//            228,
-//            ChangeRequestLineDiffReference.LineChange.ADDED);
-//
-//        DiscussionContextEntityReference contextEntityReference =
-//            new DiscussionContextEntityReference("changerequest-line_diff",
-//                changeRequestId + "_filechange4442_CONTENT_228_ADDED");
-//
-//        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
-//        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
-//            .thenReturn("desc42");
-//
-//        DiscussionContext expectedContext = mock(DiscussionContext.class);
-//        when(this.discussionContextService.getOrCreate(
-//            ChangeRequestDiscussionService.APPLICATION_HINT,
-//            "title42",
-//            "desc42",
-//            contextEntityReference,
-//            parameters
-//        )).thenReturn(Optional.of(expectedContext));
-//
-//        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
-//    }
+        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
+        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
+            changeRequestId);
+
+        ChangeRequestFileDiffReference changeRequestReference =
+            new ChangeRequestFileDiffReference(changeRequestId, new FileDiffLocation("diff4858", "xwiki:Main.WebHome"));
+
+        DiscussionContextEntityReference contextEntityReference =
+            new DiscussionContextEntityReference("changerequest-file_diff",
+                changeRequestId +
+                ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR + "xwiki:Main.WebHome/diff4858");
+
+        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
+        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
+            .thenReturn("desc42");
+
+        DiscussionContext expectedContext = mock(DiscussionContext.class);
+        when(this.discussionContextService.getOrCreate(
+            ChangeRequestDiscussionService.APPLICATION_HINT,
+            "title42",
+            "desc42",
+            contextEntityReference,
+            parameters
+        )).thenReturn(Optional.of(expectedContext));
+
+        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
+    }
+
+    @Test
+    void getOrCreateContextFor_withChangeRequestLineDiffReference() throws ChangeRequestDiscussionException
+    {
+        String changeRequestId = "crId42";
+        String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
+
+        DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
+        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
+            changeRequestId);
+
+        FileDiffLocation fileDiffLocation = new FileDiffLocation("diff4858", "xwiki:Main.WebHome");
+        LineDiffLocation lineDiffLocation = new LineDiffLocation(fileDiffLocation,
+            LineDiffLocation.DiffDocumentPart.XOBJECT,
+            "xwiki:Main.WebHome^XWiki.StyleSheetExtension[0]",
+            "block234",
+            48,
+            LineDiffLocation.LineChange.REMOVED);
+        ChangeRequestLineDiffReference changeRequestReference = new ChangeRequestLineDiffReference(
+            changeRequestId,
+            lineDiffLocation);
+
+        DiscussionContextEntityReference contextEntityReference =
+            new DiscussionContextEntityReference("changerequest-line_diff",
+                changeRequestId + ChangeRequestDiscussionFactory.CR_ID_REF_ID_SEPARATOR +
+                "xwiki:Main.WebHome/diff4858/XOBJECT/xwiki:Main.WebHome^XWiki.StyleSheetExtension[0]/"
+                    + "block234/REMOVED/48");
+
+        when(this.discussionReferenceUtils.getTitleTranslation(prefix, changeRequestReference)).thenReturn("title42");
+        when(this.discussionReferenceUtils.getDescriptionTranslation(prefix, changeRequestReference))
+            .thenReturn("desc42");
+
+        DiscussionContext expectedContext = mock(DiscussionContext.class);
+        when(this.discussionContextService.getOrCreate(
+            ChangeRequestDiscussionService.APPLICATION_HINT,
+            "title42",
+            "desc42",
+            contextEntityReference,
+            parameters
+        )).thenReturn(Optional.of(expectedContext));
+
+        assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
+    }
 }

@@ -32,7 +32,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
@@ -41,20 +40,16 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
-import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
 import org.xwiki.diff.internal.DefaultConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
@@ -95,16 +90,7 @@ public class ChangeRequestScriptService implements ScriptService
     private DocumentReferenceResolver<ChangeRequest> documentReferenceResolver;
 
     @Inject
-    private ReviewStorageManager reviewStorageManager;
-
-    @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
-
-    @Inject
-    private ObservationManager observationManager;
-
-    @Inject
-    private Logger logger;
 
     @Inject
     private ScriptServiceManager scriptServiceManager;
@@ -393,34 +379,6 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
-     * Allow to add a review to the given change request.
-     *
-     * @param changeRequest the change request for which to add a review.
-     * @param approved {@code true} if the review is an approval, {@code false} if it requests changes.
-     * @param comment an optional comment with the review.
-     * @return {@code true} if the review has been properly stored.
-     * @since 0.4
-     */
-    public boolean addReview(ChangeRequest changeRequest, boolean approved, String comment)
-        throws ChangeRequestException
-    {
-        boolean result = false;
-        UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        if (this.isAuthorizedToReview(changeRequest)) {
-            ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, userReference);
-            review.setComment(comment);
-            this.reviewStorageManager.save(review);
-            changeRequest.addReview(review);
-            this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
-            this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
-            result = true;
-        } else {
-            logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
-        }
-        return result;
-    }
-
-    /**
      * Retrieve the {@link MergeApprovalStrategy} to be used.
      *
      * @return an {@link Optional#empty()} in case of problem to get the strategy, else an optional containing the
@@ -430,65 +388,6 @@ public class ChangeRequestScriptService implements ScriptService
     public MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
     {
         return this.changeRequestManager.getMergeApprovalStrategy();
-    }
-
-    /**
-     * Check if the current user is authorized to review the given change request.
-     *
-     * @param changeRequest the change request about to be reviewed.
-     * @return {@code true} if the change request can be reviewed by current user.
-     * @since 0.4
-     */
-    public boolean isAuthorizedToReview(ChangeRequest changeRequest) throws ChangeRequestException
-    {
-        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
-    }
-
-    /**
-     * Retrieve a review based on its identifier.
-     *
-     * @param changeRequest the change request for which to retrieve a review.
-     * @param reviewId the id of the review to retrieve.
-     * @return an {@link Optional#empty()} if the review cannot be found, else an optional containing the requested
-     *          {@link ChangeRequestReview}.
-     * @since 0.4
-     */
-    public Optional<ChangeRequestReview> getReview(ChangeRequest changeRequest, String reviewId)
-    {
-        return changeRequest.getReviews().stream().filter(review -> reviewId.equals(review.getId())).findFirst();
-    }
-
-    /**
-     * Change the validity of the review to mark it as invalid, or on contrary to make it valid again.
-     *
-     * @param review the review for which to change the validity status.
-     * @param isValid the new validity status to set.
-     * @return {@code true} if the review has been properly saved with the new status.
-     * @since 0.4
-     */
-    public boolean setReviewValidity(ChangeRequestReview review, boolean isValid) throws ChangeRequestException
-    {
-        if (canEditReview(review)) {
-            review.setValid(isValid);
-            review.setSaved(false);
-            this.reviewStorageManager.save(review);
-            this.changeRequestManager.computeReadyForMergingStatus(review.getChangeRequest());
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check if the current user can edit the given review.
-     * @param review the review for which to check if it can be edited.
-     * @return {@code true} if the review is authored by the current user.
-     * @since 0.4
-     */
-    public boolean canEditReview(ChangeRequestReview review)
-    {
-        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return review.getAuthor().equals(currentUserReference);
     }
 
     /**

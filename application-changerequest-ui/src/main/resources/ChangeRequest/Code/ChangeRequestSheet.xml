@@ -86,7 +86,7 @@
       #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
     #elseif ($event.type == "changerequest.review.added")
       #set ($reviewId = $event.parameters.get('changerequest.review.id'))
-      #set ($reviewOpt = $services.changerequest.getReview($changeRequest, $reviewId))
+      #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
       #if ($reviewOpt.isPresent())
         #if ($reviewOpt.get().approved)
           #set ($localizationKey = "${localizationKey}.approval")
@@ -189,7 +189,6 @@
       $services.localization.render('changerequest.sheet.tab.reviews.title')
       &lt;/a&gt;
     &lt;/li&gt;
-    
     #if ($isNotMerged)
     &lt;li role="presentation"&gt;&lt;a href="#checks" aria-controls="checks" role="tab" data-toggle="tab"&gt;
       #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
@@ -203,7 +202,6 @@
     &lt;/li&gt;
     #end
   &lt;/ul&gt;
-
   &lt;!-- Tab panes --&gt;
   &lt;div class="tab-content change-request-sheet"&gt;
     &lt;div role="tabpanel" class="tab-pane active" id="home"&gt;
@@ -360,8 +358,8 @@
         #set ($reviewPanelClass = "panel-default")
         #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
       #end
-      #set ($canEditReview = $services.changerequest.canEditReview($review))
-      &lt;div class="panel $reviewPanelClass"&gt;
+      #set ($canEditReview = $services.changerequest.review.canEditReview($review))
+      &lt;div class="panel $reviewPanelClass review" data-reviewid="$review.id"&gt;
         &lt;div class="panel-heading"&gt;
            #if ($canEditReview)
             #if ($review.valid)
@@ -380,11 +378,6 @@
           &lt;span class="review-date"&gt;$datetool.format($review.reviewDate)&lt;/span&gt;
           &lt;h3 class="panel-title"&gt;$reviewPanelTitle&lt;/h3&gt;
         &lt;/div&gt;
-        #if ("$!review.comment" != "")
-        &lt;div class="panel-body"&gt;
-          $review.comment
-        &lt;/div&gt;
-        #end
       &lt;/div&gt;
     #end
     &lt;/div&gt;
@@ -842,6 +835,7 @@ require(['jquery', 'bootstrap'], function ($) {
     
     self.requestModal = function(previousVersion, nextVersion) {
       var warningConflictAction = $('#changeRequestConflictModal input[name=warningConflictAction]:checked').val();
+      
       if (previousVersion &amp;&amp; nextVersion) {
         var original = previousVersion;
         var revised = nextVersion;
@@ -1198,6 +1192,33 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       });
     };
     
+    self.postComment = function (reviewId) {
+      var params = {
+        'form_token': xm.form_token,
+        'action': 'getDiscussionPostUrl',
+        'changerequest': self.changeRequestId,
+        'reviewid': reviewId
+      };
+      
+      $.post(self.postUrl, params).done(function (data) {
+        $('#reviewModal input[name=discussionReference]').val(data.discussionReference);
+        // We need to call beforeSave first to put the data in the actual content field.
+        $(document).trigger('xwiki:actions:beforeSave');
+        var commentData =  $('#reviewModal form[name=discussion-review]').serialize();
+        $(document).trigger('xwiki:actions:cancel');
+        $.post(data.discussionPostUrl, commentData).done(function (data) {
+          self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
+          window.location.reload();
+        }).fail(function (data) {
+          self.notification.replace(new XWiki.widgets.Notification('Request error while posting comment associated to the review.','error'));
+          console.error(data);
+        })
+      }).fail(function (data) {
+        self.notification.replace(new XWiki.widgets.Notification('Request error while preparing posting comment associated to the review.','error'));
+        console.error(data);
+      })
+    };
+    
     self.submitAction = function () {
       var selectedValue = $('#reviewModal input[name=reviewChoice]:checked');
       if (selectedValue.length &gt; 0) {
@@ -1206,14 +1227,12 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           'form_token': xm.form_token,
           'action': 'create',
           'changerequest': self.changeRequestId,
-          'approved': isApproved,
-          'comment': $('#reviewModal #reviewComment').val()
+          'approved': isApproved
         };
         self.notification = new XWiki.widgets.Notification('Posting review...','inprogress');
         $.post(self.postUrl, params).done(function (data) {
           if (data.success) {
-            self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
-            window.location.reload();
+            self.postComment(data.reviewId);
           } else {
             self.notification.replace(new XWiki.widgets.Notification('Error while posting review.','error'));
           }
@@ -1221,7 +1240,6 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           self.notification.replace(new XWiki.widgets.Notification('Request error while posting review.','error'));
           console.error(data);
         });
-        $('#reviewModal').modal('hide');
       }
     };
     
@@ -1963,7 +1981,18 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         placeLineDiffDiscussion(discussion);
       } else if (entityType === 'CHANGE_REQUEST_COMMENT') {
         placeCommentDiscussion(discussion);
+      } else if (entityType == 'REVIEW') {
+        placeReviewDiscussion(discussion);
       }
+    }
+  };
+  
+  var placeReviewDiscussion = function (discussion) {
+    var reviewId = discussion.attr('data-reference');
+    var reviewElement = $('.review[data-reviewid=' + reviewId +']');
+    if (reviewElement) {
+      reviewElement.append(discussion);
+      discussion.wrap('&lt;div class="panel-body"&gt;&lt;/div&gt;');
     }
   };
   
@@ -3170,7 +3199,7 @@ tr.discussion-line:hover {
 #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
 #set ($status = $changeRequest.status)
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
-#set ($canBeReviewed = $services.changerequest.isAuthorizedToReview($changeRequest))
+#set ($canBeReviewed = $services.changerequest.review.isAuthorizedToReview($changeRequest))
 #set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
 #if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}
@@ -3204,7 +3233,7 @@ tr.discussion-line:hover {
       $services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.review.button')
     &lt;/button&gt;
   #else
-    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary" #if(!$canBeMerged)disabled="disabled"#end&gt;
+    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary" #if(!$isAuthorizedToMerge)disabled="disabled"#end&gt;
       $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
     &lt;/a&gt;
   #end
@@ -3214,6 +3243,13 @@ tr.discussion-line:hover {
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
+    #if ($canBeMerged &amp;&amp; $canBeReviewed)
+      &lt;li class=""&gt;
+      &lt;a href="#" id="addReview" title="$services.localization.render('changerequest.sheet.review.button.title')" rel="nofollow"&gt;
+        $services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.review.button')
+      &lt;/a&gt;
+    &lt;/li&gt;
+    #end
     &lt;li class=""&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')

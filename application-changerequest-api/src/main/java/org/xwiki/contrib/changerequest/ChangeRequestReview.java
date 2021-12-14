@@ -39,7 +39,6 @@ public class ChangeRequestReview
     private final ChangeRequest changeRequest;
     private final boolean approved;
     private final UserReference author;
-    private String comment;
     private Date reviewDate;
     private boolean isValid;
     private boolean isSaved;
@@ -86,31 +85,11 @@ public class ChangeRequestReview
     }
 
     /**
-     * @return a comment attached to the review if any.
-     */
-    public String getComment()
-    {
-        return comment;
-    }
-
-    /**
      * @return the date when the review has been performed.
      */
     public Date getReviewDate()
     {
         return reviewDate;
-    }
-
-    /**
-     * Attach a comment to the review.
-     *
-     * @param comment the comment to be attached.
-     * @return the current instance.
-     */
-    public ChangeRequestReview setComment(String comment)
-    {
-        this.comment = comment;
-        return this;
     }
 
     /**
@@ -193,7 +172,6 @@ public class ChangeRequestReview
     {
         return new ChangeRequestReview(changeRequest, this.approved, this.author)
             .setReviewDate(this.reviewDate)
-            .setComment(this.comment)
             .setValid(this.isValid)
             .setSaved(false);
     }
@@ -214,7 +192,6 @@ public class ChangeRequestReview
         return new EqualsBuilder()
             .append(approved, that.approved)
             .append(author, that.author)
-            .append(comment, that.comment)
             .append(reviewDate, that.reviewDate)
             .append(isValid, that.isValid)
             .append(id, that.id)
@@ -227,7 +204,6 @@ public class ChangeRequestReview
         return new HashCodeBuilder(17, 37)
             .append(approved)
             .append(author)
-            .append(comment)
             .append(reviewDate)
             .append(isValid)
             .append(id)
@@ -239,7 +215,6 @@ public class ChangeRequestReview
         return new ToStringBuilder(this)
             .append("approved", approved)
             .append("author", author)
-            .append("comment", comment)
             .append("reviewDate", reviewDate)
             .append("isValid", isValid)
             .append("isSaved", isSaved)

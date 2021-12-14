@@ -45,7 +45,6 @@ import com.xpn.xwiki.objects.BaseObject;
 
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.APPROVED_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.AUTHOR_PROPERTY;
-import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.COMMENT_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.DATE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.REVIEW_XCLASS;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.VALID_PROPERTY;
@@ -102,7 +101,6 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                 xObject.set(APPROVED_PROPERTY, approvedValue, context);
                 xObject.set(AUTHOR_PROPERTY, this.userReferenceConverter.convert(review.getAuthor()), context);
                 xObject.set(DATE_PROPERTY, review.getReviewDate(), context);
-                xObject.set(COMMENT_PROPERTY, review.getComment(), context);
                 int validValue = (review.isValid()) ? 1 : 0;
                 xObject.set(VALID_PROPERTY, validValue, context);
 
@@ -127,7 +125,6 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
             for (BaseObject xObject : xObjects) {
                 boolean isApproved = StringUtils.equals(xObject.getStringValue(APPROVED_PROPERTY), "1");
                 UserReference author = this.userReferenceResolver.resolve(xObject.getStringValue(AUTHOR_PROPERTY));
-                String comment = xObject.getLargeStringValue(COMMENT_PROPERTY);
                 Date reviewDate = xObject.getDateValue(DATE_PROPERTY);
                 boolean isValid = StringUtils.equals(xObject.getStringValue(VALID_PROPERTY), "1");
                 String id = String.format(ID_FORMAT, xObject.getNumber());
@@ -137,7 +134,6 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                     .setValid(isValid)
                     .setId(id)
                     .setReviewDate(reviewDate)
-                    .setComment(comment)
                     .setSaved(true);
                 changeRequest.addReview(review);
             }

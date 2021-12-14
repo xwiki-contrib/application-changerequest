@@ -244,4 +244,11 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
             this.changeRequestDiscussionFactory.copyMessages(discussion, newDiscussion, newReference);
         }
     }
+
+    @Override
+    public <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContext
+        getOrCreateDiscussionContextFor(T reference) throws ChangeRequestDiscussionException
+    {
+        return this.changeRequestDiscussionFactory.getOrCreateContextFor(reference);
+    }
 }

@@ -36,7 +36,10 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference='Discussions.Code.DisplayMessage' /}}
+
+{{include reference='ChangeRequest.Code.ChangeRequestMacros' /}}
+{{velocity}}
 #if ($xcontext.action != 'get')
   Technical page for handling reviews.
 #elseif (!$services.csrf.isTokenValid($request.get('form_token')))
@@ -50,23 +53,37 @@
   #else
     #set ($changeRequest = $changeRequestOpt.get())
     #if ("$!request.get('action')" == 'setstatus' &amp;&amp; "$!request.get('reviewid')" != '' &amp;&amp; "$!request.get('isvalid')" != '')
-      #set ($optionalReview = $services.changerequest.getReview($changeRequest, $request.get('reviewid')))
+      #set ($optionalReview = $services.changerequest.review.getReview($changeRequest, $request.get('reviewid')))
       #if (!$optionalReview.isPresent())
         #set ($discard = $response.sendError(400, "Cannot find review"))
       #else
         #set ($review = $optionalReview.get())
         #set ($isValid = ($request.get('isvalid') == '1'))
-        #set ($success = $services.changerequest.setReviewValidity($review, $isValid))
+        #set ($success = $services.changerequest.review.setReviewValidity($review, $isValid))
         #jsonResponse({
           'success': $success
         })
       #end
     #elseif ("$!request.get('action')" == 'create' &amp;&amp; "$!request.get('approved')" != '')
       #set ($isApproved = $request.get('approved') == 'true')
-      #set ($comment = "$!request.get('comment')")
-      #set ($success = $services.changerequest.addReview($changeRequest, $isApproved, $comment))
+      #set ($review = $services.changerequest.review.addReview($changeRequest, $isApproved))
+      #if ($review)
+        #jsonResponse({
+          'success': true, 
+          'reviewId': $review.id
+        })
+      #else
+        #jsonResponse({
+          'success': false
+        })
+      #end
+    #elseif ("$!request.get('action')" == "getDiscussionPostUrl" &amp;&amp; "$!request.get('reviewid')")
+      #set ($discussionReference = $services.changerequest.discussion.createChangeRequestReviewDiscussion($changeRequest.id, $request.get('reviewid')))
+      #set ($discussionReviewReferenceString = $services.discussions.serialize($discussionReference))
+      #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($discussionReviewReferenceString)")
       #jsonResponse({
-        'success': $success
+        'discussionPostUrl': $url,
+        'discussionReference': $discussionReviewReferenceString
       })
     #elseif ("$!request.get('action')" == 'create')
       {{html clean="false"}}
@@ -95,12 +112,20 @@
                     &lt;label for="requestChangeReview"&gt;Request changes&lt;/label&gt;
                   &lt;/div&gt;
                &lt;/div&gt;
-             &lt;/div&gt;
+             &lt;/div&gt;&lt;!-- end panel-group --&gt;
              &lt;div class="form-group"&gt;
                &lt;label for="reviewComment"&gt;Provide a comment&lt;/label&gt;
-               &lt;textarea class="form-control" rows="3" id="reviewComment"&gt;&lt;/textarea&gt;
-             &lt;/div&gt;
-            &lt;/div&gt;
+               &lt;form name="discussion-review"&gt;
+               &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequest.id" /&gt;
+               &lt;input type="hidden" name="async" value="1" /&gt;
+               &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
+               &lt;input type="hidden" name="discussionReference" value="" /&gt;
+               &lt;div class="comment-editor"&gt;
+                 #displayMessageContentField()
+               &lt;/div&gt;
+               &lt;/form&gt;
+             &lt;/div&gt;&lt;!-- end form-group --&gt;
+            &lt;/div&gt;&lt;!-- end panel body --&gt;
             &lt;div class="modal-footer"&gt;
               &lt;button type="button" class="btn btn-primary" id="submitReview"&gt;Save&lt;/button&gt;
               &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;Close&lt;/button&gt;
