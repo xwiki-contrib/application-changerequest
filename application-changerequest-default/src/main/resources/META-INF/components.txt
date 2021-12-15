@@ -32,3 +32,4 @@ org.xwiki.contrib.changerequest.internal.handlers.SaveChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.listeners.DocumentUpdatedListener
 org.xwiki.contrib.changerequest.internal.listeners.RightsUpdatedListener
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestRightsManager
+org.xwiki.contrib.changerequest.internal.strategies.AllApproversNoFallbackMergeApprovalStrategy

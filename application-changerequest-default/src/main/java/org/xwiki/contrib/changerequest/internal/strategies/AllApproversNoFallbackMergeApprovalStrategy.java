@@ -19,46 +19,30 @@
  */
 package org.xwiki.contrib.changerequest.internal.strategies;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
-import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 
 /**
- * This strategy checks that all explicit approvers have approved the given change request.
- * If the change request does not have an explicit list of approvers, then the strategy fallbacks on
- * {@link OnlyApprovedMergeApprovalStrategy}.
+ * Same strategy component as {@link AllApproversMergeApprovalStrategy} except that this one doesn't provide any
+ * fallback if the list of approvers is empty.
  *
  * @version $Id$
- * @since 0.5
+ * @since 0.8
  */
 @Component
+@Named(AllApproversNoFallbackMergeApprovalStrategy.NAME)
 @Singleton
-@Named(AllApproversMergeApprovalStrategy.NAME)
-public class AllApproversMergeApprovalStrategy extends AbstractAllApproversMergeApprovalStrategy
-    implements Initializable
+public class AllApproversNoFallbackMergeApprovalStrategy extends AbstractAllApproversMergeApprovalStrategy
 {
-    static final String NAME = "allapprovers";
-
-    @Inject
-    @Named(OnlyApprovedMergeApprovalStrategy.NAME)
-    private MergeApprovalStrategy onlyApprovedFallbackStrategy;
+    static final String NAME = "allApproversNoFallback";
 
     /**
      * Default constructor.
      */
-    public AllApproversMergeApprovalStrategy()
+    public AllApproversNoFallbackMergeApprovalStrategy()
     {
         super(NAME);
-    }
-
-    @Override
-    public void initialize() throws InitializationException
-    {
-        this.setFallbackStrategy(this.onlyApprovedFallbackStrategy);
     }
 }
