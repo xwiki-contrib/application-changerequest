@@ -67,7 +67,10 @@ import static org.xwiki.contrib.changerequest.internal.approvers.ApproversXClass
 @Singleton
 public class DocumentReferenceApproversManager implements ApproversManager<DocumentReference>
 {
-    static final Character SEPARATOR_CHARACTER = ',';
+    /**
+     * Separator used in approvers lists.
+     */
+    public static final Character SEPARATOR_CHARACTER = ',';
 
     @Inject
     private UserReferenceResolver<String> stringUserReferenceResolver;

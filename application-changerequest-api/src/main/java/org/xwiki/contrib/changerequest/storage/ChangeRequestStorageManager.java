@@ -57,6 +57,9 @@ public interface ChangeRequestStorageManager
 
     /**
      * Merge the given change request changes.
+     * Note that merging a change request will trigger
+     * {@link org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent} before the merging start and
+     * {@link org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent} when it's done.
      *
      * @param changeRequest the change request to merge.
      * @throws ChangeRequestException in case of errors during the merge.

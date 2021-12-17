@@ -48,11 +48,21 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Named("org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer")
 public class ApproversXClassInitializer implements MandatoryDocumentInitializer
 {
-    static final LocalDocumentReference APPROVERS_XCLASS =
+    /**
+     * Reference of approvers xclass.
+     */
+    public static final LocalDocumentReference APPROVERS_XCLASS =
         new LocalDocumentReference(Arrays.asList("ChangeRequest", "Code"), "ApproversClass");
 
-    static final String USERS_APPROVERS_PROPERTY = "usersApprovers";
-    static final String GROUPS_APPROVERS_PROPERTY = "groupsApprovers";
+    /**
+     * Name of the field containing users list.
+     */
+    public static final String USERS_APPROVERS_PROPERTY = "usersApprovers";
+
+    /**
+     * Name of the field containing groups list.
+     */
+    public static final String GROUPS_APPROVERS_PROPERTY = "groupsApprovers";
 
     @Inject
     private Provider<XWikiContext> contextProvider;

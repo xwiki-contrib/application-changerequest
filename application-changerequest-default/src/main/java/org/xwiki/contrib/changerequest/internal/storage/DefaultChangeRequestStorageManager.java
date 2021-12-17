@@ -42,6 +42,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
@@ -230,6 +232,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Override
     public void merge(ChangeRequest changeRequest) throws ChangeRequestException
     {
+        this.observationManager.notify(new ChangeRequestMergingEvent(), changeRequest.getId(), changeRequest);
         Set<DocumentReference> documentReferences = changeRequest.getFileChanges().keySet();
         for (DocumentReference documentReference : documentReferences) {
             Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
@@ -243,6 +246,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
             new ChangeRequestStatus[] {oldStatus, ChangeRequestStatus.MERGED});
         this.save(changeRequest);
+        this.observationManager.notify(new ChangeRequestMergedEvent(), changeRequest.getId(), changeRequest);
     }
 
     @Override
