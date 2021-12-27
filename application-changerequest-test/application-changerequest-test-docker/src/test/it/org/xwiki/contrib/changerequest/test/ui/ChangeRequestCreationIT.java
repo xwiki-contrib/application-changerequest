@@ -23,11 +23,15 @@ import java.util.List;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.xwiki.contrib.changerequest.test.po.ChangeRequestDescriptionEditPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.ReviewsPane;
+import org.xwiki.contrib.changerequest.test.po.checks.CheckPanelElement;
+import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
@@ -36,6 +40,7 @@ import org.xwiki.test.ui.po.diff.EntityDiff;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -92,6 +97,12 @@ class ChangeRequestCreationIT
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
         assertEquals("Ready for review", changeRequestPage.getStatusLabel());
 
+        assertTrue(changeRequestPage.hasEditDescriptionLink());
+        ChangeRequestDescriptionEditPage changeRequestDescriptionEditPage = changeRequestPage.clickEditDescription();
+        changeRequestDescriptionEditPage.setDescription("This is a new CR with some content.");
+        changeRequestPage = changeRequestDescriptionEditPage.saveDescription();
+
+        assertEquals("This is a new CR with some content.", changeRequestPage.getDescription());
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
         assertEquals(1, fileChangesPane.getFileChangesListLiveTable().getRowCount());
 
@@ -104,5 +115,21 @@ class ChangeRequestCreationIT
         assertEquals(3, content.size());
         assertEquals("-Some content<del> to the test page</del>.", content.get(1));
         assertEquals("+Some <ins>new </ins>content.", content.get(2));
+
+        ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
+        assertFalse(reviewsPane.hasListOfApprovers());
+        assertTrue(reviewsPane.getReviews().isEmpty());
+
+        ChecksPane checksPane = changeRequestPage.openChecksPane();
+
+        assertTrue(checksPane.getStatusCheck().isReady());
+        assertTrue(checksPane.getConflictCheck().isReady());
+
+        CheckPanelElement strategyCheck = checksPane.getStrategyCheck();
+        assertFalse(strategyCheck.isReady());
+        assertFalse(strategyCheck.isOpened());
+        strategyCheck.togglePanel();
+        assertEquals("The change request cannot be merged without valid approval or "
+            + "if at least one review request for changes.", strategyCheck.getBody().getText());
     }
 }

@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -31,6 +32,8 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class ChangeRequestPage extends ViewPage
 {
+    private static final String EDIT_DESCRIPTION_LINK_CLASS = "edit-description";
+
     /**
      * @return the actual label describing the status of the change request.
      */
@@ -44,7 +47,16 @@ public class ChangeRequestPage extends ViewPage
      */
     public String getDescription()
     {
-        return getDriver().findElement(By.className("cr-description")).getText();
+        return getDriver().findElement(By.className("description-content")).getText();
+    }
+
+    private WebElement openTab(String tabname)
+    {
+        WebElement tab = getDriver().findElement(By.id(tabname));
+        if (!tab.getAttribute("class").contains("active")) {
+            getDriver().findElement(By.cssSelector(String.format("a[aria-controls=%s]", tabname))).click();
+        }
+        return tab;
     }
 
     /**
@@ -54,11 +66,55 @@ public class ChangeRequestPage extends ViewPage
      */
     public FileChangesPane openFileChanges()
     {
-
-        WebElement filechanges = getDriver().findElement(By.id("filechanges"));
-        if (!filechanges.getAttribute("class").contains("active")) {
-            getDriver().findElement(By.cssSelector("a[aria-controls=filechanges]")).click();
-        }
+        WebElement filechanges = this.openTab("filechanges");
         return new FileChangesPane(filechanges);
+    }
+
+    /**
+     * Open the reviews tab and returns it.
+     *
+     * @return a {@link ReviewsPane} to list approvers and reviews.
+     */
+    public ReviewsPane openReviewsPane()
+    {
+        WebElement reviews = this.openTab("reviews");
+        return new ReviewsPane(reviews);
+    }
+
+    /**
+     * Open the checks tab and returns it.
+     *
+     * @return a {@link ChecksPane} to allow verifying the checks.
+     */
+    public ChecksPane openChecksPane()
+    {
+        WebElement checks = this.openTab("checks");
+        return new ChecksPane(checks);
+    }
+
+    private WebElement getDescriptionContainer()
+    {
+        return getDriver().findElement(By.className("cr-description"));
+    }
+
+    /**
+     * Check if there's an edit description link.
+     * @return {@code true} if there's a link to edit the description.
+     */
+    public boolean hasEditDescriptionLink()
+    {
+        return getDriver().hasElement(getDescriptionContainer(), By.className(EDIT_DESCRIPTION_LINK_CLASS));
+    }
+
+    /**
+     * Click on the edit description link.
+     * @return the edit page resulting to the click of the link.
+     */
+    public ChangeRequestDescriptionEditPage clickEditDescription()
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        getDescriptionContainer().findElement(By.className(EDIT_DESCRIPTION_LINK_CLASS)).click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestDescriptionEditPage();
     }
 }

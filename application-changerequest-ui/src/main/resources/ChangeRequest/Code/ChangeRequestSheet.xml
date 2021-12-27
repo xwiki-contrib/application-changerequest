@@ -148,10 +148,10 @@
     #else
     ## Include the content of the current document.
     ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
-    $doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')
+      &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
     #end
   #else
-    $doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')
+    &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
   #end
 #end
 {{html clean="false"}}
@@ -333,10 +333,10 @@
     &lt;div class="approvers"&gt;
     #set ($approversList = $services.changerequest.getApprovers($changeRequest))
     #if ($approversList.isEmpty())
-      No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.
+      &lt;span class="empty-approvers"&gt;No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.&lt;/span&gt;
     #else
       Approvers of this change request:
-      &lt;ul&gt;
+      &lt;ul class="approvers-list"&gt;
       #foreach ($userReference in $approversList)
         #set ($userDocReference = $userReference.reference)
         &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
@@ -389,7 +389,7 @@
     &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
     #set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargetingSame($changeRequest))
     #if (!$otherChangeRequestsWithSamePages.isEmpty())
-      &lt;div class="panel panel-info"&gt;
+      &lt;div class="panel panel-info check-panel-other-cr"&gt;
         &lt;div class="panel-heading" role="tab" id="headingOtherCRPanel"&gt;
           &lt;h4 class="panel-title"&gt;
             &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
@@ -437,7 +437,7 @@
          #set ($statusPanelClass = "panel-danger")
          #set ($statusIcon = $checkIconProblem)
        #end
-       &lt;div class="panel $statusPanelClass"&gt;
+       &lt;div class="panel check-panel-status $statusPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
           &lt;h4 class="panel-title"&gt;
             &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
@@ -468,7 +468,7 @@
          #set ($conflictPanelTitle = $services.localization.render('changerequest.sheet.tab.checks.conflicts.title', "$conflictingFiles.size()"))
          #set ($statusIcon = $checkIconProblem)
        #end
-       &lt;div class="panel $conflictPanelClass"&gt;
+       &lt;div class="panel check-panel-conflict $conflictPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingConflictPanel"&gt;
           &lt;h4 class="panel-title"&gt;
             &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#conflictPanel" aria-expanded="true" aria-controls="conflictPanel"&gt;
@@ -496,7 +496,7 @@
         #set ($statusIcon = $checkIconProblem)
       #end
       #set ($strategyPanelText = $approvalStrategy.getStatus($changeRequest))
-      &lt;div class="panel $strategyPanelClass"&gt;
+      &lt;div class="panel check-panel-strategy $strategyPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingApprovalStrategyPanel"&gt;
           &lt;h4 class="panel-title"&gt;
             &lt;a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#approvalStrategyPanel" aria-expanded="false" aria-controls="approvalStrategyPanel"&gt;
