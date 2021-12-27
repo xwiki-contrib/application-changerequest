@@ -330,6 +330,7 @@
 &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End file changes --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
+    &lt;div class="approvers"&gt;
     #set ($approversList = $services.changerequest.getApprovers($changeRequest))
     #if ($approversList.isEmpty())
       No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.
@@ -340,8 +341,9 @@
         #set ($userDocReference = $userReference.reference)
         &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
       #end
-      &lt;ul&gt;
+      &lt;/ul&gt;
     #end
+    &lt;/div&gt;
     &lt;div id="reviewsContainer"&gt;
     #foreach ($review in $changeRequest.reviews)
       #set ($reviewAuthor = $xwiki.getUserName($review.author.reference))
@@ -2681,7 +2683,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   padding: @spacing;   
   list-style: none;
   text-align: left;  
-  max-width: 70%; 
+  max-width: 60%;
   
   .event {
     border-bottom: 1px dashed fade(@color-light, 10%);
