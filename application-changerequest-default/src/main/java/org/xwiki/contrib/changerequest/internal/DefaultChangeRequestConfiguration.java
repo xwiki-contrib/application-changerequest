@@ -48,7 +48,7 @@ import com.xpn.xwiki.XWikiContext;
 public class DefaultChangeRequestConfiguration implements ChangeRequestConfiguration
 {
     static final String DEFAULT_APPROVAL_STRATEGY = AcceptAllMergeApprovalStrategy.NAME;
-    private static final List<String> CHANGE_REQUEST_SPACE_LOCATION = Arrays.asList("XWiki", "ChangeRequest");
+    private static final List<String> CHANGE_REQUEST_SPACE_LOCATION = Arrays.asList("ChangeRequest", "Data");
 
     @Inject
     private Provider<XWikiContext> contextProvider;

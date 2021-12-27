@@ -84,7 +84,7 @@
       <approvalStrategy>onlyapproved</approvalStrategy>
     </property>
     <property>
-      <changeRequestLocation>XWiki.ChangeRequest</changeRequestLocation>
+      <changeRequestLocation>ChangeRequest.Data</changeRequestLocation>
     </property>
   </object>
   <object>
