@@ -31,6 +31,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.observation.ObservationManager;
@@ -138,11 +139,12 @@ public class ChangeRequestReviewScriptService implements ScriptService
     /**
      * Check if the current user can edit the given review.
      * @param review the review for which to check if it can be edited.
-     * @return {@code true} if the review is authored by the current user.
+     * @return {@code true} if the review is authored by the current user and the change request is not merged yet.
      */
     public boolean canEditReview(ChangeRequestReview review)
     {
+        ChangeRequestStatus status = review.getChangeRequest().getStatus();
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return review.getAuthor().equals(currentUserReference);
+        return status != ChangeRequestStatus.MERGED && review.getAuthor().equals(currentUserReference);
     }
 }

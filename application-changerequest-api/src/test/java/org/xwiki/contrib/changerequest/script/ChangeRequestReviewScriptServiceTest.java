@@ -30,6 +30,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -134,10 +135,17 @@ class ChangeRequestReviewScriptServiceTest
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         ChangeRequestReview review = mock(ChangeRequestReview.class);
         when(review.getAuthor()).thenReturn(mock(UserReference.class));
+
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(review.getChangeRequest()).thenReturn(changeRequest);
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
         assertFalse(this.scriptService.canEditReview(review));
 
         when(review.getAuthor()).thenReturn(userReference);
         assertTrue(this.scriptService.canEditReview(review));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        assertFalse(this.scriptService.canEditReview(review));
     }
 
     @Test
@@ -146,6 +154,9 @@ class ChangeRequestReviewScriptServiceTest
         UserReference userReference = mock(UserReference.class);
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         ChangeRequestReview review = mock(ChangeRequestReview.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(review.getChangeRequest()).thenReturn(changeRequest);
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
         UserReference anotherUser = mock(UserReference.class);
         when(review.getAuthor()).thenReturn(anotherUser);
         assertFalse(this.scriptService.setReviewValidity(review, true));
