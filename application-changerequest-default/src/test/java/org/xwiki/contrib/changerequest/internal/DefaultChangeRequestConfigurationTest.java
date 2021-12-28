@@ -80,7 +80,7 @@ class DefaultChangeRequestConfigurationTest
     {
         WikiReference wikiReference = new WikiReference("foo");
         when(this.context.getWikiReference()).thenReturn(wikiReference);
-        SpaceReference expected = new SpaceReference("foo", "XWiki", "ChangeRequest");
+        SpaceReference expected = new SpaceReference("foo", "ChangeRequest", "Data");
         assertEquals(expected, this.configuration.getChangeRequestSpaceLocation());
     }
 }
