@@ -35,6 +35,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscuss
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
 import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
@@ -144,7 +145,8 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             new ChangeRequestReviewAddedRecordableEvent(),
             new ChangeRequestStatusChangedRecordableEvent(),
             new DocumentModifiedInChangeRequestEvent(),
-            new ChangeRequestDiscussionRecordableEvent()
+            new ChangeRequestDiscussionRecordableEvent(),
+            new ChangeRequestUpdatedRecordableEvent()
         );
     }
 }

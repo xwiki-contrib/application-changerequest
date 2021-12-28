@@ -37,7 +37,9 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
 import org.xwiki.csrf.CSRFToken;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.wysiwyg.converter.HTMLConverter;
 
 /**
@@ -70,6 +72,9 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
 
     @Inject
     private ChangeRequestManager changeRequestManager;
+
+    @Inject
+    private ObservationManager observationManager;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
@@ -122,6 +127,7 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
         String content = getContent(request);
         changeRequest.setDescription(content);
         this.storageManager.save(changeRequest);
+        this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
         return true;
     }
 

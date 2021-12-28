@@ -17,10 +17,11 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.test.po;
+package org.xwiki.contrib.changerequest.test.po.description;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -30,7 +31,7 @@ import org.xwiki.stability.Unstable;
  * @since 0.8
  */
 @Unstable
-public class ChangeRequestDescriptionEditPage extends ChangeRequestPage
+public class DescriptionEditPage extends ChangeRequestPage
 {
     /**
      * Enter the description of the change request.

@@ -22,6 +22,8 @@ package org.xwiki.contrib.changerequest.test.po;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
+import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -32,22 +34,12 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class ChangeRequestPage extends ViewPage
 {
-    private static final String EDIT_DESCRIPTION_LINK_CLASS = "edit-description";
-
     /**
      * @return the actual label describing the status of the change request.
      */
     public String getStatusLabel()
     {
         return getDriver().findElement(By.className("document-info")).findElement(By.className("label")).getText();
-    }
-
-    /**
-     * @return the description of the change request.
-     */
-    public String getDescription()
-    {
-        return getDriver().findElement(By.className("description-content")).getText();
     }
 
     private WebElement openTab(String tabname)
@@ -57,6 +49,17 @@ public class ChangeRequestPage extends ViewPage
             getDriver().findElement(By.cssSelector(String.format("a[aria-controls=%s]", tabname))).click();
         }
         return tab;
+    }
+
+    /**
+     * Open the description tab and returns it.
+     *
+     * @return a {@link DescriptionPane} to see the description, timeline and comments.
+     */
+    public DescriptionPane openDescription()
+    {
+        WebElement description = this.openTab("home");
+        return new DescriptionPane(description);
     }
 
     /**
@@ -92,29 +95,5 @@ public class ChangeRequestPage extends ViewPage
         return new ChecksPane(checks);
     }
 
-    private WebElement getDescriptionContainer()
-    {
-        return getDriver().findElement(By.className("cr-description"));
-    }
 
-    /**
-     * Check if there's an edit description link.
-     * @return {@code true} if there's a link to edit the description.
-     */
-    public boolean hasEditDescriptionLink()
-    {
-        return getDriver().hasElement(getDescriptionContainer(), By.className(EDIT_DESCRIPTION_LINK_CLASS));
-    }
-
-    /**
-     * Click on the edit description link.
-     * @return the edit page resulting to the click of the link.
-     */
-    public ChangeRequestDescriptionEditPage clickEditDescription()
-    {
-        getDriver().addPageNotYetReloadedMarker();
-        getDescriptionContainer().findElement(By.className(EDIT_DESCRIPTION_LINK_CLASS)).click();
-        getDriver().waitUntilPageIsReloaded();
-        return new ChangeRequestDescriptionEditPage();
-    }
 }

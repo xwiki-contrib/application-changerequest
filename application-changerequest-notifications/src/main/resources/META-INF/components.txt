@@ -10,3 +10,4 @@ org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestReviewAddedEvent
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestStatusChangedEventListener
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestReviewAddedEventDescriptor
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestStatusChangedEventDescriptor
+org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestUpdatedEventListener

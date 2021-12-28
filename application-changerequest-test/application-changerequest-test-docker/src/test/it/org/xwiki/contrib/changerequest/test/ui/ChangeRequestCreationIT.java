@@ -19,17 +19,20 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.xwiki.contrib.changerequest.test.po.ChangeRequestDescriptionEditPage;
+import org.xwiki.contrib.changerequest.test.po.description.DescriptionEditPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
-import org.xwiki.contrib.changerequest.test.po.ReviewsPane;
+import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
+import org.xwiki.contrib.changerequest.test.po.description.TimelineEvent;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.contrib.changerequest.test.po.checks.CheckPanelElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.test.docker.junit5.TestReference;
@@ -88,6 +91,7 @@ class ChangeRequestCreationIT
         ExtendedViewPage viewPage = new ExtendedViewPage();
         assertTrue(viewPage.hasChangeRequestEditButton());
 
+        Date dateBeforeCR = new Date();
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = viewPage.clickChangeRequestEdit();
         extendedEditPage.getEditor().setContent("Some new content.");
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
@@ -97,15 +101,42 @@ class ChangeRequestCreationIT
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
         assertEquals("Ready for review", changeRequestPage.getStatusLabel());
 
-        assertTrue(changeRequestPage.hasEditDescriptionLink());
-        ChangeRequestDescriptionEditPage changeRequestDescriptionEditPage = changeRequestPage.clickEditDescription();
-        changeRequestDescriptionEditPage.setDescription("This is a new CR with some content.");
-        changeRequestPage = changeRequestDescriptionEditPage.saveDescription();
+        DescriptionPane descriptionPane = changeRequestPage.openDescription();
+        assertFalse(descriptionPane.hasCustomDescription());
 
-        assertEquals("This is a new CR with some content.", changeRequestPage.getDescription());
+        Date dateAfterCR = new Date();
+        List<TimelineEvent> events = descriptionPane.getEvents();
+        assertEquals(1, events.size());
+
+        TimelineEvent timelineEvent = events.get(0);
+        assertTrue(timelineEvent.getDate().after(dateBeforeCR));
+        assertTrue(timelineEvent.getDate().before(dateAfterCR));
+        assertEquals("CRCreator\n"
+                + "created the change request with changes concerning "
+                + "xwiki:NestedChangeRequestCreationIT.createChangeRequest.WebHome",
+            timelineEvent.getContent().getText());
+
+        assertTrue(descriptionPane.hasEditDescriptionLink());
+        DescriptionEditPage descriptionEditPage = descriptionPane.clickEditDescription();
+        descriptionEditPage.setDescription("This is a new CR with some content.");
+        changeRequestPage = descriptionEditPage.saveDescription();
+        descriptionPane = changeRequestPage.openDescription();
+
+        assertTrue(descriptionPane.hasCustomDescription());
+        assertEquals("This is a new CR with some content.", descriptionPane.getDescription());
+        Date dateAfterDescriptionUpdate = new Date();
+
+        events = descriptionPane.getEvents();
+        assertEquals(2, events.size());
+        timelineEvent = events.get(1);
+        assertTrue(timelineEvent.getDate().after(dateAfterCR));
+        assertTrue(timelineEvent.getDate().before(dateAfterDescriptionUpdate));
+        assertEquals("CRCreator\n"
+                + "edited the description of the change request",
+            timelineEvent.getContent().getText());
+
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
         assertEquals(1, fileChangesPane.getFileChangesListLiveTable().getRowCount());
-
         String pageName = testReference.toString();
         DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(pageName);
         assertEquals("(1 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());

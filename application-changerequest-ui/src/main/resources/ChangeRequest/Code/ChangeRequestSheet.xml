@@ -64,7 +64,7 @@
   ## we skip the document modified events, since they are basically redundant with the filechanges ones.
   #if ($event.type != "changerequest.document.modified")
   &lt;li class="event"&gt;
-    &lt;span class="date"&gt;$datetool.format($event.date)&lt;/span&gt;
+    &lt;span class="date" data-date="$event.date.time"&gt;$datetool.format($event.date)&lt;/span&gt;
     &lt;span class="content"&gt;
     #set ($userArgument = "#displayUser($event.user)")
     #set ($localizationKey = "changerequest.timeline.$event.type")

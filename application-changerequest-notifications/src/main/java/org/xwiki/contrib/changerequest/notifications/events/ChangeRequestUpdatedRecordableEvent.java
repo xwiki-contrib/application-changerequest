@@ -17,30 +17,51 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.test.po;
+package org.xwiki.contrib.changerequest.notifications.events;
 
-import org.openqa.selenium.WebElement;
 import org.xwiki.stability.Unstable;
-import org.xwiki.test.ui.po.BaseElement;
 
 /**
- * Represents a review element displayed in the reviews tab.
+ * Event triggered when the description or the title of the change request is updated.
  *
  * @version $Id$
  * @since 0.8
  */
 @Unstable
-public class ChangeRequestReviewElement extends BaseElement
+public class ChangeRequestUpdatedRecordableEvent extends AbstractChangeRequestRecordableEvent
 {
-    private final WebElement reviewElement;
+    /**
+     * Event name to be used in the components referring to that event.
+     */
+    public static final String EVENT_NAME = "changerequest.updated";
+
+    /**
+     * Default empty constructor.
+     */
+    public ChangeRequestUpdatedRecordableEvent()
+    {
+        this(null);
+    }
 
     /**
      * Default constructor.
      *
-     * @param reviewElement the element representing a review.
+     * @param id the change request identifier.
      */
-    public ChangeRequestReviewElement(WebElement reviewElement)
+    public ChangeRequestUpdatedRecordableEvent(String id)
     {
-        this.reviewElement = reviewElement;
+        super(id);
+    }
+
+    @Override
+    public String getEventName()
+    {
+        return EVENT_NAME;
+    }
+
+    @Override
+    public boolean matches(Object otherEvent)
+    {
+        return otherEvent instanceof ChangeRequestUpdatedRecordableEvent;
     }
 }
