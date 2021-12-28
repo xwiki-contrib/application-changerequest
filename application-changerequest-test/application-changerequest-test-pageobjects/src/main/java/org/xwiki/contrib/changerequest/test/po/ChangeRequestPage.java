@@ -36,6 +36,8 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class ChangeRequestPage extends ViewPage
 {
+    private static final String CLASS_ATTRIBUTE = "class";
+
     /**
      * @return the actual label describing the status of the change request.
      */
@@ -47,7 +49,7 @@ public class ChangeRequestPage extends ViewPage
     private WebElement openTab(String tabname)
     {
         WebElement tab = getDriver().findElement(By.id(tabname));
-        if (!tab.getAttribute("class").contains("active")) {
+        if (!tab.getAttribute(CLASS_ATTRIBUTE).contains("active")) {
             getDriver().findElement(By.cssSelector(String.format("a[aria-controls=%s]", tabname))).click();
         }
         return tab;
@@ -99,12 +101,12 @@ public class ChangeRequestPage extends ViewPage
 
     private WebElement getMenuButtonsContainer()
     {
-        return getDriver().findElement(By.id("changeRequestButtons"));
+        return getDriver().findElementWithoutWaiting(By.id("changeRequestButtons"));
     }
 
     private WebElement getReviewButton()
     {
-        return getMenuButtonsContainer().findElement(By.id("addReview"));
+        return getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.id("addReview"));
     }
 
     /**
@@ -131,13 +133,13 @@ public class ChangeRequestPage extends ViewPage
             throw new ElementNotVisibleException("The review button is not displayed.");
         } else {
             WebElement reviewButton = getReviewButton();
-            return reviewButton.isEnabled();
+            return isElementEnabled(reviewButton);
         }
     }
 
     private WebElement getReadyForReviewButton()
     {
-        return getMenuButtonsContainer().findElement(By.className("cr-ready-for-review"));
+        return getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.className("cr-ready-for-review"));
     }
 
     /**
@@ -177,7 +179,7 @@ public class ChangeRequestPage extends ViewPage
             throw new ElementNotVisibleException("The ready for review button is not displayed.");
         } else {
             WebElement readyForReviewButton = getReadyForReviewButton();
-            return readyForReviewButton.isEnabled();
+            return isElementEnabled(readyForReviewButton);
         }
     }
 
@@ -200,12 +202,12 @@ public class ChangeRequestPage extends ViewPage
      */
     public void toggleChangeRequestActionsMenu()
     {
-        getMenuButtonsContainer().findElement(By.className("dropdown-toggle")).click();
+        getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.className("dropdown-toggle")).click();
     }
 
-    private WebElement getConvertToDraft()
+    private WebElement getConvertToDraftButton()
     {
-        return getMenuButtonsContainer().findElement(By.cssSelector("li[class='cr-convert-to-draft']"));
+        return getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.className("cr-convert-to-draft"));
     }
 
     /**
@@ -216,8 +218,8 @@ public class ChangeRequestPage extends ViewPage
     public boolean isConvertToDraftEnabled()
     {
         try {
-            WebElement convertToDraft = getConvertToDraft();
-            return convertToDraft.isEnabled();
+            WebElement convertToDraft = getConvertToDraftButton();
+            return isElementEnabled(convertToDraft);
         } catch (NoSuchElementException e) {
             return false;
         }
@@ -231,12 +233,142 @@ public class ChangeRequestPage extends ViewPage
      */
     public ChangeRequestPage clickConvertToDraft()
     {
-        WebElement convertToDraft = getConvertToDraft();
+        WebElement convertToDraft = getConvertToDraftButton();
         if (!convertToDraft.isDisplayed()) {
             toggleChangeRequestActionsMenu();
         }
         getDriver().addPageNotYetReloadedMarker();
         convertToDraft.click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
+
+    private WebElement getCloseButton()
+    {
+        return getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.className("cr-close"));
+    }
+
+    private boolean isElementEnabled(WebElement element)
+    {
+        boolean result = false;
+        if (element.isEnabled()) {
+            result = !element.getAttribute(CLASS_ATTRIBUTE).contains("disabled");
+        }
+        return result;
+    }
+
+    /**
+     * Check if the close action exists and is enabled.
+     *
+     * @return {@code true} if the action exists and is enabled.
+     */
+    public boolean isCloseEnabled()
+    {
+        try {
+            WebElement closeButton = getCloseButton();
+            return isElementEnabled(closeButton);
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Click on the "Close" action.
+     * Note that this method does not perform any check if the button exists or not.
+     * However it does open the menu to click on the action item, if it's not opened yet.
+     * @return a new instance of change request page after the page is reloaded.
+     */
+    public ChangeRequestPage clickClose()
+    {
+        WebElement closeButton = getCloseButton();
+        if (!closeButton.isDisplayed()) {
+            toggleChangeRequestActionsMenu();
+        }
+        getDriver().addPageNotYetReloadedMarker();
+        closeButton.click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
+
+    private WebElement getOpenButton()
+    {
+        return getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.className("cr-open"));
+    }
+
+    /**
+     * @return {@code true} if the open button is displayed.
+     */
+    public boolean isOpenButtonDisplayed()
+    {
+        try {
+            WebElement openButton = getOpenButton();
+            return openButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if the open button is displayed and enabled.
+     * @throws ElementNotVisibleException if the open button is not displayed
+     * @see #isOpenButtonDisplayed()
+     */
+    public boolean isOpenButtonEnabled()
+    {
+        if (!isOpenButtonDisplayed()) {
+            throw new ElementNotVisibleException("The open button is not displayed.");
+        } else {
+            WebElement openButton = getOpenButton();
+            return isElementEnabled(openButton);
+        }
+    }
+
+    /**
+     * Click on the open change request action.
+     * @return a new instance of the change request page, after the page reload.
+     */
+    public ChangeRequestPage clickOpen()
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        getOpenButton().click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
+
+    private WebElement getOpenAsDraftButton()
+    {
+        return getMenuButtonsContainer().findElement(By.className("cr-open-as-draft"));
+    }
+
+    /**
+     * Check if the open as draft action exists and is enabled.
+     *
+     * @return {@code true} if the action exists and is enabled.
+     */
+    public boolean isOpenAsDraftEnabled()
+    {
+        try {
+            WebElement openAsDraftButton = getOpenAsDraftButton();
+            return isElementEnabled(openAsDraftButton);
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Click on the "Open as draft" action.
+     * Note that this method does not perform any check if the button exists or not.
+     * However it does open the menu to click on the action item, if it's not opened yet.
+     * @return a new instance of change request page after the page is reloaded.
+     */
+    public ChangeRequestPage clickOpenAsDraft()
+    {
+        WebElement openAsDraftButton = getOpenAsDraftButton();
+        if (!openAsDraftButton.isDisplayed()) {
+            toggleChangeRequestActionsMenu();
+        }
+        getDriver().addPageNotYetReloadedMarker();
+        openAsDraftButton.click();
         getDriver().waitUntilPageIsReloaded();
         return new ChangeRequestPage();
     }

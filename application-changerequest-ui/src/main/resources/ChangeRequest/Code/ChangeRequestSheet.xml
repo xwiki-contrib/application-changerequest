@@ -3231,11 +3231,11 @@ tr.discussion-line:hover {
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
   #if (!$canBeMerged)
-    &lt;button title="$services.localization.render('changerequest.sheet.review.button.title')" class="btn btn-primary" id="addReview" #if(!$canBeReviewed)disabled="disabled"#end&gt;
+    &lt;button title="$services.localization.render('changerequest.sheet.review.button.title')" class="btn btn-primary #if(!$canBeReviewed)disabled#end" id="addReview"&gt;
       $services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.review.button')
     &lt;/button&gt;
   #else
-    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary" #if(!$isAuthorizedToMerge)disabled="disabled"#end&gt;
+    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$isAuthorizedToMerge)disabled#end"&gt;
       $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
     &lt;/a&gt;
   #end
@@ -3274,7 +3274,7 @@ tr.discussion-line:hover {
 #elseif ($changeRequest.status == 'CLOSED')
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
-  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary" #if(!$canBeEdited)disabled="disabled"#end&gt;
+  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary cr-open #if(!$canBeEdited)disabled#end"&gt;
       $services.icon.renderHTML('unlock') $services.localization.render('changerequest.sheet.open.button')
   &lt;/a&gt;
   #if ($canBeEdited)
@@ -3283,7 +3283,7 @@ tr.discussion-line:hover {
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
-    &lt;li class="cr-convert-to-draft"&gt;
+    &lt;li class="cr-open-as-draft"&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=draft&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open_draft.button.title')"&gt;
       $services.localization.render('changerequest.sheet.open_draft.button')
       &lt;/a&gt;

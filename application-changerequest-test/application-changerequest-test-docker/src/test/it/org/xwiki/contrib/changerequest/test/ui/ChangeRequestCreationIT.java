@@ -175,6 +175,9 @@ class ChangeRequestCreationIT
 
         String pageURL = changeRequestPage.getPageURL();
 
+        // Status transitions that are tested:
+        // Ready for review -> Draft -> Ready for review -> Closed -> Draft -> Closed -> Ready for review
+
         // Check buttons with guest user
         setup.forceGuestUser();
         setup.gotoPage(pageURL);
@@ -213,6 +216,7 @@ class ChangeRequestCreationIT
 
         // Check buttons with guest user
         setup.forceGuestUser();
+        setup.gotoPage(pageURL);
         changeRequestPage = new ChangeRequestPage();
         assertFalse(changeRequestPage.isAnyChangeRequestButtonDisplayed());
 
@@ -244,6 +248,90 @@ class ChangeRequestCreationIT
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange2));
         assertEquals("CRCreator\n"
                 + "changed the status of the change request from draft to ready for review",
+            timelineEvent.getContent().getText());
+
+        // Close the change request, check the label and the timeline
+        assertTrue(changeRequestPage.isCloseEnabled());
+        changeRequestPage = changeRequestPage.clickClose();
+
+        assertEquals("Closed", changeRequestPage.getStatusLabel());
+
+        // TODO: We should check that it's not possible to edit a file from file change when it's closed.
+
+        checksPane = changeRequestPage.openChecksPane();
+        assertFalse(checksPane.getStatusCheck().isReady());
+
+        descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(5);
+        Date dateAfterStatusChange3 = new Date();
+        events = descriptionPane.getEvents();
+        assertEquals(5, events.size());
+
+        timelineEvent = events.get(4);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange2));
+        assertTrue(timelineEvent.getDate().before(dateAfterStatusChange3));
+        assertEquals("CRCreator\n"
+                + "changed the status of the change request from ready for review to closed",
+            timelineEvent.getContent().getText());
+
+        // Check the button display with guest
+        setup.forceGuestUser();
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertTrue(changeRequestPage.isOpenButtonDisplayed());
+        assertFalse(changeRequestPage.isOpenButtonEnabled());
+
+        setup.login("CRCreator", "CRCreator");
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertTrue(changeRequestPage.isOpenButtonDisplayed());
+        assertTrue(changeRequestPage.isOpenButtonEnabled());
+        assertTrue(changeRequestPage.isOpenAsDraftEnabled());
+
+        // Open as draft, check status
+        changeRequestPage = changeRequestPage.clickOpenAsDraft();
+        assertEquals("Draft", changeRequestPage.getStatusLabel());
+
+        // Close again
+        assertTrue(changeRequestPage.isCloseEnabled());
+        changeRequestPage = changeRequestPage.clickClose();
+        assertEquals("Closed", changeRequestPage.getStatusLabel());
+
+        // Open as ready for review, check status and check the 3 new events
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertTrue(changeRequestPage.isOpenButtonDisplayed());
+        assertTrue(changeRequestPage.isOpenButtonEnabled());
+        changeRequestPage = changeRequestPage.clickOpen();
+        assertEquals("Ready for review", changeRequestPage.getStatusLabel());
+
+        descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(8);
+        Date dateAfterStatusChange4 = new Date();
+        events = descriptionPane.getEvents();
+        assertEquals(8, events.size());
+
+        timelineEvent = events.get(5);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange3));
+        assertTrue(timelineEvent.getDate().before(dateAfterStatusChange4));
+        assertEquals("CRCreator\n"
+                + "changed the status of the change request from closed to draft",
+            timelineEvent.getContent().getText());
+
+        timelineEvent = events.get(6);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange3));
+        assertTrue(timelineEvent.getDate().before(dateAfterStatusChange4));
+        assertEquals("CRCreator\n"
+                + "changed the status of the change request from draft to closed",
+            timelineEvent.getContent().getText());
+
+        timelineEvent = events.get(7);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange3));
+        assertTrue(timelineEvent.getDate().before(dateAfterStatusChange4));
+        assertEquals("CRCreator\n"
+                + "changed the status of the change request from closed to ready for review",
             timelineEvent.getContent().getText());
     }
 }

@@ -65,5 +65,12 @@
       <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
+    <!-- Needed to display properly the livetable -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-livetable-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+    </dependency>
   </dependencies>
 </project>
