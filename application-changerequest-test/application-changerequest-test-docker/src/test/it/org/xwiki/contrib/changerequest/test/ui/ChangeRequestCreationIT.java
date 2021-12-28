@@ -91,6 +91,7 @@ class ChangeRequestCreationIT
         ExtendedViewPage viewPage = new ExtendedViewPage();
         assertTrue(viewPage.hasChangeRequestEditButton());
 
+        // Save the date for checking the events
         Date dateBeforeCR = new Date();
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = viewPage.clickChangeRequestEdit();
         extendedEditPage.getEditor().setContent("Some new content.");
@@ -99,11 +100,14 @@ class ChangeRequestCreationIT
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.setChangeRequestTitle("CR1");
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
+
+        // Check status and description holder at first save
         assertEquals("Ready for review", changeRequestPage.getStatusLabel());
 
         DescriptionPane descriptionPane = changeRequestPage.openDescription();
         assertFalse(descriptionPane.hasCustomDescription());
 
+        // Check event
         Date dateAfterCR = new Date();
         List<TimelineEvent> events = descriptionPane.getEvents();
         assertEquals(1, events.size());
@@ -116,6 +120,7 @@ class ChangeRequestCreationIT
                 + "xwiki:NestedChangeRequestCreationIT.createChangeRequest.WebHome",
             timelineEvent.getContent().getText());
 
+        // Update the description and check related event
         assertTrue(descriptionPane.hasEditDescriptionLink());
         DescriptionEditPage descriptionEditPage = descriptionPane.clickEditDescription();
         descriptionEditPage.setDescription("This is a new CR with some content.");
@@ -124,6 +129,8 @@ class ChangeRequestCreationIT
 
         assertTrue(descriptionPane.hasCustomDescription());
         assertEquals("This is a new CR with some content.", descriptionPane.getDescription());
+
+        descriptionPane.waitUntilEventsSize(2);
         Date dateAfterDescriptionUpdate = new Date();
 
         events = descriptionPane.getEvents();
@@ -135,6 +142,7 @@ class ChangeRequestCreationIT
                 + "edited the description of the change request",
             timelineEvent.getContent().getText());
 
+        // Check the diff
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
         assertEquals(1, fileChangesPane.getFileChangesListLiveTable().getRowCount());
         String pageName = testReference.toString();
@@ -147,10 +155,12 @@ class ChangeRequestCreationIT
         assertEquals("-Some content<del> to the test page</del>.", content.get(1));
         assertEquals("+Some <ins>new </ins>content.", content.get(2));
 
+        // Check the review tab
         ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
         assertFalse(reviewsPane.hasListOfApprovers());
         assertTrue(reviewsPane.getReviews().isEmpty());
 
+        // Check the check tab
         ChecksPane checksPane = changeRequestPage.openChecksPane();
 
         assertTrue(checksPane.getStatusCheck().isReady());
@@ -162,5 +172,78 @@ class ChangeRequestCreationIT
         strategyCheck.togglePanel();
         assertEquals("The change request cannot be merged without valid approval or "
             + "if at least one review request for changes.", strategyCheck.getBody().getText());
+
+        String pageURL = changeRequestPage.getPageURL();
+
+        // Check buttons with guest user
+        setup.forceGuestUser();
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertFalse(changeRequestPage.isReviewButtonEnabled());
+
+        // Switch the change request to draft: check the status label, the checks and the timeline
+        setup.login("CRCreator", "CRCreator");
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertFalse(changeRequestPage.isReviewButtonEnabled());
+        assertTrue(changeRequestPage.isConvertToDraftEnabled());
+
+        changeRequestPage = changeRequestPage.clickConvertToDraft();
+        assertEquals("Draft", changeRequestPage.getStatusLabel());
+
+        checksPane = changeRequestPage.openChecksPane();
+        assertFalse(checksPane.getStatusCheck().isReady());
+
+        descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(3);
+
+        Date dateAfterStatusChange = new Date();
+        events = descriptionPane.getEvents();
+        assertEquals(3, events.size());
+
+        timelineEvent = events.get(2);
+        assertTrue(timelineEvent.getDate().after(dateAfterDescriptionUpdate));
+        assertTrue(timelineEvent.getDate().before(dateAfterStatusChange));
+        assertEquals("CRCreator\n"
+                + "changed the status of the change request from ready for review to draft",
+            timelineEvent.getContent().getText());
+
+        // Check buttons with guest user
+        setup.forceGuestUser();
+        changeRequestPage = new ChangeRequestPage();
+        assertFalse(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+
+        // Switch back the status to ready for review and check again status and timeline
+        setup.login("CRCreator", "CRCreator");
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertFalse(changeRequestPage.isReviewButtonDisplayed());
+        assertFalse(changeRequestPage.isConvertToDraftEnabled());
+        assertTrue(changeRequestPage.isReadyForReviewButtonDisplayed());
+        assertTrue(changeRequestPage.isReadyForReviewButtonEnabled());
+
+        changeRequestPage = changeRequestPage.clickReadyForReviewButton();
+        assertEquals("Ready for review", changeRequestPage.getStatusLabel());
+
+        checksPane = changeRequestPage.openChecksPane();
+        assertTrue(checksPane.getStatusCheck().isReady());
+
+        descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(4);
+        Date dateAfterStatusChange2 = new Date();
+        events = descriptionPane.getEvents();
+        assertEquals(4, events.size());
+
+        timelineEvent = events.get(3);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange));
+        assertTrue(timelineEvent.getDate().before(dateAfterStatusChange2));
+        assertEquals("CRCreator\n"
+                + "changed the status of the change request from draft to ready for review",
+            timelineEvent.getContent().getText());
     }
 }

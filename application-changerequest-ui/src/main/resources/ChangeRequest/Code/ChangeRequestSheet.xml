@@ -3206,7 +3206,7 @@ tr.discussion-line:hover {
 #if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
-  &lt;a href="$readyForReviewUrl" title="$services.localization.render('changerequest.sheet.ready.button.title')" rel="nofollow" class="btn btn-primary"&gt;
+  &lt;a href="$readyForReviewUrl" title="$services.localization.render('changerequest.sheet.ready.button.title')" rel="nofollow" class="btn btn-primary cr-ready-for-review"&gt;
     $services.localization.render('changerequest.sheet.ready.button')
   &lt;/a&gt;
   &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
@@ -3214,12 +3214,12 @@ tr.discussion-line:hover {
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
-    &lt;li class=""&gt;
+    &lt;li class="cr-rebase"&gt;
       &lt;a href="$rebaseUrl" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
-    &lt;li class=""&gt;
+    &lt;li class="cr-close"&gt;
       &lt;a href="$closeUrl" title="$services.localization.render('changerequest.sheet.close.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
       &lt;/a&gt;
@@ -3252,17 +3252,17 @@ tr.discussion-line:hover {
       &lt;/a&gt;
     &lt;/li&gt;
     #end
-    &lt;li class=""&gt;
+    &lt;li class="cr-rebase"&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
-    &lt;li class=""&gt;
+    &lt;li class="cr-convert-to-draft"&gt;
       &lt;a href="$draftUrl" title="$services.localization.render('changerequest.sheet.markdraft.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('coffee') $services.localization.render('changerequest.sheet.markdraft.button')
       &lt;/a&gt;
     &lt;/li&gt;
-    &lt;li class=""&gt;
+    &lt;li class="cr-close"&gt;
       &lt;a href="$closeUrl" title="$services.localization.render('changerequest.sheet.close.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
       &lt;/a&gt;
@@ -3283,7 +3283,7 @@ tr.discussion-line:hover {
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
-    &lt;li&gt;
+    &lt;li class="cr-convert-to-draft"&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=draft&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open_draft.button.title')"&gt;
       $services.localization.render('changerequest.sheet.open_draft.button')
       &lt;/a&gt;

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseElement;
@@ -37,7 +38,7 @@ import org.xwiki.test.ui.po.BaseElement;
 public class DescriptionPane extends BaseElement
 {
     private static final String EDIT_DESCRIPTION_LINK_CLASS = "edit-description";
-    private final WebElement tabContainer;
+    private WebElement tabContainer;
 
     /**
      * Default constructor.
@@ -107,6 +108,41 @@ public class DescriptionPane extends BaseElement
             events.add(new TimelineEvent(eventElement));
         }
         return events;
+    }
+
+    /**
+     * Wait until the timeline size is reached: this method should be used to avoid flickering behaviour if the events
+     * are taking some time to appear.
+     * Note that this method perform page reloads for the wait, so be careful to reinit the elements after using it
+     * else you could obtain some {@link org.openqa.selenium.StaleElementReferenceException}.
+     *
+     * @param size the number of expected events.
+     * @throws AssertionError if the number of events retrieved is higher than the expected number
+     * @throws TimeoutException if after 5 reloads the number of events is still not reached.
+     */
+    public void waitUntilEventsSize(int size)
+    {
+        int maxLoop = 5;
+        int loop = 0;
+        int latestSize = -1;
+        do {
+            List<TimelineEvent> events = getEvents();
+            latestSize = events.size();
+            if (latestSize > size) {
+                throw new AssertionError(String.format("[%s] events expected [%s] obtained.", size, latestSize));
+            } else if (latestSize < size) {
+                getDriver().addPageNotYetReloadedMarker();
+                getDriver().navigate().refresh();
+                getDriver().waitUntilPageIsReloaded();
+                this.tabContainer = getDriver().findElement(By.id("home"));
+                loop++;
+            }
+        } while (loop < maxLoop && latestSize != size);
+        if (latestSize != size) {
+            throw new TimeoutException(
+                String.format("Only [%s] events have been obtained on [%s] expected after [%s] reload of the page.",
+                    latestSize, size, maxLoop));
+        }
     }
 
     private WebElement getCommentsContainer()

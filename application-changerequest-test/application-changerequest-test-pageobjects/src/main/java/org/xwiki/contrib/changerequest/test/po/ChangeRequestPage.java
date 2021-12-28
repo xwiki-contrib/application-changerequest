@@ -20,6 +20,8 @@
 package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementNotVisibleException;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
@@ -95,5 +97,147 @@ public class ChangeRequestPage extends ViewPage
         return new ChecksPane(checks);
     }
 
+    private WebElement getMenuButtonsContainer()
+    {
+        return getDriver().findElement(By.id("changeRequestButtons"));
+    }
 
+    private WebElement getReviewButton()
+    {
+        return getMenuButtonsContainer().findElement(By.id("addReview"));
+    }
+
+    /**
+     * @return {@code true} if the review button is displayed.
+     */
+    public boolean isReviewButtonDisplayed()
+    {
+        try {
+            WebElement reviewButton = getReviewButton();
+            return reviewButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if the review button is displayed and enabled.
+     * @throws ElementNotVisibleException if the review button is not displayed
+     * @see #isReviewButtonDisplayed()
+     */
+    public boolean isReviewButtonEnabled()
+    {
+        if (!isReviewButtonDisplayed()) {
+            throw new ElementNotVisibleException("The review button is not displayed.");
+        } else {
+            WebElement reviewButton = getReviewButton();
+            return reviewButton.isEnabled();
+        }
+    }
+
+    private WebElement getReadyForReviewButton()
+    {
+        return getMenuButtonsContainer().findElement(By.className("cr-ready-for-review"));
+    }
+
+    /**
+     * @return {@code true} if any change request primary button is displayed.
+     */
+    public boolean isAnyChangeRequestButtonDisplayed()
+    {
+        try {
+            return getMenuButtonsContainer().isDisplayed();
+        } catch (NoSuchElementException e)
+        {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if the ready for review button is displayed.
+     */
+    public boolean isReadyForReviewButtonDisplayed()
+    {
+        try {
+            WebElement readyForReviewButton = getReadyForReviewButton();
+            return readyForReviewButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if the ready for review button is displayed and enabled.
+     * @throws ElementNotVisibleException if the ready for review button is not displayed
+     * @see #isReadyForReviewButtonDisplayed()
+     */
+    public boolean isReadyForReviewButtonEnabled()
+    {
+        if (!isReadyForReviewButtonDisplayed()) {
+            throw new ElementNotVisibleException("The ready for review button is not displayed.");
+        } else {
+            WebElement readyForReviewButton = getReadyForReviewButton();
+            return readyForReviewButton.isEnabled();
+        }
+    }
+
+    /**
+     * Click on the ready for review button and wait for the page to be reloaded.
+     * Note that this method does not perform any check on the button.
+     *
+     * @return a new instance after the page reload.
+     */
+    public ChangeRequestPage clickReadyForReviewButton()
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        getReadyForReviewButton().click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
+
+    /**
+     * Open the actions menu of the change request main button.
+     */
+    public void toggleChangeRequestActionsMenu()
+    {
+        getMenuButtonsContainer().findElement(By.className("dropdown-toggle")).click();
+    }
+
+    private WebElement getConvertToDraft()
+    {
+        return getMenuButtonsContainer().findElement(By.cssSelector("li[class='cr-convert-to-draft']"));
+    }
+
+    /**
+     * Check if the convert to draft action exists and is enabled.
+     *
+     * @return {@code true} if the action exists and is enabled.
+     */
+    public boolean isConvertToDraftEnabled()
+    {
+        try {
+            WebElement convertToDraft = getConvertToDraft();
+            return convertToDraft.isEnabled();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Click on the "convert to draft" action.
+     * Note that this method does not perform any check if the button exists or not.
+     * However it does open the menu to click on the action item, if it's not opened yet.
+     * @return a new instance of change request page after the page is reloaded.
+     */
+    public ChangeRequestPage clickConvertToDraft()
+    {
+        WebElement convertToDraft = getConvertToDraft();
+        if (!convertToDraft.isDisplayed()) {
+            toggleChangeRequestActionsMenu();
+        }
+        getDriver().addPageNotYetReloadedMarker();
+        convertToDraft.click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
 }
