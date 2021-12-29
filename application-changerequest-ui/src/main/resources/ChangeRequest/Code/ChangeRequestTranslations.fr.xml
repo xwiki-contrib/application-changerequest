@@ -117,6 +117,7 @@ changerequest.timeline.changerequest.status.modified={0} a modifié le statut de
 changerequest.timeline.changerequest.review.added.approval={0} a ajouté une demande d''approbation
 changerequest.timeline.changerequest.review.added.requestchanges={0} a ajouté une demande d''approbation des modifications
 changerequest.timeline.changerequest.discussions={0} a ajouté un nouveau message
+changerequest.timeline.changerequest.updated={0} a modifié la description de la demande de modification
 changerequest.sheet.description.placeholder=Cliquez sur le lien Modifier à droite puis renseignez une description.
 changerequest.sheet.existingChangeRequestSameChanges=D'autres demandes de modification ciblent les pages modifiées ici :
 changerequest.sheet.checks.otherCR.title=Autres demandes de modification pour les mêmes documents
