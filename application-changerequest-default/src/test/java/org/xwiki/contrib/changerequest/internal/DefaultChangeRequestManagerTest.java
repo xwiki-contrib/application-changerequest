@@ -40,6 +40,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
@@ -47,6 +48,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -62,6 +64,7 @@ import org.xwiki.test.junit5.mockito.InjectComponentManager;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWikiContext;
@@ -73,6 +76,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -118,6 +122,9 @@ class DefaultChangeRequestManagerTest
 
     @MockComponent
     private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @MockComponent
+    private ReviewStorageManager reviewStorageManager;
 
     @MockComponent
     private ObservationManager observationManager;
@@ -426,7 +433,20 @@ class DefaultChangeRequestManagerTest
         verify(this.changeRequestStorageManager).save(changeRequest);
         verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
             eq(new ChangeRequestStatus[] {ChangeRequestStatus.DRAFT, ChangeRequestStatus.READY_FOR_REVIEW}));
+    }
 
-
+    @Test
+    void addReview() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        ChangeRequestReview review = new ChangeRequestReview(changeRequest, false, userReference);
+        doAnswer(invocationOnMock -> {
+            ChangeRequestReview review1 = invocationOnMock.getArgument(0);
+            review.setReviewDate(review1.getReviewDate());
+            return null;
+        }).when(this.reviewStorageManager).save(any());
+        assertEquals(review, this.manager.addReview(changeRequest, userReference, false));
+        verify(this.reviewStorageManager).save(review);
     }
 }

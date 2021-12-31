@@ -22,17 +22,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -71,9 +67,6 @@ class ChangeRequestReviewScriptServiceTest
     @MockComponent
     private ReviewStorageManager reviewStorageManager;
 
-    @MockComponent
-    private ObservationManager observationManager;
-
     @Test
     void isAuthorizedToReview() throws ChangeRequestException
     {
@@ -92,14 +85,9 @@ class ChangeRequestReviewScriptServiceTest
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest)).thenReturn(true);
-        ChangeRequestReview review = new ChangeRequestReview(changeRequest, false, userReference);
-        doAnswer(invocationOnMock -> {
-            ChangeRequestReview review1 = invocationOnMock.getArgument(0);
-            review.setReviewDate(review1.getReviewDate());
-            return null;
-        }).when(this.reviewStorageManager).save(any());
+        ChangeRequestReview review = mock(ChangeRequestReview.class);
+        when(this.changeRequestManager.addReview(changeRequest, userReference, false)).thenReturn(review);
         assertEquals(review, this.scriptService.addReview(changeRequest, false));
-        verify(this.reviewStorageManager).save(review);
     }
 
     @Test
@@ -142,6 +130,9 @@ class ChangeRequestReviewScriptServiceTest
         assertFalse(this.scriptService.canEditReview(review));
 
         when(review.getAuthor()).thenReturn(userReference);
+        assertFalse(this.scriptService.canEditReview(review));
+
+        when(review.isLastFromAuthor()).thenReturn(true);
         assertTrue(this.scriptService.canEditReview(review));
 
         when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
@@ -167,6 +158,7 @@ class ChangeRequestReviewScriptServiceTest
         verify(this.reviewStorageManager, never()).save(review);
 
         when(review.getAuthor()).thenReturn(userReference);
+        when(review.isLastFromAuthor()).thenReturn(true);
         assertTrue(this.scriptService.setReviewValidity(review, true));
         verify(review).setValid(true);
         verify(review).setSaved(false);

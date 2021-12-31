@@ -32,9 +32,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
-import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.CurrentUserReference;
@@ -63,9 +61,6 @@ public class ChangeRequestReviewScriptService implements ScriptService
     private ReviewStorageManager reviewStorageManager;
 
     @Inject
-    private ObservationManager observationManager;
-
-    @Inject
     private Logger logger;
 
     /**
@@ -81,11 +76,7 @@ public class ChangeRequestReviewScriptService implements ScriptService
         ChangeRequestReview review = null;
         UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         if (this.isAuthorizedToReview(changeRequest)) {
-            review = new ChangeRequestReview(changeRequest, approved, userReference);
-            this.reviewStorageManager.save(review);
-            changeRequest.addReview(review);
-            this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
-            this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+            review = this.changeRequestManager.addReview(changeRequest, userReference, approved);
         } else {
             logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
         }
@@ -145,6 +136,7 @@ public class ChangeRequestReviewScriptService implements ScriptService
     {
         ChangeRequestStatus status = review.getChangeRequest().getStatus();
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return status != ChangeRequestStatus.MERGED && review.getAuthor().equals(currentUserReference);
+        return review.isLastFromAuthor() && status != ChangeRequestStatus.MERGED
+            && review.getAuthor().equals(currentUserReference);
     }
 }

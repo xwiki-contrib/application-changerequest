@@ -55,105 +55,6 @@
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
 #set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
 #set ($displayDocExtra = false)
-#macro (displayEventStatus $status)
-  #set ($lowerCaseStatus = $stringtool.lowerCase($status))
-  #set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
-  $stringtool.lowerCase($translation)
-#end
-#macro (displayEvent $event)
-  ## we skip the document modified events, since they are basically redundant with the filechanges ones.
-  #if ($event.type != "changerequest.document.modified")
-  &lt;li class="event"&gt;
-    &lt;span class="date" data-date="$event.date.time"&gt;$datetool.format($event.date)&lt;/span&gt;
-    &lt;span class="content"&gt;
-    #set ($userArgument = "#displayUser($event.user)")
-    #set ($localizationKey = "changerequest.timeline.$event.type")
-    #set ($localizationArguments = [])
-    #if ($event.type == "changerequest.create")
-      #set ($actualDoc = $xwiki.getDocument($event.document))
-      #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
-    #elseif ($event.type == "changerequest.filechange.added")
-      #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
-      #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
-      #if ($fileChangeOpt.isPresent())
-        #set ($eventDoc = $fileChangeOpt.get().targetEntity)
-        #set ($actualDoc = $xwiki.getDocument($eventDoc))
-        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
-      #end
-    #elseif ($event.type == "changerequest.status.modified")
-      #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
-      #set ($newStatus = $event.parameters.get('changerequest.status.new'))
-      #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
-    #elseif ($event.type == "changerequest.review.added")
-      #set ($reviewId = $event.parameters.get('changerequest.review.id'))
-      #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
-      #if ($reviewOpt.isPresent())
-        #if ($reviewOpt.get().approved)
-          #set ($localizationKey = "${localizationKey}.approval")
-        #else
-          #set ($localizationKey = "${localizationKey}.requestchanges")
-        #end
-        #set ($localizationArguments = [$userArgument])
-      #end
-    #else
-      #set ($localizationArguments = [$userArgument])
-    #end
-    $services.localization.render($localizationKey, $localizationArguments)
-    &lt;/span&gt;
-  &lt;/li&gt;
-  #end
-#end
-##
-#macro (displayDescription)
-  ## Code inspired from AWM.Content page
-  #if ("$!request.edit" == 'description' &amp;&amp; $canBeEdited)
-    #set ($name = 'content')
-    #set ($editedDocument = $doc)
-    ## Use the preferred content editor.
-    #set ($useWysiwygEditor = $xwiki.getUserPreference('editor') == 'Wysiwyg')
-    #set ($saveDescriptionUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
-    #set ($saveDescriptionUrl = "${saveDescriptionUrl}?form_token=$services.csrf.token")
-    &lt;form method="post" action="$saveDescriptionUrl"&gt;
-    ## The "content" id is expected by some JavaScript and CSS code.
-    #set ($id = 'content')
-    #if (!$useWysiwygEditor)
-      &lt;div id="xwikieditcontentinner"&gt;
-        ## The tool bar may have an entry to insert an HTML macro. Make sure it doesn't break the HTML macro we are currently in.
-        #set ($toolBar = "#template('simpleedittoolbar.vm')")
-        $!toolBar.replace('{{', '&amp;#123;&amp;#123;')
-        ## Display a simple textarea.
-        &lt;textarea id="$id" cols="80" rows="25" name="$name"&gt;$escapetool.xml($editedDocument.content)&lt;/textarea&gt;
-      &lt;/div&gt;
-    #else
-      $!services.edit.syntaxContent.wysiwyg($editedDocument.content, $editedDocument.syntax, {
-        'id': "$id",
-        'name': "$name",
-        'rows': 25,
-        'cols': 80,
-        'full': true
-      })
-    #end
-    &lt;div class="description-button-wrapper"&gt;
-      &lt;input type="button" id="cancel-description" class="btn btn-default" value="Cancel" /&gt;
-      &lt;input type="submit" id="save-description" class="btn btn-primary" value="Save" /&gt;
-    &lt;/div&gt;
-    &lt;/form&gt;
-  #elseif ($canBeEdited)
-    &lt;a class="edit-description" role="button" title="Edit" href="$doc.getURL('view', 'edit=description')"&gt;
-      $services.icon.renderHTML('pencil')
-      &lt;span class="sr-only"&gt;Edit&lt;/span&gt;
-    &lt;/a&gt;
-    #if ("$!doc.content" == "")
-      &lt;span class="description-placeholder"&gt;$services.localization.render('changerequest.sheet.description.placeholder')&lt;/span&gt;
-    #else
-    ## Include the content of the current document.
-    ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
-      &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
-    #end
-  #else
-    &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
-  #end
-#end
 {{html clean="false"}}
 &lt;div class="cr-main-div" data-changerequest-id="$changeRequestId"&gt;
   &lt;div id="discussions" class="hidden"&gt;
@@ -172,7 +73,6 @@
     #end
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
-##
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
     &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;
@@ -361,7 +261,7 @@
         #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
       #end
       #set ($canEditReview = $services.changerequest.review.canEditReview($review))
-      &lt;div class="panel $reviewPanelClass review" data-reviewid="$review.id"&gt;
+      &lt;div class="panel $reviewPanelClass review" data-reviewid="$review.id" data-approved="$review.approved" data-valid="$review.valid" data-date="$review.reviewDate.time" data-author="$escapetool.xml($services.user.serialize($review.author))"&gt;
         &lt;div class="panel-heading"&gt;
            #if ($canEditReview)
             #if ($review.valid)
@@ -373,7 +273,7 @@
               #set($buttonValue = "$services.icon.renderHTML('check') $services.localization.render('changerequest.sheet.tab.review.button.markvalid')")
               #set ($buttonClass = "btn-success")
             #end
-            &lt;button class="btn $buttonClass badge outdated" data-review-id="$review.id" title="$buttonTitle"&gt;$buttonValue&lt;/button&gt;
+            &lt;button class="btn $buttonClass badge outdated review-toggle-valid" data-review-id="$review.id" title="$buttonTitle"&gt;$buttonValue&lt;/button&gt;
           #elseif (!$review.valid)
             &lt;span class="label label-danger outdated" title="$services.localization.render('changerequest.sheet.tab.review.title.outdated.title')"&gt;$services.localization.render('changerequest.sheet.tab.review.title.outdated')&lt;/span&gt;
           #end
@@ -1195,19 +1095,22 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     };
     
     self.postComment = function (reviewId) {
+      // We need to call beforeSave first to put the data in the actual content field.
+      $(document).trigger('xwiki:actions:beforeSave');
+
+      // FIXME: We should detect if a comment has been typed to only post the comment if it's the case.
+      // trigger cancel to avoid having a question from the browser asking to leave the page
+      $(document).trigger('xwiki:actions:cancel');
       var params = {
         'form_token': xm.form_token,
         'action': 'getDiscussionPostUrl',
         'changerequest': self.changeRequestId,
         'reviewid': reviewId
       };
-      
+
       $.post(self.postUrl, params).done(function (data) {
         $('#reviewModal input[name=discussionReference]').val(data.discussionReference);
-        // We need to call beforeSave first to put the data in the actual content field.
-        $(document).trigger('xwiki:actions:beforeSave');
         var commentData =  $('#reviewModal form[name=discussion-review]').serialize();
-        $(document).trigger('xwiki:actions:cancel');
         $.post(data.discussionPostUrl, commentData).done(function (data) {
           self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
           window.location.reload();
@@ -1218,7 +1121,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       }).fail(function (data) {
         self.notification.replace(new XWiki.widgets.Notification('Request error while preparing posting comment associated to the review.','error'));
         console.error(data);
-      })
+      });
     };
     
     self.submitAction = function () {
@@ -1257,6 +1160,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         });
 
         $('#submitReview').on('click', self.submitAction);
+        modal.find('input[name="reviewChoice"]').on('click', function () {
+          $('#submitReview').removeAttr('disabled');
+        });
         modal.modal('show');
       }
     };
@@ -3235,11 +3141,11 @@ tr.discussion-line:hover {
       $services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.review.button')
     &lt;/button&gt;
   #else
-    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary #if(!$isAuthorizedToMerge)disabled#end"&gt;
+    &lt;a href="$mergeUrl" role="button" title="$services.localization.render('changerequest.sheet.merge.button.title')" class="btn btn-primary cr-merge #if(!$isAuthorizedToMerge)disabled#end"&gt;
       $services.icon.renderHTML('download') $services.localization.render('changerequest.sheet.merge.button')
     &lt;/a&gt;
   #end
-  #if ($canBeEdited)
+  #if ($canBeEdited || ($canBeMerged &amp;&amp; $canBeReviewed))
   &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
     &lt;span class="caret"&gt;&lt;/span&gt;
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
@@ -3252,6 +3158,7 @@ tr.discussion-line:hover {
       &lt;/a&gt;
     &lt;/li&gt;
     #end
+    #if ($canBeEdited)
     &lt;li class="cr-rebase"&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
@@ -3267,6 +3174,7 @@ tr.discussion-line:hover {
         $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
       &lt;/a&gt;
     &lt;/li&gt;
+    #end
   &lt;/ul&gt;
   #end
 &lt;/div&gt;

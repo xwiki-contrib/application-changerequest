@@ -291,7 +291,21 @@ public class ChangeRequest
     }
 
     /**
+     * Retrieve the latest review performed by the given author.
+     *
+     * @param reviewer the author who performs the review.
+     * @return an empty optional if the author didn't perform any review, else the latest one.
+     * @since 0.8
+     */
+    public Optional<ChangeRequestReview> getLatestReviewFrom(UserReference reviewer)
+    {
+        return getReviews().stream().filter(review -> reviewer.equals(review.getAuthor())).findFirst();
+    }
+
+    /**
      * Attach a new review to this change request. Note that the review are added on the head of the deque.
+     * This method also automatically compute {@link ChangeRequestReview#isLastFromAuthor()} based on previous reviews
+     * already added.
      *
      * @param review the review to be attached to the change request.
      * @return the current instance.
@@ -299,6 +313,8 @@ public class ChangeRequest
      */
     public ChangeRequest addReview(ChangeRequestReview review)
     {
+        Optional<ChangeRequestReview> optionalPrevious = getLatestReviewFrom(review.getAuthor());
+        optionalPrevious.ifPresent(changeRequestReview -> changeRequestReview.setLastFromAuthor(false));
         this.reviews.addFirst(review);
         return this;
     }

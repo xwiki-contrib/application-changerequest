@@ -45,17 +45,20 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
@@ -120,6 +123,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Inject
     private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @Inject
+    private ReviewStorageManager reviewStorageManager;
 
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
@@ -549,5 +555,27 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 new ChangeRequestStatus[] {oldStatus, newStatus});
             this.computeReadyForMergingStatus(changeRequest);
         }
+    }
+
+    @Override
+    public ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved)
+        throws ChangeRequestException
+    {
+        Optional<ChangeRequestReview> optionalLatestReview = changeRequest.getLatestReviewFrom(reviewer);
+        ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, reviewer);
+        this.reviewStorageManager.save(review);
+
+        // ensure previous review from latest author is considered outdated
+        if (optionalLatestReview.isPresent()) {
+            ChangeRequestReview previousReview = optionalLatestReview.get();
+            previousReview.setLastFromAuthor(false);
+            previousReview.setValid(false);
+            previousReview.setSaved(false);
+            this.reviewStorageManager.save(previousReview);
+        }
+        changeRequest.addReview(review);
+        this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
+        this.computeReadyForMergingStatus(changeRequest);
+        return review;
     }
 }

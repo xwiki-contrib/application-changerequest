@@ -214,4 +214,19 @@ public interface ChangeRequestManager
     default void updateStatus(ChangeRequest changeRequest, ChangeRequestStatus newStatus) throws ChangeRequestException
     {
     }
+
+    /**
+     * Add a new review to the given change request.
+     *
+     * @param changeRequest the change request on which to add a review.
+     * @param approved {@code true} if it's an approval review.
+     * @param reviewer the user who performed the review.
+     * @return the newly created review.
+     * @throws ChangeRequestException in case of problem when saving the review.
+     */
+    default ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved)
+        throws ChangeRequestException
+    {
+        return null;
+    }
 }

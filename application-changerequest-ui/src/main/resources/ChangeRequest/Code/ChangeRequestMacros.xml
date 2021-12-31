@@ -69,5 +69,103 @@
     data-type="$escapetool.xml($reference.type)" data-reference="$escapetool.xml($reference.reference)" $supplementaryData
   #end
 #end
+#macro (displayEventStatus $status)
+  #set ($lowerCaseStatus = $stringtool.lowerCase($status))
+  #set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
+  $stringtool.lowerCase($translation)
+#end
+#macro (displayEvent $event)
+  ## we skip the document modified events, since they are basically redundant with the filechanges ones.
+  #if ($event.type != "changerequest.document.modified")
+  &lt;li class="event"&gt;
+    &lt;span class="date" data-date="$event.date.time"&gt;$datetool.format($event.date)&lt;/span&gt;
+    &lt;span class="content"&gt;
+    #set ($userArgument = "#displayUser($event.user)")
+    #set ($localizationKey = "changerequest.timeline.$event.type")
+    #set ($localizationArguments = [])
+    #if ($event.type == "changerequest.create")
+      #set ($actualDoc = $xwiki.getDocument($event.document))
+      #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
+    #elseif ($event.type == "changerequest.filechange.added")
+      #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+      #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
+      #if ($fileChangeOpt.isPresent())
+        #set ($eventDoc = $fileChangeOpt.get().targetEntity)
+        #set ($actualDoc = $xwiki.getDocument($eventDoc))
+        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+      #end
+    #elseif ($event.type == "changerequest.status.modified")
+      #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
+      #set ($newStatus = $event.parameters.get('changerequest.status.new'))
+      #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
+    #elseif ($event.type == "changerequest.review.added")
+      #set ($reviewId = $event.parameters.get('changerequest.review.id'))
+      #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
+      #if ($reviewOpt.isPresent())
+        #if ($reviewOpt.get().approved)
+          #set ($localizationKey = "${localizationKey}.approval")
+        #else
+          #set ($localizationKey = "${localizationKey}.requestchanges")
+        #end
+        #set ($localizationArguments = [$userArgument])
+      #end
+    #else
+      #set ($localizationArguments = [$userArgument])
+    #end
+    $services.localization.render($localizationKey, $localizationArguments)
+    &lt;/span&gt;
+  &lt;/li&gt;
+  #end
+#end
+#macro (displayDescription)
+  ## Code inspired from AWM.Content page
+  #if ("$!request.edit" == 'description' &amp;&amp; $canBeEdited)
+    #set ($name = 'content')
+    #set ($editedDocument = $doc)
+    ## Use the preferred content editor.
+    #set ($useWysiwygEditor = $xwiki.getUserPreference('editor') == 'Wysiwyg')
+    #set ($saveDescriptionUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
+    #set ($saveDescriptionUrl = "${saveDescriptionUrl}?form_token=$services.csrf.token")
+    &lt;form method="post" action="$saveDescriptionUrl"&gt;
+    ## The "content" id is expected by some JavaScript and CSS code.
+    #set ($id = 'content')
+    #if (!$useWysiwygEditor)
+      &lt;div id="xwikieditcontentinner"&gt;
+        ## The tool bar may have an entry to insert an HTML macro. Make sure it doesn't break the HTML macro we are currently in.
+        #set ($toolBar = "#template('simpleedittoolbar.vm')")
+        $!toolBar.replace('{{', '&amp;#123;&amp;#123;')
+        ## Display a simple textarea.
+        &lt;textarea id="$id" cols="80" rows="25" name="$name"&gt;$escapetool.xml($editedDocument.content)&lt;/textarea&gt;
+      &lt;/div&gt;
+    #else
+      $!services.edit.syntaxContent.wysiwyg($editedDocument.content, $editedDocument.syntax, {
+        'id': "$id",
+        'name': "$name",
+        'rows': 25,
+        'cols': 80,
+        'full': true
+      })
+    #end
+    &lt;div class="description-button-wrapper"&gt;
+      &lt;input type="button" id="cancel-description" class="btn btn-default" value="Cancel" /&gt;
+      &lt;input type="submit" id="save-description" class="btn btn-primary" value="Save" /&gt;
+    &lt;/div&gt;
+    &lt;/form&gt;
+  #elseif ($canBeEdited)
+    &lt;a class="edit-description" role="button" title="Edit" href="$doc.getURL('view', 'edit=description')"&gt;
+      $services.icon.renderHTML('pencil')
+      &lt;span class="sr-only"&gt;Edit&lt;/span&gt;
+    &lt;/a&gt;
+    #if ("$!doc.content" == "")
+      &lt;span class="description-placeholder"&gt;$services.localization.render('changerequest.sheet.description.placeholder')&lt;/span&gt;
+    #else
+    ## Include the content of the current document.
+    ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
+      &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
+    #end
+  #else
+    &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
+  #end
+#end
 {{/velocity}}</content>
 </xwikidoc>

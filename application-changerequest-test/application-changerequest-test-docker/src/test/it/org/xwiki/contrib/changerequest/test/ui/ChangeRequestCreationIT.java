@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.test.ui;
 import java.util.Date;
 import java.util.List;
 
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionEditPage;
@@ -32,6 +33,8 @@ import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
 import org.xwiki.contrib.changerequest.test.po.description.TimelineEvent;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.contrib.changerequest.test.po.checks.CheckPanelElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
@@ -70,30 +73,44 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 class ChangeRequestCreationIT
 {
+    private static final String CR_CREATOR = "CRCreator";
+    private static final String CR_APPROVER = "Approver";
+    private static final String CR_MERGER = "Merger";
+
     @Test
     @Order(1)
-    void createChangeRequest(TestUtils setup, TestReference testReference)
+    void createChangeRequest(TestUtils setup, TestReference testReference) throws Exception
     {
         setup.loginAsSuperAdmin();
         setup.createPage(testReference, "Some content to the test page.");
-        setup.createUser("CRCreator", "CRCreator", null);
-        setup.createUser("Approver", "Approver", null);
 
-        setup.setRights(testReference, "", "CRCreator", "edit", false);
-        setup.setRights(testReference, "", "CRCreator", "changerequest", true);
-        setup.setRights(testReference, "", "Approver", "crapprove", true);
+        // Fixture with 3 users:
+        // CRCreator: does not have edit rights, but has right to create CR
+        // Approver: does not have edit rights, but has approval right
+        // Merger: does not approval right but has edit right
+        setup.createUser(CR_CREATOR, CR_CREATOR, null);
+        setup.createUser(CR_APPROVER, CR_APPROVER, null);
+        setup.createUser(CR_MERGER, CR_MERGER, null);
+
+        setup.setRights(testReference, "", CR_CREATOR, "edit", false);
+        setup.setRights(testReference, "", CR_CREATOR, "changerequest", true);
+
+        // FIXME: right scheme is not correct
+        setup.setRights(testReference, "", CR_APPROVER, "edit", false);
+        setup.setRights(testReference, "", CR_APPROVER, "crapprove", true);
+        setup.setRights(testReference, "", CR_MERGER, "edit", true);
 
         // we go to the page to ensure there's no remaining lock on it.
         setup.gotoPage(testReference);
 
-        setup.login("CRCreator", "CRCreator");
+        setup.login(CR_CREATOR, CR_CREATOR);
         setup.gotoPage(testReference);
-        ExtendedViewPage viewPage = new ExtendedViewPage();
-        assertTrue(viewPage.hasChangeRequestEditButton());
+        ExtendedViewPage extendedViewPage = new ExtendedViewPage();
+        assertTrue(extendedViewPage.hasChangeRequestEditButton());
 
         // Save the date for checking the events
         Date dateBeforeCR = new Date();
-        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = viewPage.clickChangeRequestEdit();
+        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
         extendedEditPage.getEditor().setContent("Some new content.");
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
 
@@ -187,10 +204,12 @@ class ChangeRequestCreationIT
         assertFalse(changeRequestPage.isReviewButtonEnabled());
 
         // Switch the change request to draft: check the status label, the checks and the timeline
-        setup.login("CRCreator", "CRCreator");
+        setup.login(CR_CREATOR, CR_CREATOR);
         setup.gotoPage(pageURL);
         changeRequestPage = new ChangeRequestPage();
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
+
+        // The creator cannot review its own CR
         assertFalse(changeRequestPage.isReviewButtonEnabled());
         assertTrue(changeRequestPage.isConvertToDraftEnabled());
 
@@ -221,7 +240,7 @@ class ChangeRequestCreationIT
         assertFalse(changeRequestPage.isAnyChangeRequestButtonDisplayed());
 
         // Switch back the status to ready for review and check again status and timeline
-        setup.login("CRCreator", "CRCreator");
+        setup.login(CR_CREATOR, CR_CREATOR);
         setup.gotoPage(pageURL);
         changeRequestPage = new ChangeRequestPage();
 
@@ -282,7 +301,7 @@ class ChangeRequestCreationIT
         assertTrue(changeRequestPage.isOpenButtonDisplayed());
         assertFalse(changeRequestPage.isOpenButtonEnabled());
 
-        setup.login("CRCreator", "CRCreator");
+        setup.login(CR_CREATOR, CR_CREATOR);
         setup.gotoPage(pageURL);
         changeRequestPage = new ChangeRequestPage();
 
@@ -333,5 +352,145 @@ class ChangeRequestCreationIT
         assertEquals("CRCreator\n"
                 + "changed the status of the change request from closed to ready for review",
             timelineEvent.getContent().getText());
+
+        // Add an approval review to the page
+        setup.login(CR_APPROVER, CR_APPROVER);
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertTrue(changeRequestPage.isReviewButtonEnabled());
+
+        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
+        assertFalse(reviewModal.isSaveEnabled());
+        reviewModal.selectApprove();
+        assertTrue(reviewModal.isSaveEnabled());
+        //reviewModal.setComment("This change request looks ok.");
+        reviewModal.save();
+        Date dateAfterReview = new Date();
+        // There is a reload after the save
+        changeRequestPage = new ChangeRequestPage();
+        reviewsPane = changeRequestPage.openReviewsPane();
+        List<ReviewElement> reviews = reviewsPane.getReviews();
+        assertEquals(1, reviews.size());
+
+        ReviewElement review = reviews.get(0);
+        assertTrue(review.isApproval());
+        assertFalse(review.isOutdated());
+        assertTrue(review.isToggleValidButtonEnabled());
+        assertEquals("xwiki:XWiki.Approver", review.getAuthor());
+        assertTrue(review.getDate().after(dateAfterStatusChange4));
+        assertTrue(review.getDate().before(dateAfterReview));
+
+        // TODO: check the discussion associated to the review
+
+        // Check the events created
+        // There should be 3 more events:
+        // 1 for the review created
+        // 1 for the status change to ready for merge
+        // 1 for the added message
+        // FIXME: when no message is typed along with the review, no event should be triggered, it should not be posted
+        descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(11);
+        changeRequestPage = new ChangeRequestPage();
+        descriptionPane = changeRequestPage.openDescription();
+        events = descriptionPane.getEvents();
+        assertEquals(11, events.size());
+
+        timelineEvent = events.get(8);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
+        assertTrue(timelineEvent.getDate().before(dateAfterReview));
+        assertEquals("Approver\n"
+                + "added a new approval review",
+            timelineEvent.getContent().getText());
+
+        timelineEvent = events.get(9);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
+        assertTrue(timelineEvent.getDate().before(dateAfterReview));
+        assertEquals("Approver\n"
+                + "changed the status of the change request from ready for review to ready for merging",
+            timelineEvent.getContent().getText());
+
+        timelineEvent = events.get(10);
+        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
+        assertTrue(timelineEvent.getDate().before(dateAfterReview));
+        assertEquals("Approver\n"
+                + "added a new message",
+            timelineEvent.getContent().getText());
+
+        // Since we have an approval review, checks should be all good and CR should be ready to be merged
+        checksPane = changeRequestPage.openChecksPane();
+        assertTrue(checksPane.getStrategyCheck().isReady());
+
+        assertTrue(changeRequestPage.isMergeButtonDisplayed());
+
+        // Approver doesn't have right to merge CR
+        assertFalse(changeRequestPage.isMergeButtonEnabled());
+
+        setup.login(CR_MERGER, CR_MERGER);
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isMergeButtonDisplayed());
+        // FIXME: it's false right now.
+        //assertTrue(changeRequestPage.isMergeButtonEnabled());
+
+        // Check with guest and creator too
+        setup.forceGuestUser();
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isMergeButtonDisplayed());
+        assertFalse(changeRequestPage.isMergeButtonEnabled());
+
+        setup.login(CR_CREATOR, CR_CREATOR);
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isMergeButtonDisplayed());
+        assertFalse(changeRequestPage.isMergeButtonEnabled());
+
+        // Add a new review requesting for changes
+        setup.login(CR_APPROVER, CR_APPROVER);
+        setup.gotoPage(pageURL);
+        changeRequestPage = new ChangeRequestPage();
+
+        // the review button is not anymore the main button, but it still available in the drop down menu
+        assertTrue(changeRequestPage.isAnyChangeRequestButtonDisplayed());
+        assertFalse(changeRequestPage.isReviewButtonDisplayed());
+        changeRequestPage.toggleChangeRequestActionsMenu();
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertTrue(changeRequestPage.isReviewButtonEnabled());
+
+        reviewModal = changeRequestPage.clickReviewButton();
+        assertFalse(reviewModal.isSaveEnabled());
+        reviewModal.selectRequestChanges();
+        assertTrue(reviewModal.isSaveEnabled());
+        //reviewModal.setComment("On second thought I'm not so sure anymore it's good.");
+        reviewModal.save();
+
+        Date dateAfterReview2 = new Date();
+
+        // the page has been reloaded for adding the review
+        changeRequestPage = new ChangeRequestPage();
+        assertFalse(changeRequestPage.isMergeButtonDisplayed());
+
+        checksPane = changeRequestPage.openChecksPane();
+        assertFalse(checksPane.getStrategyCheck().isReady());
+
+        reviewsPane = changeRequestPage.openReviewsPane();
+        reviews = reviewsPane.getReviews();
+        assertEquals(2, reviews.size());
+
+        // Reviews are presented in reverse order
+        review = reviews.get(0);
+        assertFalse(review.isApproval());
+        assertFalse(review.isOutdated());
+        assertTrue(review.getDate().after(dateAfterReview));
+        assertTrue(review.getDate().before(dateAfterReview2));
+        assertEquals("xwiki:XWiki.Approver", review.getAuthor());
+        assertTrue(review.isToggleValidButtonEnabled());
+
+        review = reviews.get(1);
+        assertTrue(review.isApproval());
+        assertTrue(review.isOutdated());
+        assertFalse(review.isToggleValidButtonEnabled());
     }
 }

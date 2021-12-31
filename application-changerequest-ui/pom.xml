@@ -72,5 +72,12 @@
       <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
+    <!-- We depend on CKEditor until XWIKI-19282 is fixed -->
+    <dependency>
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>application-ckeditor-ui</artifactId>
+      <version>${ckeditor.version}</version>
+      <type>xar</type>
+    </dependency>
   </dependencies>
 </project>

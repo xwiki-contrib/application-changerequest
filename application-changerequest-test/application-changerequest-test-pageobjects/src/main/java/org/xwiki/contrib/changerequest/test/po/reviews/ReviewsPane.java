@@ -64,13 +64,13 @@ public class ReviewsPane extends BaseElement
      *
      * @return the list of reviews of the tab.
      */
-    public List<ChangeRequestReviewElement> getReviews()
+    public List<ReviewElement> getReviews()
     {
         WebElement reviewsContainer = this.container.findElement(By.id("reviewsContainer"));
-        List<ChangeRequestReviewElement> result = new ArrayList<>();
+        List<ReviewElement> result = new ArrayList<>();
         List<WebElement> reviews = getDriver().findElementsWithoutWaiting(reviewsContainer, By.className("review"));
         for (WebElement reviewElement : reviews) {
-            result.add(new ChangeRequestReviewElement(reviewElement));
+            result.add(new ReviewElement(reviewElement));
         }
         return result;
     }

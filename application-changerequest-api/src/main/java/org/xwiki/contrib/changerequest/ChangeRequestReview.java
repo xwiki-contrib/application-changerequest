@@ -42,6 +42,7 @@ public class ChangeRequestReview
     private Date reviewDate;
     private boolean isValid;
     private boolean isSaved;
+    private boolean isLastFromAuthor;
     private String id;
 
     /**
@@ -58,6 +59,7 @@ public class ChangeRequestReview
         this.author = author;
         this.reviewDate = new Date();
         this.isValid = true;
+        this.isLastFromAuthor = true;
     }
 
     /**
@@ -140,6 +142,33 @@ public class ChangeRequestReview
     {
         isValid = valid;
         return this;
+    }
+
+    /**
+     * Define if the review is the last one from this author on this change request: i.e. if the author performed a new
+     * review after it or not. Note that this value should be consistent with {@link #isValid}: i.e. if a review is not
+     * the last one from author, it should not be valid anymore.
+     *
+     * @return {@code true} if this is latest review from this author.
+     * @since 0.8
+     */
+    public boolean isLastFromAuthor()
+    {
+        return isLastFromAuthor;
+    }
+
+    /**
+     * Define if the review is the last one from this author on this change request: i.e. if the author performed a new
+     * review after it or not. Note that this value should be consistent with {@link #isValid}: i.e. if a review is not
+     * the last one from author, it should not be valid anymore. This setter won't modify {@link #isValid} though, so
+     * it's caller job to perform the change to it.
+     *
+     * @param lastFromAuthor @code true} if this is latest review from this author.
+     * @since 0.8
+     */
+    public void setLastFromAuthor(boolean lastFromAuthor)
+    {
+        isLastFromAuthor = lastFromAuthor;
     }
 
     /**

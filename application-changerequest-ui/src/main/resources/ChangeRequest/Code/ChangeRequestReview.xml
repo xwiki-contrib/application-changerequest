@@ -127,8 +127,8 @@
              &lt;/div&gt;&lt;!-- end form-group --&gt;
             &lt;/div&gt;&lt;!-- end panel body --&gt;
             &lt;div class="modal-footer"&gt;
-              &lt;button type="button" class="btn btn-primary" id="submitReview"&gt;Save&lt;/button&gt;
-              &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;Close&lt;/button&gt;
+              &lt;button type="button" class="btn btn-primary" id="submitReview" disabled="disabled"&gt;$services.localization.render('save')&lt;/button&gt;
+              &lt;button type="button" class="btn btn-default review-cancel" data-dismiss="modal"&gt;$services.localization.render('cancel')&lt;/button&gt;
             &lt;/div&gt;
           &lt;/div&gt;&lt;!-- /.modal-content --&gt;
         &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;

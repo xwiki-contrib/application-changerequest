@@ -25,6 +25,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.test.ui.po.ViewPage;
 
@@ -135,6 +136,20 @@ public class ChangeRequestPage extends ViewPage
             WebElement reviewButton = getReviewButton();
             return isElementEnabled(reviewButton);
         }
+    }
+
+    /**
+     * Click on the review button and wait for the review modal to be displayed before returning it.
+     * Note that this method does not perform any check on the review button.
+     *
+     * @return a review modal.
+     */
+    public ReviewModal clickReviewButton()
+    {
+        getReviewButton().click();
+        ReviewModal reviewModal = new ReviewModal();
+        getDriver().waitUntilCondition(driver -> reviewModal.isDisplayed());
+        return reviewModal;
     }
 
     private WebElement getReadyForReviewButton()
@@ -371,5 +386,38 @@ public class ChangeRequestPage extends ViewPage
         openAsDraftButton.click();
         getDriver().waitUntilPageIsReloaded();
         return new ChangeRequestPage();
+    }
+
+    private WebElement getMergeButton()
+    {
+        return getDriver().findElementWithoutWaiting(getMenuButtonsContainer(), By.className("cr-merge"));
+    }
+
+    /**
+     * @return {@code true} if the merge button is displayed.
+     */
+    public boolean isMergeButtonDisplayed()
+    {
+        try {
+            WebElement mergeButton = getMergeButton();
+            return mergeButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if the merge button is displayed and enabled.
+     * @throws ElementNotVisibleException if the merge button is not displayed
+     * @see #isMergeButtonDisplayed()
+     */
+    public boolean isMergeButtonEnabled()
+    {
+        if (!isMergeButtonDisplayed()) {
+            throw new ElementNotVisibleException("The merge button is not displayed.");
+        } else {
+            WebElement mergeButton = getMergeButton();
+            return isElementEnabled(mergeButton);
+        }
     }
 }
