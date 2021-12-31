@@ -69,6 +69,7 @@ public class ChangeRequestReviewScriptService implements ScriptService
      * @param changeRequest the change request for which to add a review.
      * @param approved {@code true} if the review is an approval, {@code false} if it requests changes.
      * @return {@code true} if the review has been properly stored.
+     * @throws ChangeRequestException in case of problem for storing the review.
      */
     public ChangeRequestReview addReview(ChangeRequest changeRequest, boolean approved)
         throws ChangeRequestException
@@ -88,6 +89,7 @@ public class ChangeRequestReviewScriptService implements ScriptService
      *
      * @param changeRequest the change request about to be reviewed.
      * @return {@code true} if the change request can be reviewed by current user.
+     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
      */
     public boolean isAuthorizedToReview(ChangeRequest changeRequest) throws ChangeRequestException
     {
@@ -114,6 +116,7 @@ public class ChangeRequestReviewScriptService implements ScriptService
      * @param review the review for which to change the validity status.
      * @param isValid the new validity status to set.
      * @return {@code true} if the review has been properly saved with the new status.
+     * @throws ChangeRequestException in case of problem when saving the review.
      */
     public boolean setReviewValidity(ChangeRequestReview review, boolean isValid) throws ChangeRequestException
     {

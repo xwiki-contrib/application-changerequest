@@ -163,7 +163,7 @@ public class ChangeRequestReview
      * the last one from author, it should not be valid anymore. This setter won't modify {@link #isValid} though, so
      * it's caller job to perform the change to it.
      *
-     * @param lastFromAuthor @code true} if this is latest review from this author.
+     * @param lastFromAuthor {@code true} if this is latest review from this author.
      * @since 0.8
      */
     public void setLastFromAuthor(boolean lastFromAuthor)

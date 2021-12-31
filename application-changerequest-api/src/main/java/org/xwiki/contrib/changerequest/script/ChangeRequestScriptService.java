@@ -111,6 +111,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @param changeRequestId the identifier of a change request.
      * @return an optional containing the change request instance if it can be found, else an empty optional.
+     * @throws ChangeRequestException in case of problem when retrieving the change request.
      */
     public Optional<ChangeRequest> getChangeRequest(String changeRequestId) throws ChangeRequestException
     {
@@ -122,6 +123,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @param changeRequest the change request to be checked for merging authorization.
      * @return {@code true} if the current user has proper rights to merge the given change request.
+     * @throws ChangeRequestException in case of problem when checking the role of the user.
      * @since 0.3
      */
     @Unstable
@@ -138,6 +140,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeRequest the change request to check.
      * @return {@code true} if the given change request can be merged (i.e. the approval strategy
      *          allows it and the change request does not have conflicts).
+     * @throws ChangeRequestException in case of problem when loading information.
      */
     public boolean canBeMerged(ChangeRequest changeRequest) throws ChangeRequestException
     {
@@ -163,6 +166,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @param documentReference the reference to look for in the change requests.
      * @return the list of all change requests containing a change for the given document.
+     * @throws ChangeRequestException in case of problem when loading change request.
      * @since 0.3
      */
     public List<ChangeRequest> getChangeRequestWithChangesFor(DocumentReference documentReference)
@@ -178,6 +182,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeRequest the change request from which to take the modified documents.
      * @return a map whose keys are the given document references and values the list of found change requests. If no
      *          change request is found for a given reference, the entry is not added.
+     * @throws ChangeRequestException in case of problem for loading other change requests.
      * @since 0.7
      */
     public Map<DocumentReference, List<ChangeRequest>> getOpenChangeRequestsTargetingSame(ChangeRequest changeRequest)
@@ -205,6 +210,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @param title a partial title for finding the change requests.
      * @return a list of document references corresponding to change request pages.
+     * @throws ChangeRequestException in case of problem for loading other change request.
      * @since 0.3
      */
     public List<DocumentReference> findChangeRequestMatchingTitle(String title) throws ChangeRequestException
@@ -218,6 +224,8 @@ public class ChangeRequestScriptService implements ScriptService
      *          {@link org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction}.
      * @param changeRequestId the change request id.
      * @return an URL as a String or an empty string in case of error.
+     * @throws SerializeResourceReferenceException in case of problem for serializing the URL
+     * @throws UnsupportedResourceReferenceException if the action is not recognized.
      * @since 0.3
      */
     public String getChangeRequestURL(String action, String changeRequestId)
@@ -260,6 +268,7 @@ public class ChangeRequestScriptService implements ScriptService
      * Mark the given change request as ready for review.
      *
      * @param changeRequest the change request for which to change the status.
+     * @throws ChangeRequestException in case of problem for saving the change request.
      * @since 0.4
      */
     public void setReadyForReview(ChangeRequest changeRequest) throws ChangeRequestException
@@ -271,6 +280,7 @@ public class ChangeRequestScriptService implements ScriptService
      * Mark the given change request as draft.
      *
      * @param changeRequest the change request for which to change the status.
+     * @throws ChangeRequestException in case of problem for saving the change request.
      * @since 0.4
      */
     public void setDraft(ChangeRequest changeRequest) throws ChangeRequestException
@@ -299,6 +309,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @param documentReference the document reference for which to perform a merge.
      * @return a {@link Optional#empty()} if no change for the given reference can be found or if an error occurs
      *         during the merge, else an optional containing the {@link MergeDocumentResult}.
+     * @throws ChangeRequestException in case of problem for loading information.
      * @since 0.4
      */
     public Optional<ChangeRequestMergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
@@ -360,6 +371,7 @@ public class ChangeRequestScriptService implements ScriptService
      *          {@link ConflictResolutionChoice#CUSTOM}.
      * @return {@code true} if the conflicts were properly fixed, {@code false} if any problem occurs preventing to fix
      *          the conflict.
+     * @throws ChangeRequestException in case of problem for applying decisions.
      * @since 0.4
      */
     public boolean fixConflicts(ChangeRequest changeRequest, DocumentReference documentReference,
@@ -383,6 +395,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @return an {@link Optional#empty()} in case of problem to get the strategy, else an optional containing the
      * {@link MergeApprovalStrategy}.
+     * @throws ChangeRequestException in case of problem for loading the strategy.
      * @since 0.4
      */
     public MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
@@ -412,6 +425,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @param documentReference the document for which to check if it can be requested for deletion.
      * @return {@code true} if the document can be requested for deletion.
+     * @throws ChangeRequestException in case of problem for loading rights.
      * @since 0.5
      */
     public boolean canDeletionBeRequested(DocumentReference documentReference) throws ChangeRequestException
@@ -424,6 +438,7 @@ public class ChangeRequestScriptService implements ScriptService
      *
      * @param changeRequest the request for which to get approvers.
      * @return the list of approvers.
+     * @throws ChangeRequestException in case of problem for loading information.
      * @since 0.5
      */
     public Set<UserReference> getApprovers(ChangeRequest changeRequest) throws ChangeRequestException
