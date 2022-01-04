@@ -388,14 +388,12 @@ class ChangeRequestCreationIT
         // There should be 3 more events:
         // 1 for the review created
         // 1 for the status change to ready for merge
-        // 1 for the added message
-        // FIXME: when no message is typed along with the review, no event should be triggered, it should not be posted
         descriptionPane = changeRequestPage.openDescription();
-        descriptionPane.waitUntilEventsSize(11);
+        descriptionPane.waitUntilEventsSize(10);
         changeRequestPage = new ChangeRequestPage();
         descriptionPane = changeRequestPage.openDescription();
         events = descriptionPane.getEvents();
-        assertEquals(11, events.size());
+        assertEquals(10, events.size());
 
         timelineEvent = events.get(8);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
@@ -409,13 +407,6 @@ class ChangeRequestCreationIT
         assertTrue(timelineEvent.getDate().before(dateAfterReview));
         assertEquals("Approver\n"
                 + "changed the status of the change request from ready for review to ready for merging",
-            timelineEvent.getContent().getText());
-
-        timelineEvent = events.get(10);
-        assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
-        assertTrue(timelineEvent.getDate().before(dateAfterReview));
-        assertEquals("Approver\n"
-                + "added a new message",
             timelineEvent.getContent().getText());
 
         // Since we have an approval review, checks should be all good and CR should be ready to be merged

@@ -1093,35 +1093,51 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         self.notification.replace(new XWiki.widgets.Notification('Error while getting review information.','error'));
       });
     };
-    
+
+    var isEditorEmpty = function () {
+      var textarea = $('#reviewModal textarea').first();
+      var textareaContent = textarea.val();
+      // regex and logic taken
+      // from https://github.com/ckeditor/ckeditor4/blob/master/plugins/editorplaceholder/plugin.js#L67
+      var fullPageRegex = /&lt;body.*?&gt;((?:.|[\n\r])*?)&lt;\/body&gt;/i;
+      var bodyDataMatched = textareaContent.match(fullPageRegex);
+      if (textarea.attr('data-syntax').includes('annotatedxhtml') &amp;&amp; bodyDataMatched &amp;&amp; (bodyDataMatched.length > 1)) {
+        textareaContent = bodyDataMatched[ 1 ];
+      }
+      return textareaContent.length === 0;
+    };
+
     self.postComment = function (reviewId) {
       // We need to call beforeSave first to put the data in the actual content field.
       $(document).trigger('xwiki:actions:beforeSave');
 
-      // FIXME: We should detect if a comment has been typed to only post the comment if it's the case.
-      // trigger cancel to avoid having a question from the browser asking to leave the page
-      $(document).trigger('xwiki:actions:cancel');
-      var params = {
-        'form_token': xm.form_token,
-        'action': 'getDiscussionPostUrl',
-        'changerequest': self.changeRequestId,
-        'reviewid': reviewId
-      };
+      if (!isEditorEmpty()) {
+        $(document).trigger('xwiki:actions:cancel');
+        var params = {
+          'form_token': xm.form_token,
+          'action': 'getDiscussionPostUrl',
+          'changerequest': self.changeRequestId,
+          'reviewid': reviewId
+        };
 
-      $.post(self.postUrl, params).done(function (data) {
-        $('#reviewModal input[name=discussionReference]').val(data.discussionReference);
-        var commentData =  $('#reviewModal form[name=discussion-review]').serialize();
-        $.post(data.discussionPostUrl, commentData).done(function (data) {
-          self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
-          window.location.reload();
+        $.post(self.postUrl, params).done(function (data) {
+          $('#reviewModal input[name=discussionReference]').val(data.discussionReference);
+          var commentData =  $('#reviewModal form[name=discussion-review]').serialize();
+          $.post(data.discussionPostUrl, commentData).done(function (data) {
+            self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
+            window.location.reload();
+          }).fail(function (data) {
+            self.notification.replace(new XWiki.widgets.Notification('Request error while posting comment associated to the review.','error'));
+            console.error(data);
+          })
         }).fail(function (data) {
-          self.notification.replace(new XWiki.widgets.Notification('Request error while posting comment associated to the review.','error'));
+          self.notification.replace(new XWiki.widgets.Notification('Request error while preparing posting comment associated to the review.','error'));
           console.error(data);
-        })
-      }).fail(function (data) {
-        self.notification.replace(new XWiki.widgets.Notification('Request error while preparing posting comment associated to the review.','error'));
-        console.error(data);
-      });
+        });
+      } else {
+        self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
+        window.location.reload();
+      }
     };
     
     self.submitAction = function () {
