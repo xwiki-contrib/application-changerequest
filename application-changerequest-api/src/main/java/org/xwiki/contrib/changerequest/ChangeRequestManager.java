@@ -229,4 +229,17 @@ public interface ChangeRequestManager
     {
         return null;
     }
+
+    /**
+     * Define if the current file change is outdated and should be rebased.
+     *
+     * @param fileChange the file change for which to check if it is outdated.
+     * @return {@code true} if the file change should be rebased.
+     * @throws ChangeRequestException in case of problem when loading the document.
+     * @since 0.9
+     */
+    default boolean isFileChangeOutdated(FileChange fileChange) throws ChangeRequestException
+    {
+        return false;
+    }
 }

@@ -361,4 +361,12 @@ class ChangeRequestScriptServiceTest
         assertEquals(Optional.of(fileChange3), this.scriptService.getFileChange(changeRequest, fileChangeId));
         assertEquals(Optional.empty(), this.scriptService.getFileChange(changeRequest, "anything"));
     }
+
+    @Test
+    void isFileChangeOutdated() throws ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(this.changeRequestManager.isFileChangeOutdated(fileChange)).thenReturn(true);
+        assertTrue(this.scriptService.isFileChangeOutdated(fileChange));
+    }
 }

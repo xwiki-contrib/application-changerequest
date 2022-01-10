@@ -449,4 +449,33 @@ class DefaultChangeRequestManagerTest
         assertEquals(review, this.manager.addReview(changeRequest, userReference, false));
         verify(this.reviewStorageManager).save(review);
     }
+
+    @Test
+    void isFileChangeOutdated() throws ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        XWikiDocument currentDoc = mock(XWikiDocument.class);
+        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).thenReturn(currentDoc);
+
+        when(fileChange.getPreviousPublishedVersion()).thenReturn("1.2");
+        when(currentDoc.getVersion()).thenReturn("2.1");
+        assertTrue(this.manager.isFileChangeOutdated(fileChange));
+
+        when(currentDoc.getVersion()).thenReturn("1.3");
+        assertTrue(this.manager.isFileChangeOutdated(fileChange));
+
+        when(currentDoc.getVersion()).thenReturn("1.1");
+        assertTrue(this.manager.isFileChangeOutdated(fileChange));
+
+        when(currentDoc.getVersion()).thenReturn("1.2");
+        when(currentDoc.getDate()).thenReturn(new Date(42));
+        when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(33));
+        assertTrue(this.manager.isFileChangeOutdated(fileChange));
+
+        when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(43));
+        assertFalse(this.manager.isFileChangeOutdated(fileChange));
+
+        when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(42));
+        assertFalse(this.manager.isFileChangeOutdated(fileChange));
+    }
 }

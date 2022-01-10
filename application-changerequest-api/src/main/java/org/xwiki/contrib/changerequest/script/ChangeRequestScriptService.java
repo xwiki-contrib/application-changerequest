@@ -459,4 +459,18 @@ public class ChangeRequestScriptService implements ScriptService
             .filter(fileChange -> StringUtils.equals(fileChangeId, fileChange.getId()))
             .findFirst();
     }
+
+    /**
+     * Check if the given file change is outdated.
+     *
+     * @param fileChange the file change to check if it is outdated.
+     * @return {@code true} if the published version of the filechange does not match the current version of the
+     *          document.
+     * @throws ChangeRequestException in case of problems for loading the information.
+     * @since 0.9
+     */
+    public boolean isFileChangeOutdated(FileChange fileChange) throws ChangeRequestException
+    {
+        return this.changeRequestManager.isFileChangeOutdated(fileChange);
+    }
 }

@@ -134,6 +134,8 @@ changerequest.sheet.diff.conflictLabel=Conflicts
 changerequest.sheet.diff.conflictLabel.title=Those changes are in conflict with the new published version of the document. You must fix the conflicts for allowing to merge.
 changerequest.sheet.message.outdated=outdated
 changerequest.sheet.message.outdated.title=This message is outdated: the diff changed since it was written.
+changerequest.sheet.diff.outdated=outdated
+changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences.
 
 ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_merged=Merged

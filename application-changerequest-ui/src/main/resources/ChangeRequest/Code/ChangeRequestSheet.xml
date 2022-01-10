@@ -213,6 +213,7 @@
     #if ($crMergeDocumentResult.hasConflicts())
       #set ($discard = $conflictingFiles.put($ref, $crMergeDocumentResult))
     #end
+    #set ($isFileChangeOutdated = $services.changerequest.isFileChangeOutdated($crMergeDocumentResult.fileChange))
     #set ($renderedTitle = $crMergeDocumentResult.documentTitle)
     #set ($diffKey = $crMergeDocumentResult.identifier)
     #if ($crMergeDocumentResult.type == "DELETION")
@@ -237,6 +238,11 @@
             #if ($crMergeDocumentResult.hasConflicts())
               &lt;span class="label label-warning label-diff-conflict" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.conflictLabel.title'))"&gt;
                 $services.icon.renderHTML('wrench') $services.localization.render('changerequest.sheet.diff.conflictLabel')
+              &lt;/span&gt;
+            #end
+            #if ($isFileChangeOutdated)
+              &lt;span class="label label-warning label-diff-outdated" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.outdated.title'))"&gt;
+                $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.diff.outdated')
               &lt;/span&gt;
             #end
           &lt;/span&gt;

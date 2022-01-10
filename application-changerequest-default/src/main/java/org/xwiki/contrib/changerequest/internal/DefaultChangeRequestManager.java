@@ -34,6 +34,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -577,5 +578,25 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
         this.computeReadyForMergingStatus(changeRequest);
         return review;
+    }
+
+    @Override
+    public boolean isFileChangeOutdated(FileChange fileChange) throws ChangeRequestException
+    {
+        String previousPublishedVersion = fileChange.getPreviousPublishedVersion();
+        DocumentModelBridge currentDocument =
+            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
+        String currentDocumentVersion = currentDocument.getVersion();
+        boolean result = false;
+
+        // if version are equals, we check date to ensure the version are still same
+        if (StringUtils.equals(previousPublishedVersion, currentDocumentVersion)) {
+            result = fileChange.getPreviousPublishedVersionDate().before(((XWikiDocument) currentDocument).getDate());
+        // if version are not equals, we don't care if it's because it's a new change has been added or a version has
+        // been removed: either way the filechange is outdated.
+        } else {
+            result = true;
+        }
+        return result;
     }
 }
