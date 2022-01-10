@@ -242,7 +242,7 @@ class DefaultChangeRequestStorageManagerTest
         when(this.entityReferenceSerializer.serialize(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS))
             .thenReturn("ChangeRequest.ChangeRequestClass");
         String expectedStatement =
-            "where :reference member of doc.object(ChangeRequest.ChangeRequestClass).changedDocuments";
+            "from doc.object(ChangeRequest.ChangeRequestClass) as obj where :reference member of obj.changedDocuments";
         Query query = mock(Query.class);
         when(queryManager.createQuery(expectedStatement, Query.XWQL)).thenReturn(query);
 

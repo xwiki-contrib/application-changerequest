@@ -273,7 +273,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
-        String statement = String.format("where :reference member of doc.object(%s).%s",
+        String statement = String.format("from doc.object(%s) as obj where :reference member of obj.%s",
             this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_FIELD);
         try {
             Query query = this.queryManager.createQuery(statement, Query.XWQL);
