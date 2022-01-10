@@ -155,28 +155,51 @@
     &lt;/div&gt;&lt;!-- End home --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="filechanges"&gt;
 &lt;div&gt;
-#set ($id = 'changerequest-filechanges')
-#set ($columns = ['doc.location', 'filechange_type', 'filechange_author', '_actions'])
-#set($columnsProperties = {
-   'doc.location' : { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
-   'filechange_type': { 'type' : 'text', 'filterable': 'false', 'sortable': 'false' },
-   'filechange_author': { 'type' : 'text', 'html': 'true', 'filterable': 'false', 'sortable': 'false' },
-   '_actions': {'actions': ['edit', {
-     'id': 'fixconflict',
-     'label': $services.localization.render('changerequest.sheet.fixconflict.button'),
-     'icon': 'wrench',
-     'async': 'false'
-   }]}
-})
-#set ($fileChangeLTDoc = $xwiki.getDocument('ChangeRequest.Code.FileChangeLiveTable'))
-#set($options = {
-   'rowCount': 10,
-   'translationPrefix': 'changerequest.livetable.filechange.',
-   'url': $fileChangeLTDoc.getURL('get', "changerequest=$changeRequest.id"),
-   'outputOnlyHtml': true,
-   'pageSize': false
-})
-#livetable($id $columns $columnsProperties $options)
+{{/html}}
+
+{{liveData
+  id="changerequest-filechanges"
+  properties="changerequest,doc.location,filechange_type,filechange_author,_actions"
+  source="liveTable"
+  sourceParameters="resultPage=ChangeRequest.Code.FileChangeLiveTable&amp;translationPrefix=changerequest.livetable.filechange."
+  filters="changerequest=$changeRequest.id"
+  sort="doc.location:asc"
+  limit="10"}}{
+  "meta": {
+    "propertyDescriptors": [
+      { "id": "_actions", "displayer": { "id": "actions", "actions": ["edit", "fixconflict"] } },
+      {
+        "id": "changerequest",
+        "visible": false
+      },
+      {
+        "id": "filechange_author",
+        "displayer": "html",
+        "editable": false
+      },
+      {
+        "id": "doc.location",
+        "editable": false
+      },
+      {
+        "id": "filechange_type",
+        "editable": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "fixconflict",
+        "allowProperty": "doc.hasfixconflict",
+        "urlProperty": "doc.fixconflict_url",
+        "icon": "wrench",
+        "name": "$services.localization.render('changerequest.sheet.fixconflict.button')"
+      }
+    ]
+  }
+}
+{{/liveData}}
+
+{{html clean="false"}}
 &lt;/div&gt;
 #set ($conflictingFiles = {})
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
@@ -954,7 +977,8 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal', "$services.webjar
       modal.requestModal('NEXT', 'MERGED');
     });
     
-    $(".actionfixconflict").on('click', function (event) {
+    console.log($(".action_fixconflict"));
+    $(document).on('click', '.action_fixconflict', function (event) {
       event.preventDefault();
       var currentReference = xm.documentReference;
       var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
@@ -968,7 +992,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal', "$services.webjar
     });
   };
   
-  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loaded', initialize);
 });</code>
     </property>
     <property>
@@ -1101,7 +1125,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       // from https://github.com/ckeditor/ckeditor4/blob/master/plugins/editorplaceholder/plugin.js#L67
       var fullPageRegex = /&lt;body.*?&gt;((?:.|[\n\r])*?)&lt;\/body&gt;/i;
       var bodyDataMatched = textareaContent.match(fullPageRegex);
-      if (textarea.attr('data-syntax').includes('annotatedxhtml') &amp;&amp; bodyDataMatched &amp;&amp; (bodyDataMatched.length > 1)) {
+      if (textarea.attr('data-syntax').includes('annotatedxhtml') &amp;&amp; bodyDataMatched &amp;&amp; (bodyDataMatched.length &gt; 1)) {
         textareaContent = bodyDataMatched[ 1 ];
       }
       return textareaContent.length === 0;

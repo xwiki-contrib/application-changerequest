@@ -19,9 +19,12 @@
  */
 package org.xwiki.contrib.changerequest.test.po.description;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
@@ -122,9 +125,11 @@ public class DescriptionPane extends BaseElement
      */
     public void waitUntilEventsSize(int size)
     {
-        int maxLoop = 5;
+        int maxLoop = 10;
         int loop = 0;
         int latestSize = -1;
+        String originalUrl = getDriver().getCurrentUrl();
+        String reloadUrl = "";
         do {
             List<TimelineEvent> events = getEvents();
             latestSize = events.size();
@@ -132,7 +137,12 @@ public class DescriptionPane extends BaseElement
                 throw new AssertionError(String.format("[%s] events expected [%s] obtained.", size, latestSize));
             } else if (latestSize < size) {
                 getDriver().addPageNotYetReloadedMarker();
-                getDriver().navigate().refresh();
+                reloadUrl = originalUrl + "?refreshToken=" + RandomStringUtils.randomAlphanumeric(10);
+                try {
+                    getDriver().navigate().to(new URL(reloadUrl));
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(String.format("Error while creating reload URL [%s]", reloadUrl), e);
+                }
                 getDriver().waitUntilPageIsReloaded();
                 this.tabContainer = getDriver().findElement(By.id("home"));
                 loop++;
@@ -140,8 +150,9 @@ public class DescriptionPane extends BaseElement
         } while (loop < maxLoop && latestSize != size);
         if (latestSize != size) {
             throw new TimeoutException(
-                String.format("Only [%s] events have been obtained on [%s] expected after [%s] reload of the page.",
-                    latestSize, size, maxLoop));
+                String.format("Only [%s] events have been obtained on [%s] expected after [%s] reload of the page."
+                        + "Latest reload URL: [%s]",
+                    latestSize, size, maxLoop, reloadUrl));
         }
     }
 

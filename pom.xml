@@ -318,6 +318,11 @@
       </dependency>
       <dependency>
         <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-rendering-macro-include</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-rendering-wikimacro-store</artifactId>
         <version>${platform.version}</version>
       </dependency>
@@ -335,6 +340,16 @@
         <groupId>org.xwiki.rendering</groupId>
         <artifactId>xwiki-rendering-macro-html</artifactId>
         <version>${rendering.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-rest-server</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-rest-api</artifactId>
+        <version>${platform.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

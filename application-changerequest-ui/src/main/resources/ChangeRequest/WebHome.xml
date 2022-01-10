@@ -36,22 +36,13 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
-#set ($id = "all-changerequests-livetable")
-#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
-#set($columnsProperties = {
-   "doc.title" : { "type" : "text", "link": "auto" },
-   "authors": { "type": "suggest", "html": "true" },
-   "status" : { "type" : "suggest" },
-   "changedDocuments" : { "type": "suggest", "html": "true"}
-})
-#set($options = { 
-   "className":"ChangeRequest.Code.ChangeRequestClass",
-   "rowCount": 10,
-   "translationPrefix": "changerequest.livetable."
-})
-#livetable($id $columns $columnsProperties $options)
-{{/velocity}}</content>
+  <content>{{liveData
+  id="all-changerequests-livetable"
+  properties="doc.date,doc.title,authors,status,changedDocuments"
+  source="liveTable"
+  sourceParameters="className=ChangeRequest.Code.ChangeRequestClass&amp;translationPrefix=changerequest.livetable."
+  sort="doc.date:desc"
+  limit="10"/}}</content>
   <object>
     <name>ChangeRequest.WebHome</name>
     <number>0</number>

@@ -21,8 +21,8 @@ package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.xwiki.livedata.test.po.LiveDataElement;
 import org.xwiki.test.ui.po.BaseElement;
-import org.xwiki.test.ui.po.LiveTableElement;
 import org.xwiki.test.ui.po.diff.DocumentDiffSummary;
 import org.xwiki.test.ui.po.diff.EntityDiff;
 
@@ -50,11 +50,11 @@ public class FileChangesPane extends BaseElement
     /**
      * @return the live table with the list of file changes.
      */
-    public LiveTableElement getFileChangesListLiveTable()
+    public LiveDataElement getFileChangesListLiveData()
     {
-        LiveTableElement liveTableElement = new LiveTableElement("changerequest-filechanges");
-        liveTableElement.waitUntilReady();
-        return liveTableElement;
+        LiveDataElement liveDataElement = new LiveDataElement("changerequest-filechanges");
+        liveDataElement.getTableLayout().waitUntilReady();
+        return liveDataElement;
     }
 
     private WebElement getDiffContainer(String pageName)

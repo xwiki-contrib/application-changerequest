@@ -143,11 +143,11 @@ class ChangeRequestCreationIT
         descriptionEditPage.setDescription("This is a new CR with some content.");
         changeRequestPage = descriptionEditPage.saveDescription();
         descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(2);
 
         assertTrue(descriptionPane.hasCustomDescription());
         assertEquals("This is a new CR with some content.", descriptionPane.getDescription());
 
-        descriptionPane.waitUntilEventsSize(2);
         Date dateAfterDescriptionUpdate = new Date();
 
         events = descriptionPane.getEvents();
@@ -161,7 +161,7 @@ class ChangeRequestCreationIT
 
         // Check the diff
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(1, fileChangesPane.getFileChangesListLiveTable().getRowCount());
+        assertEquals(1, fileChangesPane.getFileChangesListLiveData().getTableLayout().countRows());
         String pageName = testReference.toString();
         DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(pageName);
         assertEquals("(1 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());

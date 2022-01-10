@@ -162,22 +162,25 @@
     </property>
     <property>
       <content>{{velocity}}
-#set ($id = "changerequest-livetable")
-#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
-#set($columnsProperties = {
-   "doc.title" : { "type" : "text", "link" : "view" },
-   "authors": { "type": "suggest", "html": "true" },
-   "status" : { "type" : "suggest" },
-   "changedDocuments" : { "type": "hidden", "filterable": "false"}
-})
 #set ($currentDocCompactSerialization = $services.model.serialize($tdoc.documentReference, "compactwiki"))
-#set($options = { 
-   "className":"ChangeRequest.Code.ChangeRequestClass",
-   "extraParams": "changedDocuments=$currentDocCompactSerialization",
-   "rowCount": 10,
-   "translationPrefix": "changerequest.livetable."
-})
-#livetable($id $columns $columnsProperties $options)
+{{liveData
+  id="changerequest-livetable"
+  properties="doc.date,doc.title,authors,status,changedDocuments"
+  source="liveTable"
+  sourceParameters="className=ChangeRequest.Code.ChangeRequestClass&amp;translationPrefix=changerequest.livetable."
+  filters="changedDocuments=$currentDocCompactSerialization"
+  sort="doc.date:desc"
+  limit="10"}}{
+  "meta": {
+    "propertyDescriptors": [
+      {
+        "id": "changedDocuments",
+        "visible": false
+      }
+    ]
+  }
+}
+{{/liveData}}
 {{/velocity}}</content>
     </property>
     <property>
