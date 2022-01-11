@@ -133,6 +133,8 @@ changerequest.sheet.message.outdated=périmé
 changerequest.sheet.message.outdated.title=Ce message est périmé : le diff n'est pas à jour.
 changerequest.sheet.diff.outdated=périmé
 changerequest.sheet.diff.outdated.title=La demande de modification concerne un document qui a été modifié depuis. Il est recommandé de mettre à jour la demande de modification pour comparer les différences.
+changerequest.sheet.message.collapse.button.title=Cliquez pour réduire le message.
+changerequest.sheet.message.expand.button.title=Cliquez pour agrandir le message.
 
 ## changerequest.sheet.status.draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_draft=Brouillon
