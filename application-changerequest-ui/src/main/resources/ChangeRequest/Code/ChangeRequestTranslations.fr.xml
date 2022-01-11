@@ -132,7 +132,7 @@ changerequest.sheet.diff.conflictLabel.title=Ces modifications sont en conflit a
 changerequest.sheet.message.outdated=périmé
 changerequest.sheet.message.outdated.title=Ce message est périmé : le diff n'est pas à jour.
 changerequest.sheet.diff.outdated=périmé
-### Missing: changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences.
+changerequest.sheet.diff.outdated.title=La demande de modification concerne un document qui a été modifié depuis. Il est recommandé de mettre à jour la demande de modification pour comparer les différences.
 
 ## changerequest.sheet.status.draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_draft=Brouillon
