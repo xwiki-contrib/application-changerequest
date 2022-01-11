@@ -1622,6 +1622,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
       $.post(url, data).done(function (data) {
         notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
         DiscussionHandler.retrieveMessage(data);
+        self.editorDiv.remove();
       }).fail(function (data) {
         console.error(data);
         notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
@@ -2054,6 +2055,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       if (lineResult.outdated) {
         discussion.addClass('discussion-outdated');
         discussion.find('.outdated-message').removeClass('hidden');
+        discussion.find('.message-content').collapse('hide');
       }
       incrementCounter(targetReference);
     }
@@ -2073,9 +2075,25 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     $('#discussions .discussion').each(placeDiscussions);
   };
   
+  var toggleCollapseExpandButton = function (isExpanded, element) {
+    if (isExpanded) {
+      element.find('.collapse-button').removeClass('hidden');
+      element.find('.expand-button').addClass('hidden');
+    } else {
+      element.find('.expand-button').removeClass('hidden');
+      element.find('.collapse-button').addClass('hidden');
+    }
+  };
+  
   var initialize = function () {
     placeAllDiscussions();
     $(document).on('xwiki:dom:updated', placeAllDiscussions);
+    $(document).on('hidden.bs.collapse', '.message-content', function (event) {
+      toggleCollapseExpandButton(false, $(this).parent());
+    });
+    $(document).on('shown.bs.collapse', '.message-content', function (event) {
+      toggleCollapseExpandButton(true, $(this).parent());
+    });
   };
   
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
@@ -2820,10 +2838,10 @@ tr.discussion-line:hover {
 .message {
   border: 1px solid black;
   margin: 1em;
-  border-radius: 1em;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
 }
 .message-metadata {
-  border-bottom: 1px dashed gray;
   background-color: lightgray;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
@@ -2839,7 +2857,7 @@ tr.discussion-line:hover {
     margin: 5px;
   }
 }
-.outdated-message {
+.message-badges {
   float: right;
 }</code>
     </property>

@@ -136,6 +136,8 @@ changerequest.sheet.message.outdated=outdated
 changerequest.sheet.message.outdated.title=This message is outdated: the diff changed since it was written.
 changerequest.sheet.diff.outdated=outdated
 changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences.
+changerequest.sheet.message.collapse.button.title=Click to collapse the message.
+changerequest.sheet.message.expand.button.title=Click to expand the message.
 
 ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_merged=Merged
