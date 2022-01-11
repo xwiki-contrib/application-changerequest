@@ -159,7 +159,7 @@
 
 {{liveData
   id="changerequest-filechanges"
-  properties="changerequest,doc.location,filechange_type,filechange_author,_actions"
+  properties="changerequest,doc.location,filechange_type,filechange_author,filechange_version,filechange_documentVersion,_actions"
   source="liveTable"
   sourceParameters="resultPage=ChangeRequest.Code.FileChangeLiveTable&amp;translationPrefix=changerequest.livetable.filechange."
   filters="changerequest=$changeRequest.id"
@@ -183,6 +183,14 @@
       },
       {
         "id": "filechange_type",
+        "editable": false
+      },
+      {
+        "id": "filechange_version",
+        "editable": false
+      },
+      {
+        "id": "filechange_documentVersion",
         "editable": false
       }
     ],

@@ -37,6 +37,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>changerequest.livetable.doc.name=Location
+changerequest.livetable.doc.date=Modification date
 changerequest.livetable.status=Status
 changerequest.livetable.changedDocuments=Concerned documents
 changerequest.livetable.authors=Authors
@@ -101,6 +102,8 @@ changerequest.filechange.type.DELETION=Deletion
 changerequest.livetable.filechange.doc.location=Location
 changerequest.livetable.filechange.filechange_type=Change type
 changerequest.livetable.filechange.filechange_author=Author of last change
+changerequest.livetable.filechange.filechange_version=Version
+changerequest.livetable.filechange.filechange_documentVersion=Published document version
 changerequest.livetable.filechange._actions=Actions
 changerequest.sheet.tab.approvers.title=Approvers
 

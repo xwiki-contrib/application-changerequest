@@ -73,6 +73,8 @@ Technical page for getting livetable data for change request file changes.
           'isExtensionPage': $isExtensionPage,
           'filechange_author': "&lt;a href='$xwiki.getURL($authorDocRef)'&gt;$xwiki.getPlainUserName($authorDocRef)&lt;/a&gt;",
           'filechange_type': $services.localization.render("changerequest.filechange.type.$lastFileChange.type"),
+          'filechange_version': $lastFileChange.version,
+          'filechange_documentVersion': $lastFileChange.previousPublishedVersion,
           'doc_viewable': $services.security.authorization.hasAccess('view', $docReference),
           'doc_fullName': $services.model.serialize($docReference, 'local'),
           'doc_space': $services.model.serialize($docReference.parent, 'local'),
