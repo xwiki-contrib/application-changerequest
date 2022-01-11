@@ -37,6 +37,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>changerequest.livetable.doc.name=Emplacement
+changerequest.livetable.doc.date=Date de modification
 changerequest.livetable.status=Statut
 changerequest.livetable.changedDocuments=Documents concernés
 changerequest.livetable.authors=Auteurs
@@ -101,6 +102,8 @@ changerequest.filechange.type.DELETION=Suppression
 changerequest.livetable.filechange.doc.location=Emplacement
 changerequest.livetable.filechange.filechange_type=Modifier le type
 changerequest.livetable.filechange.filechange_author=Auteur de la dernière modification
+changerequest.livetable.filechange.filechange_version=Version
+changerequest.livetable.filechange.filechange_documentVersion=Version du document publiée
 changerequest.livetable.filechange._actions=Actions
 changerequest.sheet.tab.approvers.title=Approbateurs
 ChangeRequest.Code.ConfigurationClass_approvalStrategy=Stratégie d'approbation des fusions
