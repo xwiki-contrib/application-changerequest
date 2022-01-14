@@ -42,7 +42,14 @@
   source="liveTable"
   sourceParameters="className=ChangeRequest.Code.ChangeRequestClass&amp;translationPrefix=changerequest.livetable."
   sort="doc.date:desc"
-  limit="10"/}}</content>
+  limit="10"}}{
+  "meta": {
+    "actions": [{
+      "id": "edit",
+      "allowProperty": "unexisting property"
+    }]
+  }
+}{{/liveData}}</content>
   <object>
     <name>ChangeRequest.WebHome</name>
     <number>0</number>

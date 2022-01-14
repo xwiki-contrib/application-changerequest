@@ -177,7 +177,11 @@
         "id": "changedDocuments",
         "visible": false
       }
-    ]
+    ],
+    "actions": [{
+      "id": "edit",
+      "allowProperty": "unexisting property"
+    }]
   }
 }
 {{/liveData}}
