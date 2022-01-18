@@ -167,7 +167,7 @@
   limit="10"}}{
   "meta": {
     "propertyDescriptors": [
-      { "id": "_actions", "displayer": { "id": "actions", "actions": ["edit", "fixconflict"] } },
+      { "id": "_actions", "displayer": { "id": "actions", "actions": ["edit", "fixconflict", "rebase"] } },
       {
         "id": "changerequest",
         "visible": false
@@ -201,6 +201,13 @@
         "urlProperty": "doc.fixconflict_url",
         "icon": "wrench",
         "name": "$services.localization.render('changerequest.sheet.fixconflict.button')"
+      },
+      {
+        "id": "rebase",
+        "allowProperty": "doc.hasrebase",
+        "urlProperty": "doc.rebase_url",
+        "icon": "refresh",
+        "name": "$services.localization.render('changerequest.sheet.rebase.button')"
       }
     ]
   }

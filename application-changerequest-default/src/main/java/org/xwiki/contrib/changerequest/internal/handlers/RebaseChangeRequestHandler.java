@@ -24,10 +24,14 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.container.Container;
+import org.xwiki.container.servlet.ServletRequest;
 import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -35,6 +39,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 
 /**
  * Component responsible to handle a rebase request.
@@ -47,6 +53,9 @@ import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 @Singleton
 public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
+    private static final String REFERENCE_PARAMETER = "referenceParameter";
+    private static final String LOCALE_PARAMETER = "locale";
+
     @Inject
     private FileChangeStorageManager fileChangeStorageManager;
 
@@ -56,6 +65,9 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
     @Inject
     private Container container;
 
+    @Inject
+    private DocumentReferenceResolver<String> documentReferenceResolver;
+
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
         throws ChangeRequestException, IOException
@@ -63,11 +75,23 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
         ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
         HttpServletResponse response =
             ((ServletResponse) this.container.getResponse()).getHttpServletResponse();
+        HttpServletRequest request =
+            ((ServletRequest) this.container.getRequest()).getHttpServletRequest();
+        String serializedReference = request.getParameter(REFERENCE_PARAMETER);
 
+        boolean allFileChanges = StringUtils.isEmpty(serializedReference);
+
+        DocumentReference reference = null;
+        if (!allFileChanges) {
+            reference = this.documentReferenceResolver.resolve(serializedReference);
+            reference = new DocumentReference(reference, LocaleUtils.toLocale(request.getParameter(LOCALE_PARAMETER)));
+        }
         if (changeRequest != null) {
             if (this.changeRequestManager.isAuthorizedToEdit(this.getCurrentUser(), changeRequest)) {
                 for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
-                    this.fileChangeStorageManager.rebase(lastFileChange);
+                    if (allFileChanges || lastFileChange.getTargetEntity().equals(reference)) {
+                        this.fileChangeStorageManager.rebase(lastFileChange);
+                    }
                 }
                 this.responseSuccess(changeRequest);
             } else {
