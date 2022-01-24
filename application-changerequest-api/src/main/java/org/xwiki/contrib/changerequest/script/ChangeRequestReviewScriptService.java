@@ -98,6 +98,22 @@ public class ChangeRequestReviewScriptService implements ScriptService
     }
 
     /**
+     * Check if the given user is authorized to review the given change request.
+     *
+     * @param changeRequest the change request about to be reviewed.
+     * @param userReference the user for which to check if they can review
+     * @return {@code true} if the change request can be reviewed by the given user.
+     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
+     * @since 0.9
+     */
+    @Unstable
+    public boolean isAuthorizedToReview(ChangeRequest changeRequest, UserReference userReference)
+        throws ChangeRequestException
+    {
+        return this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest);
+    }
+
+    /**
      * Retrieve a review based on its identifier.
      *
      * @param changeRequest the change request for which to retrieve a review.

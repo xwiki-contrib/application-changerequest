@@ -146,7 +146,12 @@ ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_merged=Merged
 ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Ready for review
 ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=Ready for merging
-ChangeRequest.Code.ChangeRequestClass_status_closed=Closed</content>
+ChangeRequest.Code.ChangeRequestClass_status_closed=Closed
+
+changerequest.user.profile.menu=Change Requests
+changerequest.user.profile.authorcr.title=Authored Change Requests
+changerequest.user.profile.approverscr.title=Change Requests to review
+</content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestTranslations</name>
     <number>0</number>
