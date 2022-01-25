@@ -53,6 +53,7 @@ import org.xwiki.filter.xar.internal.input.WikiObjectReader;
 import org.xwiki.filter.xar.internal.input.XARInputFilterStream;
 import org.xwiki.filter.xar.internal.input.XARInputFilterStreamFactory;
 import org.xwiki.filter.xar.internal.output.XAROutputFilterStreamFactory;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.properties.internal.DefaultBeanManager;
@@ -533,9 +534,10 @@ public class DefaultFileChangeStorageManagerTest
         when(mergeDocumentResult.getMergeResult()).thenReturn(currentDocument);
         UserReference author = mock(UserReference.class);
         when(fileChange.getAuthor()).thenReturn(author);
-        when(this.userReferenceConverter.convert(author)).thenReturn(userDocReference);
+        DocumentAuthors authors = mock(DocumentAuthors.class);
+        when(currentDocument.getAuthors()).thenReturn(authors);
         this.fileChangeStorageManager.merge(fileChange);
-        verify(currentDocument).setContentAuthorReference(userDocReference);
-        verify(this.xWiki).saveDocument(currentDocument, "Save after change request merge", this.context);
+        verify(authors).setOriginalMetadataAuthor(author);
+        verify(this.xWiki).saveDocument(currentDocument, "Merge changes from **change request**", this.context);
     }
 }

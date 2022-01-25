@@ -41,12 +41,10 @@ import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
-import org.xwiki.job.JobExecutor;
 import org.xwiki.localization.LocaleUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.refactoring.script.RequestFactory;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.UserReference;
@@ -121,12 +119,6 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     @Inject
     private MergeManager mergeManager;
-
-    @Inject
-    private RequestFactory refactoringRequestFactory;
-
-    @Inject
-    private JobExecutor jobExecutor;
 
     @Inject
     private Logger logger;
@@ -389,8 +381,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             }
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
-                document.setContentAuthorReference(this.userReferenceConverter.convert(fileChange.getAuthor()));
-                String saveMessage = "Save after change request merge";
+                document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
+                // FIXME: Merge message should be translatable
+                String saveMessage = "Merge changes from **change request**";
                 wiki.saveDocument(document, saveMessage, context);
             }
         } catch (XWikiException e) {
