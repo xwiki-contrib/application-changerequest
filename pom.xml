@@ -59,6 +59,10 @@
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
     <discussions.version>2.0-rc-2</discussions.version>
     <rights-api.version>2.0-rc-4</rights-api.version>
+    <!-- FIXME: this needs to be removed after release of 14.0 final -->
+    <xwiki.enforcer.skip>true</xwiki.enforcer.skip>
+    <common.version>14.0-rc-1</common.version>
+    <platform.version>14.0-rc-1</platform.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
