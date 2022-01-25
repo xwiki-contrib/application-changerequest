@@ -145,5 +145,8 @@ ChangeRequest.Code.ChangeRequestClass_status_merged=Fusionné
 ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Prêt pour révision
 ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=Prêt pour fusion
 ChangeRequest.Code.ChangeRequestClass_status_closed=Fermé
+changerequest.user.profile.menu=Demandes de modification
+### Missing: changerequest.user.profile.authorcr.title=Authored Change Requests
+changerequest.user.profile.approverscr.title=Demandes de modification à réviser
 </content>
 </xwikidoc>
