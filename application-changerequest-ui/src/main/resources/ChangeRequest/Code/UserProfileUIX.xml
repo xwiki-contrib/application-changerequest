@@ -69,7 +69,7 @@
   properties="doc.date,doc.title,authors,status,changedDocuments"
   source="liveTable"
   sourceParameters="resultPage=ChangeRequest.Code.ApproversChangeRequestResults&amp;className=ChangeRequest.Code.ChangeRequestClass&amp;userDoc=$currentUserDocSerialization&amp;translationPrefix=changerequest.livetable."
-  filters="status=READY_FOR_REVIEW"
+  filters="status=ready_for_review"
   sort="doc.date:desc"
   limit="10"}}{
   "meta": {
