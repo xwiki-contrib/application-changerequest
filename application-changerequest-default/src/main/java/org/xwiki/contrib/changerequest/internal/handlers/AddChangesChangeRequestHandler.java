@@ -103,26 +103,26 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         boolean isDeletion = "1".equals(request.getParameter("deletion"));
 
         if (changeRequest != null) {
-            UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-
-            FileChange fileChange =
-                this.createFileChange(isDeletion, changeRequest, modifiedDocument, documentReference, request,
-                    currentUser);
             if (!this.checkDocumentCompatibility(changeRequest, documentReference)) {
                 this.contextProvider.get().getResponse()
                     .sendError(412, "Error when checking the compatibility of the changes");
-            }
-            if (fileChange != null) {
-                changeRequest.addFileChange(fileChange);
-                this.storageManager.save(changeRequest);
-                this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
-                this.addApprovers(documentReference, changeRequest);
-                this.invalidateApprovals(changeRequest);
-                this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
-                this.observationManager
-                    .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
+            } else {
+                UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+                FileChange fileChange =
+                    this.createFileChange(isDeletion, changeRequest, modifiedDocument, documentReference, request,
+                        currentUser);
+                if (fileChange != null) {
+                    changeRequest.addFileChange(fileChange);
+                    this.storageManager.save(changeRequest);
+                    this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
+                    this.addApprovers(documentReference, changeRequest);
+                    this.invalidateApprovals(changeRequest);
+                    this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+                    this.observationManager
+                        .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
 
-                this.responseSuccess(changeRequest);
+                    this.responseSuccess(changeRequest);
+                }
             }
         }
     }
