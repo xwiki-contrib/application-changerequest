@@ -62,6 +62,8 @@
 {{velocity}}
 #if ("$!request.get('text')" != "")
   #set ($references = $services.changerequest.findChangeRequestMatchingTitle($request.get('text')))
+  ## We filter out the change request that are not compatible with current doc.
+  #set ($references = $services.changerequest.filterCompatibleChangeRequest($references, $request.get('docChange')))
   #set ($result = [])
   #foreach ($reference in $references)
     #set ($crDoc = $xwiki.getDocument($reference))
@@ -176,14 +178,16 @@ define('xwiki-suggestChangeRequest', ['jquery', 'xwiki-selectize'], function($) 
       load: function(typedText, callback) {
         $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest.Code').getURL('get'), {
           text: typedText,
-          outputSyntax: 'plain'
+          outputSyntax: 'plain',
+          docChange: select.attr('data-docchange')
         }).done(callback).fail(callback);
       },
       loadSelected: function(typedText, callback) {
         $.getJSON(new XWiki.Document('ChangeRequestPicker', 'ChangeRequest.Code').getURL('get'), {
           text: typedText,
           exactMatch: true,
-          outputSyntax: 'plain'
+          outputSyntax: 'plain',
+          docChange: select.attr('data-docchange')
         }).done(callback).fail(callback);
       }
     };

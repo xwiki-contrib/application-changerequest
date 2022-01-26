@@ -24,8 +24,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.inject.Named;
+
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentModelBridge;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -35,6 +39,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.diff.Chunk;
@@ -48,9 +53,11 @@ import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.store.merge.MergeDocumentResult;
+import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -94,6 +101,12 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @BeforeComponent
+    void setup(MockitoComponentManager componentManager) throws Exception
+    {
+        componentManager.registerComponent(ComponentManager.class, "context", componentManager);
+    }
 
     @Test
     void getChangeRequest() throws ChangeRequestException
@@ -368,5 +381,50 @@ class ChangeRequestScriptServiceTest
         FileChange fileChange = mock(FileChange.class);
         when(this.changeRequestManager.isFileChangeOutdated(fileChange)).thenReturn(true);
         assertTrue(this.scriptService.isFileChangeOutdated(fileChange));
+    }
+
+    @Test
+    void filterCompatibleChangeRequest(MockitoComponentManager componentManager)
+        throws Exception
+    {
+        DocumentReference crRef1 = new DocumentReference("xwiki", "CR1", "Webhome");
+        DocumentReference crRef2 = new DocumentReference("xwiki", Arrays.asList("Foo", "CR2"), "Webhome");
+        DocumentReference crRef3 = new DocumentReference("xwiki", "CR3", "Webhome");
+        DocumentReference notCRRef = new DocumentReference("xwiki", "NotCR", "Webhome");
+        DocumentReference crRef4 = new DocumentReference("xwiki", "CR4", "Webhome");
+
+        ChangeRequest cr1 = mock(ChangeRequest.class);
+        ChangeRequest cr2 = mock(ChangeRequest.class);
+        ChangeRequest cr3 = mock(ChangeRequest.class);
+        ChangeRequest cr4 = mock(ChangeRequest.class);
+
+        DocumentReference newChangeRef = mock(DocumentReference.class);
+
+        when(this.changeRequestStorageManager.load("CR1")).thenReturn(Optional.of(cr1));
+        when(this.changeRequestStorageManager.load("CR2")).thenReturn(Optional.of(cr2));
+        when(this.changeRequestStorageManager.load("CR3")).thenReturn(Optional.of(cr3));
+        when(this.changeRequestStorageManager.load("NotCR")).thenReturn(Optional.empty());
+        when(this.changeRequestStorageManager.load("CR4")).thenReturn(Optional.of(cr4));
+
+        FileChangeCompatibilityChecker checker1 =
+            componentManager.registerMockComponent(FileChangeCompatibilityChecker.class, "checker1");
+        FileChangeCompatibilityChecker checker2 =
+            componentManager.registerMockComponent(FileChangeCompatibilityChecker.class, "checker2");
+
+        when(checker1.canChangeOnDocumentBeAdded(cr1, newChangeRef)).thenReturn(true);
+        when(checker1.canChangeOnDocumentBeAdded(cr2, newChangeRef)).thenReturn(true);
+        when(checker1.canChangeOnDocumentBeAdded(cr3, newChangeRef)).thenReturn(false);
+        when(checker1.canChangeOnDocumentBeAdded(cr4, newChangeRef)).thenReturn(true);
+
+        when(checker2.canChangeOnDocumentBeAdded(cr1, newChangeRef)).thenReturn(false);
+        when(checker2.canChangeOnDocumentBeAdded(cr2, newChangeRef)).thenReturn(true);
+        when(checker2.canChangeOnDocumentBeAdded(cr3, newChangeRef)).thenReturn(true);
+        when(checker2.canChangeOnDocumentBeAdded(cr4, newChangeRef)).thenReturn(true);
+
+        List<DocumentReference> expected = Arrays.asList(crRef2, crRef4);
+
+        assertEquals(expected, this.scriptService.filterCompatibleChangeRequest(
+            Arrays.asList(crRef1, crRef2, crRef3, notCRRef, crRef4), newChangeRef));
+        verify(this.changeRequestStorageManager).load("NotCR");
     }
 }

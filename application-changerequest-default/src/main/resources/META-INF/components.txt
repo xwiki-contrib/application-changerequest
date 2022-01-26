@@ -34,3 +34,4 @@ org.xwiki.contrib.changerequest.internal.listeners.RightsUpdatedListener
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestRightsManager
 org.xwiki.contrib.changerequest.internal.strategies.AllApproversNoFallbackMergeApprovalStrategy
 org.xwiki.contrib.changerequest.internal.listeners.ApproversXObjectUpdatedListener
+org.xwiki.contrib.changerequest.internal.checkers.RightCompatibilityChecker

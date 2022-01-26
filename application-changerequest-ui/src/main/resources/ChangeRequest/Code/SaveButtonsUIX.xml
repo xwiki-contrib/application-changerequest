@@ -91,7 +91,8 @@
                     'name': 'existingCRSelector',
                     'id': 'existingCRSelector',
                     'class': 'form-control',
-                    'value': "$!request.get('changerequest')"
+                    'value': "$!request.get('changerequest')",
+                    'data-docchange': "$!request.get('docChange')"
                   })
                   #changeRequestPicker($crPickerParameters)
               &lt;/div&gt;&lt;!-- End panel body --&gt;
@@ -286,7 +287,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     } else {
       var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
       var urlParams = new URLSearchParams(window.location.search);
-      var queryString = 'getmodal=1&amp;outputSyntax=plain';
+      var queryString = 'getmodal=1&amp;outputSyntax=plain&amp;docChange=' + xm.documentReference;
       if (urlParams.has('changerequest')) {
         queryString += '&amp;changerequest=' + urlParams.get('changerequest');
       }

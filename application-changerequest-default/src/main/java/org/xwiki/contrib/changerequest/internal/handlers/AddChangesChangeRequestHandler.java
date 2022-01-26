@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -41,6 +43,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -84,6 +87,10 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;
 
+    @Inject
+    @Named("context")
+    private ComponentManager componentManager;
+
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
@@ -101,6 +108,10 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             FileChange fileChange =
                 this.createFileChange(isDeletion, changeRequest, modifiedDocument, documentReference, request,
                     currentUser);
+            if (!this.checkDocumentCompatibility(changeRequest, documentReference)) {
+                this.contextProvider.get().getResponse()
+                    .sendError(412, "Error when checking the compatibility of the changes");
+            }
             if (fileChange != null) {
                 changeRequest.addFileChange(fileChange);
                 this.storageManager.save(changeRequest);
@@ -114,6 +125,23 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.responseSuccess(changeRequest);
             }
         }
+    }
+
+    private boolean checkDocumentCompatibility(ChangeRequest changeRequest, DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        boolean canBeAdded = true;
+        try {
+            List<FileChangeCompatibilityChecker> checkers =
+                this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
+            for (FileChangeCompatibilityChecker checker : checkers) {
+                canBeAdded = canBeAdded && checker.canChangeOnDocumentBeAdded(changeRequest, documentReference);
+            }
+        } catch (ComponentLookupException e) {
+            throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "
+                + "adding new changes from [%s] in [%s].", documentReference, changeRequest.getId()), e);
+        }
+        return canBeAdded;
     }
 
     private FileChange createFileChange(boolean isDeletion, ChangeRequest changeRequest, XWikiDocument modifiedDocument,

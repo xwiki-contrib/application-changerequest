@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +35,8 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -43,6 +46,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.diff.Conflict;
@@ -94,6 +98,10 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ScriptServiceManager scriptServiceManager;
+
+    @Inject
+    @Named("context")
+    private ComponentManager componentManager;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -216,6 +224,41 @@ public class ChangeRequestScriptService implements ScriptService
     public List<DocumentReference> findChangeRequestMatchingTitle(String title) throws ChangeRequestException
     {
         return this.changeRequestStorageManager.getChangeRequestMatchingName(title);
+    }
+
+    /**
+     * Filter the list of change request document references to only keep the ones that are compatible with the given
+     * document reference.
+     * @param changeRequestReferences the document references of change requests.
+     * @param newDocumentChange the new document that should be added to a change request.
+     * @return the list containing same entries than {@code changeRequestReferences} without the ones that are not
+     *         compatible given the {@link FileChangeCompatibilityChecker} implementations.
+     * @throws ComponentLookupException in case of problem to find the {@link FileChangeCompatibilityChecker}.
+     * @throws ChangeRequestException in case of problem to load the change request.
+     */
+    public List<DocumentReference> filterCompatibleChangeRequest(List<DocumentReference> changeRequestReferences,
+        DocumentReference newDocumentChange) throws ComponentLookupException, ChangeRequestException
+    {
+        List<FileChangeCompatibilityChecker> checkerList =
+            this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
+
+        List<DocumentReference> result = new ArrayList<>();
+        for (DocumentReference changeRequestReference : changeRequestReferences) {
+            Optional<ChangeRequest> changeRequestOptional =
+                this.changeRequestStorageManager.load(changeRequestReference.getLastSpaceReference().getName());
+            boolean shouldBeAdded = false;
+            if (changeRequestOptional.isPresent()) {
+                shouldBeAdded = true;
+                for (FileChangeCompatibilityChecker compatibilityChecker : checkerList) {
+                    shouldBeAdded = shouldBeAdded && compatibilityChecker
+                        .canChangeOnDocumentBeAdded(changeRequestOptional.get(), newDocumentChange);
+                }
+            }
+            if (shouldBeAdded) {
+                result.add(changeRequestReference);
+            }
+        }
+        return result;
     }
 
     /**
