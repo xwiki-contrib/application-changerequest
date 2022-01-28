@@ -102,6 +102,14 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
         boolean isDeletion = "1".equals(request.getParameter("deletion"));
 
+        FileChange.FileChangeType fileChangeType;
+        if (isDeletion) {
+            fileChangeType = FileChange.FileChangeType.DELETION;
+        } else if (modifiedDocument.isNew()) {
+            fileChangeType = FileChange.FileChangeType.CREATION;
+        } else {
+            fileChangeType = FileChange.FileChangeType.EDITION;
+        }
         if (changeRequest != null) {
             if (!this.checkDocumentCompatibility(changeRequest, documentReference)) {
                 this.contextProvider.get().getResponse()
@@ -109,7 +117,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             } else {
                 UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
                 FileChange fileChange =
-                    this.createFileChange(isDeletion, changeRequest, modifiedDocument, documentReference, request,
+                    this.createFileChange(fileChangeType, changeRequest, modifiedDocument, documentReference, request,
                         currentUser);
                 if (fileChange != null) {
                     changeRequest.addFileChange(fileChange);
@@ -144,62 +152,81 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         return canBeAdded;
     }
 
-    private FileChange createFileChange(boolean isDeletion, ChangeRequest changeRequest, XWikiDocument modifiedDocument,
-        DocumentReference documentReference, HttpServletRequest request, UserReference currentUser)
+    private FileChange createFileChange(FileChange.FileChangeType fileChangeType, ChangeRequest changeRequest,
+        XWikiDocument modifiedDocument, DocumentReference documentReference, HttpServletRequest request,
+        UserReference currentUser)
         throws ChangeRequestException, IOException
     {
-        FileChange fileChange;
+        FileChange fileChange = null;
+        String previousVersion;
+        String fileChangeVersion = "";
 
-        // FIXME: handle creation
-        if (isDeletion) {
-            fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
-            String previousVersion = modifiedDocument.getVersion();
-            String fileChangeVersion =
-                this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
-            fileChange
-                .setPreviousVersion(previousVersion)
-                .setPreviousPublishedVersion(previousVersion, modifiedDocument.getDate())
-                .setVersion(fileChangeVersion);
-        } else {
-            fileChange = new FileChange(changeRequest);
-
-            Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-            String previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
-            XWikiContext context = this.contextProvider.get();
-            XWikiDocument previousDoc;
-            try {
-                XWikiDocumentArchive xWikiDocumentArchive =
-                    context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
-                previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
-            } catch (XWikiException e) {
-                throw new ChangeRequestException(
-                    String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
-                        modifiedDocument), e);
-            }
-
-            if (optionalFileChange.isPresent()) {
-                if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
-                    optionalFileChange.get(), modifiedDocument))
-                {
-                    return null;
-                }
-            } else {
-                if (!this.changeRequestRightsManager
-                    .isViewAccessConsistent(changeRequest, modifiedDocument.getDocumentReferenceWithLocale())) {
-
-                    // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
-                    // as a needed precondition for the request to be handled.
-                    context.getResponse().sendError(412, "Rights conflicts found in the changes.");
-                    return null;
-                }
-                String fileChangeVersion =
-                    this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+        switch (fileChangeType) {
+            case CREATION:
+                fileChange = new FileChange(changeRequest, FileChange.FileChangeType.CREATION);
+                fileChangeVersion =
+                    this.fileChangeVersionManager.getNextFileChangeVersion("", false);
                 fileChange
-                    .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousVersion, previousDoc.getDate())
                     .setVersion(fileChangeVersion)
                     .setModifiedDocument(modifiedDocument);
-            }
+                break;
+
+            case DELETION:
+                fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
+                previousVersion = modifiedDocument.getVersion();
+                fileChangeVersion =
+                    this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+                fileChange
+                    .setVersion(fileChangeVersion)
+                    .setPreviousVersion(previousVersion)
+                    .setPreviousPublishedVersion(previousVersion, modifiedDocument.getDate());
+                break;
+
+            case EDITION:
+                fileChange = new FileChange(changeRequest);
+
+                Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+                previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
+                XWikiContext context = this.contextProvider.get();
+                XWikiDocument previousDoc;
+                try {
+                    XWikiDocumentArchive xWikiDocumentArchive =
+                        context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
+                    previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
+                } catch (XWikiException e) {
+                    throw new ChangeRequestException(
+                        String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
+                            modifiedDocument), e);
+                }
+
+                if (optionalFileChange.isPresent()) {
+                    if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
+                        optionalFileChange.get(), modifiedDocument))
+                    {
+                        return null;
+                    }
+                } else {
+                    if (!this.changeRequestRightsManager
+                        .isViewAccessConsistent(changeRequest, modifiedDocument.getDocumentReferenceWithLocale())) {
+
+                        // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
+                        // as a needed precondition for the request to be handled.
+                        context.getResponse().sendError(412, "Rights conflicts found in the changes.");
+                        return null;
+                    }
+                    fileChangeVersion =
+                        this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+                    fileChange
+                        .setVersion(fileChangeVersion)
+                        .setPreviousVersion(previousVersion)
+                        .setPreviousPublishedVersion(previousVersion, previousDoc.getDate())
+                        .setModifiedDocument(modifiedDocument);
+                }
+                break;
+
+            default:
+                throw new ChangeRequestException(
+                    String.format("Unknown file change type: [%s]", fileChange));
         }
         fileChange
             .setAuthor(currentUser)

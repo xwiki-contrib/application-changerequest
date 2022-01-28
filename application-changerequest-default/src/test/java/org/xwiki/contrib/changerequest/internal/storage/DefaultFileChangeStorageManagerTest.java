@@ -80,6 +80,7 @@ import org.xwiki.xar.internal.property.DefaultXarObjectPropertySerializer;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.DocumentRevisionProvider;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -534,5 +535,33 @@ class DefaultFileChangeStorageManagerTest
         when(mergeDocumentResult.getMergeResult()).thenReturn(currentDocument);
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(currentDocument, "Merge changes from **change request**", this.context);
+    }
+
+    @Test
+    void mergeDeletion() throws ChangeRequestException, XWikiException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        DocumentReference targetEntity = mock(DocumentReference.class);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+
+        XWikiDocument targetDoc = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(targetEntity, this.context)).thenReturn(targetDoc);
+
+        this.fileChangeStorageManager.merge(fileChange);
+        verify(this.xWiki).deleteDocument(targetDoc, this.context);
+    }
+
+    @Test
+    void mergeCreation() throws XWikiException, ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+
+        XWikiDocument targetDoc = mock(XWikiDocument.class);
+        when(fileChange.getModifiedDocument()).thenReturn(targetDoc);
+
+        this.fileChangeStorageManager.merge(fileChange);
+        verify(this.xWiki).saveDocument(targetDoc, "Merge changes from **change request**", this.context);
     }
 }

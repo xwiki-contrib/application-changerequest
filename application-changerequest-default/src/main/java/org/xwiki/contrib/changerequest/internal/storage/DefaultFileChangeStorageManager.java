@@ -367,7 +367,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     {
         XWikiContext context = contextProvider.get();
         XWiki wiki = context.getWiki();
-        XWikiDocument modifiedDoc = (XWikiDocument) this.getModifiedDocumentFromFileChange(fileChange);
+        XWikiDocument modifiedDoc = (XWikiDocument) fileChange.getModifiedDocument();
         try {
             wiki.saveDocument(modifiedDoc, getMergeSaveMessage(), context);
         } catch (XWikiException e) {
