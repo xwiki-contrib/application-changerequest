@@ -150,6 +150,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     {
         FileChange fileChange;
 
+        // FIXME: handle creation
         if (isDeletion) {
             fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
             String previousVersion = modifiedDocument.getVersion();

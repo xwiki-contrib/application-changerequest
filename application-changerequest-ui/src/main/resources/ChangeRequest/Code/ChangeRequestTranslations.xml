@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestTranslations</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestTranslations</title>
@@ -99,7 +100,9 @@ changerequest.sheet.open_draft.button=Open as draft
 changerequest.sheet.open_draft.button.title=Open back the change request as draft.
 changerequest.filechange.type.EDITION=Edition
 changerequest.filechange.type.DELETION=Deletion
+changerequest.filechange.type.CREATION=Creation
 changerequest.livetable.filechange.doc.location=Location
+changerequest.livetable.filechange.doc.title=Title
 changerequest.livetable.filechange.filechange_type=Change type
 changerequest.livetable.filechange.filechange_author=Author of last change
 changerequest.livetable.filechange.filechange_version=Version

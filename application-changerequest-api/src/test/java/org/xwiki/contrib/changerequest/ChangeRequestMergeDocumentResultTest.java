@@ -50,6 +50,8 @@ class ChangeRequestMergeDocumentResultTest
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
+        changeRequestMergeDocumentResult =
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, "1.3", new Date(45));
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
 
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);

@@ -148,7 +148,7 @@ import static org.mockito.Mockito.when;
     DefaultXarObjectPropertySerializer.class,
     ReadOnlyXWikiContextProvider.class
 })
-public class DefaultFileChangeStorageManagerTest
+class DefaultFileChangeStorageManagerTest
 {
     @InjectMockComponents
     private DefaultFileChangeStorageManager fileChangeStorageManager;
@@ -168,9 +168,6 @@ public class DefaultFileChangeStorageManagerTest
     @MockComponent
     @Named("document")
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
-
-    @MockComponent
-    private UserReferenceConverter userReferenceConverter;
 
     @MockComponent
     private UserReferenceSerializer<String> userReferenceSerializer;
@@ -265,8 +262,8 @@ public class DefaultFileChangeStorageManagerTest
         when(fileChange.getModifiedDocument()).thenReturn(modifiedDoc);
         UserReference author = mock(UserReference.class);
         when(fileChange.getAuthor()).thenReturn(author);
-        DocumentReference authorDocReference = mock(DocumentReference.class);
-        when(this.userReferenceConverter.convert(author)).thenReturn(authorDocReference);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(modifiedDoc.getAuthors()).thenReturn(documentAuthors);
 
         DocumentReference targetEntity = new DocumentReference("xwiki", "Sandbox", "WebHome");
         when(fileChange.getTargetEntity()).thenReturn(targetEntity);
@@ -315,6 +312,7 @@ public class DefaultFileChangeStorageManagerTest
         this.fileChangeStorageManager.save(fileChange);
         verify(fileChange).setSaved(true);
         verify(this.xWiki).saveDocument(fileChangeDoc, this.context);
+        verify(documentAuthors).setOriginalMetadataAuthor(author);
         verify(modifiedDoc).toXML(any(OutputStream.class), eq(true), eq(true), eq(true), eq(false), eq(this.context));
         verify(fileChangeDoc).setAttachment(any());
         verify(fileChangeDoc).setHidden(true);
@@ -490,6 +488,7 @@ public class DefaultFileChangeStorageManagerTest
     void mergeEdition() throws Exception
     {
         FileChange fileChange = mock(FileChange.class);
+        when(fileChange.toString()).thenReturn("my filechange");
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         XWikiDocument modifiedDocument = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(modifiedDocument);
@@ -522,7 +521,8 @@ public class DefaultFileChangeStorageManagerTest
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
         ChangeRequestException changeRequestException =
             assertThrows(ChangeRequestException.class, () -> this.fileChangeStorageManager.merge(fileChange));
-        assertEquals("Cannot merge the file change since it has conflicts.", changeRequestException.getMessage());
+        assertEquals("Cannot merge the file change [my filechange] since it has conflicts.",
+            changeRequestException.getMessage());
         verify(this.xWiki, never()).saveDocument(any(XWikiDocument.class), anyString(), any());
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);
@@ -532,12 +532,7 @@ public class DefaultFileChangeStorageManagerTest
 
         when(mergeDocumentResult.isModified()).thenReturn(true);
         when(mergeDocumentResult.getMergeResult()).thenReturn(currentDocument);
-        UserReference author = mock(UserReference.class);
-        when(fileChange.getAuthor()).thenReturn(author);
-        DocumentAuthors authors = mock(DocumentAuthors.class);
-        when(currentDocument.getAuthors()).thenReturn(authors);
         this.fileChangeStorageManager.merge(fileChange);
-        verify(authors).setOriginalMetadataAuthor(author);
         verify(this.xWiki).saveDocument(currentDocument, "Merge changes from **change request**", this.context);
     }
 }

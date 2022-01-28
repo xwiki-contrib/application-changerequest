@@ -327,7 +327,8 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             ChangeRequest splittedChangeRequest = changeRequest.cloneWithoutFileChanges();
 
             for (FileChange fileChange : entry.getValue()) {
-                FileChange clonedFileChange = fileChange.cloneWithChangeRequest(splittedChangeRequest);
+                FileChange clonedFileChange = fileChange
+                    .cloneWithChangeRequestAndType(splittedChangeRequest, fileChange.getType());
                 splittedChangeRequest.addFileChange(clonedFileChange);
             }
 

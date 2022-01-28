@@ -191,7 +191,8 @@ class FileChangeTest
             .setCreationDate(new Date(21));
 
         ChangeRequest otherChangeRequest = mock(ChangeRequest.class);
-        FileChange fileChange1 = fileChange.cloneWithChangeRequest(otherChangeRequest);
+        FileChange fileChange1 = fileChange.cloneWithChangeRequestAndType(otherChangeRequest,
+            FileChange.FileChangeType.EDITION);
         assertEquals(fileChange, fileChange1);
 
         assertEquals(otherChangeRequest, fileChange1.getChangeRequest());

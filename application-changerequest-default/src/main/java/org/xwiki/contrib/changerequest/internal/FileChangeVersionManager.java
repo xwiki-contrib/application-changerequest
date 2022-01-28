@@ -60,13 +60,18 @@ public class FileChangeVersionManager
     public String getNextFileChangeVersion(String version, boolean minor)
     {
         Version previousVersion;
-        boolean isFileChangeVersion = isFileChangeVersion(version);
-        if (isFileChangeVersion) {
-            previousVersion = new Version(version.substring(FileChange.FILECHANGE_VERSION_PREFIX.length()));
+        Version nextVersion;
+        if (StringUtils.isEmpty(version)) {
+            nextVersion = new Version("1.1");
         } else {
-            previousVersion = new Version(version);
+            boolean isFileChangeVersion = isFileChangeVersion(version);
+            if (isFileChangeVersion) {
+                previousVersion = new Version(version.substring(FileChange.FILECHANGE_VERSION_PREFIX.length()));
+            } else {
+                previousVersion = new Version(version);
+            }
+            nextVersion = XWikiDocument.getNextVersion(previousVersion, minor);
         }
-        Version nextVersion = XWikiDocument.getNextVersion(previousVersion, minor);
         return getFileChangeVersion(nextVersion.toString());
     }
 

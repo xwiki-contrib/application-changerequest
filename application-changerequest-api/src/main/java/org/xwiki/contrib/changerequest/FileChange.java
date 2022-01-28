@@ -324,20 +324,21 @@ public class FileChange
      */
     public FileChange clone()
     {
-        return this.cloneWithChangeRequest(this.changeRequest);
+        return this.cloneWithChangeRequestAndType(this.changeRequest, this.type);
     }
 
     /**
-     * Clone the current instance and mark it as depending from the given change request.
+     * Clone the current instance and mark it as depending from the given change request and related to the given type.
      * Note that the original creation date of the file change is kept.
      *
      * @param changeRequest the change request the clone is attached to
+     * @param type the type of the file change.
      * @return the cloned file change.
-     * @since 0.7
+     * @since 0.9
      */
-    public FileChange cloneWithChangeRequest(ChangeRequest changeRequest)
+    public FileChange cloneWithChangeRequestAndType(ChangeRequest changeRequest, FileChangeType type)
     {
-        return new FileChange(changeRequest, this.type)
+        return new FileChange(changeRequest, type)
             .setId(this.id)
             .setVersion(this.version)
             .setCreationDate(this.creationDate)
@@ -346,6 +347,18 @@ public class FileChange
             .setTargetEntity(this.targetEntity)
             .setPreviousPublishedVersion(this.previousPublishedVersion, this.previousPublishedVersionDate)
             .setPreviousVersion(this.previousVersion);
+    }
+
+    /**
+     * Clone a filechange and change its type.
+     *
+     * @param newType the new type of the filechange.
+     * @return a cloned instance of the file change.
+     * @since 0.9
+     */
+    public FileChange cloneWithType(FileChangeType newType)
+    {
+        return this.cloneWithChangeRequestAndType(this.changeRequest, newType);
     }
 
     @Override

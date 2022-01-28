@@ -90,9 +90,6 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-    private UserReferenceConverter converter;
-
-    @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
@@ -162,7 +159,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             try {
                 if (!isDeletion) {
                     XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
-                    modifiedDocument.setContentAuthorReference(this.converter.convert(fileChange.getAuthor()));
+                    modifiedDocument.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
                     modifiedDocument.setContentUpdateDate(fileChange.getCreationDate());
                     modifiedDocument
                         .setRCSVersion(this.fileChangeVersionManager.getDocumentVersion(fileChange.getVersion()));
@@ -326,7 +323,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 break;
 
             case CREATION:
-                throw new ChangeRequestException("Not yet implemented.");
+                this.mergeCreation(fileChange);
+                break;
 
             default:
                 throw new ChangeRequestException("Unknown file change type: " + fileChange.getType());
@@ -336,19 +334,45 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     @Override
     public void rebase(FileChange fileChange) throws ChangeRequestException
     {
-        FileChange clone = fileChange.clone();
+        FileChange clone;
         XWikiContext context = this.contextProvider.get();
         try {
-            XWikiDocument document = context.getWiki().getDocument(clone.getTargetEntity(), context);
-            clone.setPreviousPublishedVersion(document.getVersion(), document.getDate())
-                .setPreviousVersion(fileChange.getVersion())
+            XWikiDocument document = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
+            if (fileChange.getType() == FileChange.FileChangeType.CREATION && !document.isNew()) {
+                clone = fileChange.cloneWithType(FileChange.FileChangeType.EDITION);
+            } else {
+                clone = fileChange.clone();
+            }
+            if (!document.isNew()) {
+                clone.setPreviousPublishedVersion(document.getVersion(), document.getDate());
+            }
+            clone.setPreviousVersion(fileChange.getVersion())
                 .setVersion(this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), false));
             this.save(clone);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while trying to access published document from [%s] to get its version: [%s]",
-                    clone.getTargetEntity(),
+                    fileChange.getTargetEntity(),
                     ExceptionUtils.getRootCauseMessage(e)));
+        }
+    }
+
+    private String getMergeSaveMessage()
+    {
+        // FIXME: Merge message should be translatable
+        return "Merge changes from **change request**";
+    }
+
+    private void mergeCreation(FileChange fileChange) throws ChangeRequestException
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki wiki = context.getWiki();
+        XWikiDocument modifiedDoc = (XWikiDocument) this.getModifiedDocumentFromFileChange(fileChange);
+        try {
+            wiki.saveDocument(modifiedDoc, getMergeSaveMessage(), context);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while saving the new document [%s]", fileChange), e);
         }
     }
 
@@ -377,14 +401,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 mergeManager.mergeDocument(previousDoc, modifiedDoc, originalDoc, mergeConfiguration);
 
             if (mergeDocumentResult.hasConflicts()) {
-                throw new ChangeRequestException("Cannot merge the file change since it has conflicts.");
+                throw new ChangeRequestException(
+                    String.format("Cannot merge the file change [%s] since it has conflicts.", fileChange));
             }
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
-                document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
-                // FIXME: Merge message should be translatable
-                String saveMessage = "Merge changes from **change request**";
-                wiki.saveDocument(document, saveMessage, context);
+                // FIXME: When merging the context user should be set with a ghost user depending on the config.
+                wiki.saveDocument(document, getMergeSaveMessage(), context);
             }
         } catch (XWikiException e) {
             throw new ChangeRequestException(
