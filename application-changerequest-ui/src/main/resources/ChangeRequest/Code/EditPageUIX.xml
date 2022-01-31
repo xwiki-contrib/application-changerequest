@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.EditPageUIX" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.EditPageUIX" locale="">
   <web>ChangeRequest.Code</web>
   <name>EditPageUIX</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>EditPageUIX</title>
@@ -171,9 +172,17 @@
 #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
 #set ($hasEdit = $services.security.authorization.hasAccess('edit', $tdoc))
 #if (!$isReadOnly &amp;&amp; $hasCREdit &amp;&amp; !$hasEdit)
-#set ($editURL = $doc.getURL('editcr', ''))
+#set ($editURL = $doc.getURL('editcr'))
+#set ($createURL = $doc.getURL('createcr'))
 &lt;div class="btn-group" id="crEdit"&gt;
-  &lt;a href="$editURL" role="button" title="$services.localization.render('changerequest.edit.button.title')" class="btn btn-default"&gt;&lt;span class="glyphicon glyphicon-pencil"&gt;&lt;/span&gt; $services.localization.render('changerequest.edit.button.value')&lt;/a&gt;
+  &lt;a href="$editURL" role="button" title="$services.localization.render('changerequest.edit.button.title')" class="btn btn-default"&gt;
+    $services.icon.renderHTML('pencil') $services.localization.render('changerequest.edit.button.value')
+  &lt;/a&gt;
+&lt;/div&gt;
+&lt;div class="btn-group" id="crCreate"&gt;
+  &lt;a href="$createURL" role="button" title="$services.localization.render('changerequest.create.button.title')" class="btn btn-default"&gt;
+    $services.icon.renderHTML('add') $services.localization.render('changerequest.create.button.value')
+  &lt;/a&gt;
 &lt;/div&gt;
 #end
 {{/html}}

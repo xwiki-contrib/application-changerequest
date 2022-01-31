@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.FileChangeLiveTable" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.FileChangeLiveTable" locale="">
   <web>ChangeRequest.Code</web>
   <name>FileChangeLiveTable</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>FileChangeLiveTable</title>
@@ -36,7 +37,10 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity wiki="false"}}
+  <content>{{velocity output="false"}}
+#template("displayer_page.vm")
+{{/velocity}}
+{{velocity wiki="false"}}
 #if ("$!request.get('changerequest')" == '')
 Technical page for getting livetable data for change request file changes.
 #else
@@ -81,6 +85,8 @@ Technical page for getting livetable data for change request file changes.
           'doc_fullName': $services.model.serialize($docReference, 'local'),
           'doc_space': $services.model.serialize($docReference.parent, 'local'),
           'doc_location': "#hierarchy($docReference, {'limit': 5, 'plain': false, 'local': true, 'displayTitle': false})",
+          'doc_title': "#displayPageReference($docReference)",
+          'doc_isNew': "$concernedDoc.isNew()",
           'doc_url': $xwiki.getURL($docReference),
           'doc_space_url': $xwiki.getURL($docReference.parent),
           'doc_wiki': $docReference.wikiReference.name,

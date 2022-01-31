@@ -159,9 +159,18 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
                 String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
                     modifiedDocument), e);
         }
+        FileChange.FileChangeType fileChangeType;
+        if (isDeletion) {
+            fileChangeType = FileChange.FileChangeType.DELETION;
+        } else if (modifiedDocument.isNew()) {
+            fileChangeType = FileChange.FileChangeType.CREATION;
+        } else {
+            fileChangeType = FileChange.FileChangeType.EDITION;
+        }
+        Date previousVersionDate = (previousDoc != null) ? previousDoc.getDate() : new Date();
         FileChange fileChange =
-            getFileChange(changeRequest, isDeletion, documentReference, modifiedDocument, previousVersion,
-                previousDoc.getDate());
+            getFileChange(changeRequest, fileChangeType, documentReference, modifiedDocument, previousVersion,
+                previousVersionDate);
 
         changeRequest
             .setTitle(title)
@@ -178,35 +187,49 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         return changeRequest;
     }
 
-    private FileChange getFileChange(ChangeRequest changeRequest, boolean isDeletion,
+    private FileChange getFileChange(ChangeRequest changeRequest, FileChange.FileChangeType fileChangeType,
         DocumentReference documentReference, XWikiDocument modifiedDocument, String requestPreviousVersion,
         Date previousVersionDate)
         throws ChangeRequestException
     {
-        FileChange fileChange;
-        if (isDeletion) {
-            fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
-            XWikiContext context = contextProvider.get();
-            try {
-                XWikiDocument document = context.getWiki().getDocument(documentReference, context);
-                String previousVersion = document.getVersion();
+        FileChange fileChange = new FileChange(changeRequest, fileChangeType);
+        String fileChangeVersion;
+        switch (fileChangeType) {
+            case CREATION:
                 fileChange
-                    .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousVersion, document.getDate());
-            } catch (XWikiException e) {
-                throw new
-                    ChangeRequestException("Cannot access the document for which a deletion request is performed.", e);
-            }
-        } else {
-            fileChange = new FileChange(changeRequest);
-            fileChange
-                .setPreviousVersion(requestPreviousVersion)
-                .setPreviousPublishedVersion(requestPreviousVersion, previousVersionDate)
-                .setModifiedDocument(modifiedDocument);
+                    .setModifiedDocument(modifiedDocument);
+                fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion("", false);
+                break;
+
+            case DELETION:
+                XWikiContext context = contextProvider.get();
+                try {
+                    XWikiDocument document = context.getWiki().getDocument(documentReference, context);
+                    String previousVersion = document.getVersion();
+                    fileChange
+                        .setPreviousVersion(previousVersion)
+                        .setPreviousPublishedVersion(previousVersion, document.getDate());
+                    fileChangeVersion = this.fileChangeVersionManager
+                        .getNextFileChangeVersion(fileChange.getPreviousVersion(), false);
+                } catch (XWikiException e) {
+                    throw new ChangeRequestException("Cannot access the document for which a deletion request is "
+                        + "performed.", e);
+                }
+                break;
+
+            default:
+            case EDITION:
+                fileChange
+                    .setPreviousVersion(requestPreviousVersion)
+                    .setPreviousPublishedVersion(requestPreviousVersion, previousVersionDate)
+                    .setModifiedDocument(modifiedDocument);
+                fileChangeVersion = this.fileChangeVersionManager
+                    .getNextFileChangeVersion(fileChange.getPreviousVersion(), false);
+                break;
         }
+
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        String fileChangeVersion = this.fileChangeVersionManager
-            .getNextFileChangeVersion(fileChange.getPreviousVersion(), false);
+
         fileChange
             .setTargetEntity(documentReference)
             .setVersion(fileChangeVersion)

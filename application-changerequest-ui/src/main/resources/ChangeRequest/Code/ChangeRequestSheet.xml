@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestSheet</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>ChangeRequest.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>#if($doc.getObject('ChangeRequest.Code.ChangeRequestClass'))Change Request: $doc.title#{else}Change Request Sheet#end</title>
@@ -159,7 +160,7 @@
 
 {{liveData
   id="changerequest-filechanges"
-  properties="changerequest,doc.location,filechange_type,filechange_author,filechange_version,filechange_documentVersion,_actions"
+  properties="changerequest,filechange_type,doc.title,doc.location,filechange_author,filechange_version,filechange_documentVersion,_actions"
   source="liveTable"
   sourceParameters="resultPage=ChangeRequest.Code.FileChangeLiveTable&amp;translationPrefix=changerequest.livetable.filechange."
   filters="changerequest=$changeRequest.id"
@@ -179,6 +180,11 @@
       },
       {
         "id": "doc.location",
+        "editable": false
+      },
+      {
+        "id": "doc.title",
+        "displayer": "html",
         "editable": false
       },
       {
@@ -233,6 +239,13 @@
     #set ($diffKey = $crMergeDocumentResult.identifier)
     #if ($crMergeDocumentResult.type == "DELETION")
       #set ($diffContent = "Deletion of the whole file.")
+    #elseif ($crMergeDocumentResult.type == "CREATION")
+      #set ($modifiedDoc = $crMergeDocumentResult.fileChange.modifiedDocument)
+      ## We wrap the XWikiDocument in Document so that the diff macros behave correctly
+      #set ($wrappedDocs = $xwiki.wrapDocs([$modifiedDoc]))
+       #define ($diffContent)
+        #displayDocumentRawChanges($NULL, $wrappedDocs.get(0))
+      #end
     #else
       #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
       #set ($modifiedDoc = $mergeDocumentResult.nextDocument)

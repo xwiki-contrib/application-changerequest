@@ -43,16 +43,16 @@ public class ChangeRequestMergeDocumentResult
 {
     private final FileChange fileChange;
     private MergeDocumentResult wrappedResult;
-    private final boolean isConflictingDeletion;
+    private final boolean isConflicting;
     private String documentTitle;
     private final String previousVersion;
     private final Date previousVersionDate;
 
-    private ChangeRequestMergeDocumentResult(FileChange fileChange, boolean isConflictingDeletion,
+    private ChangeRequestMergeDocumentResult(FileChange fileChange, boolean isConflicting,
         String previousVersion, Date previousVersionDate)
     {
         this.fileChange = fileChange;
-        this.isConflictingDeletion = isConflictingDeletion;
+        this.isConflicting = isConflicting;
         this.previousVersion = previousVersion;
         this.previousVersionDate = previousVersionDate;
     }
@@ -68,26 +68,30 @@ public class ChangeRequestMergeDocumentResult
     public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, FileChange fileChange,
         String previousVersion, Date previousVersionDate)
     {
-        this(fileChange, false, previousVersion, previousVersionDate);
+        this(fileChange, mergeDocumentResult.hasConflicts(), previousVersion, previousVersionDate);
         this.wrappedResult = mergeDocumentResult;
     }
 
     /**
-     * Constructor to use in case of {@link FileChange.FileChangeType#DELETION}.
+     * Constructor to use in case of {@link FileChange.FileChangeType#DELETION} or
+     * {@link FileChange.FileChangeType#CREATION}.
      *
-     * @param conflictingDeletion {@code true} if there's a conflict with this deletion
+     * @param isConflicting {@code true} if there's a conflict with this change.
      * @param fileChange the file change used for computing this merge
      * @param previousVersion the current version of the document used to perform the merge
      * @param previousVersionDate the date of the version of the document used to perform the merge
      */
-    public ChangeRequestMergeDocumentResult(boolean conflictingDeletion, FileChange fileChange,
+    public ChangeRequestMergeDocumentResult(boolean isConflicting, FileChange fileChange,
         String previousVersion, Date previousVersionDate)
     {
-        this(fileChange, conflictingDeletion, previousVersion, previousVersionDate);
-        if (fileChange.getType() != FileChange.FileChangeType.DELETION) {
-            throw new IllegalArgumentException("This constructor should only be used for deletion file changes.");
+        this(fileChange, isConflicting, previousVersion, previousVersionDate);
+        if (fileChange.getType() != FileChange.FileChangeType.DELETION
+            && fileChange.getType() != FileChange.FileChangeType.CREATION) {
+            throw new IllegalArgumentException(
+                "This constructor should only be used for deletion or creation file changes.");
         }
     }
+
 
     /**
      * Check if this result exposes a conflict.
@@ -96,8 +100,7 @@ public class ChangeRequestMergeDocumentResult
      */
     public boolean hasConflicts()
     {
-        return (getType() == FileChange.FileChangeType.DELETION && this.isConflictingDeletion)
-            || (getType() == FileChange.FileChangeType.EDITION && this.wrappedResult.hasConflicts());
+        return this.isConflicting;
     }
 
     /**
@@ -167,7 +170,7 @@ public class ChangeRequestMergeDocumentResult
         ChangeRequestMergeDocumentResult that = (ChangeRequestMergeDocumentResult) o;
 
         return new EqualsBuilder()
-            .append(isConflictingDeletion, that.isConflictingDeletion)
+            .append(isConflicting, that.isConflicting)
             .append(fileChange, that.fileChange)
             .append(wrappedResult, that.wrappedResult)
             .append(documentTitle, that.documentTitle)
@@ -180,7 +183,7 @@ public class ChangeRequestMergeDocumentResult
         return new HashCodeBuilder(17, 37)
             .append(fileChange)
             .append(wrappedResult)
-            .append(isConflictingDeletion)
+            .append(isConflicting)
             .append(documentTitle)
             .toHashCode();
     }
@@ -190,7 +193,7 @@ public class ChangeRequestMergeDocumentResult
     {
         return new ToStringBuilder(this)
             .append("wrappedResult", wrappedResult)
-            .append("isConflictingDeletion", isConflictingDeletion)
+            .append("isConflicting", isConflicting)
             .append("documentTitle", documentTitle)
             .append("fileChange", fileChange)
             .toString();

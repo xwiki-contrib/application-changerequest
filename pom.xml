@@ -260,6 +260,12 @@
                   <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::setReviewValidity(org.xwiki.contrib.changerequest.ChangeRequestReview, boolean) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
                   <justification>Unstable API: a script service dedicated to review actions has been created.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.FileChange::cloneWithChangeRequest(org.xwiki.contrib.changerequest.ChangeRequest)</old>
+                  <justification>Unstable API: this method has been removed in favor of FileChange::cloneWithChangeRequestAndType.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>
