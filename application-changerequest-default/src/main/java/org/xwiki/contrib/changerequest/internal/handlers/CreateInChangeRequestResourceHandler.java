@@ -68,7 +68,7 @@ import com.xpn.xwiki.web.XWikiResponse;
  * allow to use template providers that are immediately saving the page.
  *
  * @version $Id$
- * @since 0.10
+ * @since 0.9
  */
 @Component
 @Named("createcr")

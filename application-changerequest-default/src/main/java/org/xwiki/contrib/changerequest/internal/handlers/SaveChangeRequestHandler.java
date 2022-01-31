@@ -39,7 +39,6 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
 import org.xwiki.csrf.CSRFToken;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.wysiwyg.converter.HTMLConverter;
 
 /**
@@ -72,9 +71,6 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
 
     @Inject
     private ChangeRequestManager changeRequestManager;
-
-    @Inject
-    private ObservationManager observationManager;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
@@ -122,7 +118,7 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     }
 
     private boolean handleDescriptionUpdate(HttpServletRequest request, ChangeRequest changeRequest)
-        throws ChangeRequestException, IOException
+        throws ChangeRequestException
     {
         String content = getContent(request);
         changeRequest.setDescription(content);
