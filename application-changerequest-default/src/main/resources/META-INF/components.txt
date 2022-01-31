@@ -36,3 +36,4 @@ org.xwiki.contrib.changerequest.internal.strategies.AllApproversNoFallbackMergeA
 org.xwiki.contrib.changerequest.internal.listeners.ApproversXObjectUpdatedListener
 org.xwiki.contrib.changerequest.internal.checkers.RightCompatibilityChecker
 org.xwiki.contrib.changerequest.internal.checkers.ChangeRequestStatusChecker
+org.xwiki.contrib.changerequest.internal.handlers.CreateInChangeRequestResourceHandler
