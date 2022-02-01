@@ -516,4 +516,19 @@ public class ChangeRequestScriptService implements ScriptService
     {
         return this.changeRequestManager.isFileChangeOutdated(fileChange);
     }
+
+    /**
+     * Check if the given template is supported by change request: if not supported, and it won't allow to
+     * "save as change request" when using it.
+     *
+     * @param templateProviderReference the reference of the template.
+     * @return {@code true} if it's supported.
+     * @throws ChangeRequestException in case of problem when loading information.
+     * @since 0.9
+     */
+    public boolean isTemplateSupported(DocumentReference templateProviderReference)
+        throws ChangeRequestException
+    {
+        return this.changeRequestManager.isTemplateSupported(templateProviderReference);
+    }
 }

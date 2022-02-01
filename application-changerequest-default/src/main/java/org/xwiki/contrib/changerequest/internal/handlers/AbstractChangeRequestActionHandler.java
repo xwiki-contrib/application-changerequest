@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,6 +42,8 @@ import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -88,6 +91,13 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private RequestParameterConverter requestParameterConverter;
+
+    @Inject
+    private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    @Inject
+    @Named("currentmixed")
+    private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver;
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
@@ -184,6 +194,18 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
             }
             // cloning the document to ensure we don't impact the document in cache.
             modifiedDocument = modifiedDocument.clone();
+
+            // Read info from the template if there's one.
+            if (!StringUtils.isBlank(editForm.getTemplate())) {
+                DocumentReference templateRef =
+                    this.currentMixedDocumentReferenceResolver.resolve(editForm.getTemplate());
+
+                // Check that the template can be read by current user.
+                if (this.contextualAuthorizationManager.hasAccess(Right.VIEW, templateRef)) {
+                    modifiedDocument.readFromTemplate(templateRef, context);
+                }
+            }
+
             modifiedDocument.readFromForm(editForm, context);
             return modifiedDocument;
         } catch (XWikiException e) {

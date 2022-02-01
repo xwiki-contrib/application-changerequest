@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.SaveButtonsUIX" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.SaveButtonsUIX" locale="">
   <web>ChangeRequest.Code</web>
   <name>SaveButtonsUIX</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>SaveButtonsUIX</title>
@@ -108,6 +109,11 @@
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
+#elseif ($request.get('checktemplate') == 1)
+  #set ($isTemplateSupported = $services.changerequest.isTemplateSupported($request.get('template')))
+  #jsonResponse({
+    'isSupported': $isTemplateSupported
+  })
 #end
 {{/velocity}}</content>
   <object>
@@ -199,6 +205,8 @@
     <property>
       <code>// third argument is a polyfill for using URLSearchParam with IE11
 require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var saveButtonUIXDoc = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
+  
   var saveChangeRequest = function (event, inplaceEditing) {
     var isNewCR = $('#existingCRSelector').val() === "";
     var CREATE_URL = "$services.changerequest.getChangeRequestURL('create', '')";
@@ -210,6 +218,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     } else {
       form = $('#save_changerequest').parents('form');
     }
+    var urlParams = new URLSearchParams(window.location.search);
     if (isNewCR) {
       var crTitleField = $("&lt;input&gt;", {
         'type': 'hidden',
@@ -226,7 +235,6 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       form.append(crDraftField);
       actionURL = CREATE_URL + "?async=1";
     } else {
-      var urlParams = new URLSearchParams(window.location.search);
       actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val()) + "?async=1";
       if (urlParams.has('changerequest')) {
         actionURL += "&amp;fromchangerequest=1";
@@ -244,11 +252,18 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         window.location.href = data.changeRequestUrl;
       }
     });
+    // if there's a template we specify to use sync save, in order to trick actionButtons.js
     if (inplaceEditing) {
       form['action'] = actionURL;
+      if (form['template'] !== "") {
+        form['async'] = "false";
+      }
       $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
     } else {
       form.attr('action', actionURL);
+      if (form.find('input[name=template]').val() !== "") {
+        form.find('input[name=async]').val('false');
+      }
       $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
     }
     
@@ -285,13 +300,13 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     if ($('#changeRequestModal').length &gt; 0) {
       $('#changeRequestModal').modal('show');
     } else {
-      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
+      
       var urlParams = new URLSearchParams(window.location.search);
       var queryString = 'getmodal=1&amp;outputSyntax=plain&amp;docChange=' + xm.documentReference;
       if (urlParams.has('changerequest')) {
         queryString += '&amp;changerequest=' + urlParams.get('changerequest');
       }
-      $.get(modalURL.getURL('get', queryString)).done(function (data, textStatus, jqXHR) {
+      $.get(saveButtonUIXDoc.getURL('get', queryString)).done(function (data, textStatus, jqXHR) {
         loadRequiredSkinExtensions(jqXHR.getResponseHeader('X-XWIKI-HTML-HEAD'));
         $('body').append(data);
         $('#changeRequestModal').modal('show');
@@ -308,7 +323,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     }
   };
   
-  var attachButtons = function (hasEditRight, editExistingCR) {
+  var attachButtons = function (hasEditRight) {
     if ($('#save_changerequest').length == 0) {
       var button = $("&lt;input&gt;", {
         'type': 'button',
@@ -335,6 +350,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       button.on('click', function() {
         createChangeRequestModal(inplaceEditing);
       });
+      var hasEditRight = ("$services.security.authorization.hasAccess('edit', $doc)" === "true");
+      var urlParams = new URLSearchParams(window.location.search);
+      var editExistingCR = urlParams.has('changerequest');
       // hide minor edit and autosave capabilities
       if (!hasEditRight || editExistingCR) {
         $('.meta-minorEdit').remove();
@@ -342,13 +360,33 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         $('input[name=action_save]').parent().remove();
       }
     }
+  };
+  
+  var initialize = function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('template')) {
+      // check template
+      $.get(saveButtonUIXDoc.getURL('get'), {
+        'checktemplate': 1,
+        'outputSyntax': 'plain',
+        'template': urlParams.get('template')
+      }).done(function (data) {
+        if (data.isSupported === true) {
+          attachButtons();
+        } else {
+          console.info("Template [{}] not supported by change request.", urlParams.get('template'));
+        }
+      }).fail(function (data) {
+        console.error("Error when checking if template [{}] is supported by change request.", urlParams.get('template'));
+        console.debug(data);
+      });
+    } else {
+      attachButtons();
+    }
   }
-  var urlParams = new URLSearchParams(window.location.search);
-  var hasEditRight = ("$services.security.authorization.hasAccess('edit', $doc)" === "true");
-  $(document).on('xwiki:dom:updated', function () {
-    attachButtons(hasEditRight, urlParams.has('changerequest'))
-  });
-  attachButtons(hasEditRight, urlParams.has('changerequest'));
+
+  $(document).on('xwiki:dom:updated', initialize);
+  initialize();
 });</code>
     </property>
     <property>

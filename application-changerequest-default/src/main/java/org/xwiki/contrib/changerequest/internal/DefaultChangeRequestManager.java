@@ -137,6 +137,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
+    @Inject
+    private TemplateProviderSupportChecker templateProviderSupportChecker;
+
     private XarExtensionScriptService xarExtensionScriptService;
 
     @Override
@@ -628,5 +631,18 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean isTemplateProviderSupported(DocumentReference templateProviderReference)
+        throws ChangeRequestException
+    {
+        return this.templateProviderSupportChecker.isTemplateProviderSupported(templateProviderReference);
+    }
+
+    @Override
+    public boolean isTemplateSupported(DocumentReference templateReference) throws ChangeRequestException
+    {
+        return this.templateProviderSupportChecker.isTemplateSupported(templateReference);
     }
 }

@@ -36,11 +36,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.csrf.CSRFToken;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.validation.EntityNameValidationConfiguration;
 import org.xwiki.model.validation.EntityNameValidationManager;
 import org.xwiki.resource.AbstractResourceReferenceHandler;
@@ -149,9 +149,6 @@ public class CreateInChangeRequestResourceHandler extends AbstractResourceRefere
         }
     }
 
-    private static final LocalDocumentReference TEMPLATE_PROVIDER_CLASS_REFERENCE =
-        new LocalDocumentReference("XWiki", "TemplateProviderClass");
-
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -176,6 +173,9 @@ public class CreateInChangeRequestResourceHandler extends AbstractResourceRefere
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private ChangeRequestManager changeRequestManager;
 
     @Override
     public List<EntityResourceAction> getSupportedResourceReferences()
@@ -231,17 +231,9 @@ public class CreateInChangeRequestResourceHandler extends AbstractResourceRefere
 
     private boolean filterTemplateProvider(Document templateProvider)
     {
-        XWikiContext context = this.contextProvider.get();
         try {
-            // we retrieve the actual doc, to be sure to be able to retrieve the xobject.
-            XWikiDocument providerXWikiDoc =
-                context.getWiki().getDocument(templateProvider.getDocumentReference(), context);
-            BaseObject templateProviderObject = providerXWikiDoc.getXObject(TEMPLATE_PROVIDER_CLASS_REFERENCE);
-            if (templateProviderObject != null) {
-                ActionOnCreate actionOnCreate = getActionOnCreate(templateProviderObject);
-                return actionOnCreate == ActionOnCreate.EDIT;
-            }
-        } catch (XWikiException e) {
+            return this.changeRequestManager.isTemplateProviderSupported(templateProvider.getDocumentReference());
+        } catch (ChangeRequestException e) {
             logger.error("Error while loading [{}] to filter the template providers.",
                 templateProvider.getDocumentReference(), e);
         }

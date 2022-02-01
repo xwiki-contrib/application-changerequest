@@ -242,4 +242,32 @@ public interface ChangeRequestManager
     {
         return false;
     }
+
+    /**
+     * Check if the given template provider is currently supported by change request in page creation.
+     *
+     * @param templateProviderReference reference of the template provider to check for support.
+     * @return {@code true} if the given template provider is supported.
+     * @throws ChangeRequestException in case of problem for loading information.
+     * @since 0.9
+     */
+    default boolean isTemplateProviderSupported(DocumentReference templateProviderReference)
+        throws ChangeRequestException
+    {
+        return false;
+    }
+
+    /**
+     * Check if the given template is currently supported by change request in page creation.
+     *
+     * @param templateReference reference of the template to check for support.
+     * @return {@code true} if the given template is supported.
+     * @throws ChangeRequestException in case of problem for loading information.
+     * @since 0.9
+     */
+    default boolean isTemplateSupported(DocumentReference templateReference)
+        throws ChangeRequestException
+    {
+        return false;
+    }
 }
