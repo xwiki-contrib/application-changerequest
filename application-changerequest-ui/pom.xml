@@ -92,6 +92,12 @@
       <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-index-tree-macro</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+    </dependency>
     <!-- We depend on CKEditor until XWIKI-19282 is fixed -->
     <dependency>
       <groupId>org.xwiki.contrib</groupId>

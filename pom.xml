@@ -357,6 +357,11 @@
         <artifactId>xwiki-platform-rest-api</artifactId>
         <version>${platform.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-index-tree-macro</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 </project>
