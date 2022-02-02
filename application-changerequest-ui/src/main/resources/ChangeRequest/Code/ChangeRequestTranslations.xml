@@ -29,7 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
-  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestTranslations</title>
@@ -55,11 +55,11 @@ changerequest.savemodal.edit.heading=Add changes to existing change request
 changerequest.savemodal.edit.input.selector=Choose an existing change request
 changerequest.sheet.merge.button=Merge
 changerequest.sheet.merge.button.title=Merge this change request
-changerequest.sheet.rebase.button=Rebase
-changerequest.sheet.rebase.button.title=Rebase this change request
+changerequest.sheet.rebase.button=Refresh content
+changerequest.sheet.rebase.button.title=Refresh the content of the changes in this change request with latest published content (all proposed changes will be kept).
 changerequest.sheet.pagechanges=Changes requested in pages:
 changerequest.sheet.alldifftitle=All changes
-changerequest.sheet.difftitle=Diff of {0}
+changerequest.sheet.difftitle=Changes of {0}
 changerequest.sheet.markready.button=Ready for review
 changerequest.sheet.markready.button.title=Mark this change request as ready for review
 changerequest.sheet.markdraft.button=Convert to draft
@@ -143,7 +143,7 @@ changerequest.sheet.diff.conflictLabel.title=Those changes are in conflict with 
 changerequest.sheet.message.outdated=outdated
 changerequest.sheet.message.outdated.title=This message is outdated: the diff changed since it was written.
 changerequest.sheet.diff.outdated=outdated
-changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences.
+changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences if possible.
 changerequest.sheet.message.collapse.button.title=Click to collapse the message.
 changerequest.sheet.message.expand.button.title=Click to expand the message.
 
