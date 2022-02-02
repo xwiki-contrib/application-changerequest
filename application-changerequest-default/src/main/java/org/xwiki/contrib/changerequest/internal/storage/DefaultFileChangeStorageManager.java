@@ -253,20 +253,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 for (BaseObject fileChangeObject : fileChangeObjects) {
                     FileChange fileChange = this.createFileChangeFromXObject(fileChangeObject, changeRequest);
 
-                    if (fileChange.getType() != FileChange.FileChangeType.DELETION) {
-                        String filename = getFileChangeFileName(fileChange.getId());
-                        XWikiAttachment attachment = changeRequestDocument.getAttachment(filename);
-                        if (attachment != null) {
-                            XWikiDocument document = new XWikiDocument(null);
-                            document.fromXML(attachment.getContentInputStream(contextProvider.get()));
-                            fileChange
-                                .setModifiedDocument(document);
-                            result.add(fileChange);
-                        } else {
-                            logger.warn("Cannot find attachment for filechange with filename [{}]. "
-                                + "This filechange will be ignored.", filename);
-                        }
-                    } else {
+                    if (fileChange.getType() == FileChange.FileChangeType.DELETION
+                        || this.loadDocumentFromAttachment(fileChange, changeRequestDocument)) {
                         result.add(fileChange);
                     }
                 }
@@ -275,6 +263,29 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             throw new ChangeRequestException(
                 String.format("Error while loading file changes for change request [%s] and reference [%s]",
                     changeRequest, changedDocument), e);
+        }
+        return result;
+    }
+
+    private boolean loadDocumentFromAttachment(FileChange fileChange, XWikiDocument changeRequestDocument)
+        throws XWikiException
+    {
+        boolean result = false;
+        String filename = getFileChangeFileName(fileChange.getId());
+        XWikiAttachment attachment = changeRequestDocument.getAttachment(filename);
+        if (attachment != null) {
+            XWikiDocument document = new XWikiDocument(null);
+            document.fromXML(attachment.getContentInputStream(contextProvider.get()));
+            // The isNew flag is not saved in the XML, so ensure to flag it properly.
+            if (fileChange.getType() != FileChange.FileChangeType.CREATION) {
+                document.setNew(false);
+            }
+            fileChange
+                .setModifiedDocument(document);
+            result = true;
+        } else {
+            logger.warn("Cannot find attachment for filechange with filename [{}]. "
+                + "This filechange will be ignored.", filename);
         }
         return result;
     }
