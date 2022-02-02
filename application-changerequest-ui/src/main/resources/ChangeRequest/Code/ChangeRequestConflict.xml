@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestConflict" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestConflict" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestConflict</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestConflict</title>
@@ -57,17 +58,16 @@
       #set ($discard = $response.sendError(500, "Cannot perform merge"))
     #else
       #set ($crMergeDocument = $mergeDocumentOpt.get())
+      #set ($mergeDocument = $crMergeDocument.wrappedResult)
       #if ("$!request.get('decision')" == '')
 {{html clean="false"}}
 #set ($discard = $services.template.execute('diff_macros.vm'))
-#set ($mergeDocument = $crMergeDocument.wrappedResult)
 #set ($versions = {
   'PREVIOUS': $mergeDocument.previousDocument,
   'CURRENT': $mergeDocument.currentDocument,
   'NEXT': $mergeDocument.nextDocument,
   'MERGED': $mergeDocument.mergeResult
 })
-
 #if ("$!request.original" != '')
   #set ($originalVersion = $request.original)
 #else
@@ -225,21 +225,23 @@
       #else
       ## Handle decision
       #set ($decision = $request.get('decision'))
-      #if ($decision == 'custom' &amp;&amp; "$!request.get('conflictReferences')" != "")
+      #if ($decision == 'custom')
         #set ($allDecisions = [])
-        #foreach ($conflictReference in $request.getParameterValues('conflictReferences'))
+        #foreach ($conflictReference in $request.getParameterValues('conflictReferences[]'))
           #set ($conflictDecision = $request.get("customDecision_$conflictReference"))
           #set ($conflictInput = [])
           #if ("$!conflictDecision" == 'custom')
             #set ($discard = $conflictInput.add($request.get("customInput_$conflictReference")))
           #end
           #if ("$!conflictDecision" != '')
-            #set ($newDecision = $services.changeRequest.createConflictDecision($mergeDocument, $conflictReference, $stringtool.capitalize($conflictDecision), $conflictInput))
-            #set ($discard = $allDecisions.add($newDecision))
+            #set ($newDecisionOpt = $services.changerequest.createConflictDecision($mergeDocument, $conflictReference, $stringtool.capitalize($conflictDecision), $conflictInput))
+            #if ($newDecisionOpt.isPresent())
+              #set ($discard = $allDecisions.add($newDecisionOpt.get()))
+            #end
           #end
         #end
         #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'CUSTOM', $allDecisions))
-        #jsonReponse({
+        #jsonResponse({
           'success': $success
         })
       #elseif ($decision == 'keepChangeRequest')

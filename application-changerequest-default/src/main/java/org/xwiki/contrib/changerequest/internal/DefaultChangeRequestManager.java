@@ -26,8 +26,10 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -448,6 +450,10 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         DocumentReference targetEntity = fileChange.getTargetEntity();
         DocumentReference userReference = this.contextProvider.get().getUserReference();
 
+        // bulletproof to avoid NPE.
+        List<ConflictDecision<?>> filteredDecisionList =
+            conflictDecisionList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+
         if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
             MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
 
@@ -461,7 +467,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             switch (resolutionChoice) {
                 case CUSTOM:
                     this.mergeConflictDecisionsManager
-                        .setConflictDecisionList(new ArrayList<>(conflictDecisionList), targetEntity, userReference);
+                        .setConflictDecisionList(new ArrayList<>(filteredDecisionList), targetEntity, userReference);
                     break;
 
                 case CHANGE_REQUEST_VERSION:
