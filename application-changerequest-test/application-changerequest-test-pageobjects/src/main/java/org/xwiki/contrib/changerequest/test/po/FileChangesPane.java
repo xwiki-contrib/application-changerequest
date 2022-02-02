@@ -59,7 +59,8 @@ public class FileChangesPane extends BaseElement
 
     private WebElement getDiffContainer(String pageName)
     {
-        WebElement link = this.container.findElement(By.linkText("Diff of " + pageName));
+        // FIXME: relying on the link is very fragile.
+        WebElement link = this.container.findElement(By.linkText("Changes of " + pageName));
         String diffId = link.getAttribute("aria-controls");
         WebElement diffContainer = this.container.findElement(By.id(diffId));
         if (!diffContainer.isDisplayed()) {
