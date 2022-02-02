@@ -294,17 +294,31 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
-     * Check if the current user can change the status of the change request.
+     * Check if the current user can edit the change request.
      *
      * @param changeRequest the change request for which to check the authors.
      * @return {@code true} if the current user is one of the author of the given change request and the change request
-     *          is not merged yet.
+     *          is not merged or closed yet.
      * @since 0.7
      */
     public boolean isAuthorizedToEdit(ChangeRequest changeRequest)
     {
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         return this.changeRequestManager.isAuthorizedToEdit(currentUser, changeRequest);
+    }
+
+    /**
+     * Check if the current user can edit the change request.
+     *
+     * @param changeRequest the change request for which to check the authors.
+     * @return {@code true} if the current user is one of the author of the given change request and the change request
+     *          is not merged yet.
+     * @since 0.9
+     */
+    public boolean isAuthorizedToOpen(ChangeRequest changeRequest)
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestManager.isAuthorizedToOpen(currentUser, changeRequest);
     }
 
     /**

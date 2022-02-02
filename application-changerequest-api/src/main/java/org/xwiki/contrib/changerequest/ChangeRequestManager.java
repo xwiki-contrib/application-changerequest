@@ -189,14 +189,28 @@ public interface ChangeRequestManager
     /**
      * Define if the given user is authorized to edit the given change request. An edition can be either changing the
      * status, modifying the description, or even rebasing the change request.
-     * Only change request that are not merged can be edited, and only authors or administrators of the change request
-     * document are authorized to do it.
+     * Only change request that are not merged or closed can be edited, and only authors or administrators of the change
+     * request document are authorized to do it.
      * @param userReference the user for which to check rights.
      * @param changeRequest the change request to check if it can be edited.
      * @return {@code true} if the given user can edit the change request, {@code false otherwise}.
      * @since 0.7
      */
     default boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return false;
+    }
+
+    /**
+     * Define if the given user is authorized to re-open a closed change request. This method basically performs the
+     * same checks as {@link #isAuthorizedToEdit(UserReference, ChangeRequest)} except that it checks first that the
+     * change request is closed.
+     * @param userReference the user for which to check rights.
+     * @param changeRequest the change request to check if it can be re-opened.
+     * @return {@code true} if the given user can re-open the change request, {@code false otherwise}.
+     * @since 0.9
+     */
+    default boolean isAuthorizedToOpen(UserReference userReference, ChangeRequest changeRequest)
     {
         return false;
     }

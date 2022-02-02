@@ -556,11 +556,12 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         return result;
     }
 
-    @Override
-    public boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest)
+    private boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest,
+        boolean checkOnlyMerged)
     {
         boolean result = false;
-        if (changeRequest.getStatus() != ChangeRequestStatus.MERGED) {
+        ChangeRequestStatus status = changeRequest.getStatus();
+        if (status != ChangeRequestStatus.MERGED && (!checkOnlyMerged || status == ChangeRequestStatus.CLOSED)) {
             if (changeRequest.getAuthors().contains(userReference)) {
                 result = true;
             } else {
@@ -570,6 +571,18 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return this.isAuthorizedToEdit(userReference, changeRequest, false);
+    }
+
+    @Override
+    public boolean isAuthorizedToOpen(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return this.isAuthorizedToEdit(userReference, changeRequest, true);
     }
 
     @Override

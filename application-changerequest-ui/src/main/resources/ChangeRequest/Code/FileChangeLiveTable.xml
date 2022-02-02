@@ -29,7 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
-  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>FileChangeLiveTable</title>
@@ -93,13 +93,13 @@ Technical page for getting livetable data for change request file changes.
           'doc_wiki_url': $xwiki.getURL($docReference.wikiReference),
           'filechange_locale': $docReference.locale
         })
-        #if ($lastFileChange.type == 'EDITION' &amp;&amp; $hasCREdit &amp;&amp; !$isMerged)
+        #if (($lastFileChange.type == 'EDITION' || $lastFileChange.type == 'CREATION') &amp;&amp; $hasCREdit)
           #set ($discard = $row.put('doc_hasedit', true))
           #set ($discard = $row.put('doc_edit_url', $xwiki.getURL($docReference, 'editcr', "changerequest=$changeRequest.id")))
         #else
           #set ($discard = $row.put('doc_hasedit', false))
         #end
-        #if ($hasConflicts)
+        #if ($hasConflicts &amp;&amp; $canEditCR)
           #set ($discard = $row.put('doc_hasfixconflict', true))
           #set ($conflictUrl = "&amp;reference=$services.model.serialize($docReference, 'local')&amp;locale=$docReference.locale")
           #set ($discard = $row.put('doc_fixconflict_url', $conflictUrl))

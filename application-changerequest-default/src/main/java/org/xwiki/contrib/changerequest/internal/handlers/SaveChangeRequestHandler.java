@@ -60,6 +60,8 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
 
     private static final String STATUS_PARAMETER = "status";
 
+    private static final String AUTHORIZATION_ERROR = "You don't have right to edit this change request";
+
     @Inject
     private HTMLConverter htmlConverter;
 
@@ -84,20 +86,14 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong CSRF token");
         } else {
             ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
-
-            if ((!this.changeRequestManager.isAuthorizedToEdit(getCurrentUser(), changeRequest))) {
-                response
-                    .sendError(HttpServletResponse.SC_FORBIDDEN, "You don't have right to edit this change request");
+            boolean success;
+            if ("GET".equals(request.getMethod())) {
+                success = this.handleStatusUpdate(request, response, changeRequest);
             } else {
-                boolean success;
-                if ("GET".equals(request.getMethod())) {
-                    success = this.handleStatusUpdate(request, response, changeRequest);
-                } else {
-                    success = this.handleDescriptionUpdate(request, changeRequest);
-                }
-                if (success) {
-                    this.responseSuccess(changeRequest);
-                }
+                success = this.handleDescriptionUpdate(request, response, changeRequest);
+            }
+            if (success) {
+                this.responseSuccess(changeRequest);
             }
         }
     }
@@ -106,25 +102,41 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
         ChangeRequest changeRequest) throws IOException, ChangeRequestException
     {
         String statusParameter = request.getParameter(STATUS_PARAMETER);
+        boolean result = false;
         try {
             ChangeRequestStatus changeRequestStatus = ChangeRequestStatus.valueOf(statusParameter.toUpperCase());
-            this.changeRequestManager.updateStatus(changeRequest, changeRequestStatus);
-            return true;
+            boolean isReopenAuthorized = changeRequest.getStatus() == ChangeRequestStatus.CLOSED
+                && (changeRequestStatus == ChangeRequestStatus.READY_FOR_REVIEW
+                || changeRequestStatus == ChangeRequestStatus.DRAFT)
+                && this.changeRequestManager.isAuthorizedToOpen(getCurrentUser(), changeRequest);
+            if (!this.changeRequestManager.isAuthorizedToEdit(getCurrentUser(), changeRequest) && !isReopenAuthorized) {
+                response
+                    .sendError(HttpServletResponse.SC_FORBIDDEN, AUTHORIZATION_ERROR);
+            } else {
+                this.changeRequestManager.updateStatus(changeRequest, changeRequestStatus);
+                result = true;
+            }
         } catch (IllegalArgumentException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST,
                 String.format("Wrong status parameter: [%s]", statusParameter));
-            return false;
         }
+        return result;
     }
 
-    private boolean handleDescriptionUpdate(HttpServletRequest request, ChangeRequest changeRequest)
-        throws ChangeRequestException
+    private boolean handleDescriptionUpdate(HttpServletRequest request, HttpServletResponse response,
+        ChangeRequest changeRequest) throws ChangeRequestException, IOException
     {
-        String content = getContent(request);
-        changeRequest.setDescription(content);
-        this.storageManager.save(changeRequest);
-        this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
-        return true;
+        if (this.changeRequestManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)) {
+            String content = getContent(request);
+            changeRequest.setDescription(content);
+            this.storageManager.save(changeRequest);
+            this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
+            return true;
+        } else {
+            response
+                .sendError(HttpServletResponse.SC_FORBIDDEN, AUTHORIZATION_ERROR);
+            return false;
+        }
     }
 
     // Code inspired from DiscussionsResourceReferenceHandler

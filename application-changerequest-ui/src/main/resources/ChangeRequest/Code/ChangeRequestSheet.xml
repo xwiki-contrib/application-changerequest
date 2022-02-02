@@ -29,7 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>ChangeRequest.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
-  <originalMetadataAuthor>XWiki.Admin</originalMetadataAuthor>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>#if($doc.getObject('ChangeRequest.Code.ChangeRequestClass'))Change Request: $doc.title#{else}Change Request Sheet#end</title>
@@ -263,12 +263,12 @@
             &lt;span class="label label-default commentcounter hidden"&gt;
               $services.icon.renderHTML('envelope') &lt;span class="counter" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;0&lt;/span&gt;
             &lt;/span&gt;
-            #if ($crMergeDocumentResult.hasConflicts())
+            #if ($isNotMerged &amp;&amp; $crMergeDocumentResult.hasConflicts())
               &lt;span class="label label-warning label-diff-conflict" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.conflictLabel.title'))"&gt;
                 $services.icon.renderHTML('wrench') $services.localization.render('changerequest.sheet.diff.conflictLabel')
               &lt;/span&gt;
             #end
-            #if ($isFileChangeOutdated)
+            #if ($isNotMerged &amp;&amp; $isFileChangeOutdated)
               &lt;span class="label label-warning label-diff-outdated" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.outdated.title'))"&gt;
                 $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.diff.outdated')
               &lt;/span&gt;
@@ -857,7 +857,7 @@ require(['jquery', 'bootstrap'], function ($) {
           var conflictId = $(this).val();
           var selectValue = $('#conflict_decision_select_' + conflictId).val();
           var customValue = $('#conflict_decision_value_custom_' + conflictId).val();
-          conflictReferences.add(conflictId);
+          conflictReferences.push(conflictId);
           params["customDecision_" + conflictId] = selectValue;
           
           if (selectValue == 'custom') {
@@ -998,8 +998,7 @@ require(['jquery', 'bootstrap'], function ($) {
     </property>
     <property>
       <code>'use strict';
-// last argument is a polyfill to use URLSearchParams with IE11
-require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal', "$services.webjars.url('org.webjars.npm:url-search-params-polyfill', 'index.js')"], function ($, xm, ConflictModal) {
+require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm, ConflictModal) {
   var initialize = function () {
     $(".conflictFixing").on('click', function () {
       var button = $(this);
@@ -1011,7 +1010,6 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal', "$services.webjar
       modal.requestModal('NEXT', 'MERGED');
     });
     
-    console.log($(".action_fixconflict"));
     $(document).on('click', '.action_fixconflict', function (event) {
       event.preventDefault();
       var currentReference = xm.documentReference;
@@ -3272,12 +3270,13 @@ tr.discussion-line:hover {
 &lt;/div&gt;
 {{/html}}
 #elseif ($changeRequest.status == 'CLOSED')
+#set ($canBeOpened = $services.changerequest.isAuthorizedToOpen($changeRequest))
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
-  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary cr-open #if(!$canBeEdited)disabled#end"&gt;
+  &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary cr-open #if(!$canBeOpened)disabled#end"&gt;
       $services.icon.renderHTML('unlock') $services.localization.render('changerequest.sheet.open.button')
   &lt;/a&gt;
-  #if ($canBeEdited)
+  #if ($canBeOpened)
   &lt;button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"&gt;
     &lt;span class="caret"&gt;&lt;/span&gt;
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
