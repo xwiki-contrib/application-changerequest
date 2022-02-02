@@ -38,6 +38,7 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.context.Execution;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
@@ -247,6 +248,7 @@ class DefaultFileChangeStorageManagerTest
         when(this.documentRevisionProvider.getRevision(targetEntity, "4.3")).thenReturn(document);
         when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(598));
         when(document.getDate()).thenReturn(new Date(598));
+        when(fileChange.getChangeRequest()).thenReturn(mock(ChangeRequest.class));
         assertEquals(document, this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange));
     }
 
@@ -489,6 +491,8 @@ class DefaultFileChangeStorageManagerTest
     void mergeEdition() throws Exception
     {
         FileChange fileChange = mock(FileChange.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
         when(fileChange.toString()).thenReturn("my filechange");
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         XWikiDocument modifiedDocument = mock(XWikiDocument.class);
@@ -520,6 +524,7 @@ class DefaultFileChangeStorageManagerTest
                 return mergeDocumentResult;
             });
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_MERGING);
         ChangeRequestException changeRequestException =
             assertThrows(ChangeRequestException.class, () -> this.fileChangeStorageManager.merge(fileChange));
         assertEquals("Cannot merge the file change [my filechange] since it has conflicts.",

@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
@@ -478,7 +479,12 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         throws ChangeRequestException
     {
         XWikiDocument result = getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
-        if (!result.getDate().equals(fileChange.getPreviousPublishedVersionDate())) {
+        ChangeRequestStatus status = fileChange.getChangeRequest().getStatus();
+
+        // if the CR is closed or merged, we don't really care if the previous version is not exactly the same.
+        if (status != ChangeRequestStatus.MERGED
+            && status != ChangeRequestStatus.CLOSED
+            && !result.getDate().equals(fileChange.getPreviousPublishedVersionDate())) {
             throw new ChangeRequestException("The previous version of the document has been removed, "
                 + "comparison is not possible.");
         } else {
