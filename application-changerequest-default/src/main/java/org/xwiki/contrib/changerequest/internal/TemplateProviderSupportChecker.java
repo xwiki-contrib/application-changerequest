@@ -32,6 +32,8 @@ import org.xwiki.cache.CacheException;
 import org.xwiki.cache.CacheManager;
 import org.xwiki.cache.config.LRUCacheConfiguration;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLifecycleException;
+import org.xwiki.component.phase.Disposable;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -62,7 +64,7 @@ import com.xpn.xwiki.objects.BaseObject;
  */
 @Component(roles = TemplateProviderSupportChecker.class)
 @Singleton
-public class TemplateProviderSupportChecker implements Initializable
+public class TemplateProviderSupportChecker implements Initializable, Disposable
 {
     protected static final LocalDocumentReference TEMPLATE_PROVIDER_CLASS_REFERENCE =
         new LocalDocumentReference("XWiki", "TemplateProviderClass");
@@ -104,6 +106,12 @@ public class TemplateProviderSupportChecker implements Initializable
         } catch (CacheException e) {
             throw new InitializationException("Error when initializing cache of supported template providers", e);
         }
+    }
+
+    @Override
+    public void dispose() throws ComponentLifecycleException
+    {
+        this.supportedProviderCache.dispose();
     }
 
     /**
