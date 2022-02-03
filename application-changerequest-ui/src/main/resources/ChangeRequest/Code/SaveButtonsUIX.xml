@@ -200,17 +200,16 @@
       </use>
     </class>
     <property>
-      <cache>forbid</cache>
+      <cache>long</cache>
     </property>
     <property>
       <code>// third argument is a polyfill for using URLSearchParam with IE11
 require(['jquery', 'xwiki-meta'], function ($, xm) {
   var saveButtonUIXDoc = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
+  var saveConfig = JSON.parse($('#changerequest-save-config').text());
   
   var saveChangeRequest = function (event, inplaceEditing) {
     var isNewCR = $('#existingCRSelector').val() === "";
-    var CREATE_URL = "$services.changerequest.getChangeRequestURL('create', '')";
-    var ADD_CHANGES_URL = "$services.changerequest.getChangeRequestURL('addchanges', '__CR__')";
     var actionURL;
     var form;
     if (inplaceEditing) {
@@ -233,9 +232,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         'value': $('#crDraft:checked').val()
       });
       form.append(crDraftField);
-      actionURL = CREATE_URL + "?async=1";
+      actionURL = saveConfig.createURL + "?async=1";
     } else {
-      actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val()) + "?async=1";
+      actionURL = saveConfig.addChangesURL.replace("__CR__", $('#existingCRSelector').val()) + "?async=1";
       if (urlParams.has('changerequest')) {
         actionURL += "&amp;fromchangerequest=1";
       }
@@ -323,14 +322,14 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     }
   };
   
-  var attachButtons = function (hasEditRight) {
+  var attachButtons = function () {
     if ($('#save_changerequest').length == 0) {
       var button = $("&lt;input&gt;", {
         'type': 'button',
         'class': 'btn btn-info',
         'name': 'save_changerequest',
         'id': 'save_changerequest',
-        'value': 'Save as change request'
+        'value': saveConfig.saveButtonTranslation
       });
       
       var buttonAdded = false;
@@ -350,9 +349,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       button.on('click', function() {
         createChangeRequestModal(inplaceEditing);
       });
-      var hasEditRight = ("$services.security.authorization.hasAccess('edit', $doc)" === "true");
       var urlParams = new URLSearchParams(window.location.search);
       var editExistingCR = urlParams.has('changerequest');
+      var hasEditRight = saveConfig.hasEditRight;
       // hide minor edit and autosave capabilities
       if (!hasEditRight || editExistingCR) {
         $('.meta-minorEdit').remove();
@@ -393,10 +392,170 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <name>SaveButtonsUIX</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
-      <use>always</use>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.SaveButtonsUIX</name>
+    <number>0</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>76f49e6a-8dc3-42ca-97a8-2c3ef834a7fa</guid>
+    <class>
+      <name>XWiki.UIExtensionClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <async_cached>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_cached</name>
+        <number>3</number>
+        <prettyName>Cached</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_cached>
+      <async_context>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>async_context</name>
+        <number>4</number>
+        <prettyName>Context elements</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>, </separator>
+        <separators>|, </separators>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </async_context>
+      <async_enabled>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_enabled</name>
+        <number>2</number>
+        <prettyName>Asynchronous rendering</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_enabled>
+      <content>
+        <disabled>0</disabled>
+        <editor>Text</editor>
+        <name>content</name>
+        <number>1</number>
+        <prettyName>Executed Content</prettyName>
+        <rows>25</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <extensionPointId>
+        <disabled>0</disabled>
+        <name>extensionPointId</name>
+        <number>5</number>
+        <prettyName>Extension Point ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </extensionPointId>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>6</number>
+        <prettyName>Extension ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parameters>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>parameters</name>
+        <number>7</number>
+        <prettyName>Extension Parameters</prettyName>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </parameters>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>8</number>
+        <prettyName>Extension Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <async_cached>0</async_cached>
+    </property>
+    <property>
+      <async_context/>
+    </property>
+    <property>
+      <async_enabled>0</async_enabled>
+    </property>
+    <property>
+      <content>{{velocity}}
+#set ($crEditName = "changerequest")
+#set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
+#set ($isEditAction = $xcontext.action == 'edit')
+#if ($hasCREdit &amp;&amp; $isEditAction)
+  #set ($hasEditRight = $services.security.authorization.hasAccess('edit', $doc))
+  #set ($createURL = $services.changerequest.getChangeRequestURL('create', ''))
+  #set ($addChangesURL = $services.changerequest.getChangeRequestURL('addchanges', '__CR__'))
+  #set ($changeRequestSaveConfig = {
+    'hasEditRight': $hasEditRight,
+    'createURL': $createURL,
+    'addChangesURL': $addChangesURL,
+    'saveButtonTranslation': $services.localization.render('changerequest.editor.button.save')
+  })
+  
+  {{html clean="false"}}
+  &lt;script id="changerequest-save-config" type="application/json"&gt;$jsontool.serialize($changeRequestSaveConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+  #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveButtonsUIX'))
+  {{/html}}
+  
+#end
+{{/velocity}}</content>
+    </property>
+    <property>
+      <extensionPointId>org.xwiki.platform.template.header.after</extensionPointId>
+    </property>
+    <property>
+      <name>org.xwiki.contrib.changerequest.ui.header.after.editor.extension</name>
+    </property>
+    <property>
+      <parameters>order=0</parameters>
+    </property>
+    <property>
+      <scope>wiki</scope>
     </property>
   </object>
 </xwikidoc>

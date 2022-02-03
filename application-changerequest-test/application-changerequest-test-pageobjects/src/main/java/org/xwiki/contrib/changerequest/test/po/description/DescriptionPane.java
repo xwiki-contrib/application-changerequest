@@ -125,7 +125,7 @@ public class DescriptionPane extends BaseElement
      */
     public void waitUntilEventsSize(int size)
     {
-        int maxLoop = 10;
+        int maxLoop = 20;
         int loop = 0;
         int latestSize = -1;
         String originalUrl = getDriver().getCurrentUrl();

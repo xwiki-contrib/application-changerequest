@@ -33,6 +33,7 @@ import org.xwiki.test.ui.po.BaseElement;
 public class ExtendedEditPage<T> extends BaseElement
 {
     private static final String SAVE_CHANGE_REQUEST_ID = "save_changerequest";
+    private static final String STANDARD_SAVE_NAME = "action_save";
 
     private T editor;
 
@@ -60,6 +61,16 @@ public class ExtendedEditPage<T> extends BaseElement
     public boolean hasSaveAsChangeRequestButton()
     {
         return this.getDriver().hasElementWithoutWaiting(By.id(SAVE_CHANGE_REQUEST_ID));
+    }
+
+    /**
+     * Check if the standard save button is displayed.
+     * @return {@code true} if the button is present and displayed.
+     */
+    public boolean hasStandardSaveButton()
+    {
+        return this.getDriver().hasElementWithoutWaiting(By.name(STANDARD_SAVE_NAME))
+            && getDriver().findElementWithoutWaiting(By.name(STANDARD_SAVE_NAME)).isDisplayed();
     }
 
     /**

@@ -32,6 +32,7 @@ import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 public class ExtendedViewPage extends ViewPage
 {
     private static final String CR_EDIT_ID = "crEdit";
+    private static final String STANDARD_EDIT_ID = "tmEdit";
 
     /**
      * Check if the current view has a change request edit button: this button is normally visible only when users does
@@ -41,6 +42,29 @@ public class ExtendedViewPage extends ViewPage
     public boolean hasChangeRequestEditButton()
     {
         return getDriver().hasElementWithoutWaiting(By.id(CR_EDIT_ID));
+    }
+
+    /**
+     * Check if the current view has the standard edit button.
+     * @return {@code true} if the standard edit button is available.
+     */
+    public boolean hasStandardEditButton()
+    {
+        return getDriver().hasElementWithoutWaiting(By.id(STANDARD_EDIT_ID))
+            && getDriver().findElementWithoutWaiting(By.id(STANDARD_EDIT_ID)).isDisplayed();
+    }
+
+    /**
+     * Click on the standard edit button and returns the extended edit page that has been opened.
+     *
+     * @return a new instance of extended edit page.
+     */
+    public ExtendedEditPage<WYSIWYGEditPage> clickStandardEdit()
+    {
+        super.edit();
+        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
+        extendedEditPage.getEditor().waitUntilPageIsLoaded();
+        return extendedEditPage;
     }
 
     /**

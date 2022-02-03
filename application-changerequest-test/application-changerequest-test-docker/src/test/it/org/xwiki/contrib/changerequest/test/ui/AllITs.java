@@ -37,4 +37,10 @@ public class AllITs
     class NestedChangeRequestCreationIT extends ChangeRequestCreationIT
     {
     }
+
+    @Nested
+    @DisplayName("Change Request Rights")
+    class NestedChangeRequestRightsIT extends ChangeRequestRightsIT
+    {
+    }
 }
