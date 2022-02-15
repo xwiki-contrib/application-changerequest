@@ -45,6 +45,7 @@ changerequest.docextra.title=Demandes de modification
 changerequest.application.label=Demande de modification
 changerequest.picker.placeholder=Saisissez un nom pour la demande de modification
 changerequest.editor.button.save=Enregistrer comme demande de modification
+changerequest.createascr.button=Demande de création
 changerequest.savemodal.header.title=Enregistrer comme demande de modification
 changerequest.savemodal.header.hint=Fournissez des informations sur votre demande de modification qu'elle soit nouvelle ou déjà existante.
 changerequest.savemodal.create.heading=Créer une nouvelle demande de modification
