@@ -17,40 +17,34 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.internal;
+package org.xwiki.contrib.changerequest.internal.descriptors;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.user.UserReference;
-import org.xwiki.user.UserReferenceSerializer;
+import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
 
 /**
- * Allows to convert {@link UserReference} to {@link DocumentReference} when it's needed.
- * This component should be removed in the future, when all XWiki API are using {@link UserReference}.
+ * Descriptor related to {@link StaleChangeRequestRecordableEvent}.
  *
  * @version $Id$
- * @since 0.1
+ * @since 0.10
  */
-@Component(roles = UserReferenceConverter.class)
+@Component
 @Singleton
-public class UserReferenceConverter
+@Named(StaleChangeRequestRecordableEvent.EVENT_NAME)
+public class StaleChangeRequestEventDescriptor extends AbstractChangeRequestEventDescriptor
 {
-    @Inject
-    @Named("document")
-    private UserReferenceSerializer<DocumentReference> userReferenceSerializer;
-
-    /**
-     * Convert the given {@link UserReference} to a {@link DocumentReference}.
-     *
-     * @param userReference the reference to convert.
-     * @return the {@link DocumentReference} of the user.
-     */
-    public DocumentReference convert(UserReference userReference)
+    @Override
+    public String getEventType()
     {
-        return this.userReferenceSerializer.serialize(userReference);
+        return StaleChangeRequestRecordableEvent.EVENT_NAME;
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "changerequest.event.stale.description";
     }
 }

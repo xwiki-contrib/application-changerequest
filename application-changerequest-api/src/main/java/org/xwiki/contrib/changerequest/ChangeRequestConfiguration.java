@@ -22,6 +22,8 @@ package org.xwiki.contrib.changerequest;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
+import org.xwiki.user.SuperAdminUserReference;
+import org.xwiki.user.UserReference;
 
 /**
  * Available configuration for change request application.
@@ -42,4 +44,58 @@ public interface ChangeRequestConfiguration
      * @return the location where to store the change requests.
      */
     SpaceReference getChangeRequestSpaceLocation();
+
+    /**
+     * Define the duration after a stale change request notification as been sent
+     * (see {@link #getStaleChangeRequestDurationForNotifying()}) to close the change request automatically.
+     * Note that {@code 0} means the change request won't be closed automatically.
+     * Also if {@link #getStaleChangeRequestDurationForNotifying()} returns {@code 0}, then the duration is considered
+     * since the creation or the latest update of the change request (see {@link #useCreationDateForStaleDurations()}).
+     *
+     * @return a duration in days for automatically closing a change request after a stale notification has been sent.
+     * @since 0.10
+     */
+    default long getStaleChangeRequestDurationForClosing()
+    {
+        return 0;
+    }
+
+    /**
+     * Define the duration after a change request has been created or updated
+     * (see {@link #useCreationDateForStaleDurations()}) for sending a stale change request notifications: this
+     * notification can inform users that the change request is about to be closed automatically.
+     * Note that {@code 0} means no notification will be sent.
+     *
+     * @return a duration in days for triggering a notifications after a change request has been created or updated.
+     * @since 0.10
+     */
+    default long getStaleChangeRequestDurationForNotifying()
+    {
+        return 0;
+    }
+
+    /**
+     * Define if the durations given by {@link #getStaleChangeRequestDurationForNotifying()} and
+     * {@link #getStaleChangeRequestDurationForClosing()} should concern the update date or the creation date of the
+     * change request.
+     *
+     * @return {@code true} to consider the creation date of the change request, {@code false} to consider the
+     *          update date.
+     * @since 0.10
+     */
+    default boolean useCreationDateForStaleDurations()
+    {
+        return false;
+    }
+
+    /**
+     * Defines the user to use in context when running the scheduler.
+     *
+     * @return the reference of the user to be put in context for running the scheduler.
+     * @since 0.10
+     */
+    default UserReference getSchedulerContextUser()
+    {
+        return SuperAdminUserReference.INSTANCE;
+    }
 }

@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -84,10 +85,6 @@ class DefaultChangeRequestStorageManagerTest
 
     @MockComponent
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
-
-    @MockComponent
-    @Named("document")
-    private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
     @MockComponent
     @Named("title")
@@ -144,8 +141,8 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
 
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
 
         BaseObject xobject = mock(BaseObject.class);
         when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
@@ -155,7 +152,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(changeRequest).setId("id42");
         verify(document).setTitle(title);
         verify(document).setContent(description);
-        verify(document).setContentAuthorReference(userDocReference);
+        verify(documentAuthors).setCreator(userReference);
         verify(xobject).set("status", "draft", this.context);
         verify(this.fileChangeStorageManager).save(fileChange1);
         verify(this.fileChangeStorageManager).save(fileChange2);
@@ -212,11 +209,10 @@ class DefaultChangeRequestStorageManagerTest
         when(document.getTitle()).thenReturn(title);
         when(document.getContent()).thenReturn(description);
 
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(document.getContentAuthorReference()).thenReturn(userDocReference);
-
         UserReference userReference = mock(UserReference.class);
-        when(this.userReferenceResolver.resolve(userDocReference)).thenReturn(userReference);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(userReference);
 
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(document.getCreationDate()).thenReturn(new Date(42));
@@ -287,11 +283,10 @@ class DefaultChangeRequestStorageManagerTest
         when(doc2.getTitle()).thenReturn(title);
         when(doc2.getContent()).thenReturn(description);
 
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(doc2.getContentAuthorReference()).thenReturn(userDocReference);
-
         UserReference userReference = mock(UserReference.class);
-        when(this.userReferenceResolver.resolve(userDocReference)).thenReturn(userReference);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(doc2.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(userReference);
 
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(doc2.getCreationDate()).thenReturn(new Date(42));
@@ -313,11 +308,10 @@ class DefaultChangeRequestStorageManagerTest
         when(doc3.getTitle()).thenReturn(title2);
         when(doc3.getContent()).thenReturn(description2);
 
-        DocumentReference userDocReference2 = mock(DocumentReference.class);
-        when(doc3.getContentAuthorReference()).thenReturn(userDocReference2);
-
         UserReference userReference2 = mock(UserReference.class);
-        when(this.userReferenceResolver.resolve(userDocReference2)).thenReturn(userReference2);
+        DocumentAuthors documentAuthors2 = mock(DocumentAuthors.class);
+        when(doc3.getAuthors()).thenReturn(documentAuthors2);
+        when(documentAuthors2.getCreator()).thenReturn(userReference2);
 
         when(xobject2.getStringValue("status")).thenReturn("draft");
         when(doc3.getCreationDate()).thenReturn(new Date(16));
@@ -387,11 +381,10 @@ class DefaultChangeRequestStorageManagerTest
         when(doc2.getTitle()).thenReturn(title);
         when(doc2.getContent()).thenReturn(description);
 
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(doc2.getContentAuthorReference()).thenReturn(userDocReference);
-
         UserReference userReference = mock(UserReference.class);
-        when(this.userReferenceResolver.resolve(userDocReference)).thenReturn(userReference);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(doc2.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(userReference);
 
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(doc2.getCreationDate()).thenReturn(new Date(42));
@@ -413,11 +406,10 @@ class DefaultChangeRequestStorageManagerTest
         when(doc3.getTitle()).thenReturn(title2);
         when(doc3.getContent()).thenReturn(description2);
 
-        DocumentReference userDocReference2 = mock(DocumentReference.class);
-        when(doc3.getContentAuthorReference()).thenReturn(userDocReference2);
-
         UserReference userReference2 = mock(UserReference.class);
-        when(this.userReferenceResolver.resolve(userDocReference2)).thenReturn(userReference2);
+        DocumentAuthors documentAuthors2 = mock(DocumentAuthors.class);
+        when(doc3.getAuthors()).thenReturn(documentAuthors2);
+        when(documentAuthors2.getCreator()).thenReturn(userReference2);
 
         when(xobject2.getStringValue("status")).thenReturn("draft");
         when(doc3.getCreationDate()).thenReturn(new Date(16));

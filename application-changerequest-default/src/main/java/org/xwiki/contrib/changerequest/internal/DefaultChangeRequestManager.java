@@ -567,7 +567,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     {
         boolean result = false;
         ChangeRequestStatus status = changeRequest.getStatus();
-        if (status != ChangeRequestStatus.MERGED && (!checkOnlyMerged || status == ChangeRequestStatus.CLOSED)) {
+        if (status != ChangeRequestStatus.MERGED && (!checkOnlyMerged || !status.isOpen())) {
             if (changeRequest.getAuthors().contains(userReference)) {
                 result = true;
             } else {

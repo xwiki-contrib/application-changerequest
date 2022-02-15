@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.Configuration" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.Configuration" locale="">
   <web>ChangeRequest.Code</web>
   <name>Configuration</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>Configuration</title>
@@ -52,12 +53,33 @@
       <nameField/>
       <validationScript/>
       <approvalStrategy>
-        <customDisplay/>
+        <customDisplay>{{velocity}}
+#if ($type == 'edit')
+  #set ($componentManager = $services.component.getContextComponentManager())
+  #set ($availableStrategies = $componentManager.getInstanceList('org.xwiki.contrib.changerequest.MergeApprovalStrategy'))
+  {{html}}
+  &lt;div class='strategies'&gt;
+  #foreach ($strategy in $availableStrategies)
+    &lt;div class='radio'&gt;
+    #set ($isSelected = $strategy.name == $value)
+      &lt;label&gt;
+        &lt;input type='radio' name="${prefix}${name}" id="${prefix}${name}_$strategy.name" value="$strategy.name" #if($isSelected)checked="checked"#end&gt;
+        $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrategy.name.$strategy.name"))
+        &lt;span class='xHint'&gt;$strategy.description&lt;/span&gt;
+      &lt;/label&gt;
+  &lt;/div&gt;
+  #end
+  &lt;/div&gt;
+  {{/html}}
+#elseif ($type == 'view')
+$escapetool.xml($services.localization.render("changerequest.mergeApprovalStrategy.name.$value"))
+#end
+{{/velocity}}</customDisplay>
         <disabled>0</disabled>
-        <hint/>
+        <hint>Some hint</hint>
         <name>approvalStrategy</name>
         <number>1</number>
-        <picker>1</picker>
+        <picker>0</picker>
         <prettyName>approvalStrategy</prettyName>
         <size>30</size>
         <unmodifiable>0</unmodifiable>
@@ -79,12 +101,64 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </changeRequestLocation>
+      <durationBeforeClosingStale>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>durationBeforeClosingStale</name>
+        <number>3</number>
+        <numberType>long</numberType>
+        <prettyName>durationBeforeClosingStale</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </durationBeforeClosingStale>
+      <durationBeforeNotifyingStale>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>durationBeforeNotifyingStale</name>
+        <number>4</number>
+        <numberType>long</numberType>
+        <prettyName>durationBeforeNotifyingStale</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </durationBeforeNotifyingStale>
+      <useCreationDateForStaleDurations>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <hint/>
+        <name>useCreationDateForStaleDurations</name>
+        <number>5</number>
+        <prettyName>useCreationDateForStaleDurations</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </useCreationDateForStaleDurations>
     </class>
     <property>
       <approvalStrategy>onlyapproved</approvalStrategy>
     </property>
     <property>
       <changeRequestLocation>ChangeRequest.Data</changeRequestLocation>
+    </property>
+    <property>
+      <durationBeforeClosingStale>5</durationBeforeClosingStale>
+    </property>
+    <property>
+      <durationBeforeNotifyingStale>20</durationBeforeNotifyingStale>
+    </property>
+    <property>
+      <useCreationDateForStaleDurations>0</useCreationDateForStaleDurations>
     </property>
   </object>
   <object>
@@ -160,21 +234,6 @@
         <valueField/>
         <classType>com.xpn.xwiki.objects.classes.PageClass</classType>
       </configurationClass>
-      <configureGlobally>
-        <customDisplay/>
-        <defaultValue/>
-        <disabled>0</disabled>
-        <displayFormType>checkbox</displayFormType>
-        <displayType/>
-        <hint/>
-        <name>configureGlobally</name>
-        <number>4</number>
-        <prettyName>configureGlobally</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </configureGlobally>
       <displayBeforeCategory>
         <customDisplay/>
         <disabled>0</disabled>
@@ -284,6 +343,31 @@
         <values/>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </propertiesToShow>
+      <scope>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText/>
+        <hint/>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>12</number>
+        <picker>1</picker>
+        <prettyName>scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>WIKI|SPACE|ALL_SPACES|WIKI+ALL_SPACES</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
       <sectionOrder>
         <customDisplay/>
         <disabled>0</disabled>
@@ -309,9 +393,6 @@
       <configurationClass>ChangeRequest.Code.ConfigurationClass</configurationClass>
     </property>
     <property>
-      <configureGlobally>1</configureGlobally>
-    </property>
-    <property>
       <displayBeforeCategory/>
     </property>
     <property>
@@ -331,6 +412,9 @@
     </property>
     <property>
       <propertiesToShow/>
+    </property>
+    <property>
+      <scope>WIKI</scope>
     </property>
     <property>
       <sectionOrder/>

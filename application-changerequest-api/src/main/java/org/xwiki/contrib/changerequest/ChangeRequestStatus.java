@@ -33,28 +33,56 @@ public enum ChangeRequestStatus
     /**
      * When the change request is still a draft and cannot be merged.
      */
-    DRAFT,
+    DRAFT(true),
 
     /**
      * When the change request has been merged.
      */
-    MERGED,
+    MERGED(false),
 
     /**
      * When the change request can be reviewed.
      * @since 0.4
      */
-    READY_FOR_REVIEW,
+    READY_FOR_REVIEW(true),
 
     /**
      * When the change request can be merged.
      * @since 0.6
      */
-    READY_FOR_MERGING,
+    READY_FOR_MERGING(true),
 
     /**
      * When the change request is closed without merging.
      * @since 0.6
      */
-    CLOSED
+    CLOSED(false),
+
+    /**
+     * When the  change request is closed because it's stale.
+     * @since 0.10
+     */
+    STALE(false);
+
+    private final boolean isOpen;
+
+    /**
+     * Default constructor.
+     *
+     * @param isOpen {@code true} if the status means that the change request is still open, {@code false} if it means
+     *               it is closed.
+     */
+    ChangeRequestStatus(boolean isOpen)
+    {
+        this.isOpen = isOpen;
+    }
+
+    /**
+     * @return {@code true} if the status means that the change request is still open and can be edited,
+     *         {@code false} if it means it is closed.
+     */
+    public boolean isOpen()
+    {
+        return this.isOpen;
+    }
 }

@@ -61,7 +61,7 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
     static final String STATUS_FIELD = "status";
     static final String CHANGED_DOCUMENTS_FIELD = "changedDocuments";
     static final String AUTHORS_FIELD = "authors";
-    static final String CONTENT_FIELD = "content";
+    static final String STALE_DATE_FIELD = "staleDate";
 
     private static final LocalDocumentReference CLASS_SHEET_BINDING_XCLASS =
         new LocalDocumentReference("XWiki", "ClassSheetBinding");
@@ -108,6 +108,7 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
 
         result |= xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
         result |= xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
+        result |= xClass.addDateField(STALE_DATE_FIELD, STALE_DATE_FIELD);
 
         return result;
     }

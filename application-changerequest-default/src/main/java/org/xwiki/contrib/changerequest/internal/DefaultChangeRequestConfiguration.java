@@ -27,6 +27,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
@@ -34,6 +35,9 @@ import org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprova
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.SpaceReferenceResolver;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.user.SuperAdminUserReference;
+import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWikiContext;
 
@@ -60,6 +64,9 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     @Inject
     private SpaceReferenceResolver<String> spaceReferenceResolver;
 
+    @Inject
+    private UserReferenceResolver<String> userReferenceResolver;
+
     @Override
     public String getMergeApprovalStrategy()
     {
@@ -76,6 +83,37 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
             result = this.spaceReferenceResolver.resolve(changeRequestLocation, wikiReference);
         } else {
             result = new SpaceReference(wikiReference.getName(), CHANGE_REQUEST_SPACE_LOCATION);
+        }
+        return result;
+    }
+
+    @Override
+    public long getStaleChangeRequestDurationForClosing()
+    {
+        return this.configurationSource.getProperty("durationBeforeClosingStale", 5);
+    }
+
+    @Override
+    public long getStaleChangeRequestDurationForNotifying()
+    {
+        return this.configurationSource.getProperty("durationBeforeNotifyingStale", 20);
+    }
+
+    @Override
+    public boolean useCreationDateForStaleDurations()
+    {
+        return this.configurationSource.getProperty("useCreationDateForStaleDurations", false);
+    }
+
+    @Override
+    public UserReference getSchedulerContextUser()
+    {
+        String schedulerContextUser = this.configurationSource.getProperty("schedulerContextUser");
+        UserReference result;
+        if (!StringUtils.isEmpty(schedulerContextUser)) {
+            result = this.userReferenceResolver.resolve(schedulerContextUser);
+        } else {
+            result = SuperAdminUserReference.INSTANCE;
         }
         return result;
     }

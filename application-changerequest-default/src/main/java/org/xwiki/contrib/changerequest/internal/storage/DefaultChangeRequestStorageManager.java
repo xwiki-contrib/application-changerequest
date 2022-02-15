@@ -20,8 +20,11 @@
 package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,7 +49,6 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent;
-import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -65,7 +67,6 @@ import org.xwiki.query.QueryManager;
 import org.xwiki.refactoring.job.EntityRequest;
 import org.xwiki.refactoring.job.RefactoringJobs;
 import org.xwiki.refactoring.script.RequestFactory;
-import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.XWiki;
@@ -74,8 +75,10 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
+import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.AUTHORS_FIELD;
 import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.CHANGED_DOCUMENTS_FIELD;
 import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS;
+import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.STALE_DATE_FIELD;
 import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.STATUS_FIELD;
 
 /**
@@ -92,9 +95,6 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private static final String REFERENCE = "reference";
 
     @Inject
-    private UserReferenceConverter userReferenceConverter;
-
-    @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Inject
@@ -102,10 +102,6 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
-
-    @Inject
-    @Named("document")
-    private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
     @Inject
     private EntityReferenceSerializer<String> entityReferenceSerializer;
@@ -161,7 +157,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             XWikiDocument document = wiki.getDocument(reference, context);
             document.setTitle(changeRequest.getTitle());
             document.setContent(changeRequest.getDescription());
-            document.setContentAuthorReference(this.userReferenceConverter.convert(changeRequest.getCreator()));
+            document.getAuthors().setCreator(changeRequest.getCreator());
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
             xObject.set(STATUS_FIELD, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
 
@@ -174,7 +170,8 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 .map(target -> this.userReferenceSerializer.serialize(target))
                 .collect(Collectors.toList());
 
-            xObject.set("authors", serializedAuthors, context);
+            xObject.set(AUTHORS_FIELD, serializedAuthors, context);
+            xObject.set(STALE_DATE_FIELD, null, context);
 
             wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getAllFileChanges()) {
@@ -183,6 +180,26 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while saving the change request [%s]", changeRequest), e);
+        }
+    }
+
+    @Override
+    public void saveStaleDate(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        XWikiContext context = this.contextProvider.get();
+        XWiki wiki = context.getWiki();
+        if (changeRequest.getId() == null) {
+            throw new ChangeRequestException("The stale date can only be saved for existing change requests.");
+        } else {
+            DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+            try {
+                XWikiDocument document = wiki.getDocument(reference, context);
+                BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
+                xObject.set(STALE_DATE_FIELD, changeRequest.getStaleDate(), context);
+                wiki.saveDocument(document, context);
+            } catch (XWikiException e) {
+                throw new ChangeRequestException("Error while saving the change request stale date", e);
+            }
         }
     }
 
@@ -201,12 +218,14 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             if (!document.isNew() && xObject != null) {
                 ChangeRequestStatus status = ChangeRequestStatus.valueOf(
                     xObject.getStringValue(STATUS_FIELD).toUpperCase());
+                Date staleDate = xObject.getDateValue(STALE_DATE_FIELD);
                 changeRequest
                     .setTitle(document.getTitle())
                     .setDescription(document.getContent())
-                    .setCreator(this.userReferenceResolver.resolve(document.getContentAuthorReference()))
+                    .setCreator(document.getAuthors().getCreator())
                     .setStatus(status)
-                    .setCreationDate(document.getCreationDate());
+                    .setCreationDate(document.getCreationDate())
+                    .setStaleDate(staleDate);
                 List<String> changedDocuments = xObject.getListValue(CHANGED_DOCUMENTS_FIELD);
 
                 for (String changedDocument : changedDocuments) {
@@ -312,6 +331,78 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         } catch (QueryException e) {
             throw new ChangeRequestException(
                 String.format("Error while trying to get change request for space [%s]", spaceReference), e);
+        }
+
+        return result;
+    }
+
+    private String getInOpenStatusesStatement()
+    {
+        List<ChangeRequestStatus> openStatuses =
+            Arrays.stream(ChangeRequestStatus.values()).filter(ChangeRequestStatus::isOpen)
+                .collect(Collectors.toList());
+
+        StringBuilder statusStatement = new StringBuilder("(");
+        Iterator<ChangeRequestStatus> iterator = openStatuses.iterator();
+        char apos = '\'';
+        while (iterator.hasNext()) {
+            ChangeRequestStatus status = iterator.next();
+            statusStatement.append(apos);
+            statusStatement.append(status.name().toLowerCase());
+            statusStatement.append(apos);
+            if (iterator.hasNext()) {
+                statusStatement.append(",");
+            }
+        }
+        statusStatement.append(")");
+        return statusStatement.toString();
+    }
+
+    @Override
+    public List<ChangeRequest> findOpenChangeRequestsByDate(Date limitDate, boolean considerCreationDate)
+        throws ChangeRequestException
+    {
+        String columnDate = (considerCreationDate) ? "creationDate" : "date";
+        String statement = String.format(", BaseObject as obj , StringProperty as obj_status where "
+            + "doc.%s < :limitDate and obj_status.value in %s and "
+            + "doc.fullName=obj.name and obj.className='%s' and obj_status.id.id=obj.id and obj_status.id.name='%s'",
+            columnDate, getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
+            STATUS_FIELD);
+
+        return this.findChangeRequestWithStatementAndLimitDate(statement, limitDate);
+    }
+
+    @Override
+    public List<ChangeRequest> findChangeRequestsStaledBefore(Date limitDate) throws ChangeRequestException
+    {
+        String statement = String.format(", BaseObject as obj , StringProperty as obj_status, "
+                + "DateProperty as obj_staled where "
+                + "obj_staled.value < :limitDate and obj_status.value in %s and "
+                + "doc.fullName=obj.name and obj.className='%s' "
+                + "and obj_status.id.id=obj.id and obj_status.id.name='%s' "
+                + "and obj_staled.id.id=obj.id and obj_staled.id.name='%s'",
+            getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
+            STATUS_FIELD, STALE_DATE_FIELD);
+
+        return this.findChangeRequestWithStatementAndLimitDate(statement, limitDate);
+    }
+
+    private List<ChangeRequest> findChangeRequestWithStatementAndLimitDate(String statement, Date limitDate)
+        throws ChangeRequestException
+    {
+        List<ChangeRequest> result = new ArrayList<>();
+        try {
+            Query query = this.queryManager.createQuery(statement, Query.HQL);
+            query.bindValue("limitDate", limitDate);
+            List<String> changeRequestDocuments = query.execute();
+            for (String changeRequestDocument : changeRequestDocuments) {
+                DocumentReference crReference = this.documentReferenceResolver.resolve(changeRequestDocument);
+                this.load(crReference.getLastSpaceReference().getName()).ifPresent(result::add);
+            }
+        } catch (QueryException e) {
+            throw new ChangeRequestException(
+                String.format("Error while querying change requests with statement [%s] and limitDate [%s]",
+                    statement, limitDate), e);
         }
 
         return result;

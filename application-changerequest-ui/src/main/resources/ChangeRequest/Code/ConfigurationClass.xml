@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ConfigurationClass" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ConfigurationClass" locale="">
   <web>ChangeRequest.Code</web>
   <name>ConfigurationClass</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ConfigurationClass</title>
@@ -95,5 +96,73 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </changeRequestLocation>
+    <durationBeforeClosingStale>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>durationBeforeClosingStale</name>
+      <number>3</number>
+      <numberType>long</numberType>
+      <prettyName>durationBeforeClosingStale</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </durationBeforeClosingStale>
+    <durationBeforeNotifyingStale>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>durationBeforeNotifyingStale</name>
+      <number>4</number>
+      <numberType>long</numberType>
+      <prettyName>durationBeforeNotifyingStale</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </durationBeforeNotifyingStale>
+    <schedulerContextUser>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>input</displayType>
+      <freeText/>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>schedulerContextUser</name>
+      <number>6</number>
+      <picker>1</picker>
+      <prettyName>schedulerContextUser</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators/>
+      <size>20</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <usesList>0</usesList>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
+    </schedulerContextUser>
+    <useCreationDateForStaleDurations>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>select</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>useCreationDateForStaleDurations</name>
+      <number>5</number>
+      <prettyName>useCreationDateForStaleDurations</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </useCreationDateForStaleDurations>
   </class>
 </xwikidoc>
