@@ -54,7 +54,8 @@ public class ChangeRequest
     private ChangeRequestStatus status;
     private final Map<DocumentReference, Deque<FileChange>> fileChanges;
     private Set<UserReference> authors;
-    private LinkedList<ChangeRequestReview> reviews;
+    private final LinkedList<ChangeRequestReview> reviews;
+    private Date staleDate;
 
     /**
      * Default constructor.
@@ -317,6 +318,26 @@ public class ChangeRequest
         optionalPrevious.ifPresent(changeRequestReview -> changeRequestReview.setLastFromAuthor(false));
         this.reviews.addFirst(review);
         return this;
+    }
+
+    /**
+     * @return the date when the change request has been notified as staled, or {@code null}.
+     * @since 0.10
+     */
+    public Date getStaleDate()
+    {
+        return staleDate;
+    }
+
+    /**
+     * Specify when the change request is notified as staled.
+     * Note that this method should never be used externally, the value stored here won't be saved.
+     *
+     * @param staleDate the date when the change request has been notified as staled, or {@code null}.
+     */
+    public void setStaleDate(Date staleDate)
+    {
+        this.staleDate = staleDate;
     }
 
     /**

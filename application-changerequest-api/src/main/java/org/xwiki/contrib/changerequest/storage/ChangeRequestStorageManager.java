@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.storage;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,6 +96,37 @@ public interface ChangeRequestStorageManager
     }
 
     /**
+     * Find all change requests that are opened (i.e. not merged, or closed) and that have been created or updated
+     * before the given limit date. The goal of this method is mainly to retrieve the old change requests that might
+     * be stale.
+     *
+     * @param limitDate the date to consider in the query for getting change requests.
+     * @param considerCreationDate {@code true} to use the creation date in the query, {@code false} to use the update
+     *                             date.
+     * @return a list of change requests matching the criteria.
+     * @throws ChangeRequestException in case of problem to find the change requests.
+     * @since 0.10
+     */
+    default List<ChangeRequest> findOpenChangeRequestsByDate(Date limitDate, boolean considerCreationDate)
+        throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Find all change requests that are opened and that have been marked as staled before the given date.
+     * @param limitDate the date before which the change request should have been flagged as staled.
+     * @return a list of change requests matching the criteria.
+     * @throws ChangeRequestException in case of problem to find the change requests.
+     * @since 0.10
+     */
+    default List<ChangeRequest> findChangeRequestsStaledBefore(Date limitDate)
+        throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
+    /**
      * Search for change requests document references that are matching the given title.
      *
      * @param title a partial title for finding change requests.
@@ -121,5 +153,15 @@ public interface ChangeRequestStorageManager
     default List<ChangeRequest> split(ChangeRequest changeRequest) throws ChangeRequestException
     {
         return Collections.emptyList();
+    }
+
+    /**
+     * Save the stale date of the change request. This method does not save any other information of the change request.
+     * @param changeRequest the change request for which to save the stale date.
+     * @throws ChangeRequestException in case of problem during the save.
+     * @since 0.10
+     */
+    default void saveStaleDate(ChangeRequest changeRequest) throws ChangeRequestException
+    {
     }
 }

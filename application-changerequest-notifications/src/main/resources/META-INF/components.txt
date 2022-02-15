@@ -11,3 +11,5 @@ org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestStatusChangedEve
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestReviewAddedEventDescriptor
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestStatusChangedEventDescriptor
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestUpdatedEventListener
+org.xwiki.contrib.changerequest.internal.listeners.StaleChangeRequestEventListener
+org.xwiki.contrib.changerequest.internal.descriptors.StaleChangeRequestEventDescriptor

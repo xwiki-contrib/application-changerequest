@@ -79,4 +79,22 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
         }
         return result;
     }
+
+    @Override
+    public long getStaleChangeRequestDurationForClosing()
+    {
+        return this.configurationSource.getProperty("durationBeforeClosingStale", 5);
+    }
+
+    @Override
+    public long getStaleChangeRequestDurationForNotifying()
+    {
+        return this.configurationSource.getProperty("durationBeforeNotifyingStale", 20);
+    }
+
+    @Override
+    public boolean useCreationDateForStaleDurations()
+    {
+        return this.configurationSource.getProperty("useCreationDateForStaleDurations", false);
+    }
 }

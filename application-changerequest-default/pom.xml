@@ -74,6 +74,11 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-scheduler-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.contrib.api-rights</groupId>
       <artifactId>api-rights-bridge</artifactId>
       <version>${rights-api.version}</version>
