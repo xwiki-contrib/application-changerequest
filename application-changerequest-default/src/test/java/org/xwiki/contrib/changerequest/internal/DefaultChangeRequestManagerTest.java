@@ -416,6 +416,33 @@ class DefaultChangeRequestManagerTest
     }
 
     @Test
+    void isAuthorizedToOpen()
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        UserReference userReference = mock(UserReference.class);
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(changeRequest.getAuthors())
+            .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
+        assertFalse(this.manager.isAuthorizedToOpen(userReference, changeRequest));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.CLOSED);
+        assertTrue(this.manager.isAuthorizedToOpen(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        DocumentReference changeRequestDoc = mock(DocumentReference.class);
+
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
+        assertFalse(this.manager.isAuthorizedToOpen(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
+        assertTrue(this.manager.isAuthorizedToOpen(userReference, changeRequest));
+    }
+
+    @Test
     void updateStatus() throws ChangeRequestException
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);

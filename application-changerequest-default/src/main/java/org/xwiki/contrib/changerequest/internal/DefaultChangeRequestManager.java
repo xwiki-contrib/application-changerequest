@@ -563,11 +563,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     }
 
     private boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest,
-        boolean checkOnlyMerged)
+        boolean checkForOpening)
     {
         boolean result = false;
         ChangeRequestStatus status = changeRequest.getStatus();
-        if (status != ChangeRequestStatus.MERGED && (!checkOnlyMerged || !status.isOpen())) {
+        if (status != ChangeRequestStatus.MERGED && (status.isOpen() || checkForOpening)) {
             if (changeRequest.getAuthors().contains(userReference)) {
                 result = true;
             } else {

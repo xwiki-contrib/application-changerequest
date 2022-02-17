@@ -3037,7 +3037,7 @@ tr.discussion-line:hover {
   #set ($statusClass = "info")
 #elseif ($status == 'ready_for_merging')
   #set ($statusClass = "primary")
-#elseif ($status == 'closed')
+#elseif ($status == 'closed' || $status == 'stale')
   #set ($statusClass = "danger")
 #end
 
@@ -3269,7 +3269,7 @@ tr.discussion-line:hover {
   #end
 &lt;/div&gt;
 {{/html}}
-#elseif ($changeRequest.status == 'CLOSED')
+#elseif ($changeRequest.status == 'CLOSED' || $changeRequest.status == 'STALE')
 #set ($canBeOpened = $services.changerequest.isAuthorizedToOpen($changeRequest))
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
