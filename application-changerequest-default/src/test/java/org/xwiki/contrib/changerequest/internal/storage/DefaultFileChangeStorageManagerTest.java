@@ -538,8 +538,14 @@ class DefaultFileChangeStorageManagerTest
 
         when(mergeDocumentResult.isModified()).thenReturn(true);
         when(mergeDocumentResult.getMergeResult()).thenReturn(currentDocument);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(currentDocument.getAuthors()).thenReturn(documentAuthors);
+
+        UserReference author = mock(UserReference.class);
+        when(fileChange.getAuthor()).thenReturn(author);
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(currentDocument, "Merge changes from **change request**", this.context);
+        verify(documentAuthors).setOriginalMetadataAuthor(author);
     }
 
     @Test

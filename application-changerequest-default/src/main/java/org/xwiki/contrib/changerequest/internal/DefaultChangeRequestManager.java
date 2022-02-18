@@ -75,6 +75,7 @@ import org.xwiki.store.merge.MergeConflictDecisionsManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
@@ -218,7 +219,17 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         throws ChangeRequestException
     {
         boolean result = true;
-        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+
+        // The merger user is taken from the configuration if a merger user is defined, and this is the user
+        // who should be checked for the proper edit/delete rights.
+        // Now the approval right should only be checked on the current user reference.
+        UserReference mergerUserReference = userReference;
+        UserReference mergeUserReference = this.configuration.getMergeUser();
+        if (mergeUserReference != GuestUserReference.INSTANCE) {
+            mergerUserReference = mergeUserReference;
+        }
+        DocumentReference mergeUserDocReference = this.userReferenceConverter.convert(mergerUserReference);
+        DocumentReference currentUserDocReference = this.userReferenceConverter.convert(userReference);
 
         // This method is only checking if the user is an approver, so even with the fallback it's possible that
         // an admin user has approval right, but is not an approver of this specific change request, because a
@@ -245,10 +256,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                     break;
             }
             DocumentReference targetEntity = lastFileChange.getTargetEntity();
+            // We check the write right on the merge user, and the approval right on the current user.
             boolean hasWriteRight = this.authorizationManager
-                .hasAccess(rightToBeChecked, userDocReference, targetEntity);
+                .hasAccess(rightToBeChecked, mergeUserDocReference, targetEntity);
             boolean hasApprovalRight = this.authorizationManager
-                .hasAccess(ChangeRequestApproveRight.getRight(), userDocReference, targetEntity);
+                .hasAccess(ChangeRequestApproveRight.getRight(), currentUserDocReference, targetEntity);
 
             if (!(hasWriteRight && (isApprover || hasApprovalRight))) {
                 result = false;

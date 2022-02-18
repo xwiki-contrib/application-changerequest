@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
+import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.SuperAdminUserReference;
 import org.xwiki.user.UserReference;
 
@@ -97,5 +98,18 @@ public interface ChangeRequestConfiguration
     default UserReference getSchedulerContextUser()
     {
         return SuperAdminUserReference.INSTANCE;
+    }
+
+    /**
+     * Defines the user to use for merging the change request.
+     * When no value is defined, it returns the guest user, in which case the current user is actually used to perform
+     * merge if the user has edit rights.
+     *
+     * @return the reference of the user to use for merging a change request.
+     * @since 0.10
+     */
+    default UserReference getMergeUser()
+    {
+        return GuestUserReference.INSTANCE;
     }
 }

@@ -124,6 +124,31 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </durationBeforeNotifyingStale>
+    <mergeUser>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>input</displayType>
+      <freeText/>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>mergeUser</name>
+      <number>7</number>
+      <picker>1</picker>
+      <prettyName>mergeUser</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators/>
+      <size>20</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <usesList>0</usesList>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
+    </mergeUser>
     <schedulerContextUser>
       <cache>0</cache>
       <customDisplay/>

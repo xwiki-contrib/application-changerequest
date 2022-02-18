@@ -35,6 +35,7 @@ import org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprova
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.SpaceReferenceResolver;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.SuperAdminUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -114,6 +115,19 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
             result = this.userReferenceResolver.resolve(schedulerContextUser);
         } else {
             result = SuperAdminUserReference.INSTANCE;
+        }
+        return result;
+    }
+
+    @Override
+    public UserReference getMergeUser()
+    {
+        String mergeUser = this.configurationSource.getProperty("mergeUser");
+        UserReference result;
+        if (!StringUtils.isEmpty(mergeUser)) {
+            result = this.userReferenceResolver.resolve(mergeUser);
+        } else {
+            result = GuestUserReference.INSTANCE;
         }
         return result;
     }

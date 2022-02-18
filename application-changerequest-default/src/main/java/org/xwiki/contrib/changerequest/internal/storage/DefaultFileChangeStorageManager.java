@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
@@ -48,6 +49,8 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
+import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
@@ -117,6 +120,12 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     @Inject
     private MergeManager mergeManager;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    @Inject
+    private ChangeRequestConfiguration configuration;
 
     @Inject
     private Logger logger;
@@ -324,22 +333,35 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     @Override
     public void merge(FileChange fileChange) throws ChangeRequestException
     {
-        switch (fileChange.getType())
-        {
-            case EDITION:
-                this.mergeEdition(fileChange);
-                break;
+        UserReference mergeUser = this.configuration.getMergeUser();
 
-            case DELETION:
-                this.mergeDeletion(fileChange);
-                break;
+        boolean changeUser = mergeUser != GuestUserReference.INSTANCE;
+        UserReference currentUserReference = null;
+        if (changeUser) {
+            currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+            this.contextProvider.get().setUserReference(this.userReferenceConverter.convert(mergeUser));
+        }
+        try {
+            switch (fileChange.getType()) {
+                case EDITION:
+                    this.mergeEdition(fileChange);
+                    break;
 
-            case CREATION:
-                this.mergeCreation(fileChange);
-                break;
+                case DELETION:
+                    this.mergeDeletion(fileChange);
+                    break;
 
-            default:
-                throw new ChangeRequestException("Unknown file change type: " + fileChange.getType());
+                case CREATION:
+                    this.mergeCreation(fileChange);
+                    break;
+
+                default:
+                    throw new ChangeRequestException("Unknown file change type: " + fileChange.getType());
+            }
+        } finally {
+            if (changeUser) {
+                this.contextProvider.get().setUserReference(this.userReferenceConverter.convert(currentUserReference));
+            }
         }
     }
 
@@ -418,7 +440,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             }
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
-                // FIXME: When merging the context user should be set with a ghost user depending on the config.
+                document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
                 wiki.saveDocument(document, getMergeSaveMessage(), context);
             }
         } catch (XWikiException e) {
