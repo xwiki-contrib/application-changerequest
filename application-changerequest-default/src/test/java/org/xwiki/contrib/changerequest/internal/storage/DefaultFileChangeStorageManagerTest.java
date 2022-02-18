@@ -54,6 +54,7 @@ import org.xwiki.filter.xar.internal.input.WikiObjectReader;
 import org.xwiki.filter.xar.internal.input.XARInputFilterStream;
 import org.xwiki.filter.xar.internal.input.XARInputFilterStreamFactory;
 import org.xwiki.filter.xar.internal.output.XAROutputFilterStreamFactory;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -152,6 +153,8 @@ import static org.mockito.Mockito.when;
 })
 class DefaultFileChangeStorageManagerTest
 {
+    private static final String SAVE_MESSAGE = "Expected save message";
+
     @InjectMockComponents
     private DefaultFileChangeStorageManager fileChangeStorageManager;
 
@@ -189,6 +192,9 @@ class DefaultFileChangeStorageManagerTest
     @MockComponent
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
+    @MockComponent
+    private ContextualLocalizationManager contextualLocalizationManager;
+
     @RegisterExtension
     LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
@@ -213,6 +219,8 @@ class DefaultFileChangeStorageManagerTest
         when(this.context.getWiki()).thenReturn(this.xWiki);
 
         when(this.environment.getTemporaryDirectory()).thenReturn(new File(System.getProperty("java.io.tmpdir")));
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment"))
+            .thenReturn(SAVE_MESSAGE);
     }
 
     @Test
@@ -544,7 +552,7 @@ class DefaultFileChangeStorageManagerTest
         UserReference author = mock(UserReference.class);
         when(fileChange.getAuthor()).thenReturn(author);
         this.fileChangeStorageManager.merge(fileChange);
-        verify(this.xWiki).saveDocument(currentDocument, "Merge changes from **change request**", this.context);
+        verify(this.xWiki).saveDocument(currentDocument, SAVE_MESSAGE, this.context);
         verify(documentAuthors).setOriginalMetadataAuthor(author);
     }
 
@@ -573,6 +581,6 @@ class DefaultFileChangeStorageManagerTest
         when(fileChange.getModifiedDocument()).thenReturn(targetDoc);
 
         this.fileChangeStorageManager.merge(fileChange);
-        verify(this.xWiki).saveDocument(targetDoc, "Merge changes from **change request**", this.context);
+        verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
     }
 }

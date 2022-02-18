@@ -43,6 +43,7 @@ import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.localization.LocaleUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -126,6 +127,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     @Inject
     private ChangeRequestConfiguration configuration;
+
+    @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
 
     @Inject
     private Logger logger;
@@ -393,8 +397,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     private String getMergeSaveMessage()
     {
-        // FIXME: Merge message should be translatable
-        return "Merge changes from **change request**";
+        return this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment");
     }
 
     private void mergeCreation(FileChange fileChange) throws ChangeRequestException
