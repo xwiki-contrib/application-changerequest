@@ -103,17 +103,17 @@ Technical page for getting livetable data for change request file changes.
           #set ($discard = $row.put('doc_hasfixconflict', true))
           #set ($conflictUrl = "&amp;reference=$services.model.serialize($docReference, 'local')&amp;locale=$docReference.locale")
           #set ($discard = $row.put('doc_fixconflict_url', $conflictUrl))
-        #else
-          #set ($discard = $row.put('doc_hasfixconflict', false))
-        #end
-        #if ($services.changerequest.isFileChangeOutdated($lastFileChange) &amp;&amp; $hasCREdit)
+          #set ($discard = $row.put('doc_hasrebase', false))
+        #elseif ($services.changerequest.isFileChangeOutdated($lastFileChange) &amp;&amp; $hasCREdit)
           #set ($changeRequestDoc = $services.changerequest.getChangeRequestDocumentReference($changeRequest))
           #set ($changeRequestUrl = $services.changerequest.getChangeRequestURL('rebase', $changeRequest.id))
           #set ($rebaseUrlParameters = "referenceParameter=$services.model.serialize($docReference, 'local')&amp;locale=$docReference.locale"))
           #set ($rebaseUrl = "${changeRequestUrl}?${rebaseUrlParameters}")
           #set ($discard = $row.put('doc_rebase_url', $rebaseUrl))
           #set ($discard = $row.put('doc_hasrebase', true))
+          #set ($discard = $row.put('doc_hasfixconflict', false))
         #else
+          #set ($discard = $row.put('doc_hasfixconflict', false))
           #set ($discard = $row.put('doc_hasrebase', false))
         #end
         #set ($discard = $rows.add($row))

@@ -345,8 +345,12 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         XWikiDocument previousDoc;
         switch (fileChange.getType()) {
             case DELETION:
-                previousDoc =
-                    (XWikiDocument) this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                try {
+                    previousDoc =
+                        (XWikiDocument) this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                } catch (ChangeRequestException e) {
+                    previousDoc = xwikiCurrentDoc;
+                }
                 boolean deletionConflict = xwikiCurrentDoc.isNew()
                     || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
                 result = new ChangeRequestMergeDocumentResult(deletionConflict, fileChange, previousDoc.getVersion(),
@@ -362,8 +366,12 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 break;
 
             case EDITION:
-                previousDoc =
-                    (XWikiDocument) this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                try {
+                    previousDoc =
+                        (XWikiDocument) this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                } catch (ChangeRequestException e) {
+                    previousDoc = xwikiCurrentDoc;
+                }
                 DocumentModelBridge nextDoc =
                     this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
 
@@ -379,9 +387,10 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 mergeConfiguration.setProvidedVersionsModifiables(false);
                 MergeDocumentResult mergeDocumentResult =
                     mergeManager.mergeDocument(previousDoc, nextDoc, currentDoc, mergeConfiguration);
-                result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, previousDoc.getVersion(),
-                    previousDoc.getDate())
-                    .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
+                result =
+                    new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, previousDoc.getVersion(),
+                        previousDoc.getDate())
+                        .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
                 break;
 
             default:

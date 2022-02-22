@@ -102,6 +102,7 @@ import com.xpn.xwiki.test.reference.ReferenceComponentList;
 import com.xpn.xwiki.web.Utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -582,5 +583,194 @@ class DefaultFileChangeStorageManagerTest
 
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
+    }
+
+    @Test
+    void rebaseEdition() throws ChangeRequestException, XWikiException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        String fileChangeVersion = "filechange-3.2";
+        when(fileChange.getVersion()).thenReturn(fileChangeVersion);
+        String nextFileChangeVersion = "filechange-4.1";
+        when(this.fileChangeVersionManager.getNextFileChangeVersion(fileChangeVersion, true))
+            .thenReturn(nextFileChangeVersion);
+        String fileChangePreviousPublishedVersion = "3.2";
+        when(fileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
+
+        DocumentReference contextUserReference = new DocumentReference("xwiki", "XWiki", "User");
+        when(this.context.getUserReference()).thenReturn(contextUserReference);
+
+        DocumentReference documentReference = new DocumentReference("xwiki", "Target", "Entity");
+        when(fileChange.getTargetEntity()).thenReturn(documentReference);
+        XWikiDocument currentDocument = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(documentReference, this.context)).thenReturn(currentDocument);
+
+        // When we rebase but the document has been deleted from the wiki in the meantime, so it's now a creation.
+        when(currentDocument.isNew()).thenReturn(true);
+        FileChange cloneFileChangeCreation = mock(FileChange.class);
+        when(fileChange.cloneWithType(FileChange.FileChangeType.CREATION)).thenReturn(cloneFileChangeCreation);
+        // Not the supposed behaviour, but it's easier to test that way.
+        when(cloneFileChangeCreation.isSaved()).thenReturn(true);
+
+        this.fileChangeStorageManager.rebase(fileChange);
+        verify(cloneFileChangeCreation).setPreviousVersion(fileChangeVersion);
+        verify(cloneFileChangeCreation).setPreviousPublishedVersion(eq("1.1"), any());
+        verify(cloneFileChangeCreation).setVersion(nextFileChangeVersion);
+        verify(cloneFileChangeCreation).isSaved();
+
+        // When we rebase but the document has been updated in the meantime, so we need to perform a merge.
+        when(currentDocument.isNew()).thenReturn(false);
+        FileChange cloneFileChange = mock(FileChange.class);
+        when(fileChange.clone()).thenReturn(cloneFileChange);
+        when(cloneFileChange.getChangeRequest()).thenReturn(mock(ChangeRequest.class));
+        when(cloneFileChange.getTargetEntity()).thenReturn(documentReference);
+
+        XWikiDocument previousDoc = mock(XWikiDocument.class);
+        XWikiDocument modifiedDoc = mock(XWikiDocument.class);
+        when(modifiedDoc.getRCSVersion()).thenReturn(new Version("3.4"));
+        when(cloneFileChange.getModifiedDocument()).thenReturn(modifiedDoc);
+        when(cloneFileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
+        when(this.documentRevisionProvider.getRevision(documentReference, fileChangePreviousPublishedVersion))
+            .thenReturn(previousDoc);
+        when(previousDoc.getDate()).thenReturn(new Date(45));
+        when(cloneFileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(45));
+
+        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
+        when(this.mergeManager.mergeDocument(eq(previousDoc), eq(modifiedDoc), eq(currentDocument), any()))
+            .then(invocationOnMock -> {
+            MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
+            assertEquals(contextUserReference, mergeConfiguration.getUserReference());
+            assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
+            assertEquals(documentReference, mergeConfiguration.getConcernedDocument());
+            return mergeDocumentResult;
+        });
+        XWikiDocument mergeDocument = mock(XWikiDocument.class);
+        when(mergeDocumentResult.getMergeResult()).thenReturn(mergeDocument);
+        when(currentDocument.getVersion()).thenReturn("3.8");
+        when(currentDocument.getDate()).thenReturn(new Date(485));
+        // Not the supposed behaviour, but it's easier to test that way.
+        when(cloneFileChange.isSaved()).thenReturn(true);
+
+        this.fileChangeStorageManager.rebase(fileChange);
+        verify(mergeDocumentResult).hasConflicts();
+        verify(cloneFileChange).setModifiedDocument(mergeDocument);
+        verify(cloneFileChange).setPreviousPublishedVersion("3.8", new Date(485));
+        verify(cloneFileChange).setPreviousVersion(fileChangeVersion);
+        verify(cloneFileChange).setVersion(nextFileChangeVersion);
+        verify(cloneFileChange).isSaved();
+    }
+
+    @Test
+    void rebaseCreation() throws ChangeRequestException, XWikiException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        String fileChangeVersion = "filechange-3.2";
+        when(fileChange.getVersion()).thenReturn(fileChangeVersion);
+        String nextFileChangeVersion = "filechange-4.1";
+        when(this.fileChangeVersionManager.getNextFileChangeVersion(fileChangeVersion, true))
+            .thenReturn(nextFileChangeVersion);
+        String fileChangePreviousPublishedVersion = "3.2";
+        when(fileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
+
+        DocumentReference contextUserReference = new DocumentReference("xwiki", "XWiki", "User");
+        when(this.context.getUserReference()).thenReturn(contextUserReference);
+
+        DocumentReference documentReference = new DocumentReference("xwiki", "Target", "Entity");
+        when(fileChange.getTargetEntity()).thenReturn(documentReference);
+        XWikiDocument currentDocument = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(documentReference, this.context)).thenReturn(currentDocument);
+
+        when(currentDocument.isNew()).thenReturn(true);
+        FileChange cloneFileChangeCreation = mock(FileChange.class);
+        when(fileChange.clone()).thenReturn(cloneFileChangeCreation);
+        // Not the supposed behaviour, but it's easier to test that way.
+        when(cloneFileChangeCreation.isSaved()).thenReturn(true);
+
+        this.fileChangeStorageManager.rebase(fileChange);
+        verify(cloneFileChangeCreation).setPreviousVersion(fileChangeVersion);
+        verify(cloneFileChangeCreation).setVersion(nextFileChangeVersion);
+        verify(cloneFileChangeCreation).isSaved();
+
+        // When we rebase but the document has been created in the meantime, so we need to perform a merge.
+        when(currentDocument.isNew()).thenReturn(false);
+        FileChange cloneFileChange = mock(FileChange.class);
+        when(fileChange.cloneWithType(FileChange.FileChangeType.EDITION)).thenReturn(cloneFileChange);
+        when(cloneFileChange.getChangeRequest()).thenReturn(mock(ChangeRequest.class));
+        when(cloneFileChange.getTargetEntity()).thenReturn(documentReference);
+
+        XWikiDocument previousDoc = mock(XWikiDocument.class);
+        XWikiDocument modifiedDoc = mock(XWikiDocument.class);
+        when(modifiedDoc.getRCSVersion()).thenReturn(new Version("3.4"));
+        when(cloneFileChange.getModifiedDocument()).thenReturn(modifiedDoc);
+        when(cloneFileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
+        when(this.documentRevisionProvider.getRevision(documentReference, fileChangePreviousPublishedVersion))
+            .thenReturn(previousDoc);
+        when(previousDoc.getDate()).thenReturn(new Date(45));
+        when(cloneFileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(45));
+
+        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
+        when(this.mergeManager.mergeDocument(eq(previousDoc), eq(modifiedDoc), eq(currentDocument), any()))
+            .then(invocationOnMock -> {
+                MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
+                assertEquals(contextUserReference, mergeConfiguration.getUserReference());
+                assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
+                assertEquals(documentReference, mergeConfiguration.getConcernedDocument());
+                return mergeDocumentResult;
+            });
+        XWikiDocument mergeDocument = mock(XWikiDocument.class);
+        when(mergeDocumentResult.getMergeResult()).thenReturn(mergeDocument);
+        when(currentDocument.getVersion()).thenReturn("3.8");
+        when(currentDocument.getDate()).thenReturn(new Date(485));
+        // Not the supposed behaviour, but it's easier to test that way.
+        when(cloneFileChange.isSaved()).thenReturn(true);
+
+        this.fileChangeStorageManager.rebase(fileChange);
+        verify(mergeDocumentResult).hasConflicts();
+        verify(cloneFileChange).setModifiedDocument(mergeDocument);
+        verify(cloneFileChange).setPreviousPublishedVersion("3.8", new Date(485));
+        verify(cloneFileChange).setPreviousVersion(fileChangeVersion);
+        verify(cloneFileChange).setVersion(nextFileChangeVersion);
+        verify(cloneFileChange).isSaved();
+    }
+
+    @Test
+    void rebaseDeletion() throws XWikiException, ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        String fileChangeVersion = "filechange-3.2";
+        when(fileChange.getVersion()).thenReturn(fileChangeVersion);
+        String nextFileChangeVersion = "filechange-4.1";
+        when(this.fileChangeVersionManager.getNextFileChangeVersion(fileChangeVersion, true))
+            .thenReturn(nextFileChangeVersion);
+        String fileChangePreviousPublishedVersion = "3.2";
+        when(fileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
+
+        DocumentReference documentReference = new DocumentReference("xwiki", "Target", "Entity");
+        when(fileChange.getTargetEntity()).thenReturn(documentReference);
+        XWikiDocument currentDocument = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(documentReference, this.context)).thenReturn(currentDocument);
+        when(currentDocument.getVersion()).thenReturn("4.8");
+        when(currentDocument.getDate()).thenReturn(new Date(888));
+
+        when(currentDocument.isNew()).thenReturn(false);
+        FileChange cloneFileChange = mock(FileChange.class);
+        when(fileChange.clone()).thenReturn(cloneFileChange);
+        // Not the supposed behaviour, but it's easier to test that way.
+        when(cloneFileChange.isSaved()).thenReturn(true);
+        this.fileChangeStorageManager.rebase(fileChange);
+
+        verify(cloneFileChange).setPreviousPublishedVersion("4.8", new Date(888));
+        verify(cloneFileChange).setPreviousVersion(fileChangeVersion);
+        verify(cloneFileChange).setVersion(nextFileChangeVersion);
+        verify(cloneFileChange).isSaved();
+
+        when(currentDocument.isNew()).thenReturn(true);
+        ChangeRequestException changeRequestException = assertThrows(ChangeRequestException.class, () -> {
+            this.fileChangeStorageManager.rebase(fileChange);
+        });
+        assertEquals("The file has already been deleted.", changeRequestException.getMessage());
     }
 }

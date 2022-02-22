@@ -31,7 +31,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
@@ -373,25 +372,96 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     public void rebase(FileChange fileChange) throws ChangeRequestException
     {
         FileChange clone;
-        XWikiContext context = this.contextProvider.get();
+
+        switch (fileChange.getType()) {
+            case EDITION:
+                clone = this.rebaseEdition(fileChange);
+                break;
+
+            case DELETION:
+                clone = this.rebaseDeletion(fileChange);
+                break;
+
+            case CREATION:
+                clone = this.rebaseCreation(fileChange);
+                break;
+
+            default:
+                throw new ChangeRequestException(
+                    String.format("Unknown file change type for the rebase: [%s]", fileChange.getType()));
+        }
+
+        clone.setPreviousVersion(fileChange.getVersion());
+        clone.setVersion(this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), true));
+        this.save(clone);
+    }
+
+    private FileChange rebaseEdition(FileChange fileChange) throws ChangeRequestException
+    {
+        XWikiDocument currentDocument = (XWikiDocument) this.getCurrentDocumentFromFileChange(fileChange);
+        FileChange clone;
+        if (currentDocument.isNew()) {
+            clone = fileChange.cloneWithType(FileChange.FileChangeType.CREATION);
+            clone.setPreviousPublishedVersion("1.1", new Date());
+        } else {
+            clone = fileChange.clone();
+            this.performMergeForRebase(clone, currentDocument);
+        }
+
+        return clone;
+    }
+
+    private FileChange rebaseCreation(FileChange fileChange) throws ChangeRequestException
+    {
+        FileChange clone;
+        XWikiDocument currentDocument = (XWikiDocument) this.getCurrentDocumentFromFileChange(fileChange);
+
+        if (currentDocument.isNew()) {
+            clone = fileChange.clone();
+        } else {
+            clone = fileChange.cloneWithType(FileChange.FileChangeType.EDITION);
+            this.performMergeForRebase(clone, currentDocument);
+        }
+
+        return clone;
+    }
+
+    private FileChange rebaseDeletion(FileChange fileChange) throws ChangeRequestException
+    {
+        XWikiDocument currentDocument = (XWikiDocument) this.getCurrentDocumentFromFileChange(fileChange);
+        if (currentDocument.isNew()) {
+            // FIXME: handle rebase when a file has been deleted.
+            throw new ChangeRequestException("The file has already been deleted.");
+        } else {
+            FileChange clone = fileChange.clone();
+            clone.setPreviousPublishedVersion(currentDocument.getVersion(), currentDocument.getDate());
+            return clone;
+        }
+    }
+
+    private void performMergeForRebase(FileChange clone, XWikiDocument currentDocument) throws ChangeRequestException
+    {
+        DocumentModelBridge previousDoc;
+
         try {
-            XWikiDocument document = context.getWiki().getDocument(fileChange.getTargetEntity(), context);
-            if (fileChange.getType() == FileChange.FileChangeType.CREATION && !document.isNew()) {
-                clone = fileChange.cloneWithType(FileChange.FileChangeType.EDITION);
-            } else {
-                clone = fileChange.clone();
-            }
-            if (!document.isNew()) {
-                clone.setPreviousPublishedVersion(document.getVersion(), document.getDate());
-            }
-            clone.setPreviousVersion(fileChange.getVersion())
-                .setVersion(this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), false));
-            this.save(clone);
-        } catch (XWikiException e) {
-            throw new ChangeRequestException(
-                String.format("Error while trying to access published document from [%s] to get its version: [%s]",
-                    fileChange.getTargetEntity(),
-                    ExceptionUtils.getRootCauseMessage(e)));
+            previousDoc = this.getPreviousDocumentFromFileChange(clone);
+        } catch (ChangeRequestException e) {
+            this.logger.debug("Cannot access the real previous version of document for file change [{}]. "
+                + "Using the current version as fallback", clone, e);
+            previousDoc = currentDocument;
+        }
+        DocumentModelBridge newDoc = this.getModifiedDocumentFromFileChange(clone);
+        MergeConfiguration mergeConfiguration = new MergeConfiguration();
+        mergeConfiguration.setUserReference(this.contextProvider.get().getUserReference());
+        mergeConfiguration.setProvidedVersionsModifiables(false);
+        mergeConfiguration.setConcernedDocument(clone.getTargetEntity());
+        MergeDocumentResult mergeDocumentResult =
+            this.mergeManager.mergeDocument(previousDoc, newDoc, currentDocument, mergeConfiguration);
+        if (mergeDocumentResult.hasConflicts()) {
+            throw new ChangeRequestException("Cannot perform a rebase due to conflicts.");
+        } else {
+            clone.setModifiedDocument(mergeDocumentResult.getMergeResult());
+            clone.setPreviousPublishedVersion(currentDocument.getVersion(), currentDocument.getDate());
         }
     }
 
@@ -517,8 +587,11 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWikiDocument result = getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
         ChangeRequestStatus status = fileChange.getChangeRequest().getStatus();
 
+        if (result == null) {
+            throw new ChangeRequestException("Cannot retrieve previous version of the document.");
+        }
         // if the CR is closed or merged, we don't really care if the previous version is not exactly the same.
-        if (status != ChangeRequestStatus.MERGED
+        else if (status != ChangeRequestStatus.MERGED
             && status != ChangeRequestStatus.CLOSED
             && !result.getDate().equals(fileChange.getPreviousPublishedVersionDate())) {
             throw new ChangeRequestException("The previous version of the document has been removed, "
