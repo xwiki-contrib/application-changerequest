@@ -40,7 +40,7 @@
   <content>changerequest.livetable.doc.name=Location
 changerequest.livetable.doc.date=Modification date
 changerequest.livetable.status=Status
-changerequest.livetable.changedDocuments=Concerned documents
+changerequest.livetable.changedDocuments=Target documents
 changerequest.livetable.authors=Authors
 changerequest.docextra.title=Change Requests
 changerequest.application.label=Change Request
