@@ -76,17 +76,19 @@ public class ChangeRequestMergeDocumentResult
      * Constructor to use in case of {@link FileChange.FileChangeType#DELETION} or
      * {@link FileChange.FileChangeType#CREATION}.
      *
+     * @param mergeDocumentResult an artificial holder containing the various version of the document needed for
+     *                            displaying the diff.
      * @param isConflicting {@code true} if there's a conflict with this change.
      * @param fileChange the file change used for computing this merge
      * @param previousVersion the current version of the document used to perform the merge
      * @param previousVersionDate the date of the version of the document used to perform the merge
      */
-    public ChangeRequestMergeDocumentResult(boolean isConflicting, FileChange fileChange,
-        String previousVersion, Date previousVersionDate)
+    public ChangeRequestMergeDocumentResult(MergeDocumentResult mergeDocumentResult, boolean isConflicting,
+        FileChange fileChange, String previousVersion, Date previousVersionDate)
     {
         this(fileChange, isConflicting, previousVersion, previousVersionDate);
-        if (fileChange.getType() != FileChange.FileChangeType.DELETION
-            && fileChange.getType() != FileChange.FileChangeType.CREATION) {
+        this.wrappedResult = mergeDocumentResult;
+        if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
             throw new IllegalArgumentException(
                 "This constructor should only be used for deletion or creation file changes.");
         }

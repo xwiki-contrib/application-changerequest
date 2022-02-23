@@ -57,10 +57,12 @@ class ChangeRequestMergeDocumentResultTest
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
 
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(false, fileChange, "1.3", new Date(45));
+        changeRequestMergeDocumentResult =
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.3", new Date(45));
         assertFalse(changeRequestMergeDocumentResult.hasConflicts());
 
-        changeRequestMergeDocumentResult = new ChangeRequestMergeDocumentResult(true, fileChange, "1.3", new Date(45));
+        changeRequestMergeDocumentResult =
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, true, fileChange, "1.3", new Date(45));
         assertTrue(changeRequestMergeDocumentResult.hasConflicts());
     }
 
@@ -79,21 +81,22 @@ class ChangeRequestMergeDocumentResultTest
     @Test
     void constructor()
     {
+        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
         FileChange fileChange = mock(FileChange.class);
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
         ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
-            new ChangeRequestMergeDocumentResult(false, fileChange, "1.3", new Date(45));
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.3", new Date(45));
         assertEquals(fileChange, changeRequestMergeDocumentResult.getFileChange());
 
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
         changeRequestMergeDocumentResult =
-            new ChangeRequestMergeDocumentResult(false, fileChange, "1.3", new Date(45));
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.3", new Date(45));
         assertEquals(fileChange, changeRequestMergeDocumentResult.getFileChange());
 
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () ->
         {
-            new ChangeRequestMergeDocumentResult(false, fileChange, "1.3", new Date(45));
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.3", new Date(45));
         });
         assertEquals("This constructor should only be used for deletion or creation file changes.",
             illegalArgumentException.getMessage());

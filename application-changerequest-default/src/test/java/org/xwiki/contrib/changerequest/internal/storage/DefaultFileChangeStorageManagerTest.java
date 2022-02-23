@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -258,7 +259,8 @@ class DefaultFileChangeStorageManagerTest
         when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(598));
         when(document.getDate()).thenReturn(new Date(598));
         when(fileChange.getChangeRequest()).thenReturn(mock(ChangeRequest.class));
-        assertEquals(document, this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange));
+        assertEquals(Optional.of(document),
+            this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange));
     }
 
     @Test
@@ -768,9 +770,13 @@ class DefaultFileChangeStorageManagerTest
         verify(cloneFileChange).isSaved();
 
         when(currentDocument.isNew()).thenReturn(true);
-        ChangeRequestException changeRequestException = assertThrows(ChangeRequestException.class, () -> {
-            this.fileChangeStorageManager.rebase(fileChange);
-        });
-        assertEquals("The file has already been deleted.", changeRequestException.getMessage());
+        FileChange cloneNoChange = mock(FileChange.class);
+        when(fileChange.cloneWithType(FileChange.FileChangeType.NO_CHANGE)).thenReturn(cloneNoChange);
+        // Not the supposed behaviour, but it's easier to test that way.
+        when(cloneNoChange.isSaved()).thenReturn(true);
+        this.fileChangeStorageManager.rebase(fileChange);
+        verify(cloneNoChange).setPreviousVersion(fileChangeVersion);
+        verify(cloneNoChange).setVersion(nextFileChangeVersion);
+        verify(cloneNoChange).isSaved();
     }
 }

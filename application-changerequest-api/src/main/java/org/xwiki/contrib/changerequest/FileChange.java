@@ -59,7 +59,12 @@ public class FileChange
         /**
          * The change concerns the deletion of a document.
          */
-        DELETION
+        DELETION,
+
+        /**
+         * This particular type is used when a change has been invalidated after a rebase.
+         */
+        NO_CHANGE
     };
 
     /**

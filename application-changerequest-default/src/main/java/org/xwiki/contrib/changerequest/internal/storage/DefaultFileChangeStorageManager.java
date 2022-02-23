@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,7 +39,6 @@ import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
-import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
@@ -189,7 +191,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
                 fileChangeDocument.setHidden(true);
 
-                if (fileChange.getType() != FileChange.FileChangeType.DELETION) {
+                if (fileChange.getModifiedDocument() != null) {
                     this.createAttachment(fileChange, fileChangeDocument, filename);
                 }
                 fileChangeDocument.setContentDirty(true);
@@ -358,6 +360,10 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     this.mergeCreation(fileChange);
                     break;
 
+                case NO_CHANGE:
+                    // If there's no change we skip the merge on purpose.
+                    break;
+
                 default:
                     throw new ChangeRequestException("Unknown file change type: " + fileChange.getType());
             }
@@ -386,6 +392,10 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 clone = this.rebaseCreation(fileChange);
                 break;
 
+            case NO_CHANGE:
+                clone = this.rebaseNoChange(fileChange);
+                break;
+
             default:
                 throw new ChangeRequestException(
                     String.format("Unknown file change type for the rebase: [%s]", fileChange.getType()));
@@ -394,6 +404,31 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         clone.setPreviousVersion(fileChange.getVersion());
         clone.setVersion(this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), true));
         this.save(clone);
+    }
+
+    private FileChange rebaseNoChange(FileChange fileChange) throws ChangeRequestException
+    {
+        FileChange previousFileChange = this.getLatestFileChangeWithChanges(fileChange);
+        FileChange clone;
+        switch (fileChange.getType()) {
+            case EDITION:
+                clone = this.rebaseEdition(previousFileChange);
+                break;
+
+            case DELETION:
+                clone = this.rebaseDeletion(previousFileChange);
+                break;
+
+            case CREATION:
+                clone = this.rebaseCreation(previousFileChange);
+                break;
+
+            case NO_CHANGE:
+            default:
+                throw new ChangeRequestException(
+                    String.format("Unsupported file change type for the rebase: [%s]", fileChange.getType()));
+        }
+        return clone;
     }
 
     private FileChange rebaseEdition(FileChange fileChange) throws ChangeRequestException
@@ -405,7 +440,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             clone.setPreviousPublishedVersion("1.1", new Date());
         } else {
             clone = fileChange.clone();
-            this.performMergeForRebase(clone, currentDocument);
+            clone = this.performMergeForRebase(clone, currentDocument);
         }
 
         return clone;
@@ -420,7 +455,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             clone = fileChange.clone();
         } else {
             clone = fileChange.cloneWithType(FileChange.FileChangeType.EDITION);
-            this.performMergeForRebase(clone, currentDocument);
+            clone = this.performMergeForRebase(clone, currentDocument);
         }
 
         return clone;
@@ -429,26 +464,28 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private FileChange rebaseDeletion(FileChange fileChange) throws ChangeRequestException
     {
         XWikiDocument currentDocument = (XWikiDocument) this.getCurrentDocumentFromFileChange(fileChange);
+        FileChange clone;
         if (currentDocument.isNew()) {
-            // FIXME: handle rebase when a file has been deleted.
-            throw new ChangeRequestException("The file has already been deleted.");
+            clone = fileChange.cloneWithType(FileChange.FileChangeType.NO_CHANGE);
         } else {
-            FileChange clone = fileChange.clone();
+            clone = fileChange.clone();
             clone.setPreviousPublishedVersion(currentDocument.getVersion(), currentDocument.getDate());
-            return clone;
         }
+        return clone;
     }
 
-    private void performMergeForRebase(FileChange clone, XWikiDocument currentDocument) throws ChangeRequestException
+    private FileChange performMergeForRebase(FileChange clone, XWikiDocument currentDocument)
+        throws ChangeRequestException
     {
         DocumentModelBridge previousDoc;
-
-        try {
-            previousDoc = this.getPreviousDocumentFromFileChange(clone);
-        } catch (ChangeRequestException e) {
+        FileChange result;
+        Optional<DocumentModelBridge> optionalPreviousDoc = this.getPreviousDocumentFromFileChange(clone);
+        if (optionalPreviousDoc.isEmpty()) {
             this.logger.debug("Cannot access the real previous version of document for file change [{}]. "
-                + "Using the current version as fallback", clone, e);
+                + "Using the current version as fallback", clone);
             previousDoc = currentDocument;
+        } else {
+            previousDoc = optionalPreviousDoc.get();
         }
         DocumentModelBridge newDoc = this.getModifiedDocumentFromFileChange(clone);
         MergeConfiguration mergeConfiguration = new MergeConfiguration();
@@ -460,9 +497,15 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         if (mergeDocumentResult.hasConflicts()) {
             throw new ChangeRequestException("Cannot perform a rebase due to conflicts.");
         } else {
-            clone.setModifiedDocument(mergeDocumentResult.getMergeResult());
-            clone.setPreviousPublishedVersion(currentDocument.getVersion(), currentDocument.getDate());
+            if (mergeDocumentResult.equals(newDoc)) {
+                result = clone.cloneWithType(FileChange.FileChangeType.NO_CHANGE);
+            } else {
+                result = clone;
+            }
+            result.setModifiedDocument(mergeDocumentResult.getMergeResult());
+            result.setPreviousPublishedVersion(currentDocument.getVersion(), currentDocument.getDate());
         }
+        return result;
     }
 
     private String getMergeSaveMessage()
@@ -490,8 +533,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         try {
             DocumentModelBridge modifiedDoc =
                 this.getModifiedDocumentFromFileChange(fileChange);
-            DocumentModelBridge previousDoc =
+            Optional<DocumentModelBridge> optionalPreviousDoc =
                 this.getPreviousDocumentFromFileChange(fileChange);
+            if (optionalPreviousDoc.isEmpty()) {
+                throw new ChangeRequestException(String.format("Cannot perform merge operation of filechange [%s], "
+                        + "the previous document cannot be found.", fileChange));
+            }
+            DocumentModelBridge previousDoc = optionalPreviousDoc.get();
             DocumentModelBridge originalDoc =
                 this.getCurrentDocumentFromFileChange(fileChange);
             MergeConfiguration mergeConfiguration = new MergeConfiguration();
@@ -581,24 +629,16 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     }
 
     @Override
-    public DocumentModelBridge getPreviousDocumentFromFileChange(FileChange fileChange)
+    public Optional<DocumentModelBridge> getPreviousDocumentFromFileChange(FileChange fileChange)
         throws ChangeRequestException
     {
-        XWikiDocument result = getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
-        ChangeRequestStatus status = fileChange.getChangeRequest().getStatus();
+        XWikiDocument document = getDocumentFromFileChange(fileChange, DocumentVersion.OLD);
+        Optional<DocumentModelBridge> result = Optional.empty();
 
-        if (result == null) {
-            throw new ChangeRequestException("Cannot retrieve previous version of the document.");
+        if (document != null && document.getDate().equals(fileChange.getPreviousPublishedVersionDate())) {
+            result = Optional.of(document);
         }
-        // if the CR is closed or merged, we don't really care if the previous version is not exactly the same.
-        else if (status != ChangeRequestStatus.MERGED
-            && status != ChangeRequestStatus.CLOSED
-            && !result.getDate().equals(fileChange.getPreviousPublishedVersionDate())) {
-            throw new ChangeRequestException("The previous version of the document has been removed, "
-                + "comparison is not possible.");
-        } else {
-            return result;
-        }
+        return result;
     }
 
     @Override
@@ -612,5 +652,31 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 "Error while loading the document corresponding to the file change [%s] with version [%s]",
                 fileChange, version), e);
         }
+    }
+
+    @Override
+    public FileChange getLatestFileChangeWithChanges(FileChange fileChange) throws ChangeRequestException
+    {
+        FileChange result = null;
+        if (fileChange.getType() == FileChange.FileChangeType.NO_CHANGE) {
+            Map<DocumentReference, Deque<FileChange>> fileChangeMap = fileChange.getChangeRequest().getFileChanges();
+            Deque<FileChange> fileChangeDeque = fileChangeMap.get(fileChange.getTargetEntity());
+            boolean foundCurrent = false;
+            for (FileChange possibleFileChange : fileChangeDeque) {
+                if (!foundCurrent && possibleFileChange.equals(fileChange)) {
+                    foundCurrent = true;
+                } else if (foundCurrent && possibleFileChange.getType() != FileChange.FileChangeType.NO_CHANGE) {
+                    result = possibleFileChange;
+                    break;
+                }
+            }
+            if (result == null) {
+                throw new ChangeRequestException(
+                    String.format("Cannot find a filechange with a proper change before [%s].", fileChange));
+            }
+        } else {
+            result = fileChange;
+        }
+        return result;
     }
 }

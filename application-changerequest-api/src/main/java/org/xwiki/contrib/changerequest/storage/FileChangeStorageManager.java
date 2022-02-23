@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.storage;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Role;
@@ -85,6 +86,8 @@ public interface FileChangeStorageManager
 
     /**
      * Retrieve the document corresponding to the file change in its current latest version.
+     * Note that event if the document has been deleted, XWiki is always returning an instance of the document, so this
+     * method should never return null.
      *
      * @param fileChange an instance of a file change.
      * @return a {@link DocumentModelBridge} corresponding to the latest published version of the document modified
@@ -94,14 +97,17 @@ public interface FileChangeStorageManager
     DocumentModelBridge getCurrentDocumentFromFileChange(FileChange fileChange) throws ChangeRequestException;
 
     /**
-     * Retrieve the document corresponding to the file change document before it has been modified.
+     * Retrieve the document corresponding to the file change document before it has been modified. This method returns
+     * an optional, because we cannot guarantee that the exact same version is retrieved: it might have been deleted
+     * in the meantime. So it returns the version only if it's an exact match.
      *
      * @param fileChange an instance of a file change.
-     * @return a {@link DocumentModelBridge} corresponding to document changed in the file change, but on latest version
-     *          before it was modified in the file change.
+     * @return a {@link DocumentModelBridge} corresponding to document changed in the file change, but with the version
+     *         used to perform the changes, or an {@link Optional#empty()} if the version has been lost.
      * @throws ChangeRequestException in case of problem to retrieve the document.
      */
-    DocumentModelBridge getPreviousDocumentFromFileChange(FileChange fileChange) throws ChangeRequestException;
+    Optional<DocumentModelBridge> getPreviousDocumentFromFileChange(FileChange fileChange)
+        throws ChangeRequestException;
 
     /**
      * Retrieve the document corresponding to the file change at a specific version.
@@ -116,5 +122,21 @@ public interface FileChangeStorageManager
         throws ChangeRequestException
     {
         return null;
+    }
+
+    /**
+     * Provided that the given filechange is of type
+     * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#NO_CHANGE}, this method will search for the
+     * closest previous filechange containing real changes.
+     * The method returns the same filechange if it's not of type
+     * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#NO_CHANGE}.
+     *
+     * @param fileChange a file change for which to search for a related file change.
+     * @return the proper related filechange.
+     * @throws ChangeRequestException in case of problem to load the file change.
+     */
+    default FileChange getLatestFileChangeWithChanges(FileChange fileChange) throws ChangeRequestException
+    {
+        return fileChange;
     }
 }
