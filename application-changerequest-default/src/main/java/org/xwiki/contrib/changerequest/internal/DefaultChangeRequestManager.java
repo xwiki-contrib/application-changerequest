@@ -189,11 +189,14 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     private boolean deletionHasConflict(FileChange fileChange) throws ChangeRequestException
     {
-        DocumentModelBridge currentDoc =
-            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
-        XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
-        return xwikiCurrentDoc.isNew()
-            || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
+        // You cannot create any conflict with a deletion:
+        //   - case 1: the page still exists with original version and the CR request for deletion on same version:
+        //             ideal situation, no conflict
+        //   - case 2: the page still exists but has been updated, the CR request for deletion with a previous version:
+        //             the CR can be refreshed to update the diff, but no conflict
+        //   - case 3: the page has been already deleted, the CR request for deletion with a previous version:
+        //             the CR can be refreshed, and when doing so the CR shows no change for this file
+        return false;
     }
 
     private boolean editionHasConflict(FileChange fileChange) throws ChangeRequestException
@@ -378,15 +381,14 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                     previousDoc = (XWikiDocument) optionalPreviousDoc.get();
                 }
                 mergeDocumentResult = new MergeDocumentResult(currentDoc, previousDoc, null);
-                boolean deletionConflict = xwikiCurrentDoc.isNew()
-                    || !(currentDoc.getVersion().equals(fileChange.getPreviousPublishedVersion()));
+                boolean deletionConflict = this.deletionHasConflict(fileChange);
                 result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, deletionConflict, fileChange,
                     previousDoc.getVersion(), previousDoc.getDate())
                     .setDocumentTitle(getTitle(xwikiCurrentDoc));
                 break;
 
             case CREATION:
-                boolean creationConflict = !xwikiCurrentDoc.isNew();
+                boolean creationConflict = this.creationHasConflict(fileChange);
                 mergeDocumentResult =
                     new MergeDocumentResult(currentDoc, null, fileChange.getModifiedDocument());
                 result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, creationConflict, fileChange,
@@ -506,81 +508,135 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     public boolean mergeWithConflictDecision(FileChange fileChange, ConflictResolutionChoice resolutionChoice,
         List<ConflictDecision<?>> conflictDecisionList) throws ChangeRequestException
     {
-        DocumentReference targetEntity = fileChange.getTargetEntity();
-        DocumentReference userReference = this.contextProvider.get().getUserReference();
-
+        boolean result;
         // bulletproof to avoid NPE.
         List<ConflictDecision<?>> filteredDecisionList =
             conflictDecisionList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        switch (fileChange.getType()) {
+            case EDITION:
+                result = this.handleEditionConflictDecision(fileChange, resolutionChoice, filteredDecisionList);
+                break;
 
-        if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
-            MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
-
-            ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
-            // FIXME: only handle content conflicts for now, see XWIKI-18908
-            this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
-                conflicts);
-
-            ConflictDecision.DecisionType globalDecisionType = null;
-
-            switch (resolutionChoice) {
-                case CUSTOM:
-                    this.mergeConflictDecisionsManager
-                        .setConflictDecisionList(new ArrayList<>(filteredDecisionList), targetEntity, userReference);
-                    break;
-
-                case CHANGE_REQUEST_VERSION:
-                    globalDecisionType = ConflictDecision.DecisionType.NEXT;
-                    break;
-
-                case PUBLISHED_VERSION:
-                    globalDecisionType = ConflictDecision.DecisionType.CURRENT;
-                    break;
-
-                default:
-                    globalDecisionType = ConflictDecision.DecisionType.UNDECIDED;
-                    break;
-            }
-
-            if (globalDecisionType != null) {
-                for (Conflict<?> conflict : conflicts) {
-                    this.mergeConflictDecisionsManager.recordDecision(targetEntity, userReference,
-                        conflict.getReference(),
-                        globalDecisionType, Collections.emptyList());
+            case CREATION:
+                if (!filteredDecisionList.isEmpty()) {
+                    throw new ChangeRequestException("No support of custom decisions in case of fixing a conflict for "
+                        + "a creation change.");
                 }
-            }
+                result = this.handleCreationConflictDecision(fileChange, resolutionChoice);
+                break;
 
-            mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
-            if (mergeDocumentResult.hasConflicts()) {
-                return false;
-            } else {
-                String previousVersion = fileChange.getVersion();
-                String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
-                Date previousPublishedVersionDate = ((XWikiDocument) mergeDocumentResult.getCurrentDocument())
-                    .getDate();
-                String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
-
-                ChangeRequest changeRequest = fileChange.getChangeRequest();
-                FileChange mergeFileChange = new FileChange(changeRequest)
-                    .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
-                    .setCreationDate(new Date())
-                    .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
-                    .setVersion(version)
-                    .setModifiedDocument(mergeDocumentResult.getMergeResult())
-                    .setTargetEntity(targetEntity);
-
-                changeRequest.addFileChange(mergeFileChange);
-                this.changeRequestStorageManager.save(changeRequest);
-                this.computeReadyForMergingStatus(changeRequest);
-                this.observationManager
-                    .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), mergeFileChange);
-                return true;
-            }
-        } else {
-            // handle deletion conflict
-            return false;
+            case DELETION:
+            case NO_CHANGE:
+            default:
+                throw new ChangeRequestException(
+                    String.format("The following file change type does not support conflict fixing: [%s].",
+                        fileChange.getType()));
         }
+
+        return result;
+    }
+
+    private boolean handleCreationConflictDecision(FileChange fileChange, ConflictResolutionChoice resolutionChoice)
+        throws ChangeRequestException
+    {
+        XWikiDocument currentDoc = (XWikiDocument)
+            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
+        FileChange cloneFileChange;
+        switch (resolutionChoice) {
+            case CHANGE_REQUEST_VERSION:
+                cloneFileChange = fileChange.cloneWithType(FileChange.FileChangeType.EDITION);
+                break;
+
+            case PUBLISHED_VERSION:
+                cloneFileChange = fileChange.cloneWithType(FileChange.FileChangeType.NO_CHANGE);
+                cloneFileChange.setModifiedDocument(currentDoc);
+                break;
+
+            case CUSTOM:
+            default:
+                throw new ChangeRequestException(String.format("The following conflict resolution choice is not "
+                    + "supported for creation request: [%s]", resolutionChoice));
+        }
+        cloneFileChange.setVersion(
+            this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), true));
+        cloneFileChange.setPreviousPublishedVersion(currentDoc.getVersion(), currentDoc.getDate());
+        cloneFileChange.setPreviousVersion(fileChange.getVersion());
+        this.fileChangeStorageManager.save(cloneFileChange);
+
+        return true;
+    }
+
+    private boolean handleEditionConflictDecision(FileChange fileChange, ConflictResolutionChoice resolutionChoice,
+        List<ConflictDecision<?>> conflictDecisionList) throws ChangeRequestException
+    {
+        boolean result;
+        DocumentReference targetEntity = fileChange.getTargetEntity();
+        DocumentReference userReference = this.contextProvider.get().getUserReference();
+
+        MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
+
+        ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
+        // FIXME: only handle content conflicts for now, see XWIKI-18908
+        this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
+            conflicts);
+
+        ConflictDecision.DecisionType globalDecisionType = null;
+
+        switch (resolutionChoice) {
+            case CUSTOM:
+                this.mergeConflictDecisionsManager
+                    .setConflictDecisionList(new ArrayList<>(conflictDecisionList), targetEntity, userReference);
+                break;
+
+            case CHANGE_REQUEST_VERSION:
+                globalDecisionType = ConflictDecision.DecisionType.NEXT;
+                break;
+
+            case PUBLISHED_VERSION:
+                globalDecisionType = ConflictDecision.DecisionType.CURRENT;
+                break;
+
+            default:
+                globalDecisionType = ConflictDecision.DecisionType.UNDECIDED;
+                break;
+        }
+
+        if (globalDecisionType != null) {
+            for (Conflict<?> conflict : conflicts) {
+                this.mergeConflictDecisionsManager.recordDecision(targetEntity, userReference,
+                    conflict.getReference(),
+                    globalDecisionType, Collections.emptyList());
+            }
+        }
+
+        mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
+        if (mergeDocumentResult.hasConflicts()) {
+            result = false;
+        } else {
+            String previousVersion = fileChange.getVersion();
+            String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
+            Date previousPublishedVersionDate = ((XWikiDocument) mergeDocumentResult.getCurrentDocument())
+                .getDate();
+            String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+
+            ChangeRequest changeRequest = fileChange.getChangeRequest();
+            FileChange mergeFileChange = new FileChange(changeRequest)
+                .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
+                .setCreationDate(new Date())
+                .setPreviousVersion(previousVersion)
+                .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
+                .setVersion(version)
+                .setModifiedDocument(mergeDocumentResult.getMergeResult())
+                .setTargetEntity(targetEntity);
+
+            changeRequest.addFileChange(mergeFileChange);
+            this.changeRequestStorageManager.save(changeRequest);
+            this.computeReadyForMergingStatus(changeRequest);
+            this.observationManager
+                .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), mergeFileChange);
+            result = true;
+        }
+        return result;
     }
 
     @Override
@@ -689,10 +745,8 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     @Override
     public boolean isFileChangeOutdated(FileChange fileChange) throws ChangeRequestException
     {
-        String previousPublishedVersion = fileChange.getPreviousPublishedVersion();
         XWikiDocument currentDocument =
             (XWikiDocument) this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
-        String currentDocumentVersion = currentDocument.getVersion();
         boolean result = false;
 
         switch (fileChange.getType()) {
@@ -701,24 +755,61 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 break;
 
             case DELETION:
-                result = currentDocument.isNew();
+                result = currentDocument.isNew() || this.isVersionOutdated(fileChange, currentDocument);
                 break;
 
             case NO_CHANGE:
+                FileChange fileChangeWithChange =
+                    this.fileChangeStorageManager.getLatestFileChangeWithChanges(fileChange);
+                result = this.isNoChangeFileChangeOutdated(fileChange, fileChangeWithChange, currentDocument);
+                break;
+
             case EDITION:
-                // if version are equals, we check date to ensure the version are still same
-                if (StringUtils.equals(previousPublishedVersion, currentDocumentVersion)) {
-                    result =
-                        fileChange.getPreviousPublishedVersionDate().before(currentDocument.getDate());
-                // if version are not equals, we don't care if it's because it's a new change has been added or a
-                // version has been removed: either way the filechange is outdated.
-                } else {
-                    result = true;
-                }
+                result = this.isVersionOutdated(fileChange, currentDocument);
                 break;
 
             default:
                 throw new ChangeRequestException(String.format("Unsupported type: [%s]", fileChange.getType()));
+        }
+        return result;
+    }
+
+    private boolean isNoChangeFileChangeOutdated(FileChange originalFileChange, FileChange fileChangeWithChanges,
+        XWikiDocument currentDocument)
+        throws ChangeRequestException
+    {
+        boolean result = false;
+        switch (fileChangeWithChanges.getType()) {
+            case CREATION:
+            case EDITION:
+                result = this.isVersionOutdated(originalFileChange, currentDocument);
+                break;
+
+            case DELETION:
+                result = !currentDocument.isNew();
+                break;
+
+            default:
+                throw new ChangeRequestException(String.format("Unsupported type for outdated filechange: [%s]",
+                    fileChangeWithChanges.getType()));
+        }
+
+        return result;
+    }
+
+    private boolean isVersionOutdated(FileChange fileChange, XWikiDocument currentDocument)
+    {
+        String previousPublishedVersion = fileChange.getPreviousPublishedVersion();
+        String currentDocumentVersion = currentDocument.getVersion();
+        boolean result;
+        // if version are equals, we check date to ensure the version are still same
+        if (StringUtils.equals(previousPublishedVersion, currentDocumentVersion)) {
+            result =
+                fileChange.getPreviousPublishedVersionDate().before(currentDocument.getDate());
+            // if version are not equals, we don't care if it's because it's a new change has been added or a
+            // version has been removed: either way the filechange is outdated.
+        } else {
+            result = true;
         }
         return result;
     }

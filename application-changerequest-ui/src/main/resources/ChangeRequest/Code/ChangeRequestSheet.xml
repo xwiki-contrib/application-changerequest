@@ -237,17 +237,24 @@
     #set ($isFileChangeOutdated = $services.changerequest.isFileChangeOutdated($crMergeDocumentResult.fileChange))
     #set ($renderedTitle = $crMergeDocumentResult.documentTitle)
     #set ($diffKey = $crMergeDocumentResult.identifier)
-    #if ($crMergeDocumentResult.type == "DELETION")
-      #set ($diffContent = "Deletion of the whole file.")
-    #elseif ($crMergeDocumentResult.type == "CREATION")
+    #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
+    #if ($crMergeDocumentResult.type == 'NO_CHANGE')
+      #set ($diffContent = $services.localization.render('changerequest.sheet.diff.nochange'))
+    #elseif ($crMergeDocumentResult.type == 'DELETION')
+      #set ($currentDoc = $mergeDocumentResult.currentDocument)
+      ## We wrap the XWikiDocument in Document so that the diff macros behave correctly
+      #set ($wrappedDocs = $xwiki.wrapDocs([$currentDoc]))
+      #define ($diffContent)
+        #displayDocumentRawChanges($wrappedDocs.get(0), $NULL)
+      #end
+    #elseif ($crMergeDocumentResult.type == 'CREATION')
       #set ($modifiedDoc = $crMergeDocumentResult.fileChange.modifiedDocument)
       ## We wrap the XWikiDocument in Document so that the diff macros behave correctly
       #set ($wrappedDocs = $xwiki.wrapDocs([$modifiedDoc]))
-       #define ($diffContent)
+      #define ($diffContent)
         #displayDocumentRawChanges($NULL, $wrappedDocs.get(0))
       #end
     #else
-      #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
       #set ($modifiedDoc = $mergeDocumentResult.nextDocument)
       #set ($previousDoc = $mergeDocumentResult.previousDocument)
       ## We wrap the XWikiDocument in Document so that the diff macros behave correctly
@@ -1007,7 +1014,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
       var currentReference = xm.documentReference;
       var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
       var modal = new ConflictModal(changeRequestId, reference, locale);
-      modal.requestModal('NEXT', 'MERGED');
+      modal.requestModal('', '');
     });
     
     $(document).on('click', '.action_fixconflict', function (event) {
@@ -1020,7 +1027,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
       var reference = urlParams.get('reference');
       var locale = urlParams.get('locale');
       var modal = new ConflictModal(changeRequestId, reference, locale);
-      modal.requestModal('NEXT', 'MERGED');
+      modal.requestModal('', '');
     });
   };
   

@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -170,9 +171,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         if (!fileChange.isSaved()) {
             XWikiContext context = this.contextProvider.get();
             XWiki wiki = context.getWiki();
-            boolean isDeletion = fileChange.getType() == FileChange.FileChangeType.DELETION;
             try {
-                if (!isDeletion) {
+                if (fileChange.getModifiedDocument() != null) {
                     XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
                     modifiedDocument.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
                     modifiedDocument.setContentUpdateDate(fileChange.getCreationDate());
@@ -266,11 +266,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 List<BaseObject> fileChangeObjects = changeRequestDocument.getXObjects(FILECHANGE_XCLASS);
                 for (BaseObject fileChangeObject : fileChangeObjects) {
                     FileChange fileChange = this.createFileChangeFromXObject(fileChangeObject, changeRequest);
-
-                    if (fileChange.getType() == FileChange.FileChangeType.DELETION
-                        || this.loadDocumentFromAttachment(fileChange, changeRequestDocument)) {
-                        result.add(fileChange);
-                    }
+                    this.loadDocumentFromAttachment(fileChange, changeRequestDocument);
+                    result.add(fileChange);
                 }
             }
         } catch (XWikiException e) {
@@ -298,8 +295,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 .setModifiedDocument(document);
             result = true;
         } else {
-            logger.warn("Cannot find attachment for filechange with filename [{}]. "
-                + "This filechange will be ignored.", filename);
+            logger.debug("Cannot find attachment for filechange with filename [{}]. ", filename);
         }
         return result;
     }
@@ -662,7 +658,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             Map<DocumentReference, Deque<FileChange>> fileChangeMap = fileChange.getChangeRequest().getFileChanges();
             Deque<FileChange> fileChangeDeque = fileChangeMap.get(fileChange.getTargetEntity());
             boolean foundCurrent = false;
-            for (FileChange possibleFileChange : fileChangeDeque) {
+            Iterator<FileChange> fileChangeIterator = fileChangeDeque.descendingIterator();
+            while (fileChangeIterator.hasNext()) {
+                FileChange possibleFileChange = fileChangeIterator.next();
                 if (!foundCurrent && possibleFileChange.equals(fileChange)) {
                     foundCurrent = true;
                 } else if (foundCurrent && possibleFileChange.getType() != FileChange.FileChangeType.NO_CHANGE) {

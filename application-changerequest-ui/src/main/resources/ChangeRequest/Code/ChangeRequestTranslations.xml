@@ -105,6 +105,7 @@ changerequest.sheet.open_draft.button.title=Open back the change request as draf
 changerequest.filechange.type.EDITION=Edition
 changerequest.filechange.type.DELETION=Deletion
 changerequest.filechange.type.CREATION=Creation
+changerequest.filechange.type.NO_CHANGE=No change
 changerequest.livetable.filechange.doc.location=Location
 changerequest.livetable.filechange.doc.title=Title
 changerequest.livetable.filechange.filechange_type=Change type
@@ -159,6 +160,7 @@ changerequest.sheet.message.outdated=outdated
 changerequest.sheet.message.outdated.title=This message is outdated: the diff changed since it was written.
 changerequest.sheet.diff.outdated=outdated
 changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences if possible.
+changerequest.sheet.diff.nochange=No change
 changerequest.sheet.message.collapse.button.title=Click to collapse the message.
 changerequest.sheet.message.expand.button.title=Click to expand the message.
 
@@ -172,6 +174,16 @@ ChangeRequest.Code.ChangeRequestClass_status_stale=Closed (stale)
 changerequest.user.profile.menu=Change Requests
 changerequest.user.profile.authorcr.title=Authored Change Requests
 changerequest.user.profile.approverscr.title=Change Requests to review
+
+changerequest.conflict.modal.title=Fix conflict
+changerequest.conflict.modal.description=This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.
+changerequest.conflict.modal.description.EDITION=Conflicts occurred because the original document for which you proposed changes has been edited since you opened the change request. You can keep your changes as they are, or keep the changes of the published version, or try to resolve the conflict manually with a custom resolution.
+changerequest.conflict.modal.description.CREATION=Conflicts occurred because the page you requested for creation has been created since you opened the change request. You can decide to keep your changes, or to keep the published version. 
+changerequest.conflict.modal.recommended=recommended
+changerequest.conflict.modal.options.keepcr.title=Keep change request
+changerequest.conflict.modal.options.keepcr.description=Fix the conflicts by keeping change request version.
+changerequest.conflict.modal.options.keeppublished.title=Keep published version
+changerequest.conflict.modal.options.keeppublished.description=Fix the conflicts by keeping published version.
 </content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestTranslations</name>

@@ -148,16 +148,25 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequest changeRequest = new ChangeRequest();
 
-        String previousVersion = request.getParameter("previousVersion");
+        String previousVersion;
         XWikiDocument previousDoc;
-        try {
-            XWikiDocumentArchive xWikiDocumentArchive =
-                context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
-            previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
-        } catch (XWikiException e) {
-            throw new ChangeRequestException(
-                String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
-                    modifiedDocument), e);
+        Date previousVersionDate;
+
+        if (isDeletion) {
+            previousVersion = modifiedDocument.getVersion();
+            previousVersionDate = modifiedDocument.getDate();
+        } else {
+            previousVersion = request.getParameter("previousVersion");
+            try {
+                XWikiDocumentArchive xWikiDocumentArchive =
+                    context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
+                previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
+                previousVersionDate = (previousDoc != null) ? previousDoc.getDate() : new Date();
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
+                        modifiedDocument), e);
+            }
         }
         FileChange.FileChangeType fileChangeType;
         if (isDeletion) {
@@ -167,7 +176,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         } else {
             fileChangeType = FileChange.FileChangeType.EDITION;
         }
-        Date previousVersionDate = (previousDoc != null) ? previousDoc.getDate() : new Date();
         FileChange fileChange =
             getFileChange(changeRequest, fileChangeType, documentReference, modifiedDocument, previousVersion,
                 previousVersionDate);

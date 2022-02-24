@@ -59,26 +59,41 @@
     #else
       #set ($crMergeDocument = $mergeDocumentOpt.get())
       #set ($mergeDocument = $crMergeDocument.wrappedResult)
+      #set ($fileChangeType = $crMergeDocument.type)
+      #set ($contentConflicts = $mergeDocument.getConflicts('CONTENT'))
       #if ("$!request.get('decision')" == '')
 {{html clean="false"}}
 #set ($discard = $services.template.execute('diff_macros.vm'))
-#set ($versions = {
-  'PREVIOUS': $mergeDocument.previousDocument,
-  'CURRENT': $mergeDocument.currentDocument,
-  'NEXT': $mergeDocument.nextDocument,
-  'MERGED': $mergeDocument.mergeResult
-})
+
+#if ($fileChangeType == 'EDITION')
+  #set ($versions = {
+    'PREVIOUS': $mergeDocument.previousDocument,
+    'CURRENT': $mergeDocument.currentDocument,
+    'NEXT': $mergeDocument.nextDocument,
+    'MERGED': $mergeDocument.mergeResult
+  })
+  #set ($defaultOriginal = 'NEXT')
+  #set ($defaultRevised = 'MERGED')
+#elseif ($fileChangeType == 'CREATION')
+  #set ($versions = {
+    'CURRENT': $mergeDocument.currentDocument,
+    'NEXT': $mergeDocument.nextDocument
+  })
+  #set ($defaultOriginal = 'CURRENT')
+  #set ($defaultRevised = 'NEXT')
+#end
+
 #if ("$!request.original" != '')
   #set ($originalVersion = $request.original)
 #else
-  #set ($originalVersion = 'NEXT')
+  #set ($originalVersion = $defaultOriginal)
 #end
 #set ($originalDocument = $versions.get($originalVersion))
 
 #if ("$!request.revised" != '')
   #set ($revisedVersion = $request.revised)
 #else
-  #set ($revisedVersion = 'MERGED')
+  #set ($revisedVersion = $defaultRevised)
 #end
 #set ($revisedDocument = $versions.get($revisedVersion))
 
@@ -93,10 +108,11 @@
     &lt;div class="modal-content"&gt;
       &lt;div class="modal-header"&gt;
         &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
-        &lt;div class="modal-title" id="changeRequestConflictModalTitle"&gt;Resolution of conflicts&lt;/div&gt;
+        &lt;div class="modal-title" id="changeRequestConflictModalTitle"&gt;$services.localization.render('changerequest.conflict.modal.title')&lt;/div&gt;
         &lt;hr /&gt;
         &lt;div class="xHint"&gt;
-          This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.
+          &lt;div&gt;$services.localization.render('changerequest.conflict.modal.description')&lt;/div&gt;
+          &lt;div&gt;$services.localization.render("changerequest.conflict.modal.description.$fileChangeType")&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
       &lt;div class="modal-body"&gt;
@@ -107,12 +123,10 @@
             &lt;/div&gt;
             &lt;div class="panel-heading"&gt;
               &lt;label class="panel-title"&gt;
-                Keep change request
-                &lt;span class="label label-success"&gt;recommended&lt;/span&gt;
+                $services.localization.render('changerequest.conflict.modal.options.keepcr.title')
+                &lt;span class="label label-success"&gt;$services.localization.render('changerequest.conflict.modal.recommended')&lt;/span&gt;
               &lt;/label&gt;
-              &lt;div class="xHint"&gt;
-                Fix the conflicts by keeping change request version.
-              &lt;/div&gt;
+              &lt;div class="xHint"&gt;$services.localization.render('changerequest.conflict.modal.options.keepcr.description')&lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="panel #if ($warningConflictAction == "keepPublished")panel-primary#{else}panel-default#end"&gt;
@@ -120,17 +134,13 @@
               &lt;input type="radio" id="actionForceSaveRadio" name="warningConflictAction" value="keepPublished"#if ($warningConflictAction == "keepPublished") checked="checked"#end /&gt;
             &lt;/div&gt;
             &lt;div class="panel-heading"&gt;
-              &lt;label class="panel-title"&gt;
-                Keep published
-              &lt;/label&gt;
-              &lt;div class="xHint"&gt;
-                Fix the conflicts by keeping published version.
-              &lt;/div&gt;
+              &lt;label class="panel-title"&gt;$services.localization.render('changerequest.conflict.modal.options.keeppublished.title')&lt;/label&gt;
+              &lt;div class="xHint"&gt;$services.localization.render('changerequest.conflict.modal.options.keeppublished.description')&lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
           ## Display the custom choice only if there is conflicts only on the content of the page, for now we don't provide
           ## a way to solve other kind of conflicts.
-          #if (!$mergeDocument.contentConflicts.isEmpty() &amp;&amp; $mergeDocument.contentConflicts.size() == $mergeDocument.allConflicts.size())
+          #if ($contentConflicts &amp;&amp; !$contentConflicts.isEmpty() &amp;&amp; $contentConflicts.size() == $mergeDocument.allConflicts.size())
           &lt;div class="panel #if ($warningConflictAction == "custom")panel-primary#{else}panel-default#end"&gt;
             &lt;div class="panel-radio"&gt;
               &lt;input type="radio" id="actionCustomRadio" name="warningConflictAction" value="custom"#if ($warningConflictAction == "custom") checked="checked"#end /&gt;

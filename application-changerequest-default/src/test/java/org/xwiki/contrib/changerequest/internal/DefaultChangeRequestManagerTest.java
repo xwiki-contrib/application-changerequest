@@ -400,7 +400,7 @@ class DefaultChangeRequestManagerTest
         when(previousDoc.getDate()).thenReturn(new Date(45));
         MergeDocumentResult mergeDocumentResult = new MergeDocumentResult(currentDoc, previousDoc, null);
         ChangeRequestMergeDocumentResult expectedResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, true, fileChange, "1.1", new Date(45))
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.1", new Date(45))
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
@@ -411,7 +411,7 @@ class DefaultChangeRequestManagerTest
         when(documentReference.toString()).thenReturn("Some.Reference");
 
         expectedResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, true, fileChange, "1.1", new Date(45))
+            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.1", new Date(45))
             .setDocumentTitle("Some.Reference");
         assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
 
