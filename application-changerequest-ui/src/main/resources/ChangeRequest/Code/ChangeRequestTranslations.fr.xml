@@ -104,6 +104,7 @@ changerequest.sheet.open_draft.button.title=Ouvrir à nouveau la demande en stat
 changerequest.filechange.type.EDITION=Modification
 changerequest.filechange.type.DELETION=Suppression
 changerequest.filechange.type.CREATION=Création
+changerequest.filechange.type.NO_CHANGE=Aucune modification
 changerequest.livetable.filechange.doc.location=Emplacement
 changerequest.livetable.filechange.doc.title=Titre
 changerequest.livetable.filechange.filechange_type=Modifier le type
@@ -155,6 +156,7 @@ changerequest.sheet.message.outdated=périmé
 changerequest.sheet.message.outdated.title=Ce message est périmé : le diff n'est pas à jour.
 changerequest.sheet.diff.outdated=périmé
 changerequest.sheet.diff.outdated.title=Le document a été modifié depuis la demande de modification. Il est recommandé de mettre à jour la demande de modification pour comparer les différences.
+changerequest.sheet.diff.nochange=Aucune modification
 changerequest.sheet.message.collapse.button.title=Cliquez pour réduire le message.
 changerequest.sheet.message.expand.button.title=Cliquez pour agrandir le message.
 
@@ -168,5 +170,14 @@ ChangeRequest.Code.ChangeRequestClass_status_stale=Fermé (périmé)
 changerequest.user.profile.menu=Demandes de modification
 ### Missing: changerequest.user.profile.authorcr.title=Authored Change Requests
 changerequest.user.profile.approverscr.title=Demandes de modification à réviser
+changerequest.conflict.modal.title=Résoudre le conflit
+### Missing: changerequest.conflict.modal.description=This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.
+### Missing: changerequest.conflict.modal.description.EDITION=Conflicts occurred because the original document for which you proposed changes has been edited since you opened the change request. You can keep your changes as they are, or keep the changes of the published version, or try to resolve the conflict manually with a custom resolution.
+### Missing: changerequest.conflict.modal.description.CREATION=Conflicts occurred because the page you requested for creation has been created since you opened the change request. You can decide to keep your changes, or to keep the published version. 
+changerequest.conflict.modal.recommended=recommandé
+changerequest.conflict.modal.options.keepcr.title=Conserver la demande de modification
+changerequest.conflict.modal.options.keepcr.description=Résoudre le conflit en conservant la version de la demande de modification.
+changerequest.conflict.modal.options.keeppublished.title=Conserver la version publiée
+changerequest.conflict.modal.options.keeppublished.description=Résoudre le conflit en conservant la version publiée.
 </content>
 </xwikidoc>
