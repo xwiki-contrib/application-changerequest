@@ -366,9 +366,18 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         Optional<DocumentModelBridge> optionalPreviousDoc;
         switch (fileChange.getType()) {
             case NO_CHANGE:
-                FileChange latestFileChangeWithChanges =
-                    this.fileChangeStorageManager.getLatestFileChangeWithChanges(fileChange);
-                result = this.getMergeDocumentResult(latestFileChangeWithChanges);
+                optionalPreviousDoc =
+                    this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                if (optionalPreviousDoc.isPresent()) {
+                    previousDoc = (XWikiDocument) optionalPreviousDoc.get();
+                } else {
+                    previousDoc = null;
+                }
+                mergeDocumentResult =
+                    new MergeDocumentResult(currentDoc, previousDoc, fileChange.getModifiedDocument());
+                result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange,
+                    currentDoc.getVersion(), currentDoc.getDate())
+                    .setDocumentTitle(getTitle((XWikiDocument) currentDoc));
                 break;
 
             case DELETION:

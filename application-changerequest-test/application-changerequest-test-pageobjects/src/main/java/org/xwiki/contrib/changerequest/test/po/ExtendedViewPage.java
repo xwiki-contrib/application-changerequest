@@ -20,6 +20,8 @@
 package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.ViewPage;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
@@ -33,6 +35,8 @@ public class ExtendedViewPage extends ViewPage
 {
     private static final String CR_EDIT_ID = "crEdit";
     private static final String STANDARD_EDIT_ID = "tmEdit";
+    private static final String STANDARD_DELETE_ID = "tmDelete";
+    private static final String CR_DELETE_ID = "deletecr";
 
     /**
      * Check if the current view has a change request edit button: this button is normally visible only when users does
@@ -78,5 +82,61 @@ public class ExtendedViewPage extends ViewPage
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
         extendedEditPage.getEditor().waitUntilPageIsLoaded();
         return extendedEditPage;
+    }
+
+    private boolean hasMoreActionMenuEntry(String entryId)
+    {
+        boolean result;
+        this.toggleActionMenu();
+        try {
+            WebElement deleteButton = getDriver().findElementWithoutWaiting(By.id(entryId));
+            result = deleteButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            result = false;
+        }
+        this.toggleActionMenu();
+        return result;
+    }
+
+    /**
+     * @return {@code true} if the more action menu entry has the standard "delete" entry.
+     */
+    public boolean hasStandardDeleteMenuEntry()
+    {
+        return this.hasMoreActionMenuEntry(STANDARD_DELETE_ID);
+    }
+
+    /**
+     * @return {@code true} if the more action menu entry has an entry for "request for deletion".
+     */
+    public boolean hasRequestForDeletionMenuEntry()
+    {
+        return this.hasMoreActionMenuEntry(CR_DELETE_ID);
+    }
+
+    /**
+     * Click on the standard delete menu entry, and return the page to confirm the deletion.
+     *
+     * @return a new instance of {@link ExtendedDeleteConfirmationPage} to confirm the deletion.
+     * @see #hasStandardDeleteMenuEntry()
+     */
+    public ExtendedDeleteConfirmationPage clickStandardDelete()
+    {
+        toggleActionMenu();
+        getDriver().findElementWithoutWaiting(By.id(STANDARD_DELETE_ID)).click();
+        return new ExtendedDeleteConfirmationPage();
+    }
+
+    /**
+     * Click on the request for deletion menu entry, and return the page to confirm the deletion.
+     *
+     * @return a new instance of {@link ExtendedDeleteConfirmationPage} to confirm the deletion.
+     * @see #hasRequestForDeletionMenuEntry()
+     */
+    public ExtendedDeleteConfirmationPage clickRequestForDeletion()
+    {
+        toggleActionMenu();
+        getDriver().findElementWithoutWaiting(By.id(CR_DELETE_ID)).click();
+        return new ExtendedDeleteConfirmationPage();
     }
 }

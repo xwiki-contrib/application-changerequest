@@ -43,4 +43,10 @@ public class AllITs
     class NestedChangeRequestRightsIT extends ChangeRequestRightsIT
     {
     }
+
+    @Nested
+    @DisplayName("Change Request Rebase and Conflicts handling ")
+    class NestedChangeRequestConflictsIT extends ChangeRequestConflictsIT
+    {
+    }
 }

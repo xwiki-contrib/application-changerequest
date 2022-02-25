@@ -263,7 +263,7 @@
         #displayDocumentRawChanges($wrappedDocs.get(0), $wrappedDocs.get(1))
       #end
     #end
-    &lt;div class="panel-heading" role="tab" id="heading-$diffKey"&gt;
+    &lt;div class="panel-heading" role="tab" id="heading-$diffKey" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;
       &lt;h4 class="panel-title"&gt;
         &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
           &lt;span class="diff-labels"&gt;

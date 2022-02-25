@@ -68,9 +68,11 @@ import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.UserReference;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.merge.MergeConfiguration;
+import com.xpn.xwiki.objects.classes.BaseClass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -580,5 +582,33 @@ class DefaultChangeRequestManagerTest
 
         when(currentDoc.isNew()).thenReturn(true);
         assertFalse(this.manager.isFileChangeOutdated(fileChange));
+    }
+
+    @Test
+    void canDeletionBeRequested() throws Exception
+    {
+        DocumentReference documentReference = new DocumentReference("xwiki", "Space", "Page");
+        when(this.xarExtensionScriptService.isExtensionDocument(documentReference)).thenReturn(true);
+        assertFalse(this.manager.canDeletionBeRequested(documentReference));
+        verify(this.context, never()).getWiki();
+
+        when(this.xarExtensionScriptService.isExtensionDocument(documentReference)).thenReturn(false);
+        XWiki xWiki = mock(XWiki.class);
+        when(this.context.getWiki()).thenReturn(xWiki);
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(xWiki.getDocument(documentReference, context)).thenReturn(document);
+        BaseClass baseClass = mock(BaseClass.class);
+        when(document.getXClass()).thenReturn(baseClass);
+        when(baseClass.getProperties()).thenReturn(new String[0]);
+        when(document.isHidden()).thenReturn(false);
+
+        assertTrue(this.manager.canDeletionBeRequested(documentReference));
+
+        when(document.isHidden()).thenReturn(true);
+        assertFalse(this.manager.canDeletionBeRequested(documentReference));
+
+        when(document.isHidden()).thenReturn(false);
+        when(baseClass.getProperties()).thenReturn(new String[] {"foo"});
+        assertFalse(this.manager.canDeletionBeRequested(documentReference));
     }
 }
