@@ -81,6 +81,7 @@ class ChangeRequestCreationIT
     @Order(1)
     void createChangeRequest(TestUtils setup, TestReference testReference) throws Exception
     {
+        String serializedReference = testReference.getLocalDocumentReference().toString();
         setup.loginAsSuperAdmin();
         setup.createPage(testReference, "Some content to the test page.");
 
@@ -162,11 +163,10 @@ class ChangeRequestCreationIT
         // Check the diff
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
         assertEquals(1, fileChangesPane.getFileChangesListLiveData().getTableLayout().countRows());
-        String pageName = testReference.toString();
-        DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(pageName);
+        DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(serializedReference);
         assertEquals("(1 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
 
-        EntityDiff contentDiff = fileChangesPane.getEntityDiff(pageName, "Page properties");
+        EntityDiff contentDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
         List<String> content = contentDiff.getDiff("Content");
         assertEquals(3, content.size());
         assertEquals("-Some content<del> to the test page</del>.", content.get(1));
