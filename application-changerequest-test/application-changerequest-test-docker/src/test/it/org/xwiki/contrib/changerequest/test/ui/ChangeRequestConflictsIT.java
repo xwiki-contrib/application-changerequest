@@ -22,14 +22,20 @@ package org.xwiki.contrib.changerequest.test.ui;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.xwiki.contrib.changerequest.test.po.ChangeRequestConflictModal;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
+import org.xwiki.contrib.changerequest.test.po.ExtendedCreatePage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedDeleteConfirmationPage;
+import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -138,6 +144,156 @@ class ChangeRequestConflictsIT
         changeRequestPage = fileChangesPane.clickRefresh(serializedReference);
         fileChangesPane = changeRequestPage.openFileChanges();
         assertEquals(FileChangesPane.ChangeType.NO_CHANGE, fileChangesPane.getChangeType(serializedReference));
+        assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
+        assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
+        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+    }
+
+    @Test
+    @Order(2)
+    void createConflictFixWithPublishedVersion(TestUtils testUtils, TestReference testReference) throws Exception
+    {
+        String pageName = "NestedPage";
+        DocumentReference nestedTestReference =
+            new DocumentReference("WebHome", new SpaceReference(pageName, testReference.getLastSpaceReference()));
+        String serializedReference = nestedTestReference.getLocalDocumentReference().toString();
+
+        testUtils.loginAsSuperAdmin();
+        testUtils.createPage(testReference, "Page parent of create test");
+
+        testUtils.login(CR_USER, CR_USER);
+        testUtils.gotoPage(testReference);
+        ExtendedViewPage extendedViewPage = new ExtendedViewPage();
+        assertFalse(extendedViewPage.hasStandardCreate());
+        assertTrue(extendedViewPage.hasChangeRequestCreate());
+
+        ExtendedCreatePage extendedCreatePage = extendedViewPage.clickChangeRequestCreate();
+        assertFalse(extendedCreatePage.hasStandardCreateButton());
+        assertTrue(extendedCreatePage.hasChangeRequestCreateButton());
+
+        extendedCreatePage.getDocumentPicker().setTitle(pageName);
+
+        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = extendedCreatePage.clickChangeRequestCreateButton();
+        extendedEditPage.getEditor().setContent("Some content on the new page");
+        assertFalse(extendedEditPage.hasStandardSaveButton());
+        assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
+        ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
+        changeRequestSaveModal.setChangeRequestTitle("CreateKeepPublishedTest");
+        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
+
+        String crUrl = changeRequestPage.getPageURL();
+
+        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
+        assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
+        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+
+        testUtils.loginAsSuperAdmin();
+        testUtils.createPage(nestedTestReference, "Some new content");
+
+        testUtils.login(CR_USER, CR_USER);
+        testUtils.gotoPage(crUrl);
+        changeRequestPage = new ChangeRequestPage();
+
+        fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
+        assertTrue(fileChangesPane.isConflictLabelDisplayed(serializedReference));
+        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertTrue(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+
+        ChangeRequestConflictModal changeRequestConflictModal = fileChangesPane.clickFixConflict(serializedReference);
+        assertTrue(changeRequestConflictModal
+            .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.KEEP_CHANGE_REQUEST));
+        assertTrue(changeRequestConflictModal
+            .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.KEEP_PUBLISHED));
+        assertFalse(changeRequestConflictModal
+            .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.CUSTOM));
+
+        changeRequestConflictModal =
+            changeRequestConflictModal.makeChoice(ChangeRequestConflictModal.ResolutionChoice.KEEP_PUBLISHED);
+        changeRequestPage = changeRequestConflictModal.submitCurrentChoice();
+
+        fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(FileChangesPane.ChangeType.NO_CHANGE, fileChangesPane.getChangeType(serializedReference));
+        assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
+        assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
+        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+    }
+
+    @Test
+    @Order(2)
+    void createConflictFixWithChangeRequestVersion(TestUtils testUtils, TestReference testReference) throws Exception
+    {
+        String pageName = "NestedPage";
+        DocumentReference nestedTestReference =
+            new DocumentReference("WebHome", new SpaceReference(pageName, testReference.getLastSpaceReference()));
+        String serializedReference = nestedTestReference.getLocalDocumentReference().toString();
+
+        testUtils.loginAsSuperAdmin();
+        testUtils.createPage(testReference, "Page parent of create test");
+
+        testUtils.login(CR_USER, CR_USER);
+        testUtils.gotoPage(testReference);
+        ExtendedViewPage extendedViewPage = new ExtendedViewPage();
+        assertFalse(extendedViewPage.hasStandardCreate());
+        assertTrue(extendedViewPage.hasChangeRequestCreate());
+
+        ExtendedCreatePage extendedCreatePage = extendedViewPage.clickChangeRequestCreate();
+        assertFalse(extendedCreatePage.hasStandardCreateButton());
+        assertTrue(extendedCreatePage.hasChangeRequestCreateButton());
+
+        extendedCreatePage.getDocumentPicker().setTitle(pageName);
+
+        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = extendedCreatePage.clickChangeRequestCreateButton();
+        extendedEditPage.getEditor().setContent("Some content on the new page");
+        assertFalse(extendedEditPage.hasStandardSaveButton());
+        assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
+        ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
+        changeRequestSaveModal.setChangeRequestTitle("CreateKeepCRTest");
+        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
+
+        String crUrl = changeRequestPage.getPageURL();
+
+        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
+        assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
+        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+
+        testUtils.loginAsSuperAdmin();
+        testUtils.createPage(nestedTestReference, "Some new content");
+
+        testUtils.login(CR_USER, CR_USER);
+        testUtils.gotoPage(crUrl);
+        changeRequestPage = new ChangeRequestPage();
+
+        fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
+        assertTrue(fileChangesPane.isConflictLabelDisplayed(serializedReference));
+        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertTrue(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+
+        ChangeRequestConflictModal changeRequestConflictModal = fileChangesPane.clickFixConflict(serializedReference);
+        assertTrue(changeRequestConflictModal
+            .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.KEEP_CHANGE_REQUEST));
+        assertTrue(changeRequestConflictModal
+            .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.KEEP_PUBLISHED));
+        assertFalse(changeRequestConflictModal
+            .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.CUSTOM));
+
+        assertEquals(ChangeRequestConflictModal.ResolutionChoice.KEEP_CHANGE_REQUEST,
+            changeRequestConflictModal.getCurrentChoice());
+        changeRequestPage = changeRequestConflictModal.submitCurrentChoice();
+
+        fileChangesPane = changeRequestPage.openFileChanges();
+        assertEquals(FileChangesPane.ChangeType.EDITION, fileChangesPane.getChangeType(serializedReference));
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
         assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));

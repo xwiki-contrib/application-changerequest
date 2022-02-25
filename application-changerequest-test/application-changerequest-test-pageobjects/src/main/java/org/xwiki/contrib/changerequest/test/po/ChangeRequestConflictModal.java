@@ -19,7 +19,9 @@
  */
 package org.xwiki.contrib.changerequest.test.po;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -40,7 +42,7 @@ public class ChangeRequestConflictModal extends BaseModal
     /**
      * The different choices available to resolve the conflict.
      */
-    public enum ConflictChoice
+    public enum ResolutionChoice
     {
         /**
          * Choice to keep the change request version.
@@ -144,7 +146,7 @@ public class ChangeRequestConflictModal extends BaseModal
      * @param choice the choice to make.
      * @return a new EditConflictModal since it reloads the diff.
      */
-    public ChangeRequestConflictModal makeChoice(ConflictChoice choice)
+    public ChangeRequestConflictModal makeChoice(ResolutionChoice choice)
     {
         switch (choice) {
             case KEEP_CHANGE_REQUEST:
@@ -171,15 +173,28 @@ public class ChangeRequestConflictModal extends BaseModal
     }
 
     /**
-     * Chose an option to solve the conflict and submit it immediately.
-     * @param choice the choice to make
-     * @param waitSuccess if true, wait for the saved notification.
-     *          Note that this option cannot be used with reload choice.
+     * @param choice the choice for which to check if the option is available.
+     * @return {@code true} if the option is available.
      */
-    public void makeChoiceAndSubmit(ConflictChoice choice, boolean waitSuccess)
+    public boolean isOptionAvailable(ResolutionChoice choice)
     {
-        ChangeRequestConflictModal editConflictModal = this.makeChoice(choice);
-        editConflictModal.submitCurrentChoice(waitSuccess);
+        try {
+            switch (choice) {
+                case KEEP_CHANGE_REQUEST:
+                    return this.mergeChoice.isDisplayed();
+
+                case KEEP_PUBLISHED:
+                    return this.forceSaveChoice.isDisplayed();
+
+                case CUSTOM:
+                    return this.customChoice.isDisplayed();
+
+                default:
+                    return false;
+            }
+        } catch (NoSuchElementException e) {
+            return false;
+        }
     }
 
     @Override
@@ -242,24 +257,33 @@ public class ChangeRequestConflictModal extends BaseModal
     /**
      * @return the currently selected option.
      */
-    public ConflictChoice getCurrentChoice()
+    public ResolutionChoice getCurrentChoice()
     {
-        return ConflictChoice.valueOf(this.currentlySelectedOption.getAttribute(ATTRIBUTE_VALUE).toUpperCase());
+        String attribute = this.currentlySelectedOption.getAttribute(ATTRIBUTE_VALUE);
+        ResolutionChoice result;
+        if (StringUtils.equalsIgnoreCase("keepchangerequest", attribute)) {
+            result = ResolutionChoice.KEEP_CHANGE_REQUEST;
+        } else if (StringUtils.equalsIgnoreCase("keeppublished", attribute)) {
+            result = ResolutionChoice.KEEP_PUBLISHED;
+        } else if (StringUtils.equalsIgnoreCase("custom", attribute)) {
+            result = ResolutionChoice.CUSTOM;
+        } else {
+            throw new IllegalArgumentException(String.format("Unknown choice type: [%s]", attribute));
+        }
+        return result;
     }
 
     /**
-     * Submit the current choice.
-     * @param waitSuccess if true wait for the success notification.
-     *                  Note that this option doesn't have any effect when choice is reload.
+     * Submit the current choice and wait for the page to be reloaded.
+     *
+     * @return a new instance of the {@link ChangeRequestPage} since it's reloaded.
      */
-    public void submitCurrentChoice(boolean waitSuccess)
+    public ChangeRequestPage submitCurrentChoice()
     {
-        ConflictChoice currentChoice = getCurrentChoice();
+        getDriver().addPageNotYetReloadedMarker();
         this.submitButton.click();
-        try {
-            this.waitForClosed();
-        } catch (StaleElementReferenceException e) {
-        }
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
     }
 
     /**

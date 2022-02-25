@@ -519,8 +519,13 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     {
         boolean result;
         // bulletproof to avoid NPE.
-        List<ConflictDecision<?>> filteredDecisionList =
-            conflictDecisionList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        List<ConflictDecision<?>> filteredDecisionList;
+
+        if (conflictDecisionList == null) {
+            filteredDecisionList = Collections.emptyList();
+        } else {
+            filteredDecisionList = conflictDecisionList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        }
         switch (fileChange.getType()) {
             case EDITION:
                 result = this.handleEditionConflictDecision(fileChange, resolutionChoice, filteredDecisionList);
@@ -558,7 +563,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
             case PUBLISHED_VERSION:
                 cloneFileChange = fileChange.cloneWithType(FileChange.FileChangeType.NO_CHANGE);
-                cloneFileChange.setModifiedDocument(currentDoc);
+                cloneFileChange.setModifiedDocument(currentDoc.clone());
                 break;
 
             case CUSTOM:
@@ -813,8 +818,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         boolean result;
         // if version are equals, we check date to ensure the version are still same
         if (StringUtils.equals(previousPublishedVersion, currentDocumentVersion)) {
-            result =
-                fileChange.getPreviousPublishedVersionDate().before(currentDocument.getDate());
+            result = fileChange.getPreviousPublishedVersionDate().before(currentDocument.getDate());
             // if version are not equals, we don't care if it's because it's a new change has been added or a
             // version has been removed: either way the filechange is outdated.
         } else {

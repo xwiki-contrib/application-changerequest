@@ -37,6 +37,8 @@ public class ExtendedViewPage extends ViewPage
     private static final String STANDARD_EDIT_ID = "tmEdit";
     private static final String STANDARD_DELETE_ID = "tmDelete";
     private static final String CR_DELETE_ID = "deletecr";
+    private static final String STANDARD_CREATE_ID = "tmCreate";
+    private static final String CR_CREATE_ID = "crCreate";
 
     /**
      * Check if the current view has a change request edit button: this button is normally visible only when users does
@@ -138,5 +140,57 @@ public class ExtendedViewPage extends ViewPage
         toggleActionMenu();
         getDriver().findElementWithoutWaiting(By.id(CR_DELETE_ID)).click();
         return new ExtendedDeleteConfirmationPage();
+    }
+
+    /**
+     * @return {@code true} if the standard create button is displayed.
+     */
+    public boolean hasStandardCreate()
+    {
+        try {
+            WebElement createButton = getDriver().findElementWithoutWaiting(By.id(STANDARD_CREATE_ID));
+            return createButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if the change request create button is displayed.
+     */
+    public boolean hasChangeRequestCreate()
+    {
+        try {
+            WebElement createButton = getDriver().findElementWithoutWaiting(By.id(CR_CREATE_ID));
+            return createButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Click on the standard create button and display the create template.
+     *
+     * @return the {@link ExtendedCreatePage} to manipulate the create template.
+     * @see #hasStandardCreate()
+     */
+    public ExtendedCreatePage clickStandardCreate()
+    {
+        WebElement createButton = getDriver().findElementWithoutWaiting(By.id(STANDARD_CREATE_ID));
+        createButton.click();
+        return new ExtendedCreatePage();
+    }
+
+    /**
+     * Click on the change request create button and display the create template.
+     *
+     * @return the {@link ExtendedCreatePage} to manipulate the create template.
+     * @see #hasChangeRequestCreate()
+     */
+    public ExtendedCreatePage clickChangeRequestCreate()
+    {
+        WebElement createButton = getDriver().findElementWithoutWaiting(By.id(CR_CREATE_ID));
+        createButton.click();
+        return new ExtendedCreatePage();
     }
 }
