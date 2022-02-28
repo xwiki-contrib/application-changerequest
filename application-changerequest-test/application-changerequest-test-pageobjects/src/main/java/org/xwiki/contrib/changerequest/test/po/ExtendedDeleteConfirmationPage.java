@@ -29,7 +29,7 @@ import org.xwiki.test.ui.po.DeletePageConfirmationPage;
  * to request for deletion.
  *
  * @version $Id$
- * @since 0.11
+ * @since 0.10
  */
 public class ExtendedDeleteConfirmationPage extends DeletePageConfirmationPage
 {

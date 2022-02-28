@@ -35,7 +35,7 @@ import org.xwiki.test.ui.po.diff.EntityDiff;
  * actual XWiki Standard edition conflict modal.
  *
  * @version $Id$
- * @since 0.11
+ * @since 0.10
  */
 public class ChangeRequestConflictModal extends BaseModal
 {

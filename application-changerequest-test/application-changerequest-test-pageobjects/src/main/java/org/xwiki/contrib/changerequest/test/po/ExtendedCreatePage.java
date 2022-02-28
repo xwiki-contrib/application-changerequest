@@ -30,7 +30,7 @@ import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
  * Page object to represents the create page template with some button possibly injected by change request.
  *
  * @version $Id$
- * @since 0.11
+ * @since 0.10
  */
 public class ExtendedCreatePage extends CreatePagePage
 {
