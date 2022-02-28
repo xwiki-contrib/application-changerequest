@@ -33,6 +33,7 @@ import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeReques
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
@@ -93,6 +94,22 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
      */
     public static final String DISCUSSION_REFERENCE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "discussion.reference";
 
+    /**
+     * Key used for event parameter to store the ID of a filechange in case of rebase.
+     */
+    public static final String REBASED_FILECHANGE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "rebased.filechange.id";
+
+    /**
+     * Key used for event parameter to store if a rebased concerned the whole change request or not.
+     */
+    public static final String REBASED_ALL_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "rebased.all";
+
+    /**
+     * Key used for event parameter to store if a rebase event was related to fixing a conflict or not.
+     */
+    public static final String REBASED_WITH_CONFLICT_FIXING =
+        CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "rebased.conflictRelated";
+
     @Inject
     private RecordableEventConverter defaultConverter;
 
@@ -132,6 +149,13 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             parameters.put(DISCUSSION_TYPE_KEY, discussionRecordableEvent.getDiscussionType());
             parameters.put(DISCUSSION_REFERENCE_KEY, discussionRecordableEvent.getDiscussionReference());
         }
+        if (recordableEvent instanceof ChangeRequestRebasedRecordableEvent) {
+            ChangeRequestRebasedRecordableEvent rebasedRecordableEvent =
+                (ChangeRequestRebasedRecordableEvent) recordableEvent;
+            parameters.put(REBASED_ALL_KEY, String.valueOf(rebasedRecordableEvent.concernsAllChangeRequest()));
+            parameters.put(REBASED_FILECHANGE_KEY, rebasedRecordableEvent.getConcernedFileChangeId());
+            parameters.put(REBASED_WITH_CONFLICT_FIXING, String.valueOf(rebasedRecordableEvent.isConflictFixing()));
+        }
 
         result.setParameters(parameters);
         return result;
@@ -148,7 +172,8 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             new DocumentModifiedInChangeRequestEvent(),
             new ChangeRequestDiscussionRecordableEvent(),
             new ChangeRequestUpdatedRecordableEvent(),
-            new StaleChangeRequestRecordableEvent()
+            new StaleChangeRequestRecordableEvent(),
+            new ChangeRequestRebasedRecordableEvent()
         );
     }
 }

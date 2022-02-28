@@ -13,3 +13,7 @@ org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestStatusChangedE
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestUpdatedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.StaleChangeRequestEventListener
 org.xwiki.contrib.changerequest.internal.descriptors.StaleChangeRequestEventDescriptor
+org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestRebasedEventDescriptor
+org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestRebasedEventListener
+org.xwiki.contrib.changerequest.internal.listeners.FileChangeRebasedEventListener
+org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestConflictsFixedEventListener

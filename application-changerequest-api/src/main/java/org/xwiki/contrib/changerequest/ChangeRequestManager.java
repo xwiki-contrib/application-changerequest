@@ -284,4 +284,28 @@ public interface ChangeRequestManager
     {
         return false;
     }
+
+    /**
+     * Perform a rebase operation on a whole change request.
+     * This method calls a rebase on all latest filechanges of the change request and also trigger a
+     * {@link org.xwiki.contrib.changerequest.events.ChangeRequestRebasedEvent}.
+     *
+     * @param changeRequest the change request to be rebased.
+     * @throws ChangeRequestException in case of problem to perform the rebase operation.
+     */
+    default void rebase(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+    }
+
+    /**
+     * Perform a rebase operation on a single filechange.
+     * This method calls a rebase on the given filechange of the change request and also trigger a
+     * {@link org.xwiki.contrib.changerequest.events.FileChangeRebasedEvent}.
+     *
+     * @param fileChange the filechange to be rebased.
+     * @throws ChangeRequestException in case of problem to perform the rebase operation.
+     */
+    default void rebase(FileChange fileChange) throws ChangeRequestException
+    {
+    }
 }

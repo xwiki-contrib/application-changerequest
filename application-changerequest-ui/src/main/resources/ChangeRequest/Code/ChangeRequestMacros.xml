@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestMacros" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestMacros" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestMacros</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestMacros</title>
@@ -119,6 +120,27 @@
           #set ($localizationKey = "${localizationKey}.requestchanges")
         #end
         #set ($localizationArguments = [$userArgument])
+      #end
+    #elseif ($event.type == "changerequest.rebased")
+      #set ($concernsAllCR = $event.parameters.get('changerequest.rebased.all'))
+      #set ($isAboutConflictFixing = $event.parameters.get('changerequest.rebased.conflictRelated'))
+      #set ($fileChangeId = $event.parameters.get('changerequest.rebased.filechange.id'))
+      
+      #if ($concernsAllCR == 'true')
+        #set ($localizationArguments = [$userArgument])
+        #set ($localizationKey = "${localizationKey}.all")
+      #else
+        #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
+        #if ($fileChangeOpt.isPresent())
+          #set ($eventDoc = $fileChangeOpt.get().targetEntity)
+          #set ($actualDoc = $xwiki.getDocument($eventDoc))
+          #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+        #end
+        #if ($isAboutConflictFixing == 'true')
+          #set ($localizationKey = "${localizationKey}.conflictFixing")
+        #else
+          #set ($localizationKey = "${localizationKey}.filechange")
+        #end
       #end
     #else
       #set ($localizationArguments = [$userArgument])

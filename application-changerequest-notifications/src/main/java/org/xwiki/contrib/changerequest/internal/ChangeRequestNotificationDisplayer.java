@@ -38,6 +38,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
@@ -179,7 +180,8 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
             DocumentModifiedInChangeRequestEvent.EVENT_NAME,
             ChangeRequestDiscussionRecordableEvent.EVENT_NAME,
             ChangeRequestUpdatedRecordableEvent.EVENT_NAME,
-            StaleChangeRequestRecordableEvent.EVENT_NAME
+            StaleChangeRequestRecordableEvent.EVENT_NAME,
+            ChangeRequestRebasedRecordableEvent.EVENT_NAME
         );
     }
 }

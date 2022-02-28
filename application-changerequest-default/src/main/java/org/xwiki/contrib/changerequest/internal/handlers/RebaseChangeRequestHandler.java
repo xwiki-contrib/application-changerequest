@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,9 +39,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 
 /**
  * Component responsible to handle a rebase request.
@@ -57,16 +56,10 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
     private static final String LOCALE_PARAMETER = "locale";
 
     @Inject
-    private FileChangeStorageManager fileChangeStorageManager;
-
-    @Inject
     private ChangeRequestManager changeRequestManager;
 
     @Inject
     private Container container;
-
-    @Inject
-    private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
@@ -81,22 +74,38 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
 
         boolean allFileChanges = StringUtils.isEmpty(serializedReference);
 
-        DocumentReference reference = null;
-        if (!allFileChanges) {
-            reference = this.documentReferenceResolver.resolve(serializedReference);
-            reference = new DocumentReference(reference, LocaleUtils.toLocale(request.getParameter(LOCALE_PARAMETER)));
-        }
+        Optional<FileChange> specificFileChange = Optional.empty();
         if (changeRequest != null) {
+            if (!allFileChanges) {
+                DocumentReference reference = this.documentReferenceResolver.resolve(serializedReference);
+                reference = new DocumentReference(reference,
+                    LocaleUtils.toLocale(request.getParameter(LOCALE_PARAMETER)));
+                specificFileChange = changeRequest.getLatestFileChangeFor(reference);
+            }
+
+            this.handleRebase(changeRequest, allFileChanges, specificFileChange, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Change request cannot be loaded");
+        }
+    }
+
+    private void handleRebase(ChangeRequest changeRequest, boolean allFileChanges,
+        Optional<FileChange> specificFileChange, HttpServletResponse response)
+        throws ChangeRequestException, IOException
+    {
+        if (allFileChanges || specificFileChange.isPresent()) {
             if (this.changeRequestManager.isAuthorizedToEdit(this.getCurrentUser(), changeRequest)) {
-                for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
-                    if (allFileChanges || lastFileChange.getTargetEntity().equals(reference)) {
-                        this.fileChangeStorageManager.rebase(lastFileChange);
-                    }
+                if (allFileChanges) {
+                    this.changeRequestManager.rebase(changeRequest);
+                } else {
+                    this.changeRequestManager.rebase(specificFileChange.get());
                 }
                 this.responseSuccess(changeRequest);
             } else {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not authorized to perform a rebase.");
             }
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Filechange cannot be loaded");
         }
     }
 }

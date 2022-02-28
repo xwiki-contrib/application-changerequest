@@ -55,9 +55,11 @@ import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
-import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestConflictsFixedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestRebasedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.events.FileChangeRebasedEvent;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -547,6 +549,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                         fileChange.getType()));
         }
 
+        if (result) {
+            this.observationManager.notify(new ChangeRequestConflictsFixedEvent(),
+                fileChange.getChangeRequest().getId(), fileChange);
+        }
+
         return result;
     }
 
@@ -646,8 +653,6 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             changeRequest.addFileChange(mergeFileChange);
             this.changeRequestStorageManager.save(changeRequest);
             this.computeReadyForMergingStatus(changeRequest);
-            this.observationManager
-                .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), mergeFileChange);
             result = true;
         }
         return result;
@@ -838,5 +843,21 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     public boolean isTemplateSupported(DocumentReference templateReference) throws ChangeRequestException
     {
         return this.templateProviderSupportChecker.isTemplateSupported(templateReference);
+    }
+
+    @Override
+    public void rebase(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        for (FileChange fileChange : changeRequest.getLastFileChanges()) {
+            this.fileChangeStorageManager.rebase(fileChange);
+        }
+        this.observationManager.notify(new ChangeRequestRebasedEvent(), changeRequest.getId(), changeRequest);
+    }
+
+    @Override
+    public void rebase(FileChange fileChange) throws ChangeRequestException
+    {
+        this.fileChangeStorageManager.rebase(fileChange);
+        this.observationManager.notify(new FileChangeRebasedEvent(), fileChange.getChangeRequest().getId(), fileChange);
     }
 }
