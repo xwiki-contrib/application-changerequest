@@ -504,9 +504,11 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         return result;
     }
 
-    private String getMergeSaveMessage()
+    private String getMergeSaveMessage(FileChange fileChange)
     {
-        return this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment");
+        ChangeRequest changeRequest = fileChange.getChangeRequest();
+        return this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment",
+            changeRequest.getTitle(), changeRequest.getId());
     }
 
     private void mergeCreation(FileChange fileChange) throws ChangeRequestException
@@ -515,7 +517,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWiki wiki = context.getWiki();
         XWikiDocument modifiedDoc = (XWikiDocument) fileChange.getModifiedDocument();
         try {
-            wiki.saveDocument(modifiedDoc, getMergeSaveMessage(), context);
+            wiki.saveDocument(modifiedDoc, getMergeSaveMessage(fileChange), context);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while saving the new document [%s]", fileChange), e);
@@ -558,7 +560,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
                 document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
-                wiki.saveDocument(document, getMergeSaveMessage(), context);
+                wiki.saveDocument(document, getMergeSaveMessage(fileChange), context);
             }
         } catch (XWikiException e) {
             throw new ChangeRequestException(

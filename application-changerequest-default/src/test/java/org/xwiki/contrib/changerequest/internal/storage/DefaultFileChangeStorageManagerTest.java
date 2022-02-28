@@ -221,8 +221,6 @@ class DefaultFileChangeStorageManagerTest
         when(this.context.getWiki()).thenReturn(this.xWiki);
 
         when(this.environment.getTemporaryDirectory()).thenReturn(new File(System.getProperty("java.io.tmpdir")));
-        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment"))
-            .thenReturn(SAVE_MESSAGE);
     }
 
     @Test
@@ -554,6 +552,14 @@ class DefaultFileChangeStorageManagerTest
 
         UserReference author = mock(UserReference.class);
         when(fileChange.getAuthor()).thenReturn(author);
+        String crTitle = "Some title";
+        String crID = "someId";
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+        when(changeRequest.getId()).thenReturn(crID);
+        when(changeRequest.getTitle()).thenReturn(crTitle);
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment", crTitle, crID))
+            .thenReturn(SAVE_MESSAGE);
+
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(currentDocument, SAVE_MESSAGE, this.context);
         verify(documentAuthors).setOriginalMetadataAuthor(author);
@@ -582,6 +588,14 @@ class DefaultFileChangeStorageManagerTest
 
         XWikiDocument targetDoc = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(targetDoc);
+        String crTitle = "Some title";
+        String crID = "someId";
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+        when(changeRequest.getId()).thenReturn(crID);
+        when(changeRequest.getTitle()).thenReturn(crTitle);
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment", crTitle, crID))
+            .thenReturn(SAVE_MESSAGE);
 
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
