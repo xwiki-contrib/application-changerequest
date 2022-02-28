@@ -17,3 +17,5 @@ org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestRebasedEventDe
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestRebasedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.FileChangeRebasedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestConflictsFixedEventListener
+org.xwiki.contrib.changerequest.internal.descriptors.ApproversUpdatedEventDescriptor
+org.xwiki.contrib.changerequest.internal.listeners.ApproversUpdatedEventListener

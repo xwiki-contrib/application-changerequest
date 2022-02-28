@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ApproversUpdatedTargetableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
@@ -118,6 +120,9 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
     {
         Event result = this.defaultConverter.convert(recordableEvent, source, data);
         Map<String, String> parameters = new HashMap<>(result.getParameters());
+        if (recordableEvent instanceof ApproversUpdatedTargetableEvent) {
+            result.setType(ApproversUpdatedTargetableEvent.EVENT_NAME);
+        }
         if (recordableEvent instanceof AbstractChangeRequestRecordableEvent) {
             AbstractChangeRequestRecordableEvent crEvent = (AbstractChangeRequestRecordableEvent) recordableEvent;
             parameters.put(CHANGE_REQUEST_ID_PARAMETER_KEY, crEvent.getChangeRequestId());
@@ -173,7 +178,8 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
             new ChangeRequestDiscussionRecordableEvent(),
             new ChangeRequestUpdatedRecordableEvent(),
             new StaleChangeRequestRecordableEvent(),
-            new ChangeRequestRebasedRecordableEvent()
+            new ChangeRequestRebasedRecordableEvent(),
+            new ApproversUpdatedTargetableEvent(Collections.emptySet())
         );
     }
 }

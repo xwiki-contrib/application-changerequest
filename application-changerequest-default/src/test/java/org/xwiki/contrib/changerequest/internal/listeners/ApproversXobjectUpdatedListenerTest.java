@@ -21,11 +21,8 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
 import org.xwiki.model.reference.DocumentReference;
@@ -50,7 +47,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link ApproversXObjectUpdatedListener}.
+ * Tests for {@link ApproversXObjectUpdatingListener}.
  *
  * @version $Id$
  * @since 0.8
@@ -61,7 +58,7 @@ class ApproversXobjectUpdatedListenerTest
     private static final String TEST_USER = "testUser";
 
     @InjectMockComponents
-    private ApproversXObjectUpdatedListener listener;
+    private ApproversXObjectUpdatingListener listener;
 
     @MockComponent
     private GroupManager groupManager;
