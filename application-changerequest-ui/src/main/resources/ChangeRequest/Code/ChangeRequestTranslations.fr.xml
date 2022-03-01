@@ -141,6 +141,9 @@ changerequest.timeline.changerequest.review.added.requestchanges={0} a ajouté u
 changerequest.timeline.changerequest.discussions={0} a ajouté un nouveau message
 changerequest.timeline.changerequest.updated={0} a modifié la description de la demande de modification
 changerequest.timeline.changerequest.stale={0} a marqué la demande de modification comme périmée
+changerequest.timeline.changerequest.rebased.all={0} a actualisé toute la demande de modification
+changerequest.timeline.changerequest.rebased.filechange={0} a actualisé les modifications concernant &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.rebased.conflictFixing={0} a corrigé un conflit concernant &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.sheet.description.placeholder=Cliquez sur le lien Modifier à droite puis renseignez une description.
 changerequest.sheet.existingChangeRequestSameChanges=D'autres demandes de modification ciblent les pages modifiées ici :
 changerequest.sheet.checks.otherCR.title=Autres demandes de modification pour les mêmes documents
