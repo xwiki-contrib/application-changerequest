@@ -406,7 +406,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     {
         FileChange previousFileChange = this.getLatestFileChangeWithChanges(fileChange);
         FileChange clone;
-        switch (fileChange.getType()) {
+        switch (previousFileChange.getType()) {
             case EDITION:
                 clone = this.rebaseEdition(previousFileChange);
                 break;
