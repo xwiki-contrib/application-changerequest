@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal.jobs;
 
-import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -56,8 +55,6 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class ChangeRequestSchedulerJobManager
 {
-    private static final ChronoUnit DURATION_UNIT = ChronoUnit.DAYS;
-
     @Inject
     private ChangeRequestConfiguration configuration;
 
@@ -155,7 +152,7 @@ public class ChangeRequestSchedulerJobManager
     private Date getLimitDate(long durationLimit)
     {
         Date now = new Date();
-        return Date.from(now.toInstant().minus(durationLimit, DURATION_UNIT));
+        return Date.from(now.toInstant().minus(durationLimit, this.configuration.getDurationUnit()));
     }
 
     private List<ChangeRequest> retrieveStaleChangeRequests(long durationLimit) throws ChangeRequestException

@@ -19,6 +19,9 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
@@ -98,6 +101,17 @@ public interface ChangeRequestConfiguration
     default UserReference getSchedulerContextUser()
     {
         return SuperAdminUserReference.INSTANCE;
+    }
+
+    /**
+     * Defines the duration unit to be used for all durations given in this interface.
+     * This API is mainly provided for testing purpose.
+     *
+     * @return a temporal unit to be used for all durations provided in this interface.
+     */
+    default TemporalUnit getDurationUnit()
+    {
+        return ChronoUnit.DAYS;
     }
 
     /**

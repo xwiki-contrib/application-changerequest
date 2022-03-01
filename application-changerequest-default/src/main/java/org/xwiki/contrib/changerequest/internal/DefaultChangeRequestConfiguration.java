@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +30,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
@@ -67,6 +70,9 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
 
     @Inject
     private UserReferenceResolver<String> userReferenceResolver;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public String getMergeApprovalStrategy()
@@ -130,5 +136,34 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
             result = GuestUserReference.INSTANCE;
         }
         return result;
+    }
+
+    @Override
+    public TemporalUnit getDurationUnit()
+    {
+        String durationUnit = this.configurationSource.getProperty("durationUnit");
+        TemporalUnit unit;
+        switch (durationUnit) {
+            case "seconds":
+                unit = ChronoUnit.SECONDS;
+                break;
+
+            case "minutes":
+                unit = ChronoUnit.MINUTES;
+                break;
+
+            case "hours":
+                unit = ChronoUnit.HOURS;
+                break;
+
+            case "days":
+                unit = ChronoUnit.DAYS;
+                break;
+
+            default:
+                this.logger.warn("Unsupported duration unit [{}]. Fallback to days unit.", durationUnit);
+                unit = ChronoUnit.DAYS;
+        }
+        return unit;
     }
 }

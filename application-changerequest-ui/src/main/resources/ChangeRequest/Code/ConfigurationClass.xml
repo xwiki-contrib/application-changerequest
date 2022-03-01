@@ -101,7 +101,7 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <disabled>0</disabled>
       <hint/>
       <name>durationBeforeClosingStale</name>
-      <number>3</number>
+      <number>5</number>
       <numberType>long</numberType>
       <prettyName>durationBeforeClosingStale</prettyName>
       <size>30</size>
@@ -124,6 +124,31 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </durationBeforeNotifyingStale>
+    <durationUnit>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>days</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>durationUnit</name>
+      <number>8</number>
+      <picker>0</picker>
+      <prettyName>durationUnit</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>days|hours|minutes|seconds</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </durationUnit>
     <mergeUser>
       <cache>0</cache>
       <customDisplay/>
@@ -135,7 +160,7 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <largeStorage>0</largeStorage>
       <multiSelect>0</multiSelect>
       <name>mergeUser</name>
-      <number>7</number>
+      <number>3</number>
       <picker>1</picker>
       <prettyName>mergeUser</prettyName>
       <relationalStorage>0</relationalStorage>
@@ -160,7 +185,7 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <largeStorage>0</largeStorage>
       <multiSelect>0</multiSelect>
       <name>schedulerContextUser</name>
-      <number>6</number>
+      <number>7</number>
       <picker>1</picker>
       <prettyName>schedulerContextUser</prettyName>
       <relationalStorage>0</relationalStorage>
@@ -182,7 +207,7 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <displayType/>
       <hint/>
       <name>useCreationDateForStaleDurations</name>
-      <number>5</number>
+      <number>6</number>
       <prettyName>useCreationDateForStaleDurations</prettyName>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>

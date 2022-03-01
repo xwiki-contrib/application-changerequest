@@ -94,6 +94,7 @@ class ChangeRequestSchedulerJobManagerTest
     {
         this.context = mock(XWikiContext.class);
         when(this.contextProvider.get()).thenReturn(this.context);
+        when(configuration.getDurationUnit()).thenReturn(ChronoUnit.DAYS);
     }
 
     @Test
