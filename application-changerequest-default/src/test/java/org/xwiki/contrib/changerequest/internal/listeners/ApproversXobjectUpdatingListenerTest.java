@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
  * @since 0.8
  */
 @ComponentTest
-class ApproversXobjectUpdatedListenerTest
+class ApproversXobjectUpdatingListenerTest
 {
     private static final String TEST_USER = "testUser";
 
