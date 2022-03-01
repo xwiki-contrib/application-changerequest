@@ -125,9 +125,9 @@ ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale=Duration to c
 ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale.hint=Duration expressed in days. This duration is considered since last activity of the change request, or since its creation depending on the other options. Setting this value to 0 will disable the feature.
 ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations=Use the creation date for stale change requests
 ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations.hint=Selecting Yes means that the creation date is only used to detect a stale change request. Selecting No means that the last activity of the change request will be used.
-ChangeRequest.Code.ConfigurationClass_schedulerContextUser=User responsible to the stale change request actions
+ChangeRequest.Code.ConfigurationClass_schedulerContextUser=Scheduler user
 ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=The user selected here will be the author of the notifications and updates when detecting a stale change request. This user should have appropriate rights for this. When no user is selected, the superadmin user is used for this.
-ChangeRequest.Code.ConfigurationClass_mergeUser=User used for actually saving the changes for any change request merge
+ChangeRequest.Code.ConfigurationClass_mergeUser=Merge user
 ChangeRequest.Code.ConfigurationClass_mergeUser.hint=If a user is specified here, this user will always be used when merging change requests to save the actual changes. So this user should have appropriate rights to do so. If nothing is specified here, then the user clicking on the merge button is used to save the changes.
 
 changerequest.moreactions.manageapprovers=Manage approvers
