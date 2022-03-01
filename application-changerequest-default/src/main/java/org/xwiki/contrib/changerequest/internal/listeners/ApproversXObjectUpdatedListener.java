@@ -34,6 +34,7 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
 import org.xwiki.contrib.changerequest.internal.approvers.DocumentReferenceApproversManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -41,6 +42,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.RegexEntityReference;
 import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
@@ -83,6 +85,9 @@ public class ApproversXObjectUpdatedListener extends AbstractEventListener
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
+    private ObservationContext observationContext;
+
+    @Inject
     private ObservationManager observationManager;
 
     /**
@@ -96,7 +101,8 @@ public class ApproversXObjectUpdatedListener extends AbstractEventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (!this.remoteObservationManagerContext.isRemoteState()) {
+        if (!this.remoteObservationManagerContext.isRemoteState()
+            && !this.observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())) {
             XWikiDocument document = (XWikiDocument) source;
             XWikiDocument originalDoc = ((XWikiDocument) source).getOriginalDocument();
 

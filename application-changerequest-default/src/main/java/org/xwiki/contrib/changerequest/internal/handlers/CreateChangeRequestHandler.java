@@ -43,6 +43,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
@@ -94,13 +96,14 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     {
         HttpServletRequest request = this.prepareRequest();
         ChangeRequest changeRequest = getChangeRequest(request);
+        this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), "", null);
         this.storageManager.save(changeRequest);
         this.changeRequestRightsManager.copyViewRights(changeRequest,
             changeRequest.getModifiedDocuments().iterator().next());
         this.copyApprovers(changeRequest);
         this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
-
+        this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(), changeRequest);
         this.responseSuccess(changeRequest);
     }
 

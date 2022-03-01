@@ -35,6 +35,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
 import org.xwiki.contrib.changerequest.internal.approvers.DocumentReferenceApproversManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -112,6 +113,7 @@ public class ApproversXObjectUpdatingListener extends AbstractEventListener
         // Finally we don't take into account remote events.
         if (!this.contextualAuthorizationManager.hasAccess(Right.ADMIN)
             && !this.observationContext.isIn(new ChangeRequestMergingEvent())
+            && !this.observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())
             && !this.remoteObservationManagerContext.isRemoteState()) {
             XWikiDocument document = (XWikiDocument) source;
 

@@ -39,6 +39,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -95,11 +97,15 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
     {
         if (allFileChanges || specificFileChange.isPresent()) {
             if (this.changeRequestManager.isAuthorizedToEdit(this.getCurrentUser(), changeRequest)) {
+                this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(),
+                    changeRequest.getId(), changeRequest);
                 if (allFileChanges) {
                     this.changeRequestManager.rebase(changeRequest);
                 } else {
                     this.changeRequestManager.rebase(specificFileChange.get());
                 }
+                this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(),
+                    changeRequest.getId(), changeRequest);
                 this.responseSuccess(changeRequest);
             } else {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not authorized to perform a rebase.");

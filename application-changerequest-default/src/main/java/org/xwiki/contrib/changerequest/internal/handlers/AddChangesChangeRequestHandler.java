@@ -45,6 +45,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
@@ -120,6 +122,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     this.createFileChange(fileChangeType, changeRequest, modifiedDocument, documentReference, request,
                         currentUser);
                 if (fileChange != null) {
+                    this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
+                        changeRequest);
                     changeRequest.addFileChange(fileChange);
                     this.storageManager.save(changeRequest);
                     this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
@@ -128,7 +132,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
                     this.observationManager
                         .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
-
+                    this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+                        changeRequest);
                     this.responseSuccess(changeRequest);
                 }
             }
