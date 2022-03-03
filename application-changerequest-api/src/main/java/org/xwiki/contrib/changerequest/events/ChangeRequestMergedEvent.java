@@ -19,7 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
-import org.xwiki.observation.event.EndFoldEvent;
+import org.xwiki.observation.event.EndEvent;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -36,7 +36,7 @@ import org.xwiki.stability.Unstable;
  * @since 0.8
  */
 @Unstable
-public class ChangeRequestMergedEvent implements EndFoldEvent
+public class ChangeRequestMergedEvent implements EndEvent
 {
     @Override
     public boolean matches(Object otherEvent)

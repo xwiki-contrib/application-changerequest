@@ -19,7 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
-import org.xwiki.observation.event.EndFoldEvent;
+import org.xwiki.observation.event.EndEvent;
 
 /**
  * This event is triggered whenever an operation will save a change request with some changes on its filechange: be it
@@ -38,7 +38,7 @@ import org.xwiki.observation.event.EndFoldEvent;
  * @version $Id$
  * @since 0.10
  */
-public class ChangeRequestUpdatedFileChangeEvent implements EndFoldEvent
+public class ChangeRequestUpdatedFileChangeEvent implements EndEvent
 {
     @Override
     public boolean matches(Object otherEvent)
