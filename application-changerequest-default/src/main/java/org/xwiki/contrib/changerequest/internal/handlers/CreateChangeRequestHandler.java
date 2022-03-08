@@ -151,15 +151,14 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequest changeRequest = new ChangeRequest();
 
-        String previousVersion;
+        String previousVersion = request.getParameter("previousVersion");
         XWikiDocument previousDoc;
         Date previousVersionDate;
 
-        if (isDeletion) {
+        if (isDeletion || StringUtils.isEmpty(previousVersion)) {
             previousVersion = modifiedDocument.getVersion();
             previousVersionDate = modifiedDocument.getDate();
         } else {
-            previousVersion = request.getParameter("previousVersion");
             try {
                 XWikiDocumentArchive xWikiDocumentArchive =
                     context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);

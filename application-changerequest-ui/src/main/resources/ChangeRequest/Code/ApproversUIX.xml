@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ApproversUIX" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ApproversUIX" locale="">
   <web>ChangeRequest.Code</web>
   <name>ApproversUIX</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ApproversUIX</title>
@@ -37,6 +38,114 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>Technical page for handling explicit approvers.</content>
+  <object>
+    <name>ChangeRequest.Code.ApproversUIX</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>58ae47e9-bc7d-422d-af99-0c9f0d8e2009</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'SaveChangeRequestModal'], function ($, SaveChangeRequestModal) {
+  var initialize = function () {
+    var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-approvers-config');
+    $('#manageapprovers').on('click', function(event) {
+      event.preventDefault();
+      saveChangeRequestModal.openModal(true, false);
+    });
+  };
+  initialize();
+});</code>
+    </property>
+    <property>
+      <name>Manage approvers button</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
   <object>
     <name>ChangeRequest.Code.ApproversUIX</name>
     <number>0</number>
@@ -152,10 +261,15 @@
       </scope>
     </class>
     <property>
-      <async_cached>0</async_cached>
+      <async_cached>1</async_cached>
     </property>
     <property>
-      <async_context/>
+      <async_context>
+        <value>doc.reference</value>
+        <value>locale</value>
+        <value>user</value>
+        <value>wiki</value>
+      </async_context>
     </property>
     <property>
       <async_enabled>0</async_enabled>
@@ -174,6 +288,18 @@
 {{html clean="false"}} ## we need clean="false" because we want to display the raw content of #submenuitem()
  #template('menus_macros.vm')
  #submenuitem($handlingURL, $services.localization.render('changerequest.moreactions.manageapprovers'), 'manageapprovers', '', 'group')
+ #if (!$hasEditRight)
+    #set ($createURL = $services.changerequest.getChangeRequestURL('create', ''))
+    #set ($addChangesURL = $services.changerequest.getChangeRequestURL('addchanges', '__CR__'))
+    #set ($changeRequestSaveConfig = {
+      'hasEditRight': $hasEditRight,
+      'createURL': $createURL,
+      'addChangesURL': $addChangesURL
+    })
+    &lt;script id="changerequest-approvers-config" type="application/json"&gt;$jsontool.serialize($changeRequestSaveConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+    #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveChangeRequestModal'))
+    #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.ApproversUIX'))
+ #end
 {{/html}}
 #end{{/velocity}}</content>
     </property>

@@ -37,79 +37,8 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference='ChangeRequest.Code.ChangeRequestPicker'/}}
-{{velocity}}
-#if ($request.get('getmodal') == 1)
-#set ($isEditingChangeRequest = ("$!request.get('changerequest')" != ''))
-&lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
-  &lt;div class="modal-dialog modal-lg"&gt;
-    &lt;div class="modal-content"&gt;
-      &lt;div class="modal-header"&gt;
-        &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
-        &lt;div class="modal-title" id="changeRequestModalTitle"&gt;$services.localization.render('changerequest.savemodal.header.title')&lt;/div&gt;
-        &lt;hr /&gt;
-        &lt;div class="xHint"&gt;
-          $services.localization.render('changerequest.savemodal.header.hint')
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class="modal-body"&gt;
-      &lt;form id="saveChangeRequestForm"&gt;
-        &lt;div class="panel-group" id="changeRequestChoiceGroup" role="tablist" aria-multiselectable="false"&gt;
-          &lt;div class="panel panel-default"&gt;
-            &lt;div class="panel-heading" role="tab" id="newChangeRequestHeading"&gt;
-               &lt;h4 class="panel-title"&gt;
-                  &lt;a role="button" data-toggle="collapse" data-parent="#changeRequestChoiceGroup" href="#newChangeRequest" aria-expanded="true" aria-controls="newChangeRequest"&gt;
-                    $services.localization.render('changerequest.savemodal.create.heading')
-                  &lt;/a&gt;
-               &lt;/h4&gt;
-             &lt;/div&gt;&lt;!-- End panel heading --&gt;
-           &lt;div id="newChangeRequest" class="panel-collapse collapse #if(!$isEditingChangeRequest)in#end" role="tabpanel" aria-labelledby="newChangeRequestHeading"&gt;
-            &lt;div class="panel-body"&gt;
-              &lt;div class="form-group"&gt;
-                &lt;label for="crTitle"&gt;$services.localization.render('changerequest.savemodal.create.input.title')&lt;/label&gt;
-                &lt;input type="text" class="form-control" id="crTitle" /&gt;
-              &lt;/div&gt;
-              &lt;div class="checkbox"&gt;
-                &lt;label for="crDraft"&gt;
-                &lt;input type="checkbox" id="crDraft" value="1" /&gt; $services.localization.render('changerequest.savemodal.create.input.draft')
-                &lt;/label&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;&lt;!-- End panel body --&gt;
-           &lt;/div&gt;&lt;!-- End panel collapse --&gt;
-          &lt;/div&gt;&lt;!-- End panel --&gt;
-          &lt;div class="panel panel-default"&gt;
-            &lt;div class="panel-heading" role="tab" id="addToExistingChangeRequestHeading"&gt;
-               &lt;h4 class="panel-title"&gt;
-                  &lt;a role="button" data-toggle="collapse" data-parent="#changeRequestChoiceGroup" href="#addToExistingChangeRequest" aria-expanded="false" aria-controls="addToExistingChangeRequest"&gt;
-                    $services.localization.render('changerequest.savemodal.edit.heading')
-                  &lt;/a&gt;
-               &lt;/h4&gt;
-             &lt;/div&gt;&lt;!-- End panel heading --&gt;
-             &lt;div id="addToExistingChangeRequest" class="panel-collapse collapse #if($isEditingChangeRequest)in#end" role="tabpanel" aria-labelledby="addToExistingChangeRequestHeading"&gt;
-              &lt;div class="panel-body"&gt;
-                &lt;label for="existingCRSelector"&gt;$services.localization.render('changerequest.savemodal.edit.input.selector')&lt;/label&gt;
-                  #set ($crPickerParameters = {
-                    'name': 'existingCRSelector',
-                    'id': 'existingCRSelector',
-                    'class': 'form-control',
-                    'value': "$!request.get('changerequest')",
-                    'data-docchange': "$!request.get('docChange')"
-                  })
-                  #changeRequestPicker($crPickerParameters)
-              &lt;/div&gt;&lt;!-- End panel body --&gt;
-           &lt;/div&gt;&lt;!-- End panel collapse --&gt;
-          &lt;/div&gt;&lt;!-- End panel --&gt;
-        &lt;/div&gt;&lt;!-- End panel group --&gt;
-        &lt;/form&gt;
-      &lt;/div&gt;&lt;!-- End modal body --&gt;
-      &lt;div class="modal-footer"&gt;
-        &lt;input type="button" id="saveChangeRequest" class="btn btn-primary" value="$services.localization.render('save')" #if(!$isEditingChangeRequest)disabled="disabled"#end /&gt;
-        &lt;input type="button" id="cancelChangeRequest" class="btn btn-default" value="$services.localization.render('cancel')" data-dismiss="modal" aria-hidden="true" /&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-#elseif ($request.get('checktemplate') == 1)
+  <content>{{velocity}}
+#if ($request.get('checktemplate') == 1)
   #set ($isTemplateSupported = $services.changerequest.isTemplateSupported($request.get('template')))
   #jsonResponse({
     'isSupported': $isTemplateSupported
@@ -203,125 +132,8 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>// third argument is a polyfill for using URLSearchParam with IE11
-require(['jquery', 'xwiki-meta'], function ($, xm) {
-  var saveButtonUIXDoc = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
+      <code>require(['jquery', 'xwiki-meta', 'SaveChangeRequestModal'], function ($, xm, SaveChangeRequestModal) {
   var saveConfig = JSON.parse($('#changerequest-save-config').text());
-  
-  var saveChangeRequest = function (event, inplaceEditing) {
-    var isNewCR = $('#existingCRSelector').val() === "";
-    var actionURL;
-    var form;
-    if (inplaceEditing) {
-      form = $('.sticky-buttons-wrapper .sticky-buttons').data('fakeForm');
-    } else {
-      form = $('#save_changerequest').parents('form');
-    }
-    var urlParams = new URLSearchParams(window.location.search);
-    if (isNewCR) {
-      var crTitleField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'crTitle',
-        'value': $('#crTitle').val()
-      });
-      form.append(crTitleField);
-
-      var crDraftField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'crDraft',
-        'value': $('#crDraft:checked').val()
-      });
-      form.append(crDraftField);
-      actionURL = saveConfig.createURL + "?async=1";
-    } else {
-      actionURL = saveConfig.addChangesURL.replace("__CR__", $('#existingCRSelector').val()) + "?async=1";
-      if (urlParams.has('changerequest')) {
-        actionURL += "&amp;fromchangerequest=1";
-      }
-    }
-    var docField = $("&lt;input&gt;", {
-      'type': 'hidden',
-      'name': 'docReference',
-      'value': xm.documentReference
-    });
-    form.append(docField);
-    
-    $(document).on('xwiki:document:saved', function(event, data) {
-      if (data.changeRequestId) {
-        window.location.href = data.changeRequestUrl;
-      }
-    });
-    // if there's a template we specify to use sync save, in order to trick actionButtons.js
-    if (inplaceEditing) {
-      form['action'] = actionURL;
-      if (form['template'] !== "") {
-        form['async'] = "false";
-      }
-      $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
-    } else {
-      form.attr('action', actionURL);
-      if (form.find('input[name=template]').val() !== "") {
-        form.find('input[name=async]').val('false');
-      }
-      $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
-    }
-    
-  };
-  
-  var validateForm = function () {
-    var crTitle = $('#crTitle').val();
-    var crSelector = $('#existingCRSelector').val();
-    var saveButton = $('#saveChangeRequest');
-    if (crTitle === "" &amp;&amp; crSelector === "") {
-      saveButton.attr('disabled', 'disabled');
-    } else {
-      saveButton.removeAttr('disabled');
-    }
-  };
-  
-  var loadRequiredSkinExtensions = function(requiredSkinExtensions) {
-    var existingSkinExtensions;
-    var getExistingSkinExtensions = function() {
-      return $('link, script').map(function() {
-        return $(this).attr('href') || $(this).attr('src');
-      }).get();
-    };
-    $('&lt;div/&gt;').html(requiredSkinExtensions).find('link, script').filter(function() {
-      if (!existingSkinExtensions) {
-        existingSkinExtensions = getExistingSkinExtensions();
-      }
-      var url = $(this).attr('href') || $(this).attr('src');
-      return existingSkinExtensions.indexOf(url) &lt; 0;
-    }).appendTo('head');
-  };
-  
-  var createChangeRequestModal = function (inplaceEditing) {
-    if ($('#changeRequestModal').length &gt; 0) {
-      $('#changeRequestModal').modal('show');
-    } else {
-      
-      var urlParams = new URLSearchParams(window.location.search);
-      var queryString = 'getmodal=1&amp;outputSyntax=plain&amp;docChange=' + xm.documentReference;
-      if (urlParams.has('changerequest')) {
-        queryString += '&amp;changerequest=' + urlParams.get('changerequest');
-      }
-      $.get(saveButtonUIXDoc.getURL('get', queryString)).done(function (data, textStatus, jqXHR) {
-        loadRequiredSkinExtensions(jqXHR.getResponseHeader('X-XWIKI-HTML-HEAD'));
-        $('body').append(data);
-        $('#changeRequestModal').modal('show');
-        $('#saveChangeRequest').on('click', function (event) {
-          saveChangeRequest(event, inplaceEditing);
-        });
-        $('#crTitle').on('change', validateForm);
-        $('#existingCRSelector').on('change', validateForm);
-        $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
-      }).fail(function (data) {
-        console.log(data);
-        new XWiki.widgets.Notification("Error while saving the change request:" + data, 'error')
-      });
-    }
-  };
-  
   var attachButtons = function () {
     if ($('#save_changerequest').length == 0) {
       var button = $("&lt;input&gt;", {
@@ -346,8 +158,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       }
     }
     if (buttonAdded) {
+      var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-save-config');
       button.on('click', function() {
-        createChangeRequestModal(inplaceEditing);
+        saveChangeRequestModal.openModal(false, inplaceEditing);
       });
       var urlParams = new URLSearchParams(window.location.search);
       var editExistingCR = urlParams.has('changerequest');
@@ -364,6 +177,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var initialize = function() {
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('template')) {
+      var saveButtonUIXDoc = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
       // check template
       $.get(saveButtonUIXDoc.getURL('get'), {
         'checktemplate': 1,
@@ -535,11 +349,17 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     'hasEditRight': $hasEditRight,
     'createURL': $createURL,
     'addChangesURL': $addChangesURL,
-    'saveButtonTranslation': $services.localization.render('changerequest.editor.button.save')
+    'saveButtonTranslation': $services.localization.render('changerequest.editor.button.save'),
+    'isCreate': $doc.isNew()
   })
   
   {{html clean="false"}}
   &lt;script id="changerequest-save-config" type="application/json"&gt;$jsontool.serialize($changeRequestSaveConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+  #set ($discard = $xwiki.linkx.use($services.webjars.url('selectize.js', 'css/selectize.bootstrap3.css'),
+  {'type': 'text/css', 'rel': 'stylesheet'}))
+  #set ($discard = $xwiki.ssfx.use('uicomponents/suggest/xwiki.selectize.css', true))
+  #set ($discard = $xwiki.jsfx.use('uicomponents/suggest/xwiki.selectize.js', true))
+  #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveChangeRequestModal'))
   #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveButtonsUIX'))
   {{/html}}
   

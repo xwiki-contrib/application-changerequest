@@ -188,6 +188,12 @@ changerequest.conflict.modal.options.keepcr.title=Keep change request
 changerequest.conflict.modal.options.keepcr.description=Fix the conflicts by keeping change request version.
 changerequest.conflict.modal.options.keeppublished.title=Keep published version
 changerequest.conflict.modal.options.keeppublished.description=Fix the conflicts by keeping published version.
+
+changerequest.savemodal.approvers.header.title=Approvers management
+changerequest.savemodal.approvers.header.hint=You can specify the list of users and groups that should be allowed to approve the changes on that page. Those lists will be submitted in a change request, either a new one or an existing one.
+changerequest.savemodal.approvers.heading=Approvers
+changerequest.savemodal.approvers.users=Users who can approve
+changerequest.savemodal.approvers.groups=Groups who can approve
 </content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestTranslations</name>
