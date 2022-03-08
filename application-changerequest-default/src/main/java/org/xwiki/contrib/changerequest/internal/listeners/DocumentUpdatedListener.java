@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -55,10 +56,10 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
     static final String NAME = "org.xwiki.contrib.changerequest.internal.DocumentUpdatedListener";
 
     @Inject
-    private ChangeRequestStorageManager storageManager;
+    private Provider<ChangeRequestStorageManager> storageManager;
 
     @Inject
-    private ChangeRequestManager changeRequestManager;
+    private Provider<ChangeRequestManager> changeRequestManager;
 
     @Inject
     private Logger logger;
@@ -77,9 +78,9 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
         XWikiDocument sourceDoc = (XWikiDocument) source;
         DocumentReference reference = sourceDoc.getDocumentReferenceWithLocale();
         try {
-            List<ChangeRequest> changeRequests = this.storageManager.findChangeRequestTargeting(reference);
+            List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
             for (ChangeRequest changeRequest : changeRequests) {
-                this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+                this.changeRequestManager.get().computeReadyForMergingStatus(changeRequest);
             }
         } catch (ChangeRequestException e) {
             logger.warn("Error while computing the merging status of change requests after update of [{}]: [{}]",
