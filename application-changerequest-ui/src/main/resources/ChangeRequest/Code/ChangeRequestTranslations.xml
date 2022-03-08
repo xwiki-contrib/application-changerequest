@@ -167,6 +167,8 @@ changerequest.sheet.diff.outdated.title=There was new changes in the published v
 changerequest.sheet.diff.nochange=No change
 changerequest.sheet.message.collapse.button.title=Click to collapse the message.
 changerequest.sheet.message.expand.button.title=Click to expand the message.
+changerequest.sheet.message.reply.button.title=Reply to this message
+changerequest.sheet.message.reply.button=Reply
 
 ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_merged=Merged

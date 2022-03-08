@@ -2271,6 +2271,34 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler'], function ($,
       commentButton.removeClass('btn-primary');
       commentButton.addClass('btn-default');
     });
+    $('.message .reply-button').on('click', function () {
+      var messageReference = $(this).parents('.message').attr('data-reference');
+      var discussionBlock = $(this).parents('.discussion');
+      var addCommentDiv = discussionBlock.siblings('.add-comment');
+      var commentButton = addCommentDiv.find('.comment-button');
+      var commentEditor = commentButton.siblings('.comment-editor');
+      var cancelButton = commentButton.siblings('.cancel-button');
+      var form = addCommentDiv.find('form.message-form');
+      if (commentEditor &amp;&amp; form) {
+        if (commentEditor.hasClass('hidden')) {
+          var replyToField = $("&lt;input&gt;", {
+            'type': 'hidden',
+            'name': 'replyTo',
+            'value': messageReference
+          });
+          form.append(replyToField);
+          commentEditor.removeClass('hidden');
+          cancelButton.removeClass('hidden');
+          commentButton.removeClass('btn-default');
+          commentButton.addClass('btn-primary');
+        } else {
+          console.log("comment editor:");
+          console.log(commentEditor);
+        }
+      } else {
+        console.log("cannot find stuff");
+      }
+    });
   };
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
 });</code>

@@ -40,11 +40,19 @@
   <content>{{velocity output="false"}}
 #macro (displayMessage $message)
 #set ($messageReference = $escapetool.xml($services.discussions.serialize($message.reference)))
-&lt;div class="message" data-reference="$messageReference"&gt;
+#if ($message.replyTo)
+  #set ($replyReference = $escapetool.xml($services.discussions.serialize($message.replyTo)))
+#end
+&lt;div class="message" data-reference="$messageReference" #if($replyReference)replied-of="$replyReference"#end&gt;
   &lt;div class="message-metadata"&gt;
     &lt;span class="message-author"&gt;#displayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
     &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
     &lt;span class="message-badges"&gt;
+      &lt;span class="reply"&gt;
+        &lt;button class="btn badge reply-button" type="button" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.reply.button.title'))"&gt;
+          $services.icon.renderHTML('comments') $services.localization.render('changerequest.sheet.message.reply.button')
+        &lt;/button&gt;
+      &lt;/span&gt;
       &lt;span class="outdated-message hidden"&gt;
         &lt;span class="label label-danger" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.outdated.title'))"&gt;
           $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.message.outdated')
