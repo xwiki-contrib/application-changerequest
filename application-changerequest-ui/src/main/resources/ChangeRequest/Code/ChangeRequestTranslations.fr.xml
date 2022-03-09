@@ -162,6 +162,8 @@ changerequest.sheet.diff.outdated.title=Le document a été modifié depuis la d
 changerequest.sheet.diff.nochange=Aucune modification
 changerequest.sheet.message.collapse.button.title=Cliquez pour réduire le message.
 changerequest.sheet.message.expand.button.title=Cliquez pour agrandir le message.
+changerequest.sheet.message.reply.button.title=Répondre à ce message
+changerequest.sheet.message.reply.button=Répondre
 
 ## changerequest.sheet.status.draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_draft=Brouillon
@@ -182,5 +184,10 @@ changerequest.conflict.modal.options.keepcr.title=Conserver la demande de modifi
 changerequest.conflict.modal.options.keepcr.description=Résoudre le conflit en conservant la version de la demande de modification.
 changerequest.conflict.modal.options.keeppublished.title=Conserver la version publiée
 changerequest.conflict.modal.options.keeppublished.description=Résoudre le conflit en conservant la version publiée.
+changerequest.savemodal.approvers.header.title=Gestion des approbateurs
+### Missing: changerequest.savemodal.approvers.header.hint=You can specify the list of users and groups that should be allowed to approve the changes on that page. Those lists will be submitted in a change request, either a new one or an existing one.
+changerequest.savemodal.approvers.heading=Approbateurs
+changerequest.savemodal.approvers.users=Utilisateurs pouvant approuver
+changerequest.savemodal.approvers.groups=Groupes pouvant approuver
 </content>
 </xwikidoc>
