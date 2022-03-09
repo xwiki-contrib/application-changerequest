@@ -130,7 +130,7 @@
     var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-approvers-config');
     $('#manageapprovers').on('click', function(event) {
       event.preventDefault();
-      saveChangeRequestModal.openModal(true, false);
+      saveChangeRequestModal.openModal();
     });
   };
   initialize();
@@ -294,7 +294,8 @@
     #set ($changeRequestSaveConfig = {
       'hasEditRight': $hasEditRight,
       'createURL': $createURL,
-      'addChangesURL': $addChangesURL
+      'addChangesURL': $addChangesURL,
+      'isApproversEdition': true
     })
     &lt;script id="changerequest-approvers-config" type="application/json"&gt;$jsontool.serialize($changeRequestSaveConfig).replace('&lt;', '\u003C')&lt;/script&gt;
     #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveChangeRequestModal'))

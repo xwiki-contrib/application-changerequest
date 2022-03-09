@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.DeleteButtonUIX" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.DeleteButtonUIX" locale="">
   <web>ChangeRequest.Code</web>
   <name>DeleteButtonUIX</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>DeleteButtonUIX</title>
@@ -121,108 +122,11 @@
       </use>
     </class>
     <property>
-      <cache>forbid</cache>
+      <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
-  var saveChangeRequest = function () {
-    var isNewCR = $('#existingCRSelector').val() === "";
-    var form = $('#delete_changerequest').parents('form');
-    var CREATE_URL = "$services.changerequest.getChangeRequestURL('create', '')";
-    var ADD_CHANGES_URL = "$services.changerequest.getChangeRequestURL('addchanges', '__CR__')";
-    var actionURL;
-    if (isNewCR) {
-      var crTitleField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'crTitle',
-        'value': $('#crTitle').val()
-      });
-      form.append(crTitleField);
-      
-      var crDescriptionField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'crDescription',
-        'value': $('#crDescription').val()
-      });
-      form.append(crDescriptionField);
-      
-      var crDraftField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'crDraft',
-        'value': $('#crDraft:checked').val()
-      });
-      form.append(crDraftField);
-      actionURL = CREATE_URL;
-    } else {
-      var urlParams = new URLSearchParams(window.location.search);
-      actionURL = ADD_CHANGES_URL.replace("__CR__", $('#existingCRSelector').val());
-    }
-    actionURL += "?deletion=1";
-    form.attr('action', actionURL);
-    var docField = $("&lt;input&gt;", {
-      'type': 'hidden',
-      'name': 'docReference',
-      'value': xm.documentReference
-    });
-    form.append(docField);
-    $('#saveChangeRequest').trigger('xwiki:document:saved');
-    form.submit();
-  };
-  
-  var validateForm = function () {
-    var crTitle = $('#crTitle').val();
-    var crSelector = $('#existingCRSelector').val();
-    var saveButton = $('#saveChangeRequest');
-    if (crTitle === "" &amp;&amp; crSelector === "") {
-      saveButton.attr('disabled', 'disabled');
-    } else {
-      saveButton.removeAttr('disabled');
-    }
-  };
-  
-  var loadRequiredSkinExtensions = function(requiredSkinExtensions) {
-    var existingSkinExtensions;
-    var getExistingSkinExtensions = function() {
-      return $('link, script').map(function() {
-        return $(this).attr('href') || $(this).attr('src');
-      }).get();
-    };
-    $('&lt;div/&gt;').html(requiredSkinExtensions).find('link, script').filter(function() {
-      if (!existingSkinExtensions) {
-        existingSkinExtensions = getExistingSkinExtensions();
-      }
-      var url = $(this).attr('href') || $(this).attr('src');
-      return existingSkinExtensions.indexOf(url) &lt; 0;
-    }).appendTo('head');
-  };
-  
-  var createChangeRequestModal = function () {
-    if ($('#changeRequestModal').length &gt; 0) {
-      $('#changeRequestModal').modal('show');
-      $('#crDescription').val($('#commentinput').val());
-    } else {
-      var modalURL = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveButtonsUIX'));
-      var urlParams = new URLSearchParams(window.location.search);
-      var queryString = 'getmodal=1&amp;outputSyntax=plain';
-      if (urlParams.has('changerequest')) {
-        queryString += '&amp;changerequest=' + urlParams.get('changerequest');
-      }
-      $.get(modalURL.getURL('get', queryString)).done(function (data, textStatus, jqXHR) {
-        loadRequiredSkinExtensions(jqXHR.getResponseHeader('X-XWIKI-HTML-HEAD'));
-        $('body').append(data);
-        $('#changeRequestModal').modal('show');
-        $('#saveChangeRequest').on('click', saveChangeRequest);
-        $('#crTitle').on('change', validateForm);
-        $('#existingCRSelector').on('change', validateForm);
-        $('#crDescription').val($('#commentinput').val());
-        $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
-      }).fail(function (data) {
-        console.log(data);
-        new XWiki.widgets.Notification("Error while saving the change request:" + data, 'error')
-      });
-    }
-  };
-  
+      <code>require(['jquery', 'xwiki-meta', 'SaveChangeRequestModal'], function ($, xm, SaveChangeRequestModal) {
+  var saveConfig = JSON.parse($('#changerequest-delete-config').text());
   var attachButtons = function () {
     if ($('#delete_changerequest').length == 0) {
       var button = $("&lt;input&gt;", {
@@ -230,18 +134,16 @@
         'class': 'btn btn-warning',
         'name': 'delete_changerequest',
         'id': 'delete_changerequest',
-        'value': "$services.localization.render('changerequest.template.deletecr.confirm')"
+        'value': saveConfig.deleteButtonTranslation
       });
       $(button).insertBefore('.xcontent form &gt; button.btn-danger.confirm');
-    } else {
-      console.log("Delete button found.");
     }
     $('#delete_changerequest').on('click', function(e) {
+      var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-delete-config');
       e.preventDefault();
-      createChangeRequestModal();
+      saveChangeRequestModal.openModal();
     });
   }
-  // doesn't work yet for inplace editing: need to find the right event to attach this.
   attachButtons();
 });</code>
     </property>
@@ -249,10 +151,10 @@
       <name>Delete as change request injection</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
-      <use>always</use>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
@@ -401,7 +303,172 @@
       <parameters>order=40000</parameters>
     </property>
     <property>
-      <scope/>
+      <scope>wiki</scope>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.DeleteButtonUIX</name>
+    <number>1</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>72d66f2d-b98a-4c81-b77b-f49e67d0fcb6</guid>
+    <class>
+      <name>XWiki.UIExtensionClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <async_cached>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_cached</name>
+        <number>3</number>
+        <prettyName>Cached</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_cached>
+      <async_context>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>async_context</name>
+        <number>4</number>
+        <prettyName>Context elements</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>, </separator>
+        <separators>|, </separators>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </async_context>
+      <async_enabled>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_enabled</name>
+        <number>2</number>
+        <prettyName>Asynchronous rendering</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_enabled>
+      <content>
+        <disabled>0</disabled>
+        <editor>Text</editor>
+        <name>content</name>
+        <number>1</number>
+        <prettyName>Executed Content</prettyName>
+        <rows>25</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <extensionPointId>
+        <disabled>0</disabled>
+        <name>extensionPointId</name>
+        <number>5</number>
+        <prettyName>Extension Point ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </extensionPointId>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>6</number>
+        <prettyName>Extension ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parameters>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>parameters</name>
+        <number>7</number>
+        <prettyName>Extension Parameters</prettyName>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </parameters>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>8</number>
+        <prettyName>Extension Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <async_cached>1</async_cached>
+    </property>
+    <property>
+      <async_context>
+        <value>action</value>
+        <value>doc.reference</value>
+        <value>locale</value>
+        <value>user</value>
+      </async_context>
+    </property>
+    <property>
+      <async_enabled>0</async_enabled>
+    </property>
+    <property>
+      <content>{{velocity}}
+#set ($crEditName = "changerequest")
+#set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
+#set ($isDeleteAction = ($xcontext.action == 'delete' || $xcontext.action == 'deletecr'))
+#if ($hasCREdit &amp;&amp; $isDeleteAction)
+  #set ($createURL = $services.changerequest.getChangeRequestURL('create', ''))
+  #set ($addChangesURL = $services.changerequest.getChangeRequestURL('addchanges', '__CR__'))
+  #set ($changeRequestSaveConfig = {
+    'createURL': $createURL,
+    'addChangesURL': $addChangesURL,
+    'deleteButtonTranslation': $services.localization.render('changerequest.template.deletecr.confirm'),
+    'isDeletion': true
+  })
+  
+  {{html clean="false"}}
+  &lt;script id="changerequest-delete-config" type="application/json"&gt;$jsontool.serialize($changeRequestSaveConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+  #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveChangeRequestModal'))
+  #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.DeleteButtonUIX'))
+  {{/html}}
+  
+#end
+{{/velocity}}</content>
+    </property>
+    <property>
+      <extensionPointId>org.xwiki.platform.template.header.after</extensionPointId>
+    </property>
+    <property>
+      <name>org.xwiki.contrib.changerequest.ui.header.after.deletion.extension</name>
+    </property>
+    <property>
+      <parameters>order=0</parameters>
+    </property>
+    <property>
+      <scope>wiki</scope>
     </property>
   </object>
 </xwikidoc>

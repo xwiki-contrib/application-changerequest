@@ -96,10 +96,15 @@ class ChangeRequestCreationIT
         setup.setRights(testReference, "", CR_CREATOR, "edit", false);
         setup.setRights(testReference, "", CR_CREATOR, "changerequest", true);
 
-        // FIXME: right scheme is not correct
         setup.setRights(testReference, "", CR_APPROVER, "edit", false);
         setup.setRights(testReference, "", CR_APPROVER, "crapprove", true);
+
+        setup.setRights(testReference, "", CR_MERGER, "crapprove", false);
         setup.setRights(testReference, "", CR_MERGER, "edit", true);
+
+        // We force the approver to use WYSIWYG editor, to avoid any problem to display the review modal.
+        // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
+        setup.updateObject("XWiki", CR_APPROVER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
 
         // we go to the page to ensure there's no remaining lock on it.
         setup.gotoPage(testReference);

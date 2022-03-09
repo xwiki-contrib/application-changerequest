@@ -160,7 +160,7 @@
     if (buttonAdded) {
       var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-save-config');
       button.on('click', function() {
-        saveChangeRequestModal.openModal(false, inplaceEditing);
+        saveChangeRequestModal.openModal();
       });
       var urlParams = new URLSearchParams(window.location.search);
       var editExistingCR = urlParams.has('changerequest');
@@ -345,12 +345,14 @@
   #set ($hasEditRight = $services.security.authorization.hasAccess('edit', $doc))
   #set ($createURL = $services.changerequest.getChangeRequestURL('create', ''))
   #set ($addChangesURL = $services.changerequest.getChangeRequestURL('addchanges', '__CR__'))
+  #set ($isInplaceEditing = ($xcontext.action == 'view'))
   #set ($changeRequestSaveConfig = {
     'hasEditRight': $hasEditRight,
     'createURL': $createURL,
     'addChangesURL': $addChangesURL,
     'saveButtonTranslation': $services.localization.render('changerequest.editor.button.save'),
-    'isCreate': $doc.isNew()
+    'isCreate': $doc.isNew(),
+    'isInplaceEditing': $isInplaceEditing
   })
   
   {{html clean="false"}}

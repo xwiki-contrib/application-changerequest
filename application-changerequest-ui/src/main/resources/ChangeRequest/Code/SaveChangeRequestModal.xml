@@ -267,18 +267,23 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
     var saveChangeRequestModalDoc = new XWiki.Document(new XWiki.DocumentReference('xwiki', ['ChangeRequest', 'Code'], 'SaveChangeRequestModal'));
     var configSelector = "#" + configName;
     var saveConfig = JSON.parse($(configSelector).text());
+    var asyncQuery = true;
 
-    var saveChangeRequest = function (event, approversEdition, inplaceEditing) {
+    var saveChangeRequest = function (event) {
       var isNewCR = $('#existingCRSelector').val() === "";
       var actionURL;
       var form;
-      if (approversEdition) {
+      if (saveConfig.isApproversEdition) {
         form = $('#saveChangeRequestForm');
-      } else if (inplaceEditing) {
+      } else if (saveConfig.isDeletion) {
+        form = $('#delete_changerequest').parents('form');
+        asyncQuery = false;
+      } else if (saveConfig.isInplaceEditing) {
         form = $('.sticky-buttons-wrapper .sticky-buttons').data('fakeForm');
       } else {
         form = $('#save_changerequest').parents('form');
       }
+      
       var urlParams = new URLSearchParams(window.location.search);
       if (isNewCR) {
         var crTitleField = $("&lt;input&gt;", {
@@ -294,12 +299,18 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
           'value': $('#crDraft:checked').val()
         });
         form.append(crDraftField);
-        actionURL = saveConfig.createURL + "?async=1";
+        actionURL = saveConfig.createURL;
       } else {
-        actionURL = saveConfig.addChangesURL.replace("__CR__", $('#existingCRSelector').val()) + "?async=1";
-        if (urlParams.has('changerequest')) {
-          actionURL += "&amp;fromchangerequest=1";
-        }
+        actionURL = saveConfig.addChangesURL.replace("__CR__", $('#existingCRSelector').val());
+      }
+      var actionURLParams = new URLSearchParams();
+      
+      if (asyncQuery) {
+        actionURLParams.append("async", "1");
+      }
+      
+      if (!isNewCR &amp;&amp; urlParams.has('changerequest')) {
+        actionURLParams.append("fromchangerequest", "1")
       }
       var docField = $("&lt;input&gt;", {
         'type': 'hidden',
@@ -314,23 +325,30 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
       }
 
       $(document).on('xwiki:document:saved', function(event, data) {
-        if (data.changeRequestId) {
+        if (data &amp;&amp; data.changeRequestId) {
           window.location.href = data.changeRequestUrl;
         }
       });
-      // if there's a template we specify to use sync save, in order to trick actionButtons.js
-      if (inplaceEditing) {
-        form['action'] = actionURL;
-        if (form['template'] !== "") {
-          form['async'] = "false";
-        }
-        $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
+      if (saveConfig.isDeletion) {
+        actionURLParams.append("deletion", "1");
+        form.attr('action', actionURL + "?" + actionURLParams.toString());
+        $('#saveChangeRequest').trigger('xwiki:document:saved');
+        form.submit();
       } else {
-        form.attr('action', actionURL);
-        if (form.find('input[name=template]').val() !== "") {
-          form.find('input[name=async]').val('false');
+        // if there's a template we specify to use sync save, in order to trick actionButtons.js
+        if (saveConfig.isInplaceEditing) {
+          form['action'] = actionURL + "?" + actionURLParams.toString();
+          if (form['template'] !== "") {
+            form['async'] = "false";
+          }
+          $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
+        } else {
+          form.attr('action', actionURL + "?" + actionURLParams.toString());
+          if (form.find('input[name=template]').val() !== "") {
+            form.find('input[name=async]').val('false');
+          }
+          $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
         }
-        $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
       }
     };
 
@@ -345,7 +363,7 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
       }
     };
 
-    self.openModal = function (approversHandling, inplaceEditing) {
+    self.openModal = function () {
       // FIXME: be checked, we should probably destroy the modal actually.
       if ($('#changeRequestModal').length &gt; 0) {
         $('#changeRequestModal').modal('show');
@@ -363,7 +381,7 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
         if (urlParams.has('changerequest')) {
           data['changerequest'] = urlParams.get('changerequest');
         }
-        if (approversHandling) {
+        if (saveConfig.isApproversEdition) {
           data['manageApprovers'] = 1;
         }
         if (saveConfig.isCreate) {
@@ -373,7 +391,7 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
           $('body').append(data);
           $('#changeRequestModal').modal('show');
           $('#saveChangeRequest').on('click', function (event) {
-            saveChangeRequest(event, approversHandling, inplaceEditing);
+            saveChangeRequest(event);
           });
           $('#crTitle').on('change', validateForm);
           $('#existingCRSelector').on('change', validateForm);
