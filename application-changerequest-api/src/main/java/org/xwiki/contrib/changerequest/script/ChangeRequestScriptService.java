@@ -308,6 +308,20 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
+     * Check if the current user can comment a change request.
+     * @param changeRequest the change request for which to check if it can be commented.
+     * @return {@code true} if the current user is authorized to comment the change request.
+     * @throws ChangeRequestException in case of problem to check the authorization.
+     * @see ChangeRequestManager#isAuthorizedToComment(UserReference, ChangeRequest)
+     * @since 0.11
+     */
+    public boolean isAuthorizedToComment(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestManager.isAuthorizedToComment(currentUser, changeRequest);
+    }
+
+    /**
      * Check if the current user can edit the change request.
      *
      * @param changeRequest the change request for which to check the authors.

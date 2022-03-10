@@ -130,7 +130,7 @@
             &lt;/div&gt;
           #end
         #end
-        #if ($xcontext.action == 'view')
+        #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.isAuthorizedToComment($changeRequest))
         &lt;div class="add-comment"&gt;
           #set ($discussionCommentReference = $services.changerequest.discussion.createChangeRequestCommentDiscussion($changeRequestId))
           #set ($discussionCommentReferenceString = $services.discussions.serialize($discussionCommentReference))

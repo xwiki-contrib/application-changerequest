@@ -162,6 +162,23 @@ public interface ChangeRequestManager
     }
 
     /**
+     * Check if an user is authorized to comment a change request. This method should always check first if the user
+     * is authorized to review (see {@link #isAuthorizedToReview(UserReference, ChangeRequest)}) and allow to comment if
+     * that's the case. Then it should fallback on checking if the user has comment right.
+     *
+     * @param userReference the user for which to check rights.
+     * @param changeRequest the change request for which to check if the user can comment.
+     * @return {@code true} if the user is authorized to post a comment.
+     * @throws ChangeRequestException in case of problem when checking if a user is an approver.
+     * @since 0.11
+     */
+    default boolean isAuthorizedToComment(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        return false;
+    }
+
+    /**
      * Check if the given reference can be requested for deletion.
      * Right now we don't authorize to request for deletions pages that belongs to extensions or that are hidden, or
      * that contains xclasses.
