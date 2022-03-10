@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -59,13 +60,13 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
     static final String NAME = "org.xwiki.contrib.changerequest.internal.RightsUpdatedListener";
 
     @Inject
-    private ChangeRequestStorageManager changeRequestStorageManager;
+    private Provider<ChangeRequestStorageManager> changeRequestStorageManager;
 
     @Inject
     private ChangeRequestConfiguration configuration;
 
     @Inject
-    private ChangeRequestRightsManager changeRequestRightsManager;
+    private Provider<ChangeRequestRightsManager> changeRequestRightsManager;
 
     @Inject
     private Logger logger;
@@ -93,10 +94,10 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
                 if (entityReference.getType() == EntityType.SPACE) {
                     SpaceReference spaceReference = new SpaceReference(entityReference);
                     reference = new DocumentReference("WebHome", spaceReference);
-                    changeRequests = this.changeRequestStorageManager.findChangeRequestTargeting(spaceReference);
+                    changeRequests = this.changeRequestStorageManager.get().findChangeRequestTargeting(spaceReference);
                 } else {
                     reference = new DocumentReference(entityReference);
-                    changeRequests = this.changeRequestStorageManager.findChangeRequestTargeting(reference);
+                    changeRequests = this.changeRequestStorageManager.get().findChangeRequestTargeting(reference);
                 }
 
                 Set<DocumentReference> ruleSubjects = this.computeRulesSubjects(securityRuleDiffList);
@@ -109,7 +110,7 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
                             continue;
                         // if it's closed, we don't want to split it, we just edit the rights no matter the consequences
                         } else if (status == ChangeRequestStatus.CLOSED) {
-                            this.changeRequestRightsManager.applyChanges(changeRequest, securityRuleDiffList);
+                            this.changeRequestRightsManager.get().applyChanges(changeRequest, securityRuleDiffList);
                         } else {
                             this.handleOpenChangeRequest(changeRequest, ruleSubjects, entityReference,
                                 securityRuleDiffList);
@@ -126,12 +127,12 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
     private void handleOpenChangeRequest(ChangeRequest changeRequest, Set<DocumentReference> ruleSubjects,
         EntityReference reference, List<SecurityRuleDiff> securityRuleDiffList) throws ChangeRequestException
     {
-        if (this.changeRequestRightsManager.isViewAccessStillConsistent(changeRequest,
+        if (this.changeRequestRightsManager.get().isViewAccessStillConsistent(changeRequest,
             ruleSubjects)) {
-            this.changeRequestRightsManager.applyChanges(changeRequest, securityRuleDiffList);
+            this.changeRequestRightsManager.get().applyChanges(changeRequest, securityRuleDiffList);
         } else {
             List<ChangeRequest> splittedChangeRequests =
-                this.changeRequestStorageManager.split(changeRequest);
+                this.changeRequestStorageManager.get().split(changeRequest);
             for (ChangeRequest splittedChangeRequest : splittedChangeRequests) {
                 boolean concernsIt = false;
                 for (DocumentReference modifiedDocument : splittedChangeRequest.getModifiedDocuments()) {
@@ -142,7 +143,7 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
                 }
 
                 if (concernsIt) {
-                    this.changeRequestRightsManager.copyViewRights(splittedChangeRequest,
+                    this.changeRequestRightsManager.get().copyViewRights(splittedChangeRequest,
                         reference);
                 }
             }

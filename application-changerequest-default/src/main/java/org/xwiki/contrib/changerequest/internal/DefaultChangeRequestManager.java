@@ -678,6 +678,18 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     }
 
     @Override
+    public boolean isAuthorizedToComment(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        boolean hasAdminRight = this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc);
+        boolean hasCommentRight =
+            this.authorizationManager.hasAccess(Right.COMMENT, userDocReference, changeRequestDoc);
+        return hasAdminRight || this.isAuthorizedToReview(userReference, changeRequest) || hasCommentRight;
+    }
+
+    @Override
     public boolean canDeletionBeRequested(DocumentReference documentReference) throws ChangeRequestException
     {
         boolean result = false;

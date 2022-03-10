@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -75,8 +76,10 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
     @Inject
     private SecurityRuleAbacus ruleAbacus;
 
+    // We use a provider there since there might be a bug in the api-right extension leading to a missing component
+    // at initialization.
     @Inject
-    private RightsReader rightsReader;
+    private Provider<RightsReader> rightsReader;
 
     @Override
     public void copyAllButViewRights(ChangeRequest originalChangeRequest, ChangeRequest targetChangeRequest)
@@ -89,7 +92,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
 
         try {
             List<ReadableSecurityRule> actualRules =
-                this.rightsReader.getRules(originalDocReference.getLastSpaceReference(), false);
+                this.rightsReader.get().getRules(originalDocReference.getLastSpaceReference(), false);
             List<ReadableSecurityRule> writableSecurityRules = new ArrayList<>();
 
             for (ReadableSecurityRule actualRule : actualRules) {
@@ -123,7 +126,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         Set<DocumentReference> subjects = new HashSet<>();
         for (DocumentReference documentReference : documentReferences) {
             try {
-                List<ReadableSecurityRule> actualRules = this.rightsReader.getActualRules(documentReference);
+                List<ReadableSecurityRule> actualRules = this.rightsReader.get().getActualRules(documentReference);
                 List<ReadableSecurityRule> normalizedRules = this.ruleAbacus.normalizeRulesBySubject(actualRules);
                 for (ReadableSecurityRule normalizedRule : normalizedRules) {
                     if (normalizedRule.match(Right.VIEW)) {
@@ -176,11 +179,12 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
 
         try {
             List<ReadableSecurityRule> actualRules =
-                this.rightsReader.getRules(changeRequestSpaceReference, false);
+                this.rightsReader.get().getRules(changeRequestSpaceReference, false);
             List<ReadableSecurityRule> rules = new ArrayList<>(this.rightsWriter.createRules(actualRules));
-            List<ReadableSecurityRule> documentRules = new ArrayList<>(this.rightsReader.getActualRules(newChange));
+            List<ReadableSecurityRule> documentRules =
+                new ArrayList<>(this.rightsReader.get().getActualRules(newChange));
             List<ReadableSecurityRule> wikiRules =
-                this.rightsReader.getActualRules(newChange.extractReference(EntityType.WIKI));
+                this.rightsReader.get().getActualRules(newChange.extractReference(EntityType.WIKI));
 
             // we filter out the wiki reference rules
             documentRules.removeAll(wikiRules);
@@ -337,7 +341,8 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
 
         try {
             // first we get the rules that concerns the change request
-            List<ReadableSecurityRule> actualRules = this.rightsReader.getRules(changeRequestSpaceReference, false);
+            List<ReadableSecurityRule> actualRules =
+                this.rightsReader.get().getRules(changeRequestSpaceReference, false);
 
             // then we normalize them to allow using properly the map of actions
             List<ReadableSecurityRule> normalizedRules = this.ruleAbacus.normalizeRulesBySubject(actualRules);

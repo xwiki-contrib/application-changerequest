@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
@@ -58,7 +59,7 @@ public abstract class AbstractChangeRequestEventListener extends AbstractEventLi
     private ObservationManager observationManager;
 
     @Inject
-    private ChangeRequestStorageManager changeRequestStorageManager;
+    private Provider<ChangeRequestStorageManager> changeRequestStorageManager;
 
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
@@ -83,7 +84,7 @@ public abstract class AbstractChangeRequestEventListener extends AbstractEventLi
     protected DocumentModelBridge getChangeRequestDocument(String changeRequestId) throws Exception
     {
         Optional<ChangeRequest> optionalChangeRequest =
-            this.changeRequestStorageManager.load(changeRequestId);
+            this.changeRequestStorageManager.get().load(changeRequestId);
         if (optionalChangeRequest.isPresent()) {
             ChangeRequest changeRequest = optionalChangeRequest.get();
             return this.documentAccessBridge.getTranslatedDocumentInstance(
