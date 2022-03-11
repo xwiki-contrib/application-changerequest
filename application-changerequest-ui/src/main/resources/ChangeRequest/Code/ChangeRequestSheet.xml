@@ -3152,15 +3152,15 @@ tr.discussion-line:hover {
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
 }
-.showMessage {
-  border-color: red;
-}
 .message-metadata {
   background-color: lightgray;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
   padding: 1em;
   border-bottom: 1px solid black;
+}
+.showMessage &gt; .message-metadata {
+  background-color: #fffbc3;
 }
 .message-content {
   padding: 1em;
