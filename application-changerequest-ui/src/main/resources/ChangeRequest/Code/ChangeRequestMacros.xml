@@ -38,21 +38,33 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
-#macro (displayMessage $message)
+## FIXME: This needs to be removed once we bump parent to next version
+## Was added to workaround https://jira.xwiki.org/browse/XWIKI-19508
+#macro (wrappedDisplayUser $user $options)
+  #if ($stringtool.isEmpty($user))
+    #set ($realUser = "XWiki.XWikiGuest")
+  #else
+    #set ($realUser = $user)
+  #end
+  #displayUser($realUser $options)
+#end
+#macro (displayMessage $message $changeRequest)
 #set ($messageReference = $escapetool.xml($services.discussions.serialize($message.reference)))
 #if ($message.replyTo)
   #set ($replyReference = $escapetool.xml($services.discussions.serialize($message.replyTo)))
 #end
-&lt;div class="message" data-reference="$messageReference" #if($replyReference)replied-of="$replyReference"#end&gt;
+&lt;div class="message" data-reference="$messageReference" #if($replyReference)replied-of="$replyReference"#end&gt; 
   &lt;div class="message-metadata"&gt;
-    &lt;span class="message-author"&gt;#displayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
+    &lt;span class="message-author"&gt;#wrappedDisplayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
     &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
     &lt;span class="message-badges"&gt;
+      #if ($services.changerequest.isAuthorizedToComment($changeRequest))
       &lt;span class="reply"&gt;
         &lt;button class="btn badge reply-button" type="button" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.reply.button.title'))"&gt;
           $services.icon.renderHTML('comments') $services.localization.render('changerequest.sheet.message.reply.button')
         &lt;/button&gt;
       &lt;/span&gt;
+      #end
       &lt;span class="outdated-message hidden"&gt;
         &lt;span class="label label-danger" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.outdated.title'))"&gt;
           $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.message.outdated')
@@ -100,7 +112,7 @@
   &lt;li class="event"&gt;
     &lt;span class="date" data-date="$event.date.time"&gt;$datetool.format($event.date)&lt;/span&gt;
     &lt;span class="content"&gt;
-    #set ($userArgument = "#displayUser($event.user)")
+    #set ($userArgument = "#wrappedDisplayUser($event.user)")
     #set ($localizationKey = "changerequest.timeline.$event.type")
     #set ($localizationArguments = [])
     #if ($event.type == "changerequest.create")
