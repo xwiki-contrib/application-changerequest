@@ -58,7 +58,7 @@
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
     <discussions.version>2.0-SNAPSHOT</discussions.version>
-    <rights-api.version>2.0-rc-4</rights-api.version>
+    <rights-api.version>2.0-rc-5</rights-api.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
