@@ -196,7 +196,9 @@ changerequest.savemodal.approvers.header.hint=You can specify the list of users 
 changerequest.savemodal.approvers.heading=Approvers
 changerequest.savemodal.approvers.users=Users who can approve
 changerequest.savemodal.approvers.groups=Groups who can approve
-</content>
+
+changerequest.sheet.message.reply.header=Reply of message from {0} sent {1}.
+changerequest.sheet.message.reply.link.title=Click to navigate to the previous message.</content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestTranslations</name>
     <number>0</number>

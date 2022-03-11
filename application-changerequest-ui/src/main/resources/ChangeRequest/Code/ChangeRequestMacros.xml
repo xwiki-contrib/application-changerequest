@@ -48,12 +48,21 @@
   #end
   #displayUser($realUser $options)
 #end
+#macro (displayReplyToHeader $replyReference)
+  #set ($originalMessage = $services.discussions.getMessage($replyReference))
+  #if ($originalMessage)
+    #set ($originalMessageReference = $escapetool.xml($services.discussions.serialize($replyReference)))
+    &lt;div class="reply-to-header" data-original-reference="$originalMessageReference"&gt;
+        $services.localization.render('changerequest.sheet.message.reply.header', ["#wrappedDisplayUser($originalMessage.actorReference.reference, {'useInlineHTML': true})", "$escapetool.xml($services.date.displayTimeAgo($originalMessage.updateDate))"])
+      &lt;a class="reply-to-navigation" href="#$originalMessageReference" title="$services.localization.render('changerequest.sheet.message.reply.link.title')"&gt;
+        $services.icon.renderHTML('up')
+      &lt;/a&gt;
+    &lt;/div&gt;
+  #end
+#end
 #macro (displayMessage $message $changeRequest)
 #set ($messageReference = $escapetool.xml($services.discussions.serialize($message.reference)))
-#if ($message.replyTo)
-  #set ($replyReference = $escapetool.xml($services.discussions.serialize($message.replyTo)))
-#end
-&lt;div class="message" data-reference="$messageReference" #if($replyReference)replied-of="$replyReference"#end&gt; 
+&lt;div class="message" data-reference="$messageReference" id="$messageReference"&gt;
   &lt;div class="message-metadata"&gt;
     &lt;span class="message-author"&gt;#wrappedDisplayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
     &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
@@ -81,6 +90,9 @@
       &lt;/span&gt;
     &lt;/span&gt;
   &lt;/div&gt;
+  #if ($message.replyTo)
+    #displayReplyToHeader($message.replyTo)
+  #end
   &lt;div class="message-content collapse in" id="$messageId"&gt;
     $services.discussions.renderMessageContent($messageReference)
   &lt;/div&gt;

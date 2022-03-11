@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestDiscussion" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestDiscussion" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestDiscussion</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestDiscussion</title>
@@ -41,8 +42,8 @@
 {{include reference='ChangeRequest.Code.ChangeRequestMacros' /}}
 
 {{velocity}}
+#set ($changeRequestId = $request.get('changeRequestId'))
 #if ($request.method == 'POST' &amp;&amp; $request.get('action') == 'displayEditor' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')))
-  #set ($changeRequestId = $request.get('changeRequestId'))
   #if ($request.get('type') == 'diffLine')
     #set ($diffId = $request.get('diffId'))
     #set ($targetReference = $request.get('targetReference'))
@@ -69,12 +70,18 @@
 &lt;/div&gt;
 {{/html}}
 #elseif ($request.method == 'GET' &amp;&amp; $xcontext.action == 'get' &amp;&amp; $services.csrf.isTokenValid($request.get('form_token')) &amp;&amp; "$!request.get('messageReference')" != "")
-  #set ($message = $services.discussions.getMessage($request.get('messageReference')))
-  #set ($dataAttributes = $NULL)
-  #set ($discard = "#getDiscussionDataAttributes($message.discussion, $dataAttributes)")
-  &lt;div class="discussion" ${dataAttributes} &gt;
-  #displayMessage($message)
-  &lt;/div&gt;
+  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
+  #if ($changeRequestOpt.isEmpty())
+    #set ($discard = $response.sendError(404, "Wrong change request"))
+  #else
+    #set ($changeRequest = $changeRequestOpt.get())
+    #set ($message = $services.discussions.getMessage($request.get('messageReference')))
+    #set ($dataAttributes = $NULL)
+    #set ($discard = "#getDiscussionDataAttributes($message.discussion, $dataAttributes)")
+    &lt;div class="discussion" ${dataAttributes} &gt;
+    #displayMessage($message $changeRequest)
+    &lt;/div&gt;
+  #end
 #else
   Code for discussions.
 #end
