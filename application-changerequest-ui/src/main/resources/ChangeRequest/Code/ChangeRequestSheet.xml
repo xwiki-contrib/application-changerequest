@@ -56,7 +56,12 @@
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
 #set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
 #set ($displayDocExtra = false)
+#set ($changeRequestSheetJSXConfig = {
+  'hasCommentRight': $services.changerequest.isAuthorizedToComment($changeRequest)
+})
+
 {{html clean="false"}}
+ &lt;script id="changerequest-sheet-jsx-config" type="application/json"&gt;$jsontool.serialize($changeRequestSheetJSXConfig).replace('&lt;', '\u003C')&lt;/script&gt;
 &lt;div class="cr-main-div" data-changerequest-id="$changeRequestId"&gt;
   &lt;div id="discussions" class="hidden"&gt;
   #foreach ($changeRequestDiscussion in $allDiscussions)
@@ -68,7 +73,7 @@
       #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
       &lt;div class="discussion" ${dataAttributes} &gt;
         #foreach ($message in $messages)
-          #displayMessage($message)
+          #displayMessage($message $changeRequest)
         #end
       &lt;/div&gt;
     #end
@@ -125,7 +130,7 @@
             #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
             &lt;div class="discussion" data-type="$reference.type" data-reference="$reference.reference"&gt;
               #foreach ($message in $messages)
-                #displayMessage($message)
+                #displayMessage($message $changeRequest)
               #end
             &lt;/div&gt;
           #end
@@ -1038,7 +1043,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
       <name>Handle conflict button</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>currentPage</use>
@@ -1402,10 +1407,10 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <name>Review outdated button</name>
     </property>
     <property>
-      <parse/>
+      <parse>0</parse>
     </property>
     <property>
-      <use/>
+      <use>currentPage</use>
     </property>
   </object>
   <object>
@@ -1795,6 +1800,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
     <property>
       <code>'use strict';
 require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, xm) {
+  var sheetConfig = JSON.parse($('#changerequest-sheet-jsx-config').text());
   var hasLineNumber = function (element) {
     return (element.hasClass('diff-line-number') &amp;&amp; element.text() !== "");
   }
@@ -1837,26 +1843,29 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
   }
   
   var initialize = function() {
-    $('.diff-container tr').on('click', function () {
-      var diffBody = $(this).parents('.diff-body');
-      var diffId = diffBody.attr('data-diffid');
-      var targetReference = diffBody.attr('data-documentreference');
-      var documentParts = getEntityReferenceAndDiffBlock($(this));
-      var lineNumber = getLineNumber($(this));
-      var changeType = getChangeType($(this));
-      var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
-      var editor = new CommentEditor($(this), {
-        'type': 'diffLine',
-        'changeRequestId': changeRequestId,
-        'diffId': diffId,
-        'lineNumber': lineNumber,
-        'changeType': changeType,
-        'targetReference': targetReference,
-        'entityReference': documentParts[0],
-        'diffBlockId': documentParts[1]
+    if (sheetConfig.hasCommentRight) {
+      $('.diff-container tr').addClass('changerequest-commentable');
+      $('.diff-container tr').on('click', function () {
+        var diffBody = $(this).parents('.diff-body');
+        var diffId = diffBody.attr('data-diffid');
+        var targetReference = diffBody.attr('data-documentreference');
+        var documentParts = getEntityReferenceAndDiffBlock($(this));
+        var lineNumber = getLineNumber($(this));
+        var changeType = getChangeType($(this));
+        var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
+        var editor = new CommentEditor($(this), {
+          'type': 'diffLine',
+          'changeRequestId': changeRequestId,
+          'diffId': diffId,
+          'lineNumber': lineNumber,
+          'changeType': changeType,
+          'targetReference': targetReference,
+          'entityReference': documentParts[0],
+          'diffBlockId': documentParts[1]
+        });
+        editor.requestEditor();
       });
-      editor.requestEditor();
-    });
+    }
   };
   
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
@@ -2880,10 +2889,10 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     <property>
       <code>@highlighted: rgba(255, 255, 0, 0.2);
 
-.diff-container tr {
+.diff-container tr.changerequest-commentable {
   cursor: pointer;
 }
-.diff-container tr:hover {
+.diff-container tr.changerequest-commentable:hover {
   background: @highlighted;
 }
 .diff-line-deleted:hover, .diff-line-added:hover {
