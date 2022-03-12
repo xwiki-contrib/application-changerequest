@@ -189,5 +189,7 @@ changerequest.savemodal.approvers.header.title=Gestion des approbateurs
 changerequest.savemodal.approvers.heading=Approbateurs
 changerequest.savemodal.approvers.users=Utilisateurs pouvant approuver
 changerequest.savemodal.approvers.groups=Groupes pouvant approuver
+changerequest.sheet.message.reply.header=Répondre au message envoyé par {0} le {1}.
+changerequest.sheet.message.reply.link.title=Cliquez pour accéder au message précédent
 </content>
 </xwikidoc>
