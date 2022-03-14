@@ -341,12 +341,14 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
           if (form['template'] !== "") {
             form['async'] = "false";
           }
+          $('#xwikicontent').trigger('xwiki:actions:beforeSave');
           $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
         } else {
           form.attr('action', actionURL + "?" + actionURLParams.toString());
           if (form.find('input[name=template]').val() !== "") {
             form.find('input[name=async]').val('false');
           }
+          $(document).trigger('xwiki:actions:beforeSave');
           $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
         }
       }
