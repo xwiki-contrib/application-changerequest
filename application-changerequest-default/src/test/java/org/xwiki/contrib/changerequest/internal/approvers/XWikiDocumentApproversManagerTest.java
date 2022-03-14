@@ -57,16 +57,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link DocumentReferenceApproversManager}.
+ * Tests for {@link XWikiDocumentApproversManagerTest}.
  *
  * @version $Id$
  * @since 0.5
  */
 @ComponentTest
-class DocumentReferenceApproversManagerTest
+class XWikiDocumentApproversManagerTest
 {
     @InjectMockComponents
-    private DocumentReferenceApproversManager manager;
+    private XWikiDocumentApproversManager manager;
 
     @MockComponent
     private UserReferenceResolver<String> stringUserReferenceResolver;
@@ -111,17 +111,15 @@ class DocumentReferenceApproversManagerTest
     @Test
     void getAllApprovers() throws Exception
     {
-        DocumentReference documentReference = mock(DocumentReference.class);
         XWikiDocument xWikiDocument = mock(XWikiDocument.class);
-        when(this.wiki.getDocument(documentReference, this.context)).thenReturn(xWikiDocument);
-        assertEquals(new HashSet<>(), this.manager.getAllApprovers(documentReference, true));
-        assertEquals(new HashSet<>(), this.manager.getAllApprovers(documentReference, false));
+        assertEquals(new HashSet<>(), this.manager.getAllApprovers(xWikiDocument, true));
+        assertEquals(new HashSet<>(), this.manager.getAllApprovers(xWikiDocument, false));
 
         BaseObject xobject = mock(BaseObject.class);
         when(xWikiDocument.getXObject(ApproversXClassInitializer.APPROVERS_XCLASS, false, this.context))
             .thenReturn(xobject);
-        assertEquals(new HashSet<>(), this.manager.getAllApprovers(documentReference, true));
-        assertEquals(new HashSet<>(), this.manager.getAllApprovers(documentReference, false));
+        assertEquals(new HashSet<>(), this.manager.getAllApprovers(xWikiDocument, true));
+        assertEquals(new HashSet<>(), this.manager.getAllApprovers(xWikiDocument, false));
 
         when(xobject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
             .thenReturn("Foo,Bar,Buz");
@@ -162,18 +160,16 @@ class DocumentReferenceApproversManagerTest
         when(this.documentReferenceUserReferenceResolver.resolve(fooRef)).thenReturn(user1);
 
         assertEquals(new HashSet<>(Arrays.asList(user1, user2, user3)),
-            this.manager.getAllApprovers(documentReference, false));
+            this.manager.getAllApprovers(xWikiDocument, false));
         assertEquals(new HashSet<>(Arrays.asList(user1, user2, user3, user4, user5, user6, user7)),
-            this.manager.getAllApprovers(documentReference, true));
+            this.manager.getAllApprovers(xWikiDocument, true));
     }
 
     @Test
     void isApprover() throws Exception
     {
-        DocumentReference documentReference = mock(DocumentReference.class);
         XWikiDocument xWikiDocument = mock(XWikiDocument.class);
         BaseObject xobject = mock(BaseObject.class);
-        when(this.wiki.getDocument(documentReference, this.context)).thenReturn(xWikiDocument);
         when(xWikiDocument.getXObject(ApproversXClassInitializer.APPROVERS_XCLASS, false, this.context))
             .thenReturn(xobject);
         when(xobject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
@@ -183,33 +179,33 @@ class DocumentReferenceApproversManagerTest
         when(this.stringUserReferenceResolver.resolve("Foo")).thenReturn(user1);
         when(this.stringUserReferenceResolver.resolve("Bar")).thenReturn(user2);
 
-        assertTrue(this.manager.isApprover(user1, documentReference, false));
-        assertTrue(this.manager.isApprover(user1, documentReference, true));
+        assertTrue(this.manager.isApprover(user1, xWikiDocument, false));
+        assertTrue(this.manager.isApprover(user1, xWikiDocument, true));
         verify(this.authorizationManager, never()).hasAccess(any(), any(), any());
 
+        DocumentReference documentReference = mock(DocumentReference.class);
+        when(xWikiDocument.getDocumentReference()).thenReturn(documentReference);
         UserReference user3 = mock(UserReference.class);
         DocumentReference user3DocRef = mock(DocumentReference.class);
         when(this.userReferenceConverter.convert(user3)).thenReturn(user3DocRef);
         when(this.authorizationManager.hasAccess(ChangeRequestApproveRight.getRight(), user3DocRef, documentReference))
             .thenReturn(true);
-        assertFalse(this.manager.isApprover(user3, documentReference, false));
-        assertFalse(this.manager.isApprover(user3, documentReference, true));
+        assertFalse(this.manager.isApprover(user3, xWikiDocument, false));
+        assertFalse(this.manager.isApprover(user3, xWikiDocument, true));
         verify(this.authorizationManager, never()).hasAccess(any(), any(), any());
 
         when(xWikiDocument.getXObject(ApproversXClassInitializer.APPROVERS_XCLASS, false, this.context))
             .thenReturn(null);
 
-        assertTrue(this.manager.isApprover(user3, documentReference, false));
-        assertFalse(this.manager.isApprover(user3, documentReference, true));
+        assertTrue(this.manager.isApprover(user3, xWikiDocument, false));
+        assertFalse(this.manager.isApprover(user3, xWikiDocument, true));
     }
 
     @Test
     void setUsersApprovers() throws Exception
     {
-        DocumentReference documentReference = mock(DocumentReference.class);
         XWikiDocument xWikiDocument = mock(XWikiDocument.class);
         BaseObject xobject = mock(BaseObject.class);
-        when(this.wiki.getDocument(documentReference, this.context)).thenReturn(xWikiDocument);
         when(xWikiDocument.getXObject(ApproversXClassInitializer.APPROVERS_XCLASS, true, this.context))
             .thenReturn(xobject);
 
@@ -219,7 +215,7 @@ class DocumentReferenceApproversManagerTest
         when(this.userReferenceSerializer.serialize(user2)).thenReturn("Bar");
 
         when(xobject.getOwnerDocument()).thenReturn(xWikiDocument);
-        this.manager.setUsersApprovers(new LinkedHashSet<>(Arrays.asList(user1, user2)), documentReference);
+        this.manager.setUsersApprovers(new LinkedHashSet<>(Arrays.asList(user1, user2)), xWikiDocument);
         verify(xobject).setLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY, "Foo,Bar");
         verify(this.wiki).saveDocument(xWikiDocument, "Save approvers.", true, this.context);
     }
@@ -227,10 +223,8 @@ class DocumentReferenceApproversManagerTest
     @Test
     void setGroupsApprovers() throws Exception
     {
-        DocumentReference documentReference = mock(DocumentReference.class);
         XWikiDocument xWikiDocument = mock(XWikiDocument.class);
         BaseObject xobject = mock(BaseObject.class);
-        when(this.wiki.getDocument(documentReference, this.context)).thenReturn(xWikiDocument);
         when(xWikiDocument.getXObject(ApproversXClassInitializer.APPROVERS_XCLASS, true, this.context))
             .thenReturn(xobject);
 
@@ -240,7 +234,7 @@ class DocumentReferenceApproversManagerTest
         when(this.entityReferenceSerializer.serialize(group2)).thenReturn("GroupB");
 
         when(xobject.getOwnerDocument()).thenReturn(xWikiDocument);
-        this.manager.setGroupsApprovers(new LinkedHashSet<>(Arrays.asList(group1, group2)), documentReference);
+        this.manager.setGroupsApprovers(new LinkedHashSet<>(Arrays.asList(group1, group2)), xWikiDocument);
         verify(xobject).setLargeStringValue(ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY,
             "GroupA,GroupB");
         verify(this.wiki).saveDocument(xWikiDocument, "Save approvers.", true, this.context);

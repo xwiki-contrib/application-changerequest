@@ -36,7 +36,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
-import org.xwiki.contrib.changerequest.internal.approvers.DocumentReferenceApproversManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -149,7 +148,7 @@ public class ApproversXObjectUpdatedListener extends AbstractEventListener
         if (largeStringValue == null) {
             return new String[0];
         } else {
-            return StringUtils.split(largeStringValue, DocumentReferenceApproversManager.SEPARATOR_CHARACTER);
+            return StringUtils.split(largeStringValue, ApproversXClassInitializer.SEPARATOR_CHARACTER);
         }
     }
 }

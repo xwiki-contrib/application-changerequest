@@ -64,6 +64,11 @@ public class ApproversXClassInitializer implements MandatoryDocumentInitializer
      */
     public static final String GROUPS_APPROVERS_PROPERTY = "groupsApprovers";
 
+    /**
+     * Separator used in approvers lists.
+     */
+    public static final Character SEPARATOR_CHARACTER = ',';
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 

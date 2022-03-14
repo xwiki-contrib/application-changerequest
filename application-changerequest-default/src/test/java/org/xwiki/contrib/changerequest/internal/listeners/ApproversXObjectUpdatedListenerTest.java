@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
-import org.xwiki.contrib.changerequest.internal.approvers.DocumentReferenceApproversManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -122,11 +121,11 @@ class ApproversXObjectUpdatedListenerTest
         when(currentObj.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY)).thenReturn(user1);
         when(previousObj.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
             .thenReturn(StringUtils.join(Arrays.asList(user2, "", user3, null),
-                DocumentReferenceApproversManager.SEPARATOR_CHARACTER));
+                ApproversXClassInitializer.SEPARATOR_CHARACTER));
 
         when(currentObj.getLargeStringValue(ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY))
             .thenReturn(StringUtils.join(Arrays.asList(group1, group2),
-            DocumentReferenceApproversManager.SEPARATOR_CHARACTER));
+                ApproversXClassInitializer.SEPARATOR_CHARACTER));
         when(previousObj.getLargeStringValue(ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY)).thenReturn(null);
 
         Set<String> expectedSet = new HashSet<>(Arrays.asList(

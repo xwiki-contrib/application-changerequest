@@ -21,10 +21,8 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,7 +33,6 @@ import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
@@ -73,12 +70,6 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 {
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
-
-    @Inject
-    private ApproversManager<DocumentReference> documentReferenceApproversManager;
-
-    @Inject
-    private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     @Inject
     private ReviewStorageManager reviewStorageManager;
@@ -127,7 +118,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     changeRequest.addFileChange(fileChange);
                     this.storageManager.save(changeRequest);
                     this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
-                    this.addApprovers(documentReference, changeRequest);
+                    this.copyApprovers(fileChange);
                     this.invalidateApprovals(changeRequest);
                     this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
                     this.observationManager
@@ -269,26 +260,6 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     modifiedDocument.getDocumentReferenceWithLocale()));
         }
         return result;
-    }
-
-    private void addApprovers(DocumentReference originalReference, ChangeRequest changeRequest)
-        throws ChangeRequestException
-    {
-        Set<UserReference> usersCRApprovers =
-            new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, false));
-
-        Set<DocumentReference> groupsCRApprovers =
-            new HashSet<>(this.changeRequestApproversManager.getGroupsApprovers(changeRequest));
-
-        usersCRApprovers.addAll(this.documentReferenceApproversManager.getAllApprovers(originalReference, false));
-        groupsCRApprovers.addAll(this.documentReferenceApproversManager.getGroupsApprovers(originalReference));
-
-        if (!groupsCRApprovers.isEmpty()) {
-            this.changeRequestApproversManager.setGroupsApprovers(groupsCRApprovers, changeRequest);
-        }
-        if (!usersCRApprovers.isEmpty()) {
-            this.changeRequestApproversManager.setUsersApprovers(usersCRApprovers, changeRequest);
-        }
     }
 
     private void invalidateApprovals(ChangeRequest changeRequest) throws ChangeRequestException

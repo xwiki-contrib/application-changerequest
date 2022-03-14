@@ -86,7 +86,7 @@ class AddChangesChangeRequestHandlerTest
     private FileChangeVersionManager fileChangeVersionManager;
 
     @MockComponent
-    private ApproversManager<DocumentReference> documentReferenceApproversManager;
+    private ApproversManager<FileChange> fileChangeApproversManager;
 
     @MockComponent
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
@@ -190,9 +190,9 @@ class AddChangesChangeRequestHandlerTest
         verify(changeRequest).addFileChange(expectedFileChange);
         verify(this.storageManager).save(changeRequest);
         verify(this.changeRequestApproversManager).getAllApprovers(changeRequest, false);
-        verify(this.documentReferenceApproversManager).getAllApprovers(documentReference, false);
+        verify(this.fileChangeApproversManager).getAllApprovers(expectedFileChange, false);
         verify(this.changeRequestApproversManager).getGroupsApprovers(changeRequest);
-        verify(this.documentReferenceApproversManager).getGroupsApprovers(documentReference);
+        verify(this.fileChangeApproversManager).getGroupsApprovers(expectedFileChange);
         verify(this.observationManager)
             .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(changeRequestId), eq(expectedFileChange));
         verify(response).sendRedirect(url);
@@ -267,9 +267,9 @@ class AddChangesChangeRequestHandlerTest
         verify(changeRequest).addFileChange(expectedFileChange);
         verify(this.storageManager).save(changeRequest);
         verify(this.changeRequestApproversManager).getAllApprovers(changeRequest, false);
-        verify(this.documentReferenceApproversManager).getAllApprovers(documentReference, false);
+        verify(this.fileChangeApproversManager).getAllApprovers(expectedFileChange, false);
         verify(this.changeRequestApproversManager).getGroupsApprovers(changeRequest);
-        verify(this.documentReferenceApproversManager).getGroupsApprovers(documentReference);
+        verify(this.fileChangeApproversManager).getGroupsApprovers(expectedFileChange);
         verify(this.observationManager)
             .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(changeRequestId), eq(expectedFileChange));
         verify(response).sendRedirect(url);

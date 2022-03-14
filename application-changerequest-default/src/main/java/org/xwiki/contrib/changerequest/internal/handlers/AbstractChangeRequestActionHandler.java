@@ -21,9 +21,11 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -109,6 +112,12 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    @Inject
+    private ApproversManager<FileChange> fileChangeApproversManager;
+
+    @Inject
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     protected HttpServletRequest prepareRequest() throws ChangeRequestException
     {
@@ -266,5 +275,27 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
     protected UserReference getCurrentUser()
     {
         return this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+    }
+
+    protected void copyApprovers(FileChange fileChange) throws ChangeRequestException
+    {
+        ChangeRequest changeRequest = fileChange.getChangeRequest();
+
+        // Existing approvers of the change request.
+        Set<UserReference> usersCRApprovers =
+            new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, false));
+
+        Set<DocumentReference> groupsCRApprovers =
+            new HashSet<>(this.changeRequestApproversManager.getGroupsApprovers(changeRequest));
+
+        usersCRApprovers.addAll(this.fileChangeApproversManager.getAllApprovers(fileChange, false));
+        groupsCRApprovers.addAll(this.fileChangeApproversManager.getGroupsApprovers(fileChange));
+
+        if (!groupsCRApprovers.isEmpty()) {
+            this.changeRequestApproversManager.setGroupsApprovers(groupsCRApprovers, changeRequest);
+        }
+        if (!usersCRApprovers.isEmpty()) {
+            this.changeRequestApproversManager.setUsersApprovers(usersCRApprovers, changeRequest);
+        }
     }
 }

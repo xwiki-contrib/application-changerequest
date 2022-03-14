@@ -41,3 +41,5 @@ org.xwiki.contrib.changerequest.internal.handlers.CreateInChangeRequestResourceH
 org.xwiki.contrib.changerequest.internal.TemplateProviderSupportChecker
 org.xwiki.contrib.changerequest.internal.jobs.ChangeRequestSchedulerJobManager
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestMergeManager
+org.xwiki.contrib.changerequest.internal.approvers.FileChangeApproversManager
+org.xwiki.contrib.changerequest.internal.approvers.XWikiDocumentApproversManager

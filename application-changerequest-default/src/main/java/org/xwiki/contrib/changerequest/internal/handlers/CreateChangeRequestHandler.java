@@ -21,9 +21,7 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,13 +32,12 @@ import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
@@ -74,12 +71,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     private FileChangeVersionManager fileChangeVersionManager;
 
     @Inject
-    private ApproversManager<DocumentReference> documentReferenceApproversManager;
-
-    @Inject
-    private ApproversManager<ChangeRequest> changeRequestApproversManager;
-
-    @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;
 
     /**
@@ -91,12 +82,13 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
     {
         HttpServletRequest request = this.prepareRequest();
-        ChangeRequest changeRequest = getChangeRequest(request);
+        FileChange fileChange = getFileChange(request);
+        ChangeRequest changeRequest = fileChange.getChangeRequest();
         this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), "", null);
         this.storageManager.save(changeRequest);
         this.changeRequestRightsManager.copyViewRights(changeRequest,
             changeRequest.getModifiedDocuments().iterator().next());
-        this.copyApprovers(changeRequest);
+        this.copyApprovers(fileChange);
         this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
         this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(), changeRequest);
@@ -132,7 +124,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         return modifiedDocument;
     }
 
-    private ChangeRequest getChangeRequest(HttpServletRequest request) throws ChangeRequestException
+    private FileChange getFileChange(HttpServletRequest request) throws ChangeRequestException
     {
         boolean isDeletion = "1".equals(request.getParameter("deletion"));
 
@@ -190,7 +182,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             changeRequest.setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
         }
 
-        return changeRequest;
+        return fileChange;
     }
 
     private FileChange getFileChange(ChangeRequest changeRequest, FileChange.FileChangeType fileChangeType,
@@ -241,23 +233,5 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             .setVersion(fileChangeVersion)
             .setAuthor(currentUser);
         return fileChange;
-    }
-
-    private void copyApprovers(ChangeRequest changeRequest)
-        throws ChangeRequestException
-    {
-        Set<UserReference> usersApprovers = new HashSet<>();
-        Set<DocumentReference> groupsApprovers = new HashSet<>();
-        for (DocumentReference originalReference : changeRequest.getModifiedDocuments()) {
-            usersApprovers.addAll(this.documentReferenceApproversManager.getAllApprovers(originalReference, false));
-            groupsApprovers.addAll(this.documentReferenceApproversManager.getGroupsApprovers(originalReference));
-        }
-
-        if (!groupsApprovers.isEmpty()) {
-            this.changeRequestApproversManager.setGroupsApprovers(groupsApprovers, changeRequest);
-        }
-        if (!usersApprovers.isEmpty()) {
-            this.changeRequestApproversManager.setUsersApprovers(usersApprovers, changeRequest);
-        }
     }
 }
