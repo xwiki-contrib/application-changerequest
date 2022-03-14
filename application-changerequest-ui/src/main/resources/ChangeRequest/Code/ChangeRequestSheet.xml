@@ -1253,7 +1253,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   }
   
   var initialize = function () {
-    $("#addReview").on('click', function () {
+    $("#addReview:not(.disabled)").on('click', function () {
       var currentReference = xm.documentReference;
       var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
       var modal = new reviewModal(changeRequestId);
