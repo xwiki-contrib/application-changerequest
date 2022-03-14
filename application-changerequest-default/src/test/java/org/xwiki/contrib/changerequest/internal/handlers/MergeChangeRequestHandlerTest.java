@@ -29,6 +29,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestDocumentReferenceResolver;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -66,6 +67,9 @@ class MergeChangeRequestHandlerTest
 
     @MockComponent
     private ChangeRequestManager changeRequestManager;
+
+    @MockComponent
+    private ChangeRequestRightsManager changeRequestRightsManager;
 
     @MockComponent
     private ChangeRequestStorageManager storageManager;
@@ -108,12 +112,12 @@ class MergeChangeRequestHandlerTest
         when(this.storageManager.load(id)).thenReturn(Optional.of(changeRequest));
         UserReference userReference = mock(UserReference.class);
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        when(this.changeRequestManager.isAuthorizedToMerge(userReference, changeRequest)).thenReturn(false);
+        when(this.changeRequestRightsManager.isAuthorizedToMerge(userReference, changeRequest)).thenReturn(false);
 
         this.handler.handle(changeRequestReference);
         verify(this.response).sendError(403, "You're not authorized to merge change request [cr43].");
 
-        when(this.changeRequestManager.isAuthorizedToMerge(userReference, changeRequest)).thenReturn(true);
+        when(this.changeRequestRightsManager.isAuthorizedToMerge(userReference, changeRequest)).thenReturn(true);
         when(this.changeRequestManager.canBeMerged(changeRequest)).thenReturn(false);
 
         this.handler.handle(changeRequestReference);

@@ -19,11 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -39,13 +36,12 @@ import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
+import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
-import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
@@ -55,7 +51,6 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
-import org.xwiki.security.authorization.Right;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -64,14 +59,11 @@ import org.xwiki.test.junit5.mockito.InjectComponentManager;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
-import org.xwiki.user.CurrentUserReference;
-import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.doc.merge.MergeConfiguration;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -135,6 +127,9 @@ class DefaultChangeRequestManagerTest
     @MockComponent
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
+    @MockComponent
+    private ChangeRequestMergeManager changeRequestMergeManager;
+
     private XarExtensionScriptService xarExtensionScriptService;
 
     private XWikiContext context;
@@ -152,140 +147,6 @@ class DefaultChangeRequestManagerTest
     {
         this.context = mock(XWikiContext.class);
         when(this.contextProvider.get()).thenReturn(this.context);
-    }
-
-    @Test
-    void hasConflict() throws ChangeRequestException
-    {
-        FileChange fileChange = mock(FileChange.class);
-        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        DocumentModelBridge modifiedDoc = mock(DocumentModelBridge.class);
-        DocumentModelBridge currentDoc = mock(DocumentModelBridge.class);
-        DocumentModelBridge previousDoc = mock(DocumentModelBridge.class);
-
-        when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(modifiedDoc);
-        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).thenReturn(currentDoc);
-        when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange))
-            .thenReturn(Optional.of(previousDoc));
-
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(context.getUserReference()).thenReturn(userDocReference);
-
-        DocumentReference modifiedDocReference = mock(DocumentReference.class);
-        when(modifiedDoc.getDocumentReference()).thenReturn(modifiedDocReference);
-
-        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
-        when(this.mergeManager
-            .mergeDocument(eq(previousDoc), eq(currentDoc), eq(modifiedDoc), any(MergeConfiguration.class)))
-            .thenAnswer(invocationOnMock -> {
-            MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
-            assertEquals(modifiedDocReference, mergeConfiguration.getConcernedDocument());
-            assertEquals(userDocReference, mergeConfiguration.getUserReference());
-            assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
-            return mergeDocumentResult;
-        });
-
-        when(mergeDocumentResult.hasConflicts()).thenReturn(true);
-        assertTrue(this.manager.hasConflicts(fileChange));
-        verify(this.mergeManager)
-            .mergeDocument(eq(previousDoc), eq(currentDoc), eq(modifiedDoc), any(MergeConfiguration.class));
-    }
-
-    @Test
-    void isAuthorizedToMergeWithoutMergeUser() throws ChangeRequestException
-    {
-        UserReference userReference = mock(UserReference.class);
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
-        when(this.configuration.getMergeUser()).thenReturn(GuestUserReference.INSTANCE);
-
-        FileChange fileChange1 = mock(FileChange.class);
-        FileChange fileChange2 = mock(FileChange.class);
-        when(fileChange1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        when(fileChange2.getType()).thenReturn(FileChange.FileChangeType.DELETION);
-
-        DocumentReference reference1 = mock(DocumentReference.class);
-        DocumentReference reference2 = mock(DocumentReference.class);
-        when(fileChange1.getTargetEntity()).thenReturn(reference1);
-        when(fileChange2.getTargetEntity()).thenReturn(reference2);
-
-        when(changeRequest.getLastFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
-
-        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(false);
-        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference1)).thenReturn(false);
-        when(this.authorizationManager.hasAccess(Right.DELETE, userDocReference, reference2)).thenReturn(false);
-
-        assertFalse(this.manager.isAuthorizedToMerge(userReference, changeRequest));
-
-        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(true);
-        assertFalse(this.manager.isAuthorizedToMerge(userReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference1)).thenReturn(true);
-        assertFalse(this.manager.isAuthorizedToMerge(userReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference2)).thenReturn(true);
-        assertFalse(this.manager.isAuthorizedToMerge(userReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.DELETE, userDocReference, reference2)).thenReturn(true);
-        assertTrue(this.manager.isAuthorizedToMerge(userReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference2)).thenReturn(false);
-        assertTrue(this.manager.isAuthorizedToMerge(userReference, changeRequest));
-    }
-
-    @Test
-    void isAuthorizedToMergeWithMergeUser() throws ChangeRequestException
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-
-        UserReference currentUserReference = mock(UserReference.class);
-        DocumentReference currentUserDocReference = mock(DocumentReference.class);
-        when(this.userReferenceConverter.convert(currentUserReference)).thenReturn(currentUserDocReference);
-
-        UserReference mergeUserReference = mock(UserReference.class);
-        DocumentReference mergeUserDocReference = mock(DocumentReference.class);
-        when(this.userReferenceConverter.convert(mergeUserReference)).thenReturn(mergeUserDocReference);
-        when(this.configuration.getMergeUser()).thenReturn(mergeUserReference);
-
-        FileChange fileChange1 = mock(FileChange.class);
-        FileChange fileChange2 = mock(FileChange.class);
-        when(fileChange1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        when(fileChange2.getType()).thenReturn(FileChange.FileChangeType.DELETION);
-
-        DocumentReference reference1 = mock(DocumentReference.class);
-        DocumentReference reference2 = mock(DocumentReference.class);
-        when(fileChange1.getTargetEntity()).thenReturn(reference1);
-        when(fileChange2.getTargetEntity()).thenReturn(reference2);
-
-        when(changeRequest.getLastFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
-
-        when(this.changeRequestApproversManager.isApprover(currentUserReference, changeRequest, false))
-            .thenReturn(false);
-        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference1)).thenReturn(false);
-        when(this.authorizationManager.hasAccess(Right.DELETE, mergeUserDocReference, reference2)).thenReturn(false);
-
-        assertFalse(this.manager.isAuthorizedToMerge(currentUserReference, changeRequest));
-
-        when(this.changeRequestApproversManager.isApprover(currentUserReference, changeRequest, false))
-            .thenReturn(true);
-        assertFalse(this.manager.isAuthorizedToMerge(currentUserReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference1)).thenReturn(true);
-        assertFalse(this.manager.isAuthorizedToMerge(currentUserReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference2)).thenReturn(true);
-        assertFalse(this.manager.isAuthorizedToMerge(currentUserReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.DELETE, mergeUserDocReference, reference2)).thenReturn(true);
-        assertTrue(this.manager.isAuthorizedToMerge(currentUserReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference2)).thenReturn(false);
-        assertTrue(this.manager.isAuthorizedToMerge(currentUserReference, changeRequest));
-
-        verify(this.authorizationManager, never())
-            .hasAccess(eq(Right.EDIT), eq(currentUserDocReference), any(DocumentReference.class));
     }
 
     @Test
@@ -319,51 +180,15 @@ class DefaultChangeRequestManagerTest
         when(strategy.canBeMerged(changeRequest)).thenReturn(false);
         this.manager.computeReadyForMergingStatus(changeRequest);
         verify(strategy).canBeMerged(changeRequest);
-        verify(changeRequest, never()).getFileChanges();
         verifyNoInteractions(this.changeRequestStorageManager);
 
         when(strategy.canBeMerged(changeRequest)).thenReturn(true);
-        FileChange fileChangeA1 = mock(FileChange.class);
-        FileChange fileChangeA2 = mock(FileChange.class);
-        when(fileChangeA2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        FileChange fileChangeB1 = mock(FileChange.class);
-        when(fileChangeB1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-
-        DocumentReference refA = new DocumentReference("xwiki", "Space", "RefA");
-        DocumentReference refB = new DocumentReference("xwiki", "Space", "RefB");
-        Map<DocumentReference, Deque<FileChange>> fileChangeMap = new LinkedHashMap<>();
-        Deque<FileChange> dequeA = new LinkedList<>();
-        dequeA.add(fileChangeA1);
-        dequeA.add(fileChangeA2);
-        fileChangeMap.put(refA, dequeA);
-
-        Deque<FileChange> dequeB = new LinkedList<>();
-        dequeB.add(fileChangeB1);
-        fileChangeMap.put(refB, dequeB);
-
-        when(changeRequest.getFileChanges()).thenReturn(fileChangeMap);
-        when(changeRequest.getLatestFileChangeFor(refA)).thenReturn(Optional.of(fileChangeA2));
-        when(changeRequest.getLatestFileChangeFor(refB)).thenReturn(Optional.of(fileChangeB1));
-
-        DocumentModelBridge documentModelBridge = mock(DocumentModelBridge.class);
-        when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(any())).thenReturn(documentModelBridge);
-        when(documentModelBridge.getDocumentReference()).thenReturn(mock(DocumentReference.class));
-
-        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
-        when(this.mergeManager.mergeDocument(any(), any(), any(), any())).thenReturn(mergeDocumentResult);
-        when(mergeDocumentResult.hasConflicts()).thenReturn(true);
+        when(this.changeRequestMergeManager.hasConflict(changeRequest)).thenReturn(true);
         this.manager.computeReadyForMergingStatus(changeRequest);
         verifyNoInteractions(this.changeRequestStorageManager);
-        verify(mergeDocumentResult).hasConflicts();
-        verify(this.fileChangeStorageManager).getModifiedDocumentFromFileChange(fileChangeA2);
+        verify(this.changeRequestMergeManager).hasConflict(changeRequest);
 
-        // only A2 is checked since we break at first conflict
-        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeB1);
-
-        // this one should never be checked.
-        verify(this.fileChangeStorageManager, never()).getModifiedDocumentFromFileChange(fileChangeA1);
-
-        when(mergeDocumentResult.hasConflicts()).thenReturn(false);
+        when(this.changeRequestMergeManager.hasConflict(changeRequest)).thenReturn(false);
         when(changeRequest.getId()).thenReturn("someId");
         this.manager.computeReadyForMergingStatus(changeRequest);
         verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_MERGING);
@@ -380,129 +205,6 @@ class DefaultChangeRequestManagerTest
         verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
             eq(new ChangeRequestStatus[] {
                 ChangeRequestStatus.READY_FOR_MERGING, ChangeRequestStatus.READY_FOR_REVIEW }));
-    }
-
-    @Test
-    void getMergeDocumentResult() throws Exception
-    {
-        FileChange fileChange = mock(FileChange.class);
-        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
-        XWikiDocument currentDoc = mock(XWikiDocument.class);
-        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).thenReturn(currentDoc);
-        when(currentDoc.getVersion()).thenReturn("1.2");
-        when(fileChange.getPreviousPublishedVersion()).thenReturn("1.1");
-        when(currentDoc.isNew()).thenReturn(false);
-        when(currentDoc.getRenderedTitle(this.context)).thenReturn("Some title");
-        when(fileChange.getId()).thenReturn("fileChangeId");
-
-        XWikiDocument previousDoc = mock(XWikiDocument.class);
-        when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange))
-            .thenReturn(Optional.of(previousDoc));
-        when(previousDoc.getVersion()).thenReturn("1.1");
-        when(previousDoc.getDate()).thenReturn(new Date(45));
-        MergeDocumentResult mergeDocumentResult = new MergeDocumentResult(currentDoc, previousDoc, null);
-        ChangeRequestMergeDocumentResult expectedResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.1", new Date(45))
-            .setDocumentTitle("Some title");
-        assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
-
-        when(currentDoc.getVersion()).thenReturn("1.1");
-        when(currentDoc.isNew()).thenReturn(true);
-        DocumentReference documentReference = mock(DocumentReference.class);
-        when(currentDoc.getDocumentReference()).thenReturn(documentReference);
-        when(documentReference.toString()).thenReturn("Some.Reference");
-
-        expectedResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.1", new Date(45))
-            .setDocumentTitle("Some.Reference");
-        assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
-
-        when(currentDoc.getVersion()).thenReturn("1.2");
-        when(fileChange.getPreviousPublishedVersion()).thenReturn("1.2");
-        when(currentDoc.isNew()).thenReturn(false);
-
-        expectedResult =
-            new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.1", new Date(45))
-            .setDocumentTitle("Some title");
-        assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
-
-        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        XWikiDocument nextDoc = mock(XWikiDocument.class);
-        when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(nextDoc);
-
-        DocumentReference userReference = mock(DocumentReference.class);
-        when(this.context.getUserReference()).thenReturn(userReference);
-        DocumentReference targetEntity = mock(DocumentReference.class);
-        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
-
-        MergeDocumentResult mergeDocumentResult2 = mock(MergeDocumentResult.class);
-        when(mergeManager.mergeDocument(eq(previousDoc), eq(nextDoc), eq(currentDoc), any()))
-            .thenAnswer(invocationOnMock -> {
-            MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
-            assertEquals(userReference, mergeConfiguration.getUserReference());
-            assertEquals(targetEntity, mergeConfiguration.getConcernedDocument());
-            assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
-            when(mergeDocumentResult2.getCurrentDocument()).thenReturn(currentDoc);
-            return mergeDocumentResult2;
-        });
-
-        expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult2, fileChange, "1.1", new Date(45))
-            .setDocumentTitle("Some title");
-        assertEquals(expectedResult, this.manager.getMergeDocumentResult(fileChange));
-    }
-
-    @Test
-    void isAuthorizedToEdit()
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        UserReference userReference = mock(UserReference.class);
-
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
-        when(changeRequest.getAuthors())
-            .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
-        assertFalse(this.manager.isAuthorizedToEdit(userReference, changeRequest));
-
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
-        assertTrue(this.manager.isAuthorizedToEdit(userReference, changeRequest));
-
-        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        DocumentReference changeRequestDoc = mock(DocumentReference.class);
-
-        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
-        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
-        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
-        assertFalse(this.manager.isAuthorizedToEdit(userReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
-        assertTrue(this.manager.isAuthorizedToEdit(userReference, changeRequest));
-    }
-
-    @Test
-    void isAuthorizedToOpen()
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        UserReference userReference = mock(UserReference.class);
-
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
-        when(changeRequest.getAuthors())
-            .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
-        assertFalse(this.manager.isAuthorizedToOpen(userReference, changeRequest));
-
-        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.CLOSED);
-        assertTrue(this.manager.isAuthorizedToOpen(userReference, changeRequest));
-
-        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        DocumentReference changeRequestDoc = mock(DocumentReference.class);
-
-        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
-        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
-        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
-        assertFalse(this.manager.isAuthorizedToOpen(userReference, changeRequest));
-
-        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
-        assertTrue(this.manager.isAuthorizedToOpen(userReference, changeRequest));
     }
 
     @Test

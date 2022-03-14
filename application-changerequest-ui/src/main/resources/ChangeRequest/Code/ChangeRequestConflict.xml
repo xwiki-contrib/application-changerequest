@@ -53,7 +53,7 @@
     #set ($fileChangeRefWithoutLocale = $services.model.resolveDocument($request.get('filechange')))
     #set ($fileChangeRef = $services.model.createDocumentReference($fileChangeRefWithoutLocale, $services.localization.toLocale($request.get('filechangeLocale'))))
     
-    #set ($mergeDocumentOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $fileChangeRef))
+    #set ($mergeDocumentOpt = $services.changerequest.merge.getMergeDocumentResult($changeRequest, $fileChangeRef))
     #if (!$mergeDocumentOpt.isPresent())
       #set ($discard = $response.sendError(500, "Cannot perform merge"))
     #else
@@ -244,23 +244,23 @@
             #set ($discard = $conflictInput.add($request.get("customInput_$conflictReference")))
           #end
           #if ("$!conflictDecision" != '')
-            #set ($newDecisionOpt = $services.changerequest.createConflictDecision($mergeDocument, $conflictReference, $stringtool.capitalize($conflictDecision), $conflictInput))
+            #set ($newDecisionOpt = $services.changerequest.merge.createConflictDecision($mergeDocument, $conflictReference, $stringtool.capitalize($conflictDecision), $conflictInput))
             #if ($newDecisionOpt.isPresent())
               #set ($discard = $allDecisions.add($newDecisionOpt.get()))
             #end
           #end
         #end
-        #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'CUSTOM', $allDecisions))
+        #set ($success = $services.changerequest.merge.fixConflicts($changeRequest, $fileChangeRef, 'CUSTOM', $allDecisions))
         #jsonResponse({
           'success': $success
         })
       #elseif ($decision == 'keepChangeRequest')
-        #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'CHANGE_REQUEST_VERSION', $NULL))
+        #set ($success = $services.changerequest.merge.fixConflicts($changeRequest, $fileChangeRef, 'CHANGE_REQUEST_VERSION', $NULL))
         #jsonResponse({
           'success': $success
         })
       #elseif ($decision == 'keepPublished')
-        #set ($success = $services.changerequest.fixConflicts($changeRequest, $fileChangeRef, 'PUBLISHED_VERSION', $NULL))
+        #set ($success = $services.changerequest.merge.fixConflicts($changeRequest, $fileChangeRef, 'PUBLISHED_VERSION', $NULL))
         #jsonResponse({
           'success': $success
         })

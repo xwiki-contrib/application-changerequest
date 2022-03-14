@@ -38,7 +38,7 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
@@ -72,9 +72,6 @@ import com.xpn.xwiki.web.EditForm;
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
     @Inject
-    private ChangeRequestManager changeRequestManager;
-
-    @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
@@ -92,6 +89,9 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     @Inject
     @Named("context")
     private ComponentManager componentManager;
+
+    @Inject
+    private ChangeRequestMergeManager changeRequestMergeManager;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
@@ -249,7 +249,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         String previousPublishedVersion = latestFileChange.getPreviousPublishedVersion();
         Date previousPublishedVersionDate = latestFileChange.getPreviousPublishedVersionDate();
         Optional<MergeDocumentResult> optionalMergeDocumentResult =
-            this.changeRequestManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
+            this.changeRequestMergeManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
         if (optionalMergeDocumentResult.isPresent()) {
             MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
             String fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, true);

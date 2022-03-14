@@ -58,7 +58,7 @@
 #foreach($row in $map.get('rows'))
   #set ($changeRequestId = $services.model.resolveDocument($row.get('doc_fullName')).lastSpaceReference.name)
   #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
-  #if ($changeRequestOpt.isPresent() &amp;&amp; $services.changerequest.review.isAuthorizedToReview($changeRequestOpt.get(), $request.userDoc))
+  #if ($changeRequestOpt.isPresent() &amp;&amp; $services.changerequest.authorization.isAuthorizedToReview($changeRequestOpt.get(), $request.userDoc))
     #set($discard = $newRows.add($row))
   #end
 #end

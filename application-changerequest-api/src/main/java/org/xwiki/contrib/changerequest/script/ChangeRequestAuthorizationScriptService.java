@@ -1,0 +1,140 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.xwiki.contrib.changerequest.script;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.script.service.ScriptService;
+import org.xwiki.stability.Unstable;
+import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
+
+/**
+ * Script service dedicated to perform authorization check for change request.
+ *
+ * @version $Id$
+ * @since 0.11
+ */
+
+@Component
+@Named("changerequest.authorization")
+@Singleton
+@Unstable
+public class ChangeRequestAuthorizationScriptService implements ScriptService
+{
+    @Inject
+    private ChangeRequestRightsManager changeRequestRightsManager;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    /**
+     * Check if the current user can edit the change request.
+     *
+     * @param changeRequest the change request for which to check the authors.
+     * @return {@code true} if the current user is one of the author of the given change request and the change request
+     *          is not merged or closed yet.
+     * @since 0.7
+     */
+    public boolean isAuthorizedToEdit(ChangeRequest changeRequest)
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToEdit(currentUser, changeRequest);
+    }
+
+    /**
+     * Check if the current user can comment a change request.
+     * @param changeRequest the change request for which to check if it can be commented.
+     * @return {@code true} if the current user is authorized to comment the change request.
+     * @throws ChangeRequestException in case of problem to check the authorization.
+     * @see ChangeRequestRightsManager#isAuthorizedToComment(UserReference, ChangeRequest)
+     * @since 0.11
+     */
+    public boolean isAuthorizedToComment(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToComment(currentUser, changeRequest);
+    }
+
+    /**
+     * Check if the current user is authorized to merge the given changed request.
+     *
+     * @param changeRequest the change request to be checked for merging authorization.
+     * @return {@code true} if the current user has proper rights to merge the given change request.
+     * @throws ChangeRequestException in case of problem when checking the role of the user.
+     * @since 0.3
+     */
+    @Unstable
+    public boolean isAuthorizedToMerge(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToMerge(currentUser, changeRequest);
+    }
+
+    /**
+     * Check if the current user can edit the change request.
+     *
+     * @param changeRequest the change request for which to check the authors.
+     * @return {@code true} if the current user is one of the author of the given change request and the change request
+     *          is not merged yet.
+     * @since 0.9
+     */
+    public boolean isAuthorizedToOpen(ChangeRequest changeRequest)
+    {
+        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToOpen(currentUser, changeRequest);
+    }
+
+    /**
+     * Check if the current user is authorized to review the given change request.
+     *
+     * @param changeRequest the change request about to be reviewed.
+     * @return {@code true} if the change request can be reviewed by current user.
+     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
+     */
+    public boolean isAuthorizedToReview(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToReview(currentUserReference, changeRequest);
+    }
+
+    /**
+     * Check if the given user is authorized to review the given change request.
+     *
+     * @param changeRequest the change request about to be reviewed.
+     * @param userReference the user for which to check if they can review
+     * @return {@code true} if the change request can be reviewed by the given user.
+     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
+     * @since 0.9
+     */
+    @Unstable
+    public boolean isAuthorizedToReview(ChangeRequest changeRequest, UserReference userReference)
+        throws ChangeRequestException
+    {
+        return this.changeRequestRightsManager.isAuthorizedToReview(userReference, changeRequest);
+    }
+}

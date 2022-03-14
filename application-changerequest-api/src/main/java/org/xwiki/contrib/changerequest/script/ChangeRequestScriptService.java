@@ -41,17 +41,12 @@ import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
-import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
-import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.diff.Conflict;
-import org.xwiki.diff.ConflictDecision;
-import org.xwiki.diff.internal.DefaultConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.resource.ResourceReferenceSerializer;
@@ -60,11 +55,8 @@ import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.script.service.ScriptServiceManager;
 import org.xwiki.stability.Unstable;
-import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.url.ExtendedURL;
-import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
-import org.xwiki.user.UserReferenceResolver;
 
 /**
  * Script service for change request.
@@ -83,9 +75,6 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ChangeRequestStorageManager changeRequestStorageManager;
-
-    @Inject
-    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
 
     @Inject
     private ResourceReferenceSerializer<ChangeRequestReference, ExtendedURL> urlResourceReferenceSerializer;
@@ -124,21 +113,6 @@ public class ChangeRequestScriptService implements ScriptService
     public Optional<ChangeRequest> getChangeRequest(String changeRequestId) throws ChangeRequestException
     {
         return this.changeRequestStorageManager.load(changeRequestId);
-    }
-
-    /**
-     * Check if the current user is authorized to merge the given changed request.
-     *
-     * @param changeRequest the change request to be checked for merging authorization.
-     * @return {@code true} if the current user has proper rights to merge the given change request.
-     * @throws ChangeRequestException in case of problem when checking the role of the user.
-     * @since 0.3
-     */
-    @Unstable
-    public boolean isAuthorizedToMerge(ChangeRequest changeRequest) throws ChangeRequestException
-    {
-        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest);
     }
 
     /**
@@ -294,48 +268,6 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
-     * Check if the current user can edit the change request.
-     *
-     * @param changeRequest the change request for which to check the authors.
-     * @return {@code true} if the current user is one of the author of the given change request and the change request
-     *          is not merged or closed yet.
-     * @since 0.7
-     */
-    public boolean isAuthorizedToEdit(ChangeRequest changeRequest)
-    {
-        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToEdit(currentUser, changeRequest);
-    }
-
-    /**
-     * Check if the current user can comment a change request.
-     * @param changeRequest the change request for which to check if it can be commented.
-     * @return {@code true} if the current user is authorized to comment the change request.
-     * @throws ChangeRequestException in case of problem to check the authorization.
-     * @see ChangeRequestManager#isAuthorizedToComment(UserReference, ChangeRequest)
-     * @since 0.11
-     */
-    public boolean isAuthorizedToComment(ChangeRequest changeRequest) throws ChangeRequestException
-    {
-        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToComment(currentUser, changeRequest);
-    }
-
-    /**
-     * Check if the current user can edit the change request.
-     *
-     * @param changeRequest the change request for which to check the authors.
-     * @return {@code true} if the current user is one of the author of the given change request and the change request
-     *          is not merged yet.
-     * @since 0.9
-     */
-    public boolean isAuthorizedToOpen(ChangeRequest changeRequest)
-    {
-        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToOpen(currentUser, changeRequest);
-    }
-
-    /**
      * Mark the given change request as ready for review.
      *
      * @param changeRequest the change request for which to change the status.
@@ -372,94 +304,7 @@ public class ChangeRequestScriptService implements ScriptService
         this.changeRequestManager.updateStatus(changeRequest, ChangeRequestStatus.CLOSED);
     }
 
-    /**
-     * Perform a merge without saving between the changes of the change request related to the given reference, and the
-     * published document with same reference, and returns the merge result.
-     *
-     * @param changeRequest the change request for which to find changes.
-     * @param documentReference the document reference for which to perform a merge.
-     * @return a {@link Optional#empty()} if no change for the given reference can be found or if an error occurs
-     *         during the merge, else an optional containing the {@link MergeDocumentResult}.
-     * @throws ChangeRequestException in case of problem for loading information.
-     * @since 0.4
-     */
-    public Optional<ChangeRequestMergeDocumentResult> getMergeDocumentResult(ChangeRequest changeRequest,
-        DocumentReference documentReference) throws ChangeRequestException
-    {
-        Optional<ChangeRequestMergeDocumentResult> result = Optional.empty();
-        Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-        if (optionalFileChange.isPresent()) {
-            ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
-                this.changeRequestManager.getMergeDocumentResult(optionalFileChange.get());
-            result = Optional.of(changeRequestMergeDocumentResult);
-        }
-        return result;
-    }
 
-    /**
-     * Allow to create a {@link ConflictDecision} based on the given parameters.
-     *
-     * @param mergeDocumentResult the merge result for which to create a conflict decision.
-     * @param conflictReference the reference of the conflict for which to create the decision.
-     * @param decisionType the decision taken for fixing the conflict.
-     * @param customResolution a custom resolution input. Note that if this parameter is given, then the decisionType
-     *                         will be set to custom.
-     * @return an {@link Optional#empty()} if no conflict matches the given reference in the merge result, else returns
-     *          a {@link ConflictDecision} with the appropriate information to be used in
-     *          {@link #fixConflicts(ChangeRequest, DocumentReference, ConflictResolutionChoice, List)}.
-     * @since 0.4
-     */
-    public Optional<ConflictDecision<?>> createConflictDecision(MergeDocumentResult mergeDocumentResult,
-        String conflictReference, ConflictDecision.DecisionType decisionType, List<Object> customResolution)
-    {
-        Optional<ConflictDecision<?>> result = Optional.empty();
-        Conflict<?> concernedConflict = null;
-        for (Conflict<?> conflict : mergeDocumentResult.getConflicts()) {
-            if (StringUtils.equals(conflictReference, conflict.getReference())) {
-                concernedConflict = conflict;
-                break;
-            }
-        }
-        if (concernedConflict != null) {
-            ConflictDecision<Object> decision = new DefaultConflictDecision<>(concernedConflict);
-            decision.setType(decisionType);
-            if (customResolution != null && !customResolution.isEmpty()) {
-                decision.setCustom(customResolution);
-            }
-            result = Optional.of(decision);
-        }
-
-        return result;
-    }
-
-    /**
-     * Fix conflicts related to the given {@link MergeDocumentResult} by applying the given decision.
-     *
-     * @param changeRequest the change request for which to fix the conflicts.
-     * @param documentReference the document reference for which to perform a merge.
-     * @param resolutionChoice the global choice to make.
-     * @param customDecisions the specific decisions in case the resolution choice was
-     *          {@link ConflictResolutionChoice#CUSTOM}.
-     * @return {@code true} if the conflicts were properly fixed, {@code false} if any problem occurs preventing to fix
-     *          the conflict.
-     * @throws ChangeRequestException in case of problem for applying decisions.
-     * @since 0.4
-     */
-    public boolean fixConflicts(ChangeRequest changeRequest, DocumentReference documentReference,
-        ConflictResolutionChoice resolutionChoice, List<ConflictDecision<?>> customDecisions)
-        throws ChangeRequestException
-    {
-        boolean result = false;
-        if (this.canFixConflict(changeRequest, documentReference)) {
-            Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-            if (optionalFileChange.isPresent()) {
-                result = this.changeRequestManager
-                    .mergeWithConflictDecision(optionalFileChange.get(), resolutionChoice, customDecisions);
-            }
-        }
-
-        return result;
-    }
 
     /**
      * Retrieve the {@link MergeApprovalStrategy} to be used.
@@ -472,23 +317,6 @@ public class ChangeRequestScriptService implements ScriptService
     public MergeApprovalStrategy getMergeApprovalStrategy() throws ChangeRequestException
     {
         return this.changeRequestManager.getMergeApprovalStrategy();
-    }
-
-    /**
-     * Check if the current user can fix a conflict related to the given document reference in the given change request.
-     * @param changeRequest the change request concerned by a conflict.
-     * @param documentReference the reference of the document concerned by the conflict.
-     * @return {@code true} if the current user is authorized to fix the conflict.
-     * @since 0.4
-     */
-    public boolean canFixConflict(ChangeRequest changeRequest, DocumentReference documentReference)
-    {
-        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-        if (optionalFileChange.isPresent()) {
-            return this.changeRequestManager.isAuthorizedToFixConflict(currentUserReference, optionalFileChange.get());
-        }
-        return false;
     }
 
     /**

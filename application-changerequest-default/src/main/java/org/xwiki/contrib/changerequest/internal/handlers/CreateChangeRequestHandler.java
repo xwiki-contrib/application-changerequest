@@ -36,7 +36,6 @@ import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
@@ -79,9 +78,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
-
-    @Inject
-    private ChangeRequestManager changeRequestManager;
 
     @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;

@@ -38,6 +38,8 @@
   <!-- FIXME: this should be improved in the future -->
   <suppress checks="ClassFanOutComplexity" files="DefaultFileChangeStorageManager.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestManager.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestRightsManager.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestMergeManager.java"/>
   <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestStorageManager.java"/>
   <suppress checks="ClassFanOutComplexity" files="AddChangesChangeRequestHandler.java"/>
   <suppress checks="ClassFanOutComplexity" files="CreateChangeRequestHandler.java"/>

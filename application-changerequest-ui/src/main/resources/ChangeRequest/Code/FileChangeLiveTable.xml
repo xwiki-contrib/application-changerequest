@@ -61,7 +61,7 @@ Technical page for getting livetable data for change request file changes.
     #foreach ($docReference in $references)
       #set ($concernedDoc = $xwiki.getDocument($docReference))
       #set ($hasConflicts = false)
-      #set ($mergedDocumentResultOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $docReference))
+      #set ($mergedDocumentResultOpt = $services.changerequest.merge.getMergeDocumentResult($changeRequest, $docReference))
       #if ($mergedDocumentResultOpt.isPresent())
         #set ($hasConflicts = $mergedDocumentResultOpt.get().hasConflicts())
       #end
@@ -69,7 +69,7 @@ Technical page for getting livetable data for change request file changes.
       #set ($editUrl = $concernedDoc.getURL('editcr', "changerequest=$changeRequest.id"))
       #set ($isExtensionPage = $services.extension.xar.isExtensionDocument($docReference))
       #set ($canEditFile = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $docReference))
-      #set ($canEditCR = $services.changerequest.isAuthorizedToEdit($changeRequest))
+      #set ($canEditCR = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
       #set ($hasCREdit = $canEditFile &amp;&amp; $canEditCR)
       #set ($lastFileChangeOpt = $changeRequest.getLatestFileChangeFor($docReference))
       #if ($lastFileChangeOpt.isPresent())

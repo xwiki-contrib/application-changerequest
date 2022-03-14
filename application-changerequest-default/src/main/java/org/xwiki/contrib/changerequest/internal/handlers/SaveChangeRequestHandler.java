@@ -34,7 +34,6 @@ import org.xwiki.container.servlet.ServletRequest;
 import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
@@ -71,9 +70,6 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     @Inject
     private Container container;
 
-    @Inject
-    private ChangeRequestManager changeRequestManager;
-
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
         throws ChangeRequestException, IOException
@@ -108,8 +104,9 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             boolean isReopenAuthorized = changeRequest.getStatus() == ChangeRequestStatus.CLOSED
                 && (changeRequestStatus == ChangeRequestStatus.READY_FOR_REVIEW
                 || changeRequestStatus == ChangeRequestStatus.DRAFT)
-                && this.changeRequestManager.isAuthorizedToOpen(getCurrentUser(), changeRequest);
-            if (!this.changeRequestManager.isAuthorizedToEdit(getCurrentUser(), changeRequest) && !isReopenAuthorized) {
+                && this.changeRequestRightsManager.isAuthorizedToOpen(getCurrentUser(), changeRequest);
+            if (!this.changeRequestRightsManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)
+                && !isReopenAuthorized) {
                 response
                     .sendError(HttpServletResponse.SC_FORBIDDEN, AUTHORIZATION_ERROR);
             } else {
@@ -126,7 +123,7 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     private boolean handleDescriptionUpdate(HttpServletRequest request, HttpServletResponse response,
         ChangeRequest changeRequest) throws ChangeRequestException, IOException
     {
-        if (this.changeRequestManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)) {
+        if (this.changeRequestRightsManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)) {
             String content = getContent(request);
             changeRequest.setDescription(content);
             this.storageManager.save(changeRequest);

@@ -27,11 +27,11 @@ import org.xwiki.contrib.rights.SecurityRuleDiff;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.stability.Unstable;
+import org.xwiki.user.UserReference;
 
 /**
- * Component responsible to handle the rights synchronization between change requests and modified documents.
- * Note that this component is not related with {@link org.xwiki.contrib.changerequest.rights.ChangeRequestRight}
- * despite its name.
+ * Component responsible to handle the rights synchronization between change requests and modified documents, and to
+ * perform different rights checks for change request.
  *
  * @version $Id$
  * @since 0.7
@@ -96,4 +96,59 @@ public interface ChangeRequestRightsManager
      * @throws ChangeRequestException in case of problem when applying the changes.
      */
     void applyChanges(ChangeRequest changeRequest, List<SecurityRuleDiff> ruleDiffList) throws ChangeRequestException;
+
+    /**
+     * Check if the given user is authorized to merge the given change request.
+     *
+     * @param userReference the user for which to check the authorizations
+     * @param changeRequest the change request to check
+     * @return {@code true} if the user has the appropriate rights to perform the merge.
+     * @throws ChangeRequestException in case of problem when checking if the user is an approver.
+     */
+    boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest) throws ChangeRequestException;
+
+    /**
+     * Check if the given user is authorized to review the given change request.
+     *
+     * @param userReference the user for which to check authorizations.
+     * @param changeRequest the change request to review.
+     * @return {@code true} if the user is not one of the change request author and it authorized to review it.
+     * @throws ChangeRequestException in case of problem when checking if a user is an approver.
+     */
+    boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException;
+
+    /**
+     * Check if an user is authorized to comment a change request. This method should always check first if the user
+     * is authorized to review (see {@link #isAuthorizedToReview(UserReference, ChangeRequest)}) and allow to comment if
+     * that's the case. Then it should fallback on checking if the user has comment right.
+     *
+     * @param userReference the user for which to check rights.
+     * @param changeRequest the change request for which to check if the user can comment.
+     * @return {@code true} if the user is authorized to post a comment.
+     * @throws ChangeRequestException in case of problem when checking if a user is an approver.
+     */
+    boolean isAuthorizedToComment(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException;
+
+    /**
+     * Define if the given user is authorized to edit the given change request. An edition can be either changing the
+     * status, modifying the description, or even rebasing the change request.
+     * Only change request that are opened can be edited, and only authors or administrators of the change
+     * request document are authorized to do it.
+     * @param userReference the user for which to check rights.
+     * @param changeRequest the change request to check if it can be edited.
+     * @return {@code true} if the given user can edit the change request, {@code false otherwise}.
+     */
+    boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest);
+
+    /**
+     * Define if the given user is authorized to re-open a closed change request. This method basically performs the
+     * same checks as {@link #isAuthorizedToEdit(UserReference, ChangeRequest)} except that it always returns false for
+     * merged change requests.
+     * @param userReference the user for which to check rights.
+     * @param changeRequest the change request to check if it can be re-opened.
+     * @return {@code true} if the given user can re-open the change request, {@code false otherwise}.
+     */
+    boolean isAuthorizedToOpen(UserReference userReference, ChangeRequest changeRequest);
 }

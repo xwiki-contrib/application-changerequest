@@ -34,7 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -88,6 +90,12 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     protected FileChangeVersionManager fileChangeVersionManager;
+
+    @Inject
+    protected ChangeRequestRightsManager changeRequestRightsManager;
+
+    @Inject
+    protected ChangeRequestManager changeRequestManager;
 
     @Inject
     private RequestParameterConverter requestParameterConverter;

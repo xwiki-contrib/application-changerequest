@@ -1,2 +1,4 @@
 org.xwiki.contrib.changerequest.script.ChangeRequestScriptService
 org.xwiki.contrib.changerequest.script.ChangeRequestReviewScriptService
+org.xwiki.contrib.changerequest.script.ChangeRequestAuthorizationScriptService
+org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService

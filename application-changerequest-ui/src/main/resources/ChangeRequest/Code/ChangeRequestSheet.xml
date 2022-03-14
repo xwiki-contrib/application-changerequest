@@ -54,10 +54,10 @@
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
-#set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
+#set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
 #set ($displayDocExtra = false)
 #set ($changeRequestSheetJSXConfig = {
-  'hasCommentRight': $services.changerequest.isAuthorizedToComment($changeRequest)
+  'hasCommentRight': $services.changerequest.authorization.isAuthorizedToComment($changeRequest)
 })
 
 {{html clean="false"}}
@@ -135,7 +135,7 @@
             &lt;/div&gt;
           #end
         #end
-        #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.isAuthorizedToComment($changeRequest))
+        #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
         &lt;div class="add-comment"&gt;
           #set ($discussionCommentReference = $services.changerequest.discussion.createChangeRequestCommentDiscussion($changeRequestId))
           #set ($discussionCommentReferenceString = $services.discussions.serialize($discussionCommentReference))
@@ -232,7 +232,7 @@
 &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
 #template('diff_macros.vm')
 #foreach ($ref in $modifiedFiles)
-  #set ($crMergeDocumentResultOpt = $services.changerequest.getMergeDocumentResult($changeRequest, $ref))
+  #set ($crMergeDocumentResultOpt = $services.changerequest.merge.getMergeDocumentResult($changeRequest, $ref))
   #if ($crMergeDocumentResultOpt.isPresent())
   &lt;div class="panel panel-default"&gt;
     #set ($crMergeDocumentResult = $crMergeDocumentResultOpt.get())
@@ -3480,7 +3480,7 @@ tr.discussion-line:hover {
 #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
 #if ($changeRequestOpt.isPresent())
 #set ($changeRequest = $changeRequestOpt.get())
-#set ($isAuthorizedToMerge = $services.changerequest.isAuthorizedToMerge($changeRequest))
+#set ($isAuthorizedToMerge = $services.changerequest.authorization.isAuthorizedToMerge($changeRequest))
 #set ($closeUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=closed&amp;form_token=$services.csrf.token")
 #set ($readyForReviewUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token")
 #set ($draftUrl = "$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=draft&amp;form_token=$services.csrf.token")
@@ -3488,8 +3488,8 @@ tr.discussion-line:hover {
 #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
 #set ($status = $changeRequest.status)
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
-#set ($canBeReviewed = $services.changerequest.review.isAuthorizedToReview($changeRequest))
-#set ($canBeEdited = $services.changerequest.isAuthorizedToEdit($changeRequest))
+#set ($canBeReviewed = $services.changerequest.authorization.isAuthorizedToReview($changeRequest))
+#set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
 #if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
@@ -3561,7 +3561,7 @@ tr.discussion-line:hover {
 &lt;/div&gt;
 {{/html}}
 #elseif ($changeRequest.status == 'CLOSED' || $changeRequest.status == 'STALE')
-#set ($canBeOpened = $services.changerequest.isAuthorizedToOpen($changeRequest))
+#set ($canBeOpened = $services.changerequest.authorization.isAuthorizedToOpen($changeRequest))
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
   &lt;a href="$services.changerequest.getChangeRequestURL('save', $changeRequestId)?status=ready_for_review&amp;form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.open.button.title')" class="btn btn-primary cr-open #if(!$canBeOpened)disabled#end"&gt;

@@ -36,7 +36,6 @@ import org.xwiki.container.servlet.ServletRequest;
 import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
@@ -56,9 +55,6 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
 {
     private static final String REFERENCE_PARAMETER = "referenceParameter";
     private static final String LOCALE_PARAMETER = "locale";
-
-    @Inject
-    private ChangeRequestManager changeRequestManager;
 
     @Inject
     private Container container;
@@ -96,7 +92,7 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
         throws ChangeRequestException, IOException
     {
         if (allFileChanges || specificFileChange.isPresent()) {
-            if (this.changeRequestManager.isAuthorizedToEdit(this.getCurrentUser(), changeRequest)) {
+            if (this.changeRequestRightsManager.isAuthorizedToEdit(this.getCurrentUser(), changeRequest)) {
                 this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(),
                     changeRequest.getId(), changeRequest);
                 if (allFileChanges) {

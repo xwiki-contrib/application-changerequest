@@ -24,51 +24,35 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.inject.Named;
-
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentModelBridge;
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
-import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
-import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.diff.Chunk;
-import org.xwiki.diff.Conflict;
-import org.xwiki.diff.ConflictDecision;
-import org.xwiki.diff.Delta;
-import org.xwiki.diff.internal.DefaultConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
-import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.url.ExtendedURL;
-import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
-import org.xwiki.user.UserReferenceResolver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -89,9 +73,6 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private ChangeRequestStorageManager changeRequestStorageManager;
-
-    @MockComponent
-    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
 
     @MockComponent
     private ResourceReferenceSerializer<ChangeRequestReference, ExtendedURL> urlResourceReferenceSerializer;
@@ -115,17 +96,6 @@ class ChangeRequestScriptServiceTest
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.changeRequestStorageManager.load(id)).thenReturn(Optional.of(changeRequest));
         assertEquals(Optional.of(changeRequest), this.scriptService.getChangeRequest(id));
-    }
-
-    @Test
-    void isAuthorizedToMerge() throws ChangeRequestException
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToMerge(userReference, changeRequest)).thenReturn(true);
-        assertTrue(this.scriptService.isAuthorizedToMerge(changeRequest));
-        verify(this.changeRequestManager).isAuthorizedToMerge(userReference, changeRequest);
     }
 
     @Test
@@ -196,19 +166,6 @@ class ChangeRequestScriptServiceTest
     }
 
     @Test
-    void isAuthorizedToEdit()
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToEdit(userReference, changeRequest))
-            .thenReturn(false);
-        assertFalse(this.scriptService.isAuthorizedToEdit(changeRequest));
-
-        verify(this.changeRequestManager).isAuthorizedToEdit(userReference, changeRequest);
-    }
-
-    @Test
     void setReadyForReview() throws ChangeRequestException
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
@@ -231,102 +188,6 @@ class ChangeRequestScriptServiceTest
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         this.scriptService.setClose(changeRequest);
         verify(this.changeRequestManager).updateStatus(changeRequest, ChangeRequestStatus.CLOSED);
-    }
-
-    @Test
-    void getMergeDocumentResult() throws ChangeRequestException
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        DocumentReference documentReference = mock(DocumentReference.class);
-
-        when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.empty());
-        assertEquals(Optional.empty(), this.scriptService.getMergeDocumentResult(changeRequest, documentReference));
-
-        FileChange fileChange = mock(FileChange.class);
-        when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.of(fileChange));
-        ChangeRequestMergeDocumentResult expected = mock(ChangeRequestMergeDocumentResult.class);
-        when(this.changeRequestManager.getMergeDocumentResult(fileChange)).thenReturn(expected);
-        assertEquals(Optional.of(expected),
-            this.scriptService.getMergeDocumentResult(changeRequest, documentReference));
-    }
-
-    @Test
-    void createConflictDecision()
-    {
-        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
-        String conflictReference = "a reference";
-        ConflictDecision.DecisionType decisionType = ConflictDecision.DecisionType.CURRENT;
-        List<Object> customResolution = mock(List.class);
-
-        Conflict<Object> expectedConflict = mock(Conflict.class);
-        when(mergeDocumentResult.getConflicts()).thenReturn(Arrays.asList(
-            mock(Conflict.class),
-            mock(Conflict.class),
-            mock(Conflict.class)
-        ));
-        assertEquals(Optional.empty(),
-            this.scriptService.createConflictDecision(mergeDocumentResult, conflictReference, null, null));
-
-        when(mergeDocumentResult.getConflicts()).thenReturn(Arrays.asList(
-            mock(Conflict.class),
-            mock(Conflict.class),
-            expectedConflict,
-            mock(Conflict.class)
-        ));
-        when(expectedConflict.getReference()).thenReturn(conflictReference);
-        ConflictDecision<Object> expected = new DefaultConflictDecision<>(expectedConflict);
-        Delta<Object> deltaCurrent = mock(Delta.class);
-        when(expectedConflict.getDeltaCurrent()).thenReturn(deltaCurrent);
-        Chunk<Object> currentChunk = mock(Chunk.class);
-        when(deltaCurrent.getNext()).thenReturn(currentChunk);
-        expected.setType(decisionType);
-        assertEquals(Optional.of(expected),
-            this.scriptService.createConflictDecision(mergeDocumentResult, conflictReference, decisionType, null));
-
-        expected.setCustom(customResolution);
-        assertEquals(Optional.of(expected),
-            this.scriptService.createConflictDecision(mergeDocumentResult, conflictReference, decisionType,
-                customResolution));
-    }
-
-    @Test
-    void canFixConflict()
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        DocumentReference documentReference = mock(DocumentReference.class);
-        when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.empty());
-        assertFalse(this.scriptService.canFixConflict(changeRequest, documentReference));
-
-        FileChange fileChange = mock(FileChange.class);
-        when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.of(fileChange));
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        when(this.changeRequestManager.isAuthorizedToFixConflict(userReference, fileChange)).thenReturn(true);
-        assertTrue(this.scriptService.canFixConflict(changeRequest, documentReference));
-        verify(this.changeRequestManager).isAuthorizedToFixConflict(userReference, fileChange);
-    }
-
-    @Test
-    void fixConflicts() throws ChangeRequestException
-    {
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        DocumentReference documentReference = mock(DocumentReference.class);
-        FileChange fileChange = mock(FileChange.class);
-        UserReference userReference = mock(UserReference.class);
-        when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.of(fileChange));
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        when(this.changeRequestManager.isAuthorizedToFixConflict(userReference, fileChange)).thenReturn(false);
-        assertFalse(this.scriptService
-            .fixConflicts(changeRequest, documentReference, ConflictResolutionChoice.CHANGE_REQUEST_VERSION, null));
-        verify(this.changeRequestManager, never()).mergeWithConflictDecision(any(), any(), any());
-
-        when(this.changeRequestManager.isAuthorizedToFixConflict(userReference, fileChange)).thenReturn(true);
-        List<ConflictDecision<?>> customDecision = mock(List.class);
-        when(this.changeRequestManager
-            .mergeWithConflictDecision(fileChange, ConflictResolutionChoice.CHANGE_REQUEST_VERSION, customDecision))
-            .thenReturn(true);
-        assertTrue(this.scriptService.fixConflicts(changeRequest, documentReference,
-            ConflictResolutionChoice.CHANGE_REQUEST_VERSION, customDecision));
     }
 
     @Test

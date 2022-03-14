@@ -40,3 +40,4 @@ org.xwiki.contrib.changerequest.internal.checkers.ChangeRequestStatusChecker
 org.xwiki.contrib.changerequest.internal.handlers.CreateInChangeRequestResourceHandler
 org.xwiki.contrib.changerequest.internal.TemplateProviderSupportChecker
 org.xwiki.contrib.changerequest.internal.jobs.ChangeRequestSchedulerJobManager
+org.xwiki.contrib.changerequest.internal.DefaultChangeRequestMergeManager

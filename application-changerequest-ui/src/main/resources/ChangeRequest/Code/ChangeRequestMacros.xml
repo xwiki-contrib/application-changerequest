@@ -67,7 +67,7 @@
     &lt;span class="message-author"&gt;#wrappedDisplayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
     &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
     &lt;span class="message-badges"&gt;
-      #if ($services.changerequest.isAuthorizedToComment($changeRequest))
+      #if ($services.changerequest.authorization.isAuthorizedToComment($changeRequest))
       &lt;span class="reply"&gt;
         &lt;button class="btn badge reply-button" type="button" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.reply.button.title'))"&gt;
           $services.icon.renderHTML('comments') $services.localization.render('changerequest.sheet.message.reply.button')

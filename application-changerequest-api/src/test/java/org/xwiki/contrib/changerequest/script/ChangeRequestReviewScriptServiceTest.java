@@ -22,16 +22,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
+import javax.inject.Named;
+import javax.inject.Provider;
+
 import org.junit.jupiter.api.Test;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
+import org.xwiki.script.service.ScriptService;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -39,8 +45,6 @@ import org.xwiki.user.UserReferenceResolver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -67,27 +71,26 @@ class ChangeRequestReviewScriptServiceTest
     @MockComponent
     private ReviewStorageManager reviewStorageManager;
 
-    @Test
-    void isAuthorizedToReview() throws ChangeRequestException
-    {
-        UserReference userReference = mock(UserReference.class);
-        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
-        ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest)).thenReturn(true);
-        assertTrue(this.scriptService.isAuthorizedToReview(changeRequest));
-        verify(this.changeRequestManager).isAuthorizedToReview(userReference, changeRequest);
-    }
+    @MockComponent
+    @Named("context")
+    private Provider<ComponentManager> componentManagerProvider;
 
     @Test
-    void addReview() throws ChangeRequestException
+    void addReview(MockitoComponentManager mockitoComponentManager) throws Exception
     {
         UserReference userReference = mock(UserReference.class);
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
+        when(this.componentManagerProvider.get()).thenReturn(mockitoComponentManager);
+        ChangeRequestAuthorizationScriptService authorizationScriptService =
+            mock(ChangeRequestAuthorizationScriptService.class);
+        mockitoComponentManager.registerComponent(ScriptService.class, "changerequest.authorization",
+            authorizationScriptService);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
-        when(this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest)).thenReturn(true);
+        when(authorizationScriptService.isAuthorizedToReview(changeRequest)).thenReturn(true);
         ChangeRequestReview review = mock(ChangeRequestReview.class);
         when(this.changeRequestManager.addReview(changeRequest, userReference, false)).thenReturn(review);
         assertEquals(review, this.scriptService.addReview(changeRequest, false));
+        verify(authorizationScriptService).isAuthorizedToReview(changeRequest);
     }
 
     @Test

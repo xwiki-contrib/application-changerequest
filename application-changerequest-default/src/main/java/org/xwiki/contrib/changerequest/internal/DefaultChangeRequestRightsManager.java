@@ -31,9 +31,14 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.rights.RightsReader;
 import org.xwiki.contrib.rights.RightsWriter;
 import org.xwiki.contrib.rights.SecurityRuleAbacus;
@@ -50,6 +55,8 @@ import org.xwiki.security.authorization.ReadableSecurityRule;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.security.authorization.RightSet;
 import org.xwiki.security.authorization.RuleState;
+import org.xwiki.user.GuestUserReference;
+import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWikiException;
 
@@ -77,6 +84,15 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
 
     @Inject
     private RightsReader rightsReader;
+
+    @Inject
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @Inject
+    private UserReferenceConverter userReferenceConverter;
+
+    @Inject
+    private ChangeRequestConfiguration configuration;
 
     @Override
     public void copyAllButViewRights(ChangeRequest originalChangeRequest, ChangeRequest targetChangeRequest)
@@ -450,5 +466,114 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         if (!actionsToPerform.isEmpty()) {
             this.applyActions(changeRequest, actionsToPerform, ruleDiffList);
         }
+    }
+
+    @Override
+    public boolean isAuthorizedToMerge(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        boolean result = true;
+
+        // The merger user is taken from the configuration if a merger user is defined, and this is the user
+        // who should be checked for the proper edit/delete rights.
+        // Now the approval right should only be checked on the current user reference.
+        UserReference mergerUserReference = userReference;
+        UserReference mergeUserReference = this.configuration.getMergeUser();
+        if (mergeUserReference != GuestUserReference.INSTANCE) {
+            mergerUserReference = mergeUserReference;
+        }
+        DocumentReference mergeUserDocReference = this.userReferenceConverter.convert(mergerUserReference);
+        DocumentReference currentUserDocReference = this.userReferenceConverter.convert(userReference);
+
+        // This method is only checking if the user is an approver, so even with the fallback it's possible that
+        // an admin user has approval right, but is not an approver of this specific change request, because a
+        // list of approver is defined in it. So we cannot forbid merging a change request for people who are not
+        // explicitely approvers.
+        // Instead, we check in each file if the approval right is granted in case the user is not approver:
+        // users who have proper write authorization, and proper approval right should be able to merge if they're not
+        // explicitely approvers of the given change request.
+        // This choice is mainly to avoid blocking a change request, in case approvers do not have write access
+        // which can be quite common.
+        boolean isApprover = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
+
+        for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
+            Right rightToBeChecked;
+            switch (lastFileChange.getType()) {
+                case DELETION:
+                    rightToBeChecked = Right.DELETE;
+                    break;
+
+                case EDITION:
+                case CREATION:
+                default:
+                    rightToBeChecked = Right.EDIT;
+                    break;
+            }
+            DocumentReference targetEntity = lastFileChange.getTargetEntity();
+            // We check the write right on the merge user, and the approval right on the current user.
+            boolean hasWriteRight = this.authorizationManager
+                .hasAccess(rightToBeChecked, mergeUserDocReference, targetEntity);
+            boolean hasApprovalRight = this.authorizationManager
+                .hasAccess(ChangeRequestApproveRight.getRight(), currentUserDocReference, targetEntity);
+
+            if (!(hasWriteRight && (isApprover || hasApprovalRight))) {
+                result = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        boolean result = false;
+        if (!(changeRequest.getAuthors().contains(userReference))) {
+            result = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToComment(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        boolean hasAdminRight = this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc);
+        boolean hasCommentRight =
+            this.authorizationManager.hasAccess(Right.COMMENT, userDocReference, changeRequestDoc);
+        return hasAdminRight || this.isAuthorizedToReview(userReference, changeRequest) || hasCommentRight;
+    }
+
+    private boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest,
+        boolean checkForOpening)
+    {
+        boolean result = false;
+        ChangeRequestStatus status = changeRequest.getStatus();
+        if (status != ChangeRequestStatus.MERGED && (status.isOpen() || checkForOpening)) {
+            if (changeRequest.getAuthors().contains(userReference)) {
+                result = true;
+            } else {
+                DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+                DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+                result = this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToEdit(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return this.isAuthorizedToEdit(userReference, changeRequest, false);
+    }
+
+    @Override
+    public boolean isAuthorizedToOpen(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return this.isAuthorizedToEdit(userReference, changeRequest, true);
     }
 }

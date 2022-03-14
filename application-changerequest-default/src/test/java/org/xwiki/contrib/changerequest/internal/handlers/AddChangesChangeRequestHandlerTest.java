@@ -30,6 +30,7 @@ import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
@@ -110,6 +111,9 @@ class AddChangesChangeRequestHandlerTest
 
     @MockComponent
     private ChangeRequestRightsManager changeRequestRightsManager;
+
+    @MockComponent
+    private ChangeRequestMergeManager changeRequestMergeManager;
 
     private XWikiContext context;
     private XWiki wiki;
@@ -231,7 +235,7 @@ class AddChangesChangeRequestHandlerTest
         when(existingFileChange.getPreviousPublishedVersion()).thenReturn("1.1");
         when(existingFileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(58));
         MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
-        when(this.changeRequestManager.mergeDocumentChanges(document, "2.1", changeRequest))
+        when(this.changeRequestMergeManager.mergeDocumentChanges(document, "2.1", changeRequest))
             .thenReturn(Optional.of(mergeDocumentResult));
         when(this.fileChangeVersionManager.getNextFileChangeVersion("2.1", true)).thenReturn("filechange-2.2");
         when(mergeDocumentResult.hasConflicts()).thenReturn(false);

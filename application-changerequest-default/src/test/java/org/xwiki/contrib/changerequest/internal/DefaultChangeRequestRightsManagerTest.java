@@ -31,8 +31,13 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import org.junit.jupiter.api.Test;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.internal.approvers.ChangeRequestApproversManager;
 import org.xwiki.contrib.rights.RightsReader;
 import org.xwiki.contrib.rights.RightsWriter;
 import org.xwiki.contrib.rights.SecurityRuleAbacus;
@@ -52,6 +57,8 @@ import org.xwiki.security.authorization.RuleState;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.user.GuestUserReference;
+import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWikiException;
 
@@ -61,6 +68,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,6 +98,15 @@ class DefaultChangeRequestRightsManagerTest
 
     @MockComponent
     private RightsReader rightsReader;
+
+    @MockComponent
+    private UserReferenceConverter userReferenceConverter;
+
+    @MockComponent
+    private ChangeRequestConfiguration configuration;
+
+    @MockComponent
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     @Test
     void copyAllButViewRights() throws AuthorizationException, ChangeRequestException, XWikiException
@@ -546,5 +563,156 @@ class DefaultChangeRequestRightsManagerTest
             diff4,
             diff5));
         verify(this.rightsWriter).saveRules(any(), eq(changeRequestSpaceRef));
+    }
+
+    @Test
+    void isAuthorizedToMergeWithoutMergeUser() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        when(this.configuration.getMergeUser()).thenReturn(GuestUserReference.INSTANCE);
+
+        FileChange fileChange1 = mock(FileChange.class);
+        FileChange fileChange2 = mock(FileChange.class);
+        when(fileChange1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange2.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+
+        DocumentReference reference1 = mock(DocumentReference.class);
+        DocumentReference reference2 = mock(DocumentReference.class);
+        when(fileChange1.getTargetEntity()).thenReturn(reference1);
+        when(fileChange2.getTargetEntity()).thenReturn(reference2);
+
+        when(changeRequest.getLastFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
+
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(false);
+        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference1)).thenReturn(false);
+        when(this.authorizationManager.hasAccess(Right.DELETE, userDocReference, reference2)).thenReturn(false);
+
+        assertFalse(this.rightsManager.isAuthorizedToMerge(userReference, changeRequest));
+
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToMerge(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference1)).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToMerge(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference2)).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToMerge(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.DELETE, userDocReference, reference2)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToMerge(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.EDIT, userDocReference, reference2)).thenReturn(false);
+        assertTrue(this.rightsManager.isAuthorizedToMerge(userReference, changeRequest));
+    }
+
+    @Test
+    void isAuthorizedToMergeWithMergeUser() throws ChangeRequestException
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        UserReference currentUserReference = mock(UserReference.class);
+        DocumentReference currentUserDocReference = mock(DocumentReference.class);
+        when(this.userReferenceConverter.convert(currentUserReference)).thenReturn(currentUserDocReference);
+
+        UserReference mergeUserReference = mock(UserReference.class);
+        DocumentReference mergeUserDocReference = mock(DocumentReference.class);
+        when(this.userReferenceConverter.convert(mergeUserReference)).thenReturn(mergeUserDocReference);
+        when(this.configuration.getMergeUser()).thenReturn(mergeUserReference);
+
+        FileChange fileChange1 = mock(FileChange.class);
+        FileChange fileChange2 = mock(FileChange.class);
+        when(fileChange1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange2.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+
+        DocumentReference reference1 = mock(DocumentReference.class);
+        DocumentReference reference2 = mock(DocumentReference.class);
+        when(fileChange1.getTargetEntity()).thenReturn(reference1);
+        when(fileChange2.getTargetEntity()).thenReturn(reference2);
+
+        when(changeRequest.getLastFileChanges()).thenReturn(Arrays.asList(fileChange1, fileChange2));
+
+        when(this.changeRequestApproversManager.isApprover(currentUserReference, changeRequest, false))
+            .thenReturn(false);
+        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference1)).thenReturn(false);
+        when(this.authorizationManager.hasAccess(Right.DELETE, mergeUserDocReference, reference2)).thenReturn(false);
+
+        assertFalse(this.rightsManager.isAuthorizedToMerge(currentUserReference, changeRequest));
+
+        when(this.changeRequestApproversManager.isApprover(currentUserReference, changeRequest, false))
+            .thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToMerge(currentUserReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference1)).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToMerge(currentUserReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference2)).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToMerge(currentUserReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.DELETE, mergeUserDocReference, reference2)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToMerge(currentUserReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.EDIT, mergeUserDocReference, reference2)).thenReturn(false);
+        assertTrue(this.rightsManager.isAuthorizedToMerge(currentUserReference, changeRequest));
+
+        verify(this.authorizationManager, never())
+            .hasAccess(eq(Right.EDIT), eq(currentUserDocReference), any(DocumentReference.class));
+    }
+
+    @Test
+    void isAuthorizedToEdit()
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        UserReference userReference = mock(UserReference.class);
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(changeRequest.getAuthors())
+            .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
+        assertFalse(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.DRAFT);
+        assertTrue(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        DocumentReference changeRequestDoc = mock(DocumentReference.class);
+
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
+    }
+
+    @Test
+    void isAuthorizedToOpen()
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        UserReference userReference = mock(UserReference.class);
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(changeRequest.getAuthors())
+            .thenReturn(new HashSet<>(Arrays.asList(userReference, mock(UserReference.class))));
+        assertFalse(this.rightsManager.isAuthorizedToOpen(userReference, changeRequest));
+
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.CLOSED);
+        assertTrue(this.rightsManager.isAuthorizedToOpen(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        DocumentReference changeRequestDoc = mock(DocumentReference.class);
+
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToOpen(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToOpen(userReference, changeRequest));
     }
 }

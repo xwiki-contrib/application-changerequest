@@ -23,10 +23,13 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -61,6 +64,10 @@ public class ChangeRequestReviewScriptService implements ScriptService
     private ReviewStorageManager reviewStorageManager;
 
     @Inject
+    @Named("context")
+    private Provider<ComponentManager> componentManagerProvider;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -76,41 +83,19 @@ public class ChangeRequestReviewScriptService implements ScriptService
     {
         ChangeRequestReview review = null;
         UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        if (this.isAuthorizedToReview(changeRequest)) {
+        ChangeRequestAuthorizationScriptService authorizationScriptService = null;
+        try {
+            authorizationScriptService = this.componentManagerProvider.get()
+                .getInstance(ScriptService.class, "changerequest.authorization");
+        } catch (ComponentLookupException e) {
+            throw new ChangeRequestException("Error when trying to access authorization script service.", e);
+        }
+        if (authorizationScriptService.isAuthorizedToReview(changeRequest)) {
             review = this.changeRequestManager.addReview(changeRequest, userReference, approved);
         } else {
             logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
         }
         return review;
-    }
-
-    /**
-     * Check if the current user is authorized to review the given change request.
-     *
-     * @param changeRequest the change request about to be reviewed.
-     * @return {@code true} if the change request can be reviewed by current user.
-     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
-     */
-    public boolean isAuthorizedToReview(ChangeRequest changeRequest) throws ChangeRequestException
-    {
-        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        return this.changeRequestManager.isAuthorizedToReview(currentUserReference, changeRequest);
-    }
-
-    /**
-     * Check if the given user is authorized to review the given change request.
-     *
-     * @param changeRequest the change request about to be reviewed.
-     * @param userReference the user for which to check if they can review
-     * @return {@code true} if the change request can be reviewed by the given user.
-     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
-     * @since 0.9
-     */
-    @Unstable
-    public boolean isAuthorizedToReview(ChangeRequest changeRequest, UserReference userReference)
-        throws ChangeRequestException
-    {
-        return this.changeRequestManager.isAuthorizedToReview(userReference, changeRequest);
     }
 
     /**

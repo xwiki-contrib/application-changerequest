@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -47,9 +46,6 @@ import org.xwiki.user.UserReferenceResolver;
 public class MergeChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
     @Inject
-    private ChangeRequestManager changeRequestManager;
-
-    @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     /**
@@ -64,7 +60,7 @@ public class MergeChangeRequestHandler extends AbstractChangeRequestActionHandle
         ChangeRequest changeRequest = this.loadChangeRequest(changeRequestReference);
         if (changeRequest != null) {
             UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-            if (!this.changeRequestManager.isAuthorizedToMerge(currentUser, changeRequest)) {
+            if (!this.changeRequestRightsManager.isAuthorizedToMerge(currentUser, changeRequest)) {
                 this.contextProvider.get().getResponse().sendError(HttpServletResponse.SC_FORBIDDEN,
                     String.format("You're not authorized to merge change request [%s].",
                         changeRequestReference.getId()));
