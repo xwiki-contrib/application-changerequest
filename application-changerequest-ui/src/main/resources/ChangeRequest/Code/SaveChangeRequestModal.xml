@@ -396,6 +396,7 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
             saveChangeRequest(event);
           });
           $('#crTitle').on('change', validateForm);
+          $('#crTitle').on('keyup', validateForm);
           $('#existingCRSelector').on('change', validateForm);
           $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
         }).fail(function (data) {
