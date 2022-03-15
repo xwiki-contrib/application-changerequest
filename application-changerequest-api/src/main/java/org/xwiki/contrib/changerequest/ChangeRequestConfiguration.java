@@ -26,7 +26,6 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.GuestUserReference;
-import org.xwiki.user.SuperAdminUserReference;
 import org.xwiki.user.UserReference;
 
 /**
@@ -95,12 +94,12 @@ public interface ChangeRequestConfiguration
     /**
      * Defines the user to use in context when running the scheduler.
      *
-     * @return the reference of the user to be put in context for running the scheduler.
+     * @return the reference of the user to be put in context for running the scheduler, or null if not set.
      * @since 0.10
      */
     default UserReference getSchedulerContextUser()
     {
-        return SuperAdminUserReference.INSTANCE;
+        return null;
     }
 
     /**

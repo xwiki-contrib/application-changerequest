@@ -39,7 +39,6 @@ import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.SpaceReferenceResolver;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.user.GuestUserReference;
-import org.xwiki.user.SuperAdminUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
@@ -120,7 +119,7 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
         if (!StringUtils.isEmpty(schedulerContextUser)) {
             result = this.userReferenceResolver.resolve(schedulerContextUser);
         } else {
-            result = SuperAdminUserReference.INSTANCE;
+            result = null;
         }
         return result;
     }

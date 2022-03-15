@@ -131,9 +131,12 @@ public class ChangeRequestSchedulerJobManager
     private void setContextUser()
     {
         UserReference schedulerContextUser = this.configuration.getSchedulerContextUser();
-        DocumentReference schedulerUser = this.userReferenceConverter.convert(schedulerContextUser);
-        XWikiContext context = this.contextProvider.get();
-        context.setUserReference(schedulerUser);
+        // We only set the scheduler user if the value is configured.
+        if (schedulerContextUser != null) {
+            DocumentReference schedulerUser = this.userReferenceConverter.convert(schedulerContextUser);
+            XWikiContext context = this.contextProvider.get();
+            context.setUserReference(schedulerUser);
+        }
     }
 
     private void handleChangeRequestNotification(ChangeRequest changeRequest)
