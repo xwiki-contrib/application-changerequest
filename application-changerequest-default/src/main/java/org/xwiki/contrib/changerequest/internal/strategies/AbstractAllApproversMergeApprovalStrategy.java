@@ -115,9 +115,11 @@ public abstract class AbstractAllApproversMergeApprovalStrategy extends Abstract
         Optional<Set<UserReference>> approversOpt = this.getApprovers(changeRequest);
         if (approversOpt.isPresent() || this.fallbackStrategy == null) {
             if (this.canBeMerged(changeRequest)) {
-                return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix() + "success");
+                return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix()
+                    + "status.success");
             } else {
-                return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix() + "failure");
+                return this.contextualLocalizationManager.getTranslationPlain(getTranslationPrefix()
+                    + "status.failure");
             }
         } else {
             return this.fallbackStrategy.getStatus(changeRequest);

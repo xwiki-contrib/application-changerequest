@@ -132,8 +132,8 @@ class AllApproversMergeApprovalStrategyTest
         when(review1.isValid()).thenReturn(true);
         when(review1.getAuthor()).thenReturn(user1);
 
-        String successTranslationKey = "changerequest.strategies.allapprovers.success";
-        String failureTranslationKey = "changerequest.strategies.allapprovers.failure";
+        String successTranslationKey = "changerequest.strategies.allapprovers.status.success";
+        String failureTranslationKey = "changerequest.strategies.allapprovers.status.failure";
         when(this.contextualLocalizationManager.getTranslationPlain(successTranslationKey)).thenReturn("Success");
         when(this.contextualLocalizationManager.getTranslationPlain(failureTranslationKey)).thenReturn("Failure");
 
