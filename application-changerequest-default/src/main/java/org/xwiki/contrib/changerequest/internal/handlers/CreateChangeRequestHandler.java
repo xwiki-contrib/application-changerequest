@@ -91,7 +91,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         this.copyApprovers(fileChange);
         this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
         this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
-        this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(), changeRequest);
+        this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(), fileChange);
         this.responseSuccess(changeRequest);
     }
 

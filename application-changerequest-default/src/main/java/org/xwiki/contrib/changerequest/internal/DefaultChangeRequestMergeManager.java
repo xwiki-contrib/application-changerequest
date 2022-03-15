@@ -104,22 +104,35 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     private Provider<ChangeRequestManager> changeRequestManagerProvider;
 
     @Inject
+    private MergeCacheManager mergeCacheManager;
+
+    @Inject
     private Logger logger;
 
     @Override
     public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
     {
-        switch (fileChange.getType()) {
-            case DELETION:
-                return deletionHasConflict(fileChange);
+        boolean result;
+        Optional<Boolean> optional = this.mergeCacheManager.hasConflict(fileChange);
+        if (optional.isPresent()) {
+            result = optional.get();
+        } else {
+            switch (fileChange.getType()) {
+                case DELETION:
+                    result = deletionHasConflict(fileChange);
+                    break;
 
-            case CREATION:
-                return creationHasConflict(fileChange);
+                case CREATION:
+                    result = creationHasConflict(fileChange);
+                    break;
 
-            default:
-            case EDITION:
-                return editionHasConflict(fileChange);
+                default:
+                case EDITION:
+                    result = editionHasConflict(fileChange);
+            }
+            this.mergeCacheManager.setConflictStatus(fileChange, result);
         }
+        return result;
     }
 
     private boolean creationHasConflict(FileChange fileChange) throws ChangeRequestException
@@ -166,9 +179,6 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         // the conflict decision in the MergeManager.
         mergeConfiguration.setUserReference(context.getUserReference());
         mergeConfiguration.setConcernedDocument(modifiedDoc.getDocumentReference());
-
-        // The modified doc is actually the one we should save, so it's ok to modify it directly
-        // and better for performance.
         mergeConfiguration.setProvidedVersionsModifiables(false);
 
         MergeDocumentResult mergeDocumentResult =
@@ -199,60 +209,63 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     public ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
-        DocumentModelBridge currentDoc =
-            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
-        ChangeRequestMergeDocumentResult result = null;
-        XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
-        XWikiDocument previousDoc;
-        MergeDocumentResult mergeDocumentResult;
-        Optional<DocumentModelBridge> optionalPreviousDoc;
-        switch (fileChange.getType()) {
-            case NO_CHANGE:
-                optionalPreviousDoc =
-                    this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-                if (optionalPreviousDoc.isPresent()) {
-                    previousDoc = (XWikiDocument) optionalPreviousDoc.get();
-                } else {
-                    previousDoc = null;
-                }
-                mergeDocumentResult =
-                    new MergeDocumentResult(currentDoc, previousDoc, fileChange.getModifiedDocument());
-                result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange,
-                    currentDoc.getVersion(), currentDoc.getDate())
-                    .setDocumentTitle(getTitle((XWikiDocument) currentDoc));
-                break;
+        Optional<ChangeRequestMergeDocumentResult> optionalResult =
+            this.mergeCacheManager.getChangeRequestMergeDocumentResult(fileChange);
+        ChangeRequestMergeDocumentResult result;
+        if (optionalResult.isPresent()) {
+            result = optionalResult.get();
+        } else {
+            DocumentModelBridge currentDoc =
+                this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
+            XWikiDocument xwikiCurrentDoc = (XWikiDocument) currentDoc;
+            XWikiDocument previousDoc;
+            MergeDocumentResult mergeDocumentResult;
+            Optional<DocumentModelBridge> optionalPreviousDoc;
+            switch (fileChange.getType()) {
+                case NO_CHANGE:
+                    optionalPreviousDoc =
+                        this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                    previousDoc = (XWikiDocument) optionalPreviousDoc.orElse(null);
+                    mergeDocumentResult =
+                        new MergeDocumentResult(currentDoc, previousDoc, fileChange.getModifiedDocument());
+                    result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange,
+                        currentDoc.getVersion(), currentDoc.getDate())
+                        .setDocumentTitle(getTitle((XWikiDocument) currentDoc));
+                    break;
 
-            case DELETION:
-                optionalPreviousDoc =
-                    this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-                if (optionalPreviousDoc.isEmpty()) {
-                    this.logger.debug(PREVIOUS_DOC_NOT_FOUND_LOGGER_MSG, fileChange);
-                    previousDoc = xwikiCurrentDoc;
-                } else {
-                    previousDoc = (XWikiDocument) optionalPreviousDoc.get();
-                }
-                mergeDocumentResult = new MergeDocumentResult(currentDoc, previousDoc, null);
-                boolean deletionConflict = this.deletionHasConflict(fileChange);
-                result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, deletionConflict, fileChange,
-                    previousDoc.getVersion(), previousDoc.getDate())
-                    .setDocumentTitle(getTitle(xwikiCurrentDoc));
-                break;
+                case DELETION:
+                    optionalPreviousDoc =
+                        this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                    if (optionalPreviousDoc.isEmpty()) {
+                        this.logger.debug(PREVIOUS_DOC_NOT_FOUND_LOGGER_MSG, fileChange);
+                        previousDoc = xwikiCurrentDoc;
+                    } else {
+                        previousDoc = (XWikiDocument) optionalPreviousDoc.get();
+                    }
+                    mergeDocumentResult = new MergeDocumentResult(currentDoc, previousDoc, null);
+                    boolean deletionConflict = this.deletionHasConflict(fileChange);
+                    result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, deletionConflict, fileChange,
+                        previousDoc.getVersion(), previousDoc.getDate())
+                        .setDocumentTitle(getTitle(xwikiCurrentDoc));
+                    break;
 
-            case CREATION:
-                boolean creationConflict = this.creationHasConflict(fileChange);
-                mergeDocumentResult =
-                    new MergeDocumentResult(currentDoc, null, fileChange.getModifiedDocument());
-                result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, creationConflict, fileChange,
-                    currentDoc.getVersion(), currentDoc.getDate())
-                    .setDocumentTitle(getTitle((XWikiDocument) fileChange.getModifiedDocument()));
-                break;
+                case CREATION:
+                    boolean creationConflict = this.creationHasConflict(fileChange);
+                    mergeDocumentResult =
+                        new MergeDocumentResult(currentDoc, null, fileChange.getModifiedDocument());
+                    result = new ChangeRequestMergeDocumentResult(mergeDocumentResult, creationConflict, fileChange,
+                        currentDoc.getVersion(), currentDoc.getDate())
+                        .setDocumentTitle(getTitle((XWikiDocument) fileChange.getModifiedDocument()));
+                    break;
 
-            case EDITION:
-                result = this.getEditionMergeDocumentResult(fileChange, xwikiCurrentDoc);
-                break;
+                case EDITION:
+                    result = this.getEditionMergeDocumentResult(fileChange, xwikiCurrentDoc);
+                    break;
 
-            default:
-                throw new ChangeRequestException(String.format("Unknown file change type: [%s]", fileChange));
+                default:
+                    throw new ChangeRequestException(String.format("Unknown file change type: [%s]", fileChange));
+            }
+            this.mergeCacheManager.setChangeRequestMergeDocumentResult(fileChange, result);
         }
         return result;
     }
@@ -470,14 +483,16 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
             }
         }
 
+        // We need to invalidate the cache so that the merge operation can occur again with the decisions.
+        this.mergeCacheManager.invalidate(fileChange);
+        // This second call is needed to actually perform the merge operation.
         mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
         if (mergeDocumentResult.hasConflicts()) {
             result = false;
         } else {
             String previousVersion = fileChange.getVersion();
             String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
-            Date previousPublishedVersionDate = ((XWikiDocument) mergeDocumentResult.getCurrentDocument())
-                .getDate();
+            Date previousPublishedVersionDate = mergeDocumentResult.getCurrentDocument().getDate();
             String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
 
             ChangeRequest changeRequest = fileChange.getChangeRequest();

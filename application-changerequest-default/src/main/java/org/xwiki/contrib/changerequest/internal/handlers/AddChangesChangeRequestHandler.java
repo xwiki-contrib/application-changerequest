@@ -124,7 +124,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     this.observationManager
                         .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
                     this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
-                        changeRequest);
+                        fileChange);
                     this.responseSuccess(changeRequest);
                 }
             }

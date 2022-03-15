@@ -23,11 +23,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Deque;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -40,10 +37,10 @@ import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.localization.LocaleUtils;
@@ -404,27 +401,34 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
     private FileChange rebaseNoChange(FileChange fileChange) throws ChangeRequestException
     {
-        FileChange previousFileChange = this.getLatestFileChangeWithChanges(fileChange);
-        FileChange clone;
-        switch (previousFileChange.getType()) {
-            case EDITION:
-                clone = this.rebaseEdition(previousFileChange);
-                break;
+        Optional<FileChange> previousFileChangeOpt =
+            fileChange.getChangeRequest().getFileChangeWithChangeBefore(fileChange);
+        if (previousFileChangeOpt.isPresent()) {
+            FileChange previousFileChange = previousFileChangeOpt.get();
+            FileChange clone;
+            switch (previousFileChange.getType()) {
+                case EDITION:
+                    clone = this.rebaseEdition(previousFileChange);
+                    break;
 
-            case DELETION:
-                clone = this.rebaseDeletion(previousFileChange);
-                break;
+                case DELETION:
+                    clone = this.rebaseDeletion(previousFileChange);
+                    break;
 
-            case CREATION:
-                clone = this.rebaseCreation(previousFileChange);
-                break;
+                case CREATION:
+                    clone = this.rebaseCreation(previousFileChange);
+                    break;
 
-            case NO_CHANGE:
-            default:
-                throw new ChangeRequestException(
-                    String.format("Unsupported file change type for the rebase: [%s]", fileChange.getType()));
+                case NO_CHANGE:
+                default:
+                    throw new ChangeRequestException(
+                        String.format("Unsupported file change type for the rebase: [%s]", fileChange.getType()));
+            }
+            return clone;
+        } else {
+            throw new ChangeRequestException(
+                String.format("Cannot find a previous filechange containing actual changes before [%s]", fileChange));
         }
-        return clone;
     }
 
     private FileChange rebaseEdition(FileChange fileChange) throws ChangeRequestException
@@ -650,33 +654,5 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 "Error while loading the document corresponding to the file change [%s] with version [%s]",
                 fileChange, version), e);
         }
-    }
-
-    @Override
-    public FileChange getLatestFileChangeWithChanges(FileChange fileChange) throws ChangeRequestException
-    {
-        FileChange result = null;
-        if (fileChange.getType() == FileChange.FileChangeType.NO_CHANGE) {
-            Map<DocumentReference, Deque<FileChange>> fileChangeMap = fileChange.getChangeRequest().getFileChanges();
-            Deque<FileChange> fileChangeDeque = fileChangeMap.get(fileChange.getTargetEntity());
-            boolean foundCurrent = false;
-            Iterator<FileChange> fileChangeIterator = fileChangeDeque.descendingIterator();
-            while (fileChangeIterator.hasNext()) {
-                FileChange possibleFileChange = fileChangeIterator.next();
-                if (!foundCurrent && possibleFileChange.equals(fileChange)) {
-                    foundCurrent = true;
-                } else if (foundCurrent && possibleFileChange.getType() != FileChange.FileChangeType.NO_CHANGE) {
-                    result = possibleFileChange;
-                    break;
-                }
-            }
-            if (result == null) {
-                throw new ChangeRequestException(
-                    String.format("Cannot find a filechange with a proper change before [%s].", fileChange));
-            }
-        } else {
-            result = fileChange;
-        }
-        return result;
     }
 }

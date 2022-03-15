@@ -32,7 +32,8 @@ import org.xwiki.observation.event.EndEvent;
  * The event also send the following parameters:
  * <ul>
  *      <li>source: the change request identifier</li>
- *      <li>data: the change request instance that has been saved</li>
+ *      <li>data: the file change instance that has been saved or the change request instance when we cannot identify a
+ *                single filechange save (e.g. in case of a rebase of an entire change request)</li>
  * </ul>
  *
  * @version $Id$

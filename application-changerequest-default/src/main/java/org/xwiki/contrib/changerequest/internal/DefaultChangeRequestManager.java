@@ -225,9 +225,14 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 break;
 
             case NO_CHANGE:
-                FileChange fileChangeWithChange =
-                    this.fileChangeStorageManager.getLatestFileChangeWithChanges(fileChange);
-                result = this.isNoChangeFileChangeOutdated(fileChange, fileChangeWithChange, currentDocument);
+                Optional<FileChange> fileChangeWithChange =
+                    fileChange.getChangeRequest().getFileChangeWithChangeBefore(fileChange);
+                if (fileChangeWithChange.isPresent()) {
+                    result = this.isNoChangeFileChangeOutdated(fileChange, fileChangeWithChange.get(), currentDocument);
+                } else {
+                    throw new ChangeRequestException(
+                        String.format("Cannot find a filechange with actual change before [%s]", fileChange));
+                }
                 break;
 
             case EDITION:

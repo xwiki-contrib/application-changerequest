@@ -97,11 +97,14 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
                     changeRequest.getId(), changeRequest);
                 if (allFileChanges) {
                     this.changeRequestManager.rebase(changeRequest);
+                    this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(),
+                        changeRequest.getId(), changeRequest);
                 } else {
-                    this.changeRequestManager.rebase(specificFileChange.get());
+                    FileChange fileChange = specificFileChange.get();
+                    this.changeRequestManager.rebase(fileChange);
+                    this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+                        fileChange);
                 }
-                this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(),
-                    changeRequest.getId(), changeRequest);
                 this.responseSuccess(changeRequest);
             } else {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not authorized to perform a rebase.");

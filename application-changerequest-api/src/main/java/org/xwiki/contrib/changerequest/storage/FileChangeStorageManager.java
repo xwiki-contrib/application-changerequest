@@ -123,20 +123,4 @@ public interface FileChangeStorageManager
     {
         return null;
     }
-
-    /**
-     * Provided that the given filechange is of type
-     * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#NO_CHANGE}, this method will search for the
-     * closest previous filechange containing real changes.
-     * The method returns the same filechange if it's not of type
-     * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#NO_CHANGE}.
-     *
-     * @param fileChange a file change for which to search for a related file change.
-     * @return the proper related filechange.
-     * @throws ChangeRequestException in case of problem to load the file change.
-     */
-    default FileChange getLatestFileChangeWithChanges(FileChange fileChange) throws ChangeRequestException
-    {
-        return fileChange;
-    }
 }

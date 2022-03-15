@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
@@ -27,16 +29,26 @@ import javax.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentModelBridge;
+import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult;
+import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.diff.Conflict;
+import org.xwiki.diff.ConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.store.merge.MergeConflictDecisionsManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -49,6 +61,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -72,19 +85,46 @@ class DefaultChangeRequestMergeManagerTest
     @MockComponent
     private Provider<XWikiContext> contextProvider;
 
+    @MockComponent
+    private MergeCacheManager mergeCacheManager;
+
+    @MockComponent
+    private FileChangeVersionManager fileChangeVersionManager;
+
+    @MockComponent
+    private Provider<ChangeRequestManager> changeRequestManagerProvider;
+
+    @MockComponent
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceUserReferenceResolver;
+
+    @MockComponent
+    private MergeConflictDecisionsManager mergeConflictDecisionsManager;
+
+    @MockComponent
+    private ChangeRequestStorageManager changeRequestStorageManager;
+
     private XWikiContext context;
+    private ChangeRequestManager changeRequestManager;
 
     @BeforeEach
     void setup()
     {
         this.context = mock(XWikiContext.class);
         when(this.contextProvider.get()).thenReturn(this.context);
+
+        this.changeRequestManager = mock(ChangeRequestManager.class);
+        when(this.changeRequestManagerProvider.get()).thenReturn(this.changeRequestManager);
     }
 
     @Test
-    void hasConflict() throws ChangeRequestException
+    void hasConflictWithEdition() throws ChangeRequestException
     {
         FileChange fileChange = mock(FileChange.class);
+        when(this.mergeCacheManager.hasConflict(fileChange)).thenReturn(Optional.of(false));
+        assertFalse(this.crMergeManager.hasConflicts(fileChange));
+        verifyNoInteractions(this.mergeManager);
+
+        when(this.mergeCacheManager.hasConflict(fileChange)).thenReturn(Optional.empty());
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         DocumentModelBridge modifiedDoc = mock(DocumentModelBridge.class);
         DocumentModelBridge currentDoc = mock(DocumentModelBridge.class);
@@ -116,6 +156,7 @@ class DefaultChangeRequestMergeManagerTest
         assertTrue(this.crMergeManager.hasConflicts(fileChange));
         verify(this.mergeManager)
             .mergeDocument(eq(previousDoc), eq(currentDoc), eq(modifiedDoc), any(MergeConfiguration.class));
+        verify(this.mergeCacheManager).setConflictStatus(fileChange, true);
     }
 
     @Test
@@ -185,5 +226,87 @@ class DefaultChangeRequestMergeManagerTest
         expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult2, fileChange, "1.1", new Date(45))
             .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.crMergeManager.getMergeDocumentResult(fileChange));
+    }
+
+    @Test
+    void mergeWithConflictDecisionEditionNoCustom() throws ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+        ConflictResolutionChoice resolutionChoice = ConflictResolutionChoice.PUBLISHED_VERSION;
+
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        when(this.context.getUserReference()).thenReturn(userDocReference);
+
+        DocumentReference targetEntity = mock(DocumentReference.class);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+
+        ChangeRequestMergeDocumentResult crMergeDocumentResult = mock(ChangeRequestMergeDocumentResult.class);
+        when(this.mergeCacheManager.getChangeRequestMergeDocumentResult(fileChange))
+            .thenReturn(Optional.of(crMergeDocumentResult));
+        MergeDocumentResult mergeDocumentResult1 = mock(MergeDocumentResult.class);
+        MergeDocumentResult mergeDocumentResult2 = mock(MergeDocumentResult.class);
+
+        // First call will return result with conflicts, second no.
+        when(crMergeDocumentResult.getWrappedResult())
+            .thenReturn(mergeDocumentResult1)
+            .thenReturn(mergeDocumentResult2);
+
+        Conflict conflict1 = mock(Conflict.class);
+        when(conflict1.getReference()).thenReturn("conflict1");
+        Conflict conflict2 = mock(Conflict.class);
+        when(conflict2.getReference()).thenReturn("conflict2");
+        when(mergeDocumentResult1.getConflicts()).thenReturn(Arrays.asList(conflict1, conflict2));
+        when(mergeDocumentResult2.hasConflicts()).thenReturn(false);
+
+        ConflictDecision.DecisionType expectedDecision = ConflictDecision.DecisionType.CURRENT;
+        String fileChangeVersion = "2.3-filechange";
+        String documentPreviousVersion = "2.2";
+        Date documentPreviousDate = new Date(4141);
+
+        XWikiDocument mergeDocumentDoc = mock(XWikiDocument.class);
+        when(mergeDocumentResult2.getCurrentDocument()).thenReturn(mergeDocumentDoc);
+        when(mergeDocumentDoc.getVersion()).thenReturn(documentPreviousVersion);
+        when(mergeDocumentDoc.getDate()).thenReturn(documentPreviousDate);
+        when(fileChange.getVersion()).thenReturn(fileChangeVersion);
+
+        String nextFileChangeVersion = "3.1-filechange";
+        when(this.fileChangeVersionManager.getNextFileChangeVersion(fileChangeVersion, false))
+            .thenReturn(nextFileChangeVersion);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+
+        XWikiDocument mergeResult = mock(XWikiDocument.class);
+        when(mergeDocumentResult2.getMergeResult()).thenReturn(mergeResult);
+
+        UserReference userReference = mock(UserReference.class);
+        when(this.currentUserReferenceUserReferenceResolver.resolve(CurrentUserReference.INSTANCE))
+            .thenReturn(userReference);
+
+        FileChange expectedFileChange = new FileChange(changeRequest)
+            .setAuthor(userReference)
+            .setPreviousVersion(fileChangeVersion)
+            .setVersion(nextFileChangeVersion)
+            .setPreviousPublishedVersion(documentPreviousVersion, documentPreviousDate)
+            .setModifiedDocument(mergeResult)
+            .setTargetEntity(targetEntity);
+
+        when(changeRequest.addFileChange(any())).then(invocationOnMock -> {
+            FileChange obtainedFileChange = invocationOnMock.getArgument(0);
+            expectedFileChange.setCreationDate(obtainedFileChange.getCreationDate());
+            return null;
+        });
+
+        assertTrue(this.crMergeManager.mergeWithConflictDecision(fileChange, resolutionChoice, null));
+        verify(this.mergeConflictDecisionsManager)
+            .recordConflicts(targetEntity, userDocReference, Arrays.asList(conflict1, conflict2));
+        verify(this.mergeConflictDecisionsManager).recordDecision(targetEntity, userDocReference, "conflict1",
+            expectedDecision, Collections.emptyList());
+        verify(this.mergeConflictDecisionsManager).recordDecision(targetEntity, userDocReference, "conflict2",
+            expectedDecision, Collections.emptyList());
+        verify(this.mergeCacheManager).invalidate(fileChange);
+        verify(changeRequest).addFileChange(expectedFileChange);
+        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest);
     }
 }

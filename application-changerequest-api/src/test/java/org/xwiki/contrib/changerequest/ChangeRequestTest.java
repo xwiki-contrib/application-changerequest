@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  * @since 0.5
  */
-public class ChangeRequestTest
+class ChangeRequestTest
 {
     @Test
     void addFileChange()
@@ -342,5 +342,142 @@ public class ChangeRequestTest
         assertNotEquals(otherChangeRequest, clone);
         otherChangeRequest.setCreationDate(clone.getCreationDate());
         assertNotEquals(otherChangeRequest, clone);
+    }
+
+    @Test
+    void getFileChangeImmediatelyBefore()
+    {
+        ChangeRequest changeRequest = new ChangeRequest();
+
+        DocumentReference refA = mock(DocumentReference.class);
+        DocumentReference refB = mock(DocumentReference.class);
+        DocumentReference refC = mock(DocumentReference.class);
+
+        FileChange fileChange1RefA = mock(FileChange.class);
+        FileChange fileChange2RefA = mock(FileChange.class);
+        FileChange fileChange3RefA = mock(FileChange.class);
+
+        FileChange fileChange1RefB = mock(FileChange.class);
+        FileChange fileChange2RefB = mock(FileChange.class);
+
+        FileChange fileChange1RefC = mock(FileChange.class);
+
+        when(fileChange1RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange2RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange3RefA.getTargetEntity()).thenReturn(refA);
+
+        when(fileChange1RefB.getTargetEntity()).thenReturn(refB);
+        when(fileChange2RefB.getTargetEntity()).thenReturn(refB);
+
+        when(fileChange1RefC.getTargetEntity()).thenReturn(refC);
+
+        changeRequest.addFileChange(fileChange1RefA);
+        changeRequest.addFileChange(fileChange2RefA);
+        changeRequest.addFileChange(fileChange3RefA);
+
+        changeRequest.addFileChange(fileChange1RefB);
+        changeRequest.addFileChange(fileChange2RefB);
+
+        changeRequest.addFileChange(fileChange1RefC);
+
+        assertEquals(Optional.of(fileChange2RefA), changeRequest.getFileChangeImmediatelyBefore(fileChange3RefA));
+        assertEquals(Optional.of(fileChange1RefA), changeRequest.getFileChangeImmediatelyBefore(fileChange2RefA));
+        assertEquals(Optional.empty(), changeRequest.getFileChangeImmediatelyBefore(fileChange1RefA));
+
+        assertEquals(Optional.of(fileChange1RefB), changeRequest.getFileChangeImmediatelyBefore(fileChange2RefB));
+        assertEquals(Optional.empty(), changeRequest.getFileChangeImmediatelyBefore(fileChange1RefB));
+
+        assertEquals(Optional.empty(), changeRequest.getFileChangeImmediatelyBefore(fileChange1RefC));
+    }
+
+    @Test
+    void getFileChangeWithChangeBefore()
+    {
+        ChangeRequest changeRequest = new ChangeRequest();
+
+        DocumentReference refA = mock(DocumentReference.class);
+        DocumentReference refB = mock(DocumentReference.class);
+        DocumentReference refC = mock(DocumentReference.class);
+
+        FileChange fileChange1RefA = mock(FileChange.class);
+        FileChange fileChange2RefA = mock(FileChange.class);
+        FileChange fileChange3RefA = mock(FileChange.class);
+        FileChange fileChange4RefA = mock(FileChange.class);
+        FileChange fileChange5RefA = mock(FileChange.class);
+        FileChange fileChange6RefA = mock(FileChange.class);
+        FileChange fileChange7RefA = mock(FileChange.class);
+
+        FileChange fileChange1RefB = mock(FileChange.class);
+        FileChange fileChange2RefB = mock(FileChange.class);
+        FileChange fileChange3RefB = mock(FileChange.class);
+        FileChange fileChange4RefB = mock(FileChange.class);
+
+        FileChange fileChange1RefC = mock(FileChange.class);
+        FileChange fileChange2RefC = mock(FileChange.class);
+        FileChange fileChange3RefC = mock(FileChange.class);
+
+        when(fileChange1RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange2RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange3RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange4RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange5RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange6RefA.getTargetEntity()).thenReturn(refA);
+        when(fileChange7RefA.getTargetEntity()).thenReturn(refA);
+
+        when(fileChange1RefB.getTargetEntity()).thenReturn(refB);
+        when(fileChange2RefB.getTargetEntity()).thenReturn(refB);
+        when(fileChange3RefB.getTargetEntity()).thenReturn(refB);
+        when(fileChange4RefB.getTargetEntity()).thenReturn(refB);
+
+        when(fileChange1RefC.getTargetEntity()).thenReturn(refC);
+        when(fileChange2RefC.getTargetEntity()).thenReturn(refC);
+        when(fileChange3RefC.getTargetEntity()).thenReturn(refC);
+
+        when(fileChange1RefA.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange2RefA.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange3RefA.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+        when(fileChange4RefA.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+        when(fileChange5RefA.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange6RefA.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange7RefA.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+
+        when(fileChange1RefB.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+        when(fileChange2RefB.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+        when(fileChange3RefB.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        when(fileChange4RefB.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+
+        when(fileChange1RefC.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange2RefC.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+        when(fileChange3RefC.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
+
+        changeRequest.addFileChange(fileChange1RefA);
+        changeRequest.addFileChange(fileChange2RefA);
+        changeRequest.addFileChange(fileChange3RefA);
+        changeRequest.addFileChange(fileChange4RefA);
+        changeRequest.addFileChange(fileChange5RefA);
+        changeRequest.addFileChange(fileChange6RefA);
+        changeRequest.addFileChange(fileChange7RefA);
+
+        changeRequest.addFileChange(fileChange1RefB);
+        changeRequest.addFileChange(fileChange2RefB);
+        changeRequest.addFileChange(fileChange3RefB);
+        changeRequest.addFileChange(fileChange4RefB);
+
+        changeRequest.addFileChange(fileChange1RefC);
+        changeRequest.addFileChange(fileChange2RefC);
+        changeRequest.addFileChange(fileChange3RefC);
+
+        assertEquals(Optional.of(fileChange2RefA), changeRequest.getFileChangeWithChangeBefore(fileChange3RefA));
+        assertEquals(Optional.of(fileChange2RefA), changeRequest.getFileChangeWithChangeBefore(fileChange2RefA));
+        assertEquals(Optional.of(fileChange1RefA), changeRequest.getFileChangeWithChangeBefore(fileChange1RefA));
+        assertEquals(Optional.of(fileChange6RefA), changeRequest.getFileChangeWithChangeBefore(fileChange7RefA));
+        assertEquals(Optional.of(fileChange2RefA), changeRequest.getFileChangeWithChangeBefore(fileChange4RefA));
+
+        assertEquals(Optional.of(fileChange3RefB), changeRequest.getFileChangeWithChangeBefore(fileChange4RefB));
+        assertEquals(Optional.of(fileChange3RefB), changeRequest.getFileChangeWithChangeBefore(fileChange3RefB));
+        assertEquals(Optional.empty(), changeRequest.getFileChangeWithChangeBefore(fileChange2RefB));
+        assertEquals(Optional.empty(), changeRequest.getFileChangeWithChangeBefore(fileChange1RefB));
+
+        assertEquals(Optional.of(fileChange1RefC), changeRequest.getFileChangeWithChangeBefore(fileChange3RefC));
     }
 }

@@ -235,6 +235,12 @@
                   <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestManager::isAuthorizedToEdit(org.xwiki.user.UserReference, org.xwiki.contrib.changerequest.ChangeRequest)</old>
                   <justification>Refactoring of Unstable API: method moved to ChangeRequestRightsScriptService.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::getLatestFileChangeWithChanges(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Refactoring of Unstable API: method moved to ChangeRequest#getFileChangeWithChangeBefore</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

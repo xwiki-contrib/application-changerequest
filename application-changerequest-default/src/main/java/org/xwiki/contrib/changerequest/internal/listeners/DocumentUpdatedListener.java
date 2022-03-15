@@ -28,12 +28,14 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.internal.MergeCacheManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.event.Event;
@@ -62,6 +64,9 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
     private Provider<ChangeRequestManager> changeRequestManager;
 
     @Inject
+    private Provider<MergeCacheManager> conflictCacheManager;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -69,7 +74,7 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
      */
     public DocumentUpdatedListener()
     {
-        super(NAME, new DocumentUpdatedEvent(), new DocumentDeletedEvent());
+        super(NAME, new DocumentCreatedEvent(), new DocumentUpdatedEvent(), new DocumentDeletedEvent());
     }
 
     @Override
@@ -77,6 +82,7 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
     {
         XWikiDocument sourceDoc = (XWikiDocument) source;
         DocumentReference reference = sourceDoc.getDocumentReferenceWithLocale();
+        this.conflictCacheManager.get().invalidate(reference);
         try {
             List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
             for (ChangeRequest changeRequest : changeRequests) {

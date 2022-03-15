@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -163,6 +164,65 @@ public class ChangeRequest
                 list1.addAll(list2);
                 return list1;
             }));
+    }
+
+    /**
+     * Retrieve the previous version of a filechange.
+     *
+     * @param fileChange the filechange for which to retrieve the previous version.
+     * @return {@link Optional#empty()} if there's no filechange before, or an optional containing the previous
+     *         filechange.
+     * @since 0.11
+     */
+    public Optional<FileChange> getFileChangeImmediatelyBefore(FileChange fileChange)
+    {
+        Optional<FileChange> result = Optional.empty();
+        if (this.fileChanges.containsKey(fileChange.getTargetEntity())) {
+            Iterator<FileChange> fileChangeIterator =
+                this.fileChanges.get(fileChange.getTargetEntity()).descendingIterator();
+
+            while (fileChangeIterator.hasNext()) {
+                if (fileChangeIterator.next().equals(fileChange)) {
+                    break;
+                }
+            }
+            if (fileChangeIterator.hasNext()) {
+                result = Optional.of(fileChangeIterator.next());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Retrieve the previous version of a filechange containing an actual change, if the given filechange is of type
+     * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#NO_CHANGE}.
+     *
+     * @param fileChange the filechange for which to retrieve the latest previous version with an actual change.
+     * @return {@link Optional#empty()} if there's no filechange with a real change before, or an optional containing
+     *          the previous filechange. Note that if the given filechange already contains a change, it's returned
+     *          immediately.
+     * @since 0.11
+     */
+    public Optional<FileChange> getFileChangeWithChangeBefore(FileChange fileChange)
+    {
+        Optional<FileChange> result = Optional.empty();
+        if (fileChange.getType() == FileChange.FileChangeType.NO_CHANGE) {
+            Deque<FileChange> fileChangeDeque = this.fileChanges.get(fileChange.getTargetEntity());
+            boolean foundCurrent = false;
+            Iterator<FileChange> fileChangeIterator = fileChangeDeque.descendingIterator();
+            while (fileChangeIterator.hasNext()) {
+                FileChange possibleFileChange = fileChangeIterator.next();
+                if (!foundCurrent && possibleFileChange.equals(fileChange)) {
+                    foundCurrent = true;
+                } else if (foundCurrent && possibleFileChange.getType() != FileChange.FileChangeType.NO_CHANGE) {
+                    result = Optional.of(possibleFileChange);
+                    break;
+                }
+            }
+        } else {
+            result = Optional.of(fileChange);
+        }
+        return result;
     }
 
     /**
