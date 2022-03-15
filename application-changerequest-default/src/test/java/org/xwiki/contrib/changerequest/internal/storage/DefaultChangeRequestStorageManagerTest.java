@@ -31,9 +31,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.model.document.DocumentAuthors;
@@ -51,14 +53,17 @@ import org.xwiki.user.UserReferenceResolver;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -106,6 +111,9 @@ class DefaultChangeRequestStorageManagerTest
     @MockComponent
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
+    @MockComponent
+    private ChangeRequestStorageCacheManager changeRequestStorageCacheManager;
+
     private XWikiContext context;
     private XWiki wiki;
 
@@ -147,7 +155,8 @@ class DefaultChangeRequestStorageManagerTest
         BaseObject xobject = mock(BaseObject.class);
         when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(xobject);
-
+        // First call when checking if the ID should be set, second call to invalidate the cache.
+        when(changeRequest.getId()).thenReturn(null).thenReturn("id42");
         this.storageManager.save(changeRequest);
         verify(changeRequest).setId("id42");
         verify(document).setTitle(title);
@@ -157,6 +166,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(this.fileChangeStorageManager).save(fileChange1);
         verify(this.fileChangeStorageManager).save(fileChange2);
         verify(this.wiki).saveDocument(document, this.context);
+        verify(this.changeRequestStorageCacheManager).invalidate("id42");
     }
 
     @Test
@@ -227,6 +237,7 @@ class DefaultChangeRequestStorageManagerTest
             .setDescription(description)
             .setCreationDate(new Date(42));
         assertEquals(Optional.of(changeRequest), this.storageManager.load(id));
+        verify(this.changeRequestStorageCacheManager, times(3)).getChangeRequest(id);
     }
 
     @Test
@@ -423,5 +434,30 @@ class DefaultChangeRequestStorageManagerTest
 
         assertEquals(Arrays.asList(cr2, cr3), this.storageManager.findChangeRequestTargeting(targetReference));
         verify(query).bindValue("reference", "%Foo.MySpace%");
+    }
+
+    @Test
+    void saveStaleDate() throws XWikiException, ChangeRequestException
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        ChangeRequestException changeRequestException =
+            assertThrows(ChangeRequestException.class, () -> this.storageManager.saveStaleDate(changeRequest));
+        assertEquals("The stale date can only be saved for existing change requests.",
+            changeRequestException.getMessage());
+
+        String id = "someId";
+        when(changeRequest.getId()).thenReturn(id);
+        DocumentReference documentReference = mock(DocumentReference.class);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(documentReference);
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
+        BaseObject baseObject = mock(BaseObject.class);
+        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, context))
+            .thenReturn(baseObject);
+        Date date = new Date(845);
+        when(changeRequest.getStaleDate()).thenReturn(date);
+        this.storageManager.saveStaleDate(changeRequest);
+        verify(baseObject).set(ChangeRequestXClassInitializer.STALE_DATE_FIELD, date, this.context);
+        verify(wiki).saveDocument(document, this.context);
     }
 }

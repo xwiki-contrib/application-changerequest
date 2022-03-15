@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -144,6 +145,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;
 
+    @Inject
+    private ChangeRequestStorageCacheManager changeRequestStorageCacheManager;
+
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
     {
@@ -181,6 +185,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             throw new ChangeRequestException(
                 String.format("Error while saving the change request [%s]", changeRequest), e);
         }
+        this.changeRequestStorageCacheManager.invalidate(changeRequest.getId());
     }
 
     @Override
@@ -206,44 +211,48 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Override
     public Optional<ChangeRequest> load(String changeRequestId) throws ChangeRequestException
     {
-        Optional<ChangeRequest> result = Optional.empty();
-        ChangeRequest changeRequest = new ChangeRequest();
-        changeRequest.setId(changeRequestId);
-        DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-        XWikiContext context = this.contextProvider.get();
-        XWiki wiki = context.getWiki();
-        try {
-            XWikiDocument document = wiki.getDocument(reference, context);
-            BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS);
-            if (!document.isNew() && xObject != null) {
-                ChangeRequestStatus status = ChangeRequestStatus.valueOf(
-                    xObject.getStringValue(STATUS_FIELD).toUpperCase());
-                Date staleDate = xObject.getDateValue(STALE_DATE_FIELD);
-                changeRequest
-                    .setTitle(document.getTitle())
-                    .setDescription(document.getContent())
-                    .setCreator(document.getAuthors().getCreator())
-                    .setStatus(status)
-                    .setCreationDate(document.getCreationDate())
-                    .setStaleDate(staleDate);
-                List<String> changedDocuments = xObject.getListValue(CHANGED_DOCUMENTS_FIELD);
+        Optional<ChangeRequest> result = this.changeRequestStorageCacheManager.getChangeRequest(changeRequestId);
 
-                for (String changedDocument : changedDocuments) {
-                    DocumentReference changedDocumentReference =
-                        this.documentReferenceResolver.resolve(changedDocument);
-                    List<FileChange> fileChanges =
-                        this.fileChangeStorageManager.load(changeRequest, changedDocumentReference);
-                    for (FileChange fileChange : fileChanges) {
-                        changeRequest.addFileChange(fileChange);
+        if (result.isEmpty()) {
+            ChangeRequest changeRequest = new ChangeRequest();
+            changeRequest.setId(changeRequestId);
+            DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+            XWikiContext context = this.contextProvider.get();
+            XWiki wiki = context.getWiki();
+            try {
+                XWikiDocument document = wiki.getDocument(reference, context);
+                BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS);
+                if (!document.isNew() && xObject != null) {
+                    ChangeRequestStatus status = ChangeRequestStatus.valueOf(
+                        xObject.getStringValue(STATUS_FIELD).toUpperCase());
+                    Date staleDate = xObject.getDateValue(STALE_DATE_FIELD);
+                    changeRequest
+                        .setTitle(document.getTitle())
+                        .setDescription(document.getContent())
+                        .setCreator(document.getAuthors().getCreator())
+                        .setStatus(status)
+                        .setCreationDate(document.getCreationDate())
+                        .setStaleDate(staleDate);
+                    List<String> changedDocuments = xObject.getListValue(CHANGED_DOCUMENTS_FIELD);
+
+                    for (String changedDocument : changedDocuments) {
+                        DocumentReference changedDocumentReference =
+                            this.documentReferenceResolver.resolve(changedDocument);
+                        List<FileChange> fileChanges =
+                            this.fileChangeStorageManager.load(changeRequest, changedDocumentReference);
+                        for (FileChange fileChange : fileChanges) {
+                            changeRequest.addFileChange(fileChange);
+                        }
                     }
-                }
 
-                this.reviewStorageManager.load(changeRequest);
-                result = Optional.of(changeRequest);
+                    this.reviewStorageManager.load(changeRequest);
+                    result = Optional.of(changeRequest);
+                    this.changeRequestStorageCacheManager.cacheChangeRequest(changeRequest);
+                }
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Error while trying to load change request of id [%s]", changeRequestId), e);
             }
-        } catch (XWikiException e) {
-            throw new ChangeRequestException(
-                String.format("Error while trying to load change request of id [%s]", changeRequestId), e);
         }
         return result;
     }

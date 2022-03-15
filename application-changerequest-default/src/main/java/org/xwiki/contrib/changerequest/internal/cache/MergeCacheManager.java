@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.internal;
+package org.xwiki.contrib.changerequest.internal.cache;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -250,5 +250,14 @@ public class MergeCacheManager implements Initializable, Disposable
     {
         this.hasConflictCache.remove(getCacheKey(fileChange));
         this.crMergeDocumentResultCache.remove(getCacheKey(fileChange));
+    }
+
+    /**
+     * Remove all entries from the caches.
+     */
+    public void invalidateAll()
+    {
+        this.crMergeDocumentResultCache.removeAll();
+        this.hasConflictCache.removeAll();
     }
 }

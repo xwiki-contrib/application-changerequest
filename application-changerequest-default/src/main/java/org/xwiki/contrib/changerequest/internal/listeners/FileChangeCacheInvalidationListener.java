@@ -28,7 +28,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
-import org.xwiki.contrib.changerequest.internal.MergeCacheManager;
+import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
+import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 
@@ -40,18 +41,21 @@ import org.xwiki.observation.event.Event;
  */
 @Component
 @Singleton
-@Named(FileChangeInvalidateListener.NAME)
-public class FileChangeInvalidateListener extends AbstractEventListener
+@Named(FileChangeCacheInvalidationListener.NAME)
+public class FileChangeCacheInvalidationListener extends AbstractEventListener
 {
-    static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.FileChangeInvalidateListener";
+    static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.FileChangeCacheInvalidationListener";
 
     @Inject
     private Provider<MergeCacheManager> mergeCacheManager;
 
+    @Inject
+    private Provider<ChangeRequestStorageCacheManager> changeRequestCacheManager;
+
     /**
      * Default constructor.
      */
-    public FileChangeInvalidateListener()
+    public FileChangeCacheInvalidationListener()
     {
         super(NAME, new ChangeRequestUpdatedFileChangeEvent());
     }
@@ -59,11 +63,16 @@ public class FileChangeInvalidateListener extends AbstractEventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
+        String changeRequestId = (String) source;
         if (data instanceof FileChange) {
-            this.mergeCacheManager.get().invalidate((FileChange) data);
+            FileChange fileChange = (FileChange) data;
+            this.mergeCacheManager.get().invalidate(fileChange);
+            this.changeRequestCacheManager.get().invalidate(changeRequestId);
         } else if (data instanceof ChangeRequest) {
-            ((ChangeRequest) data).getLastFileChanges()
+            ChangeRequest changeRequest = (ChangeRequest) data;
+            changeRequest.getLastFileChanges()
                 .forEach(fileChange -> this.mergeCacheManager.get().invalidate(fileChange));
+            this.changeRequestCacheManager.get().invalidate(changeRequestId);
         }
     }
 }
