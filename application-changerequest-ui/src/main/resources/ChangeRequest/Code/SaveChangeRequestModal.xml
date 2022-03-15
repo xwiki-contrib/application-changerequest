@@ -44,6 +44,16 @@
   $stringtool.removeEnd($stringtool.removeStart($displayOutput, '{{html clean="false" wiki="false"}}'), '{{/html}}')
 #end
 #if ($request.get('getmodal') == 1)
+#initRequiredSkinExtensions()
+#set ($crPickerParameters = {
+  'name': 'existingCRSelector',
+  'id': 'existingCRSelector',
+  'class': 'form-control',
+  'value': "$!request.get('changerequest')",
+  'data-docchange': "$!request.get('docChange')"
+})
+#set($discard = $xwiki.jsfx.use('js/xwiki/table/livetable.js', true))
+#set($discard = $xwiki.ssfx.use('js/xwiki/table/livetable.css', true))
 #set ($isEditingChangeRequest = ("$!request.get('changerequest')" != ''))
 #set ($setApprovers = $request.get('setApprovers') == 1)
 #set ($isApproversEdition = $request.get('manageApprovers') == 1)
@@ -84,6 +94,43 @@
 #else
   #set ($modalHeaderTranslationPrefix = 'changerequest.savemodal.header')
 #end
+## Check if other changerequest exists targeting same document
+#set ($otherChangeRequestsWithSamePage = $services.changerequest.getChangeRequestWithChangesFor($request.get('docChange')))
+#if (!$otherChangeRequestsWithSamePage.isEmpty())
+#set ($id = "changerequests-samechanges")
+#set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
+#set($columnsProperties = {
+  "doc.title" : { "type" : "text", "link": "auto" },
+  "authors": { "type": "suggest", "html": "true" },
+  "status" : { "type" : "suggest" },
+  "changedDocuments" : { "type": "suggest", "html": "true"}
+})
+#set ($changedDocumentFilters = "&amp;changedDocuments=$services.model.serialize($request.get('docChange'), 'compactwiki')")
+#set($options = {
+  "className":"ChangeRequest.Code.ChangeRequestClass",
+  "rowCount": 5,
+  "translationPrefix": "changerequest.livetable.",
+  "extraParams": "&amp;status/join_mode=OR&amp;status=draft&amp;status=ready_for_review&amp;status=ready_for_merging&amp;changedDocuments/join_mode=OR$changedDocumentFilters",
+  "outputOnlyHtml": true
+})
+#define ($otherChangeRequestLT)
+&lt;div class="panel panel-info check-panel-other-cr"&gt;
+  &lt;div class="panel-heading" role="tab" id="headingOtherCRPanel"&gt;
+    &lt;h4 class="panel-title"&gt;
+      &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
+        $services.icon.renderHTML('info') $services.localization.render('changerequest.sheet.checks.otherCR.title')
+      &lt;/a&gt;
+    &lt;/h4&gt;
+  &lt;/div&gt; &lt;!-- End heading other CR panel --&gt;
+  &lt;div id="otherCRPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOtherCRPanel"&gt;
+    &lt;div class="panel-body"&gt;
+      $services.localization.render('changerequest.sheet.existingChangeRequestSameChanges')
+      #livetable($id $columns $columnsProperties $options)
+    &lt;/div&gt;
+  &lt;/div&gt;&lt;!-- End otherCR panel body --&gt;
+&lt;/div&gt;&lt;!-- End otherCR panel --&gt;
+#end
+#end
 &lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
     &lt;div class="modal-content"&gt;
@@ -98,6 +145,9 @@
         &lt;/div&gt;
       &lt;/div&gt;
       &lt;div class="modal-body"&gt;
+      #if ($otherChangeRequestLT)
+        $otherChangeRequestLT
+      #end
       &lt;form id="saveChangeRequestForm"&gt;
         &lt;div class="panel-group" id="changeRequestChoiceGroup" role="tablist" aria-multiselectable="false"&gt;
           #if ($isApproversEdition)
@@ -136,13 +186,6 @@
              &lt;div id="addToExistingChangeRequest" class="panel-collapse collapse #if($isEditingChangeRequest)in#end" role="tabpanel" aria-labelledby="addToExistingChangeRequestHeading"&gt;
               &lt;div class="panel-body"&gt;
                 &lt;label for="existingCRSelector"&gt;$services.localization.render('changerequest.savemodal.edit.input.selector')&lt;/label&gt;
-                  #set ($crPickerParameters = {
-                    'name': 'existingCRSelector',
-                    'id': 'existingCRSelector',
-                    'class': 'form-control',
-                    'value': "$!request.get('changerequest')",
-                    'data-docchange': "$!request.get('docChange')"
-                  })
                   #changeRequestPicker($crPickerParameters)
               &lt;/div&gt;&lt;!-- End panel body --&gt;
            &lt;/div&gt;&lt;!-- End panel collapse --&gt;
@@ -160,6 +203,8 @@
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
+#getRequiredSkinExtensions($requiredSkinExtensions)
+#set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $requiredSkinExtensions))
 #elseif ($request.get('checktemplate') == 1)
   #set ($isTemplateSupported = $services.changerequest.isTemplateSupported($request.get('template')))
   #jsonResponse({
@@ -254,13 +299,7 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require.config({
-  paths: {
-    'xwiki-suggestPropertyValues': "$xwiki.getSkinFile('uicomponents/suggest/suggestPropertyValues.js', true)" +
-      "?v=$escapetool.url($xwiki.version)"
-  }
-});
-define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestPropertyValues'], function ($, xm) {
+      <code>define('SaveChangeRequestModal', ['jquery', 'xwiki-meta'], function ($, xm) {
 
   var saveChangeRequestModal = function (configName) {
     var self = this;
@@ -414,7 +453,7 @@ define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'xwiki-suggestProperty
       <name>Save change request modal</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>

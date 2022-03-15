@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestPicker" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestPicker" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestPicker</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>ChangeRequest.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestPicker</title>
@@ -39,11 +40,8 @@
   <content>{{velocity output="false"}}
 #template('display_macros.vm')
 #macro (changeRequestPicker_import)
-  #initRequiredSkinExtensions()
   #picker_import
   #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.ChangeRequestPicker'))
-  #getRequiredSkinExtensions($requiredSkinExtensions)
-  #set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $requiredSkinExtensions))
 #end
 
 #macro (changeRequestPicker $parameters)
