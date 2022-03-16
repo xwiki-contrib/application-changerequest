@@ -143,7 +143,7 @@ changerequest.timeline.changerequest.status.modified={0} changed the status of t
 changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
 changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting for changes
 changerequest.timeline.changerequest.discussions={0} added a new message
-changerequest.timeline.changerequest.updated={0} edited the description of the change request
+changerequest.timeline.changerequest.updated={0} edited the description or the title of the change request
 changerequest.timeline.changerequest.stale={0} marked the change request as stale
 changerequest.timeline.changerequest.rebased.all={0} refreshed the content of the whole change request
 changerequest.timeline.changerequest.rebased.filechange={0} refreshed the changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;

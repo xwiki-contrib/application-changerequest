@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.container.Container;
 import org.xwiki.container.servlet.ServletRequest;
@@ -41,7 +42,7 @@ import org.xwiki.csrf.CSRFToken;
 import org.xwiki.wysiwyg.converter.HTMLConverter;
 
 /**
- * Component in charge of saving change request description.
+ * Component in charge of saving change request description or title.
  *
  * @version $Id$
  * @since 0.6
@@ -60,6 +61,10 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     private static final String STATUS_PARAMETER = "status";
 
     private static final String AUTHORIZATION_ERROR = "You don't have right to edit this change request";
+
+    private static final String TITLE_PARAMETER = "new-title";
+
+    private static final String CHANGE_TYPE_PARAMETER = "changeType";
 
     @Inject
     private HTMLConverter htmlConverter;
@@ -86,7 +91,7 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             if ("GET".equals(request.getMethod())) {
                 success = this.handleStatusUpdate(request, response, changeRequest);
             } else {
-                success = this.handleDescriptionUpdate(request, response, changeRequest);
+                success = this.handleDescriptionOrTitleUpdate(request, response, changeRequest);
             }
             if (success) {
                 this.responseSuccess(changeRequest);
@@ -120,14 +125,23 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
         return result;
     }
 
-    private boolean handleDescriptionUpdate(HttpServletRequest request, HttpServletResponse response,
+    private boolean handleDescriptionOrTitleUpdate(HttpServletRequest request, HttpServletResponse response,
         ChangeRequest changeRequest) throws ChangeRequestException, IOException
     {
         if (this.changeRequestRightsManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)) {
-            String content = getContent(request);
-            changeRequest.setDescription(content);
-            this.storageManager.save(changeRequest);
-            this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
+            String changeType = request.getParameter(CHANGE_TYPE_PARAMETER);
+
+            if (StringUtils.equals(changeType, "settitle")) {
+                String title = request.getParameter(TITLE_PARAMETER);
+                changeRequest.setTitle(title);
+                this.storageManager.save(changeRequest);
+                this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
+            } else {
+                String content = getContent(request);
+                changeRequest.setDescription(content);
+                this.storageManager.save(changeRequest);
+                this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
+            }
             return true;
         } else {
             response

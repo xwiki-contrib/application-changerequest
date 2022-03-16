@@ -32,7 +32,7 @@
   <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>#if($doc.getObject('ChangeRequest.Code.ChangeRequestClass'))Change Request: $doc.title#{else}Change Request Sheet#end</title>
+  <title>#if($doc.getObject('ChangeRequest.Code.ChangeRequestClass'))$doc.title#{else}Change Request Sheet#end</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -62,6 +62,24 @@
 
 {{html clean="false"}}
  &lt;script id="changerequest-sheet-jsx-config" type="application/json"&gt;$jsontool.serialize($changeRequestSheetJSXConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+#if ($canBeEdited)
+&lt;div class="edit-title"&gt;
+#set ($saveTitleUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
+#set ($saveTitleUrl = "${saveTitleUrl}?form_token=$services.csrf.token")
+  &lt;form id="crTitleForm" method="post" action="$saveTitleUrl"&gt;
+    &lt;input type="hidden" name="changeType" value="settitle" /&gt;
+    &lt;h1 class="editable"&gt;
+      &lt;span class="edit-title-icon"&gt;$services.icon.renderHTML('pencil')&lt;/span&gt;
+      &lt;label class="sr-only" for="edit-title-input"&gt;$doc.title&lt;/label&gt;
+      &lt;input type="text" id="edit-title-input" name="new-title" value="$escapetool.xml($doc.title)" /&gt;
+    &lt;/h1&gt;
+    &lt;div class="title-button-wrapper hidden"&gt;
+      &lt;input type="button" id="cancel-title" data-original-title="$escapetool.xml($doc.title)" class="btn btn-default" value="Cancel" /&gt;
+      &lt;input type="submit" id="save-title" class="btn btn-primary" value="Save" /&gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+&lt;/div&gt;
+#end
 &lt;div class="cr-main-div" data-changerequest-id="$changeRequestId"&gt;
   &lt;div id="discussions" class="hidden"&gt;
   #foreach ($changeRequestDiscussion in $allDiscussions)
@@ -2562,6 +2580,131 @@ require(['jquery'], function ($) {
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>13</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>9654e466-9022-4b29-bd2e-28500a41cba9</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var editTitle = function () {
+    console.log("Edit title");
+  };
+  
+  var displayButtons = function () {
+    $('.title-button-wrapper').removeClass('hidden');
+  };
+  
+  var cancelTitle = function () {
+    var initValue = $('#cancel-title').attr('data-original-title');
+    $('input#edit-title-input').val(initValue);
+    $('.title-button-wrapper').addClass('hidden');
+  };
+  
+  var initialize = function () {
+    var editTitleForm = $('#crTitleForm');
+    if (editTitleForm.length &gt; 0) {
+      $('#document-title').empty().append(editTitleForm);
+      $('input#edit-title-input').on('focus', displayButtons);
+      $('#cancel-title').on('click', cancelTitle);
+    }
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
+})</code>
+    </property>
+    <property>
+      <name>title edit</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
@@ -2682,18 +2825,57 @@ require(['jquery'], function ($) {
 .add-comment {
   width: 66%;
 }
-.edit-description {
+.edit-description, .edit-title {
   float: right;
 }
 .description-placeholder {
   color: #7b7b7b;
+}
+h1.editable {
+  /* Move the title heading a bit to the top and to the left in order to accomodate the input border and padding. */
+  margin-top: -@line-height-computed / 4;
+  margin-left: -(ceil(@grid-gutter-width / 2));
+  /* Reduce the bottom margin in order to accomodate the input border and bottom padding. */
+  margin-bottom: @line-height-computed / 4;
+}
+
+@edit-title-input-padding-vertical: @line-height-computed / 4 - 1;
+input#edit-title-input {
+  /* Preserve the heading styles. */
+  border: 1px solid transparent;
+  box-shadow: none;
+  color: inherit;
+  font-size: inherit;
+  /* It seems it's not enough to set the line height for the text input. We also need to set its height. */
+  height: @font-size-document-title * @headings-line-height + 2 * (1 + @edit-title-input-padding-vertical);
+  line-height: @headings-line-height;
+  padding: @edit-title-input-padding-vertical (ceil(@grid-gutter-width / 2) - 1);
+  width: 97%;
+  display: inline;
+}
+
+.edit-title-icon {
+  float: right;
+  font-size: 0.5em;
+  line-height: 3em;
+}
+
+input#edit-title-input:hover {
+  border-color: @input-border;
+}
+
+input#edit-title-input:focus, .edit-title-icon:hover {
+  .form-control-focus();
+}
+.title-button-wrapper {
+  float: right;
 }</code>
     </property>
     <property>
-      <contentType>CSS</contentType>
+      <contentType>LESS</contentType>
     </property>
     <property>
-      <name>review</name>
+      <name>sheet</name>
     </property>
     <property>
       <parse>0</parse>
