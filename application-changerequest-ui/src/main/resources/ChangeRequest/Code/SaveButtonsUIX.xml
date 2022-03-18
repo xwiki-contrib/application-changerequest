@@ -134,6 +134,20 @@
     <property>
       <code>require(['jquery', 'xwiki-meta', 'SaveChangeRequestModal'], function ($, xm, SaveChangeRequestModal) {
   var saveConfig = JSON.parse($('#changerequest-save-config').text());
+  
+  var handleCancel = function (event) {
+    event.preventDefault();
+    $(document).trigger('xwiki:actions:cancel');
+    var urlParams = new URLSearchParams(window.location.search);
+    var editExistingCR = urlParams.has('changerequest');
+    if (editExistingCR) {
+      document.location.href = saveConfig.changeRequestURL;
+    } else {
+      currentDocUrl = new XWiki.Document(xm.documentReference).getURL();
+      document.location.href = currentDocUrl;
+    }
+  };
+  
   var attachButtons = function () {
     if ($('#save_changerequest').length == 0) {
       var button = $("&lt;input&gt;", {
@@ -170,6 +184,8 @@
         $('.meta-minorEdit').remove();
         $('#autosaveControl').remove();
         $('input[name=action_save]').parent().remove();
+        $('input[name=action_cancel]').off('click');
+        $('input[name=action_cancel]').on('click', handleCancel);
       }
     }
   };
@@ -354,6 +370,13 @@
     'isCreate': $doc.isNew(),
     'isInplaceEditing': $isInplaceEditing
   })
+  #if ($request.get('changerequest'))
+    #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
+    #if ($changeRequestOpt.isPresent())
+      #set ($changeRequestDocReference = $services.changerequest.getChangeRequestDocumentReference($changeRequestOpt.get()))
+      #set ($discard = $changeRequestSaveConfig.put('changeRequestURL', $xwiki.getDocument($changeRequestDocReference).getURL()))
+    #end
+  #end
   
   {{html clean="false"}}
   &lt;script id="changerequest-save-config" type="application/json"&gt;$jsontool.serialize($changeRequestSaveConfig).replace('&lt;', '\u003C')&lt;/script&gt;
