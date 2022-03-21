@@ -46,6 +46,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ConflictResolutionChoice;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestConflictsFixedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -376,6 +378,9 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         boolean result;
         // bulletproof to avoid NPE.
         List<ConflictDecision<?>> filteredDecisionList;
+        ChangeRequest changeRequest = fileChange.getChangeRequest();
+        this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
+            changeRequest);
 
         if (conflictDecisionList == null) {
             filteredDecisionList = Collections.emptyList();
@@ -404,9 +409,10 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         }
 
         if (result) {
-            this.observationManager.notify(new ChangeRequestConflictsFixedEvent(),
-                fileChange.getChangeRequest().getId(), fileChange);
+            this.observationManager.notify(new ChangeRequestConflictsFixedEvent(), changeRequest.getId(), fileChange);
         }
+        this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+            changeRequest);
 
         return result;
     }
