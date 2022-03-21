@@ -162,7 +162,7 @@ class ChangeRequestCreationIT
         assertTrue(timelineEvent.getDate().after(dateAfterCR));
         assertTrue(timelineEvent.getDate().before(dateAfterDescriptionUpdate));
         assertEquals("CRCreator\n"
-                + "edited the description of the change request",
+                + "edited the description or the title of the change request",
             timelineEvent.getContent().getText());
 
         // Check the diff
