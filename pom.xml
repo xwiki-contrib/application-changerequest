@@ -241,6 +241,13 @@
                   <old>method org.xwiki.contrib.changerequest.FileChange org.xwiki.contrib.changerequest.storage.FileChangeStorageManager::getLatestFileChangeWithChanges(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
                   <justification>Refactoring of Unstable API: method moved to ChangeRequest#getFileChangeWithChangeBefore</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent::&lt;init&gt;(java.lang.String, java.lang.String, java.lang.String)</old>
+                  <new>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent::&lt;init&gt;(java.lang.String, java.lang.String, java.lang.String, java.lang.String)</new>
+                  <justification>Refactoring of Unstable API: provide the message reference to handle properly navigation in case of message replies.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

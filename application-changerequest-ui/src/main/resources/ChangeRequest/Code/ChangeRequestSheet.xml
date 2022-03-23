@@ -155,24 +155,9 @@
         #end
         #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
         &lt;div class="add-comment"&gt;
-          #set ($discussionCommentReference = $services.changerequest.discussion.createChangeRequestCommentDiscussion($changeRequestId))
-          #set ($discussionCommentReferenceString = $services.discussions.serialize($discussionCommentReference))
-          #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($discussionCommentReferenceString)")
-          &lt;form method="post" action="$url" class="message-form"&gt;
-          &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequestId" /&gt;
-          &lt;input type="hidden" name="async" value="1" /&gt;
-          &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
-          &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($discussionCommentReferenceString)" /&gt;
-          &lt;div class="comment-editor hidden"&gt;
-            #displayMessageContentField()
-          &lt;/div&gt;
-          &lt;button type="button" class="btn btn-default comment-button"&gt;
+          &lt;button type="button" class="btn btn-default open-editor"&gt;
           $services.icon.renderHTML('comment') Comment
           &lt;/button&gt;
-          &lt;button type="button" class="btn btn-default cancel-button hidden"&gt;
-          Cancel
-          &lt;/button&gt;
-          &lt;/form&gt;
         &lt;/div&gt;
         #end
       &lt;/div&gt;
@@ -721,7 +706,7 @@ require(['jquery', 'bootstrap'], function ($) {
       <parse>0</parse>
     </property>
     <property>
-      <use>currentPage</use>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
@@ -937,7 +922,7 @@ require(['jquery', 'bootstrap'], function ($) {
       <parse>0</parse>
     </property>
     <property>
-      <use>currentPage</use>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
@@ -1064,7 +1049,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
       <parse>0</parse>
     </property>
     <property>
-      <use>currentPage</use>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
@@ -1289,7 +1274,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <parse>0</parse>
     </property>
     <property>
-      <use>currentPage</use>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
@@ -1428,7 +1413,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <parse>0</parse>
     </property>
     <property>
-      <use>currentPage</use>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
@@ -1712,6 +1697,16 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
         newLine.insertAfter(currentLine);
         newLine.find('td').append($(data));
         self.editorDiv = newLine;
+      } else if (self.requestData.type == 'comment') {
+        self.editorDiv = $('&lt;div&gt;');
+        self.editorDiv.append($(data));
+        $('.add-comment').prepend(self.editorDiv);
+      } else if (self.requestData.type == 'replyTo') {
+        var originalMessageReference = self.requestData.originalMessage;
+        var selector = '.message[data-reference="' + originalMessageReference +'"]';
+        self.editorDiv = $('&lt;div&gt;');
+        self.editorDiv.append($(data));
+        self.editorDiv.insertAfter($(selector));
       }
       $(document).trigger('xwiki:dom:updated', {'elements': self.editorDiv.toArray()});
       self.editorDiv.find('.comment-button').on('click', self.submitAction);
@@ -2259,74 +2254,20 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <code>'use strict';
-require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler'], function ($, xm, DiscussionHandler) {
-  var submitComment = function (form) {
-    var url = form.attr('action');
-    var notification = new XWiki.widgets.Notification('Submitting message...','inprogress');
-    // We need to call beforeSave first to put the data in the actual content field.
-    $(document).trigger('xwiki:actions:beforeSave');
-    var data = form.serialize();
-    $(document).trigger('xwiki:actions:cancel');
-    $.post(url, data).done(function (data) {
-      notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
-      DiscussionHandler.retrieveMessage(data);
-    }).fail(function (data) {
-      console.error(data);
-      notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
-    });
-  };
-  
+require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEditor'], function ($, xm, DiscussionHandler, CommentEditor) {
+
   var initialize = function () {
-    $('.add-comment .comment-button').on('click', function (event) {
-      var commentEditor = $(this).siblings('.comment-editor');
-      var cancelButton = $(this).siblings('.cancel-button');
-      if (commentEditor) {
-        if (commentEditor.hasClass('hidden')) {
-          commentEditor.removeClass('hidden');
-          cancelButton.removeClass('hidden');
-          $(this).removeClass('btn-default');
-          $(this).addClass('btn-primary');
-        } else {
-          submitComment($(this).parent('form'));
-        }
-      }
+    $('.add-comment .open-editor').on('click', function (event) {
+      var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
+        var editor = new CommentEditor($(this), {
+          'type': 'comment',
+          'changeRequestId': changeRequestId
+        });
+        editor.requestEditor();
+        $(this).addClass('hidden');
     });
-    $('.add-comment .cancel-button').on('click', function () {
-      var commentEditor = $(this).siblings('.comment-editor');
-      var commentButton = $(this).siblings('.comment-button');
-      $(document).trigger('xwiki:actions:cancel');
-      commentEditor.addClass('hidden');
-      $(this).addClass('hidden');
-      commentButton.removeClass('btn-primary');
-      commentButton.addClass('btn-default');
-    });
-    $('.message .reply-button').on('click', function () {
-      var messageReference = $(this).parents('.message').attr('data-reference');
-      var discussionBlock = $(this).parents('.discussion');
-      var addCommentDiv = discussionBlock.siblings('.add-comment');
-      var commentButton = addCommentDiv.find('.comment-button');
-      var commentEditor = commentButton.siblings('.comment-editor');
-      var cancelButton = commentButton.siblings('.cancel-button');
-      var form = addCommentDiv.find('form.message-form');
-      if (commentEditor &amp;&amp; form) {
-        if (commentEditor.hasClass('hidden')) {
-          var replyToField = $("&lt;input&gt;", {
-            'type': 'hidden',
-            'name': 'replyTo',
-            'value': messageReference
-          });
-          form.append(replyToField);
-          commentEditor.removeClass('hidden');
-          cancelButton.removeClass('hidden');
-          commentButton.removeClass('btn-default');
-          commentButton.addClass('btn-primary');
-        } else {
-          console.log("comment editor:");
-          console.log(commentEditor);
-        }
-      } else {
-        console.log("cannot find stuff");
-      }
+    $(document).on('xwiki:actions:cancel', function () {
+      $('.add-comment .open-editor').removeClass('hidden');
     });
   };
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
@@ -2556,20 +2497,27 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
 require(['jquery'], function ($) {
   var toggleReply = function () {
     var element = $(this);
-    var originalMessageReference = element.parents('.reply-to-header').attr('data-original-reference');
+    var originalMessageReference = element.attr('data-message-reference');
     var selector = '.message[data-reference="' + originalMessageReference +'"]';
-    $(selector).toggleClass('showMessage');
+    $('.showMessage').removeClass('showMessage');
+    if ($(selector).parents('.collapse:not(.in)').length &gt; 0) {
+      $(selector).parents('.collapse:not(.in)').addClass('in');
+    }
+    $(selector).addClass('showMessage');
+    $(selector).one('click', function() {
+      $(this).removeClass('showMessage');
+    });
   };
   
   var init = function () {
-    $('.reply-to-navigation').on('click', toggleReply);
+    $('a[data-message-reference]').on('click', toggleReply);
   };
   
-  init() &amp;&amp; $(document).on('xwiki:dom:update', init);
+  init() &amp;&amp; $(document).on('xwiki:dom:updated', init);
 });</code>
     </property>
     <property>
-      <name>Reply to navigation</name>
+      <name>Message navigation</name>
     </property>
     <property>
       <parse>0</parse>
@@ -2691,10 +2639,241 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   };
   
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
-})</code>
+});</code>
     </property>
     <property>
       <name>title edit</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>14</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>438daf61-7738-41ef-b6f1-0f95844e539a</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEditor'], function ($, xm, DiscussionHandler, CommentEditor) {
+  var initReply = function () {
+    $('.message .reply-button').on('click', function () {
+      var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
+      var message = $(this).parents('.message');
+      var discussion = message.parents('.discussion');
+      var discussionType = discussion.attr('data-type');
+      var discussionReference = discussion.attr('data-reference');
+      var messageReference = message.attr('data-reference');
+      
+      var editor = new CommentEditor($(this), {
+          'type': 'replyTo',
+          'changeRequestId': changeRequestId,
+          'originalMessage': messageReference,
+          'originalDiscussionType': discussionType,
+          'originalDiscussionReference': discussionReference
+      });
+      editor.requestEditor();
+    });
+  };
+  initReply() &amp;&amp; $(document).on('xwiki:dom:updated', initReply);
+});</code>
+    </property>
+    <property>
+      <name>Reply button</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>15</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>3235c726-bceb-4295-b6ef-bda8793f2b16</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'bootstrap'], function ($) {
+  var initTabNavigation = function () {
+    $('a[data-tab]').on('click', function() {
+      var tabName = $(this).attr('data-tab');
+      var selector = '#changeRequestTabs a[href="#' + tabName + '"]';
+      $(selector).tab('show');
+    })
+  };
+  
+  initTabNavigation() &amp;&amp; $(document).on('xwiki:dom:updated', initTabNavigation);
+});</code>
+    </property>
+    <property>
+      <name>tab navigation</name>
     </property>
     <property>
       <parse>0</parse>
@@ -2842,7 +3021,7 @@ h1.editable {
 @edit-title-input-padding-vertical: @line-height-computed / 4 - 1;
 input#edit-title-input {
   /* Preserve the heading styles. */
-  border: 1px solid transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: none;
   color: inherit;
   font-size: inherit;
@@ -2855,7 +3034,8 @@ input#edit-title-input {
 }
 
 .edit-title-icon {
-  float: right;
+  position: absolute;
+  left: 90%;
   font-size: 0.5em;
   line-height: 3em;
 }

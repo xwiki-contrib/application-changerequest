@@ -97,6 +97,11 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
     public static final String DISCUSSION_REFERENCE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "discussion.reference";
 
     /**
+     * Key used for event parameter to store a message reference.
+     */
+    public static final String MESSAGE_REFERENCE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "message.reference";
+
+    /**
      * Key used for event parameter to store the ID of a filechange in case of rebase.
      */
     public static final String REBASED_FILECHANGE_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "rebased.filechange.id";
@@ -153,6 +158,7 @@ public class ChangeRequestRecordableEventConverter implements RecordableEventCon
                 (ChangeRequestDiscussionRecordableEvent) recordableEvent;
             parameters.put(DISCUSSION_TYPE_KEY, discussionRecordableEvent.getDiscussionType());
             parameters.put(DISCUSSION_REFERENCE_KEY, discussionRecordableEvent.getDiscussionReference());
+            parameters.put(MESSAGE_REFERENCE_KEY, discussionRecordableEvent.getMessageReference());
         }
         if (recordableEvent instanceof ChangeRequestRebasedRecordableEvent) {
             ChangeRequestRebasedRecordableEvent rebasedRecordableEvent =

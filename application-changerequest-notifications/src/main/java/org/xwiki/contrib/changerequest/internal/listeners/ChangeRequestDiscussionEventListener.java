@@ -21,15 +21,20 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionEvent;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
+import org.xwiki.contrib.discussions.DiscussionReferencesSerializer;
+import org.xwiki.contrib.discussions.domain.Message;
 import org.xwiki.observation.event.Event;
 
 /**
@@ -45,6 +50,12 @@ public class ChangeRequestDiscussionEventListener extends AbstractChangeRequestE
 {
     static final String NAME = "ChangeRequestDiscussionEventListener";
 
+    @Inject
+    private Provider<ChangeRequestDiscussionService> changeRequestDiscussionServiceProvider;
+
+    @Inject
+    private DiscussionReferencesSerializer discussionReferencesSerializer;
+
     /**
      * Default constructor.
      */
@@ -59,12 +70,14 @@ public class ChangeRequestDiscussionEventListener extends AbstractChangeRequestE
         String changeRequestId = (String) source;
         try {
             DocumentModelBridge documentInstance = this.getChangeRequestDocument(changeRequestId);
+            Message message = (Message) data;
             AbstractChangeRequestDiscussionContextReference discussionContextReference =
-                (AbstractChangeRequestDiscussionContextReference) data;
+                this.changeRequestDiscussionServiceProvider.get().getReferenceFrom(message.getDiscussion());
             ChangeRequestDiscussionRecordableEvent recordableEvent =
                 new ChangeRequestDiscussionRecordableEvent(changeRequestId,
                     discussionContextReference.getType().name(),
-                    discussionContextReference.getReference());
+                    discussionContextReference.getReference(),
+                    this.discussionReferencesSerializer.serialize(message.getReference()));
             this.notifyChangeRequestRecordableEvent(recordableEvent, documentInstance);
         } catch (Exception e) {
             this.logger.error(

@@ -87,7 +87,7 @@ public class MessageCreationListener extends AbstractEventListener
                 AbstractChangeRequestDiscussionContextReference reference =
                     this.changeRequestDiscussionServiceProvider.get().getReferenceFrom(message.getDiscussion());
                 this.observationManager
-                    .notify(new ChangeRequestDiscussionEvent(), reference.getChangeRequestId(), reference);
+                    .notify(new ChangeRequestDiscussionEvent(), reference.getChangeRequestId(), message);
             } catch (ChangeRequestDiscussionException e) {
                 logger.warn("Error while computing reference for message [{}]: [{}]", message,
                     ExceptionUtils.getRootCauseMessage(e));

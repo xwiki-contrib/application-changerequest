@@ -53,6 +53,11 @@
     #set ($lineChange = $request.get('changeType'))
     #set ($fileDiffReference = $services.changerequest.discussion.createFileDiffReference($changeRequestId, $targetReference, $diffId))
     #set ($discussionReference = $services.changerequest.discussion.createDiffDiscussion($fileDiffReference, $entityReference, $diffBlockId, $lineNumber, $lineChange))
+  #elseif ($request.get('type') == 'comment')
+    #set ($discussionReference = $services.changerequest.discussion.createChangeRequestCommentDiscussion($changeRequestId))
+  #elseif ($request.get('type') == 'replyTo')
+    #set ($message = $services.discussions.getMessage($request.get('originalMessage')))
+    #set ($discussionReference = $message.discussion.reference)
   #end
 {{html clean="false"}}
 &lt;div class="add-comment"&gt;
@@ -63,6 +68,9 @@
     &lt;input type="hidden" name="async" value="1" /&gt;
     &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
     &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($reference)" /&gt;
+    #if ($request.get('type') == 'replyTo')
+      &lt;input type="hidden" name="replyTo" value="$escapetool.xml($request.get('originalMessage'))" /&gt;
+    #end
     #displayMessageContentField()
     &lt;input type="button" class="btn btn-primary comment-button" value="$services.localization.render('save')" /&gt;
     &lt;input type="button" class="btn btn-default cancel-button" value="$services.localization.render('cancel')" /&gt;

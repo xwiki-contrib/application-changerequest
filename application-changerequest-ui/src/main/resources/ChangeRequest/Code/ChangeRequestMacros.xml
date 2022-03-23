@@ -52,9 +52,9 @@
   #set ($originalMessage = $services.discussions.getMessage($replyReference))
   #if ($originalMessage)
     #set ($originalMessageReference = $escapetool.xml($services.discussions.serialize($replyReference)))
-    &lt;div class="reply-to-header" data-original-reference="$originalMessageReference"&gt;
+    &lt;div class="reply-to-header"&gt;
         $services.localization.render('changerequest.sheet.message.reply.header', ["#wrappedDisplayUser($originalMessage.actorReference.reference, {'useInlineHTML': true})", "$escapetool.xml($services.date.displayTimeAgo($originalMessage.updateDate))"])
-      &lt;a class="reply-to-navigation" href="#$originalMessageReference" title="$services.localization.render('changerequest.sheet.message.reply.link.title')"&gt;
+      &lt;a class="reply-to-navigation" href="#$originalMessageReference" data-message-reference="$originalMessageReference" title="$services.localization.render('changerequest.sheet.message.reply.link.title')"&gt;
         $services.icon.renderHTML('up')
       &lt;/a&gt;
     &lt;/div&gt;
@@ -174,6 +174,16 @@
           #set ($localizationKey = "${localizationKey}.filechange")
         #end
       #end
+    #elseif ($event.type == "changerequest.discussions")
+      #set ($discussionType = $event.parameters.get('changerequest.discussion.type'))
+      #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
+      #set ($localizationKey = "${localizationKey}.${discussionType}")
+      #set ($messageURL = "$xwiki.getURL($doc)#$messageReference")
+      #if ($discussionType == 'LINE_DIFF')
+        #set ($dataTab = "data-tab='filechanges'")
+      #end
+      #set ($link = "&lt;a href=""$messageURL"" data-message-reference=""$messageReference"" $dataTab&gt;")
+      #set ($localizationArguments = [$userArgument, $link, '&lt;/a&gt;'])
     #else
       #set ($localizationArguments = [$userArgument])
     #end

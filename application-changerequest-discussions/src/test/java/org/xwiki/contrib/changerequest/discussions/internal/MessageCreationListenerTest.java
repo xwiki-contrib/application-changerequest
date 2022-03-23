@@ -91,6 +91,6 @@ class MessageCreationListenerTest
 
         when(reference.getChangeRequestId()).thenReturn("CRID");
         this.listener.onEvent(event, hint, message);
-        verify(this.observationManager).notify(any(ChangeRequestDiscussionEvent.class), eq("CRID"), eq(reference));
+        verify(this.observationManager).notify(any(ChangeRequestDiscussionEvent.class), eq("CRID"), eq(message));
     }
 }

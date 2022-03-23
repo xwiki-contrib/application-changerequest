@@ -39,12 +39,14 @@ public class ChangeRequestDiscussionRecordableEvent extends AbstractChangeReques
 
     private final String discussionReference;
 
+    private final String messageReference;
+
     /**
      * Default empty constructor.
      */
     public ChangeRequestDiscussionRecordableEvent()
     {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     /**
@@ -52,13 +54,16 @@ public class ChangeRequestDiscussionRecordableEvent extends AbstractChangeReques
      * @param id the identifier of a change request for which the event is triggered.
      * @param discussionType the type of the discussion
      * @param discussionReference the reference of the discussion
+     * @param messageReference the reference of the message
      * @see org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference
      */
-    public ChangeRequestDiscussionRecordableEvent(String id, String discussionType, String discussionReference)
+    public ChangeRequestDiscussionRecordableEvent(String id, String discussionType, String discussionReference,
+        String messageReference)
     {
         super(id);
         this.discussionType = discussionType;
         this.discussionReference = discussionReference;
+        this.messageReference = messageReference;
     }
 
     /**
@@ -75,6 +80,14 @@ public class ChangeRequestDiscussionRecordableEvent extends AbstractChangeReques
     public String getDiscussionReference()
     {
         return discussionReference;
+    }
+
+    /**
+     * @return the reference of the message
+     */
+    public String getMessageReference()
+    {
+        return this.messageReference;
     }
 
     @Override

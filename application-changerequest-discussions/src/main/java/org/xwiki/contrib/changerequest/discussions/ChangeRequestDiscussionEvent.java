@@ -27,9 +27,7 @@ import org.xwiki.stability.Unstable;
  * This event is sent with the following information:
  * <ul>
  *     <li>source: the change request identifier</li>
- *     <li>data: the
- *     {@link org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference}
- *     linked to the discussion</li>
+ *     <li>data: the {@link org.xwiki.contrib.discussions.domain.Message} that has been created.</li>
  * </ul>
  *
  * @version $Id$
