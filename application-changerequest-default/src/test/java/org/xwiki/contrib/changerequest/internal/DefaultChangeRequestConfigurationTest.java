@@ -19,15 +19,20 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.time.temporal.ChronoUnit;
+
 import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrategy;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -57,6 +62,9 @@ class DefaultChangeRequestConfigurationTest
     @Named("changerequest")
     private ConfigurationSource configurationSource;
 
+    @RegisterExtension
+    LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+
     private XWikiContext context;
 
     @BeforeEach
@@ -82,5 +90,19 @@ class DefaultChangeRequestConfigurationTest
         when(this.context.getWikiReference()).thenReturn(wikiReference);
         SpaceReference expected = new SpaceReference("foo", "ChangeRequest", "Data");
         assertEquals(expected, this.configuration.getChangeRequestSpaceLocation());
+    }
+
+    @Test
+    void getDurationUnit()
+    {
+        assertEquals(ChronoUnit.DAYS, this.configuration.getDurationUnit());
+
+        when(this.configurationSource.getProperty("durationUnit")).thenReturn("absurd value");
+        assertEquals(ChronoUnit.DAYS, this.configuration.getDurationUnit());
+        assertEquals(1, logCapture.size());
+        assertEquals("Unsupported duration unit [absurd value]. Fallback to days unit.", logCapture.getMessage(0));
+
+        when(this.configurationSource.getProperty("durationUnit")).thenReturn("hours");
+        assertEquals(ChronoUnit.HOURS, this.configuration.getDurationUnit());
     }
 }

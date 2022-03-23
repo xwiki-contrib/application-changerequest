@@ -141,27 +141,29 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     public TemporalUnit getDurationUnit()
     {
         String durationUnit = this.configurationSource.getProperty("durationUnit");
-        TemporalUnit unit;
-        switch (durationUnit) {
-            case "seconds":
-                unit = ChronoUnit.SECONDS;
-                break;
+        TemporalUnit unit = ChronoUnit.DAYS;
+        if (!StringUtils.isEmpty(durationUnit)) {
+            switch (durationUnit) {
+                case "seconds":
+                    unit = ChronoUnit.SECONDS;
+                    break;
 
-            case "minutes":
-                unit = ChronoUnit.MINUTES;
-                break;
+                case "minutes":
+                    unit = ChronoUnit.MINUTES;
+                    break;
 
-            case "hours":
-                unit = ChronoUnit.HOURS;
-                break;
+                case "hours":
+                    unit = ChronoUnit.HOURS;
+                    break;
 
-            case "days":
-                unit = ChronoUnit.DAYS;
-                break;
+                case "days":
+                    unit = ChronoUnit.DAYS;
+                    break;
 
-            default:
-                this.logger.warn("Unsupported duration unit [{}]. Fallback to days unit.", durationUnit);
-                unit = ChronoUnit.DAYS;
+                default:
+                    this.logger.warn("Unsupported duration unit [{}]. Fallback to days unit.", durationUnit);
+                    unit = ChronoUnit.DAYS;
+            }
         }
         return unit;
     }
