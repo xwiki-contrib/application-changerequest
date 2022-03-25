@@ -59,6 +59,20 @@
   #set ($changeRequestId = $services.model.resolveDocument($row.get('doc_fullName')).lastSpaceReference.name)
   #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
   #if ($changeRequestOpt.isPresent() &amp;&amp; $services.changerequest.authorization.isAuthorizedToReview($changeRequestOpt.get(), $request.userDoc))
+    #set ($changeRequest = $changeRequestOpt.get())
+    #set ($hasBeenReviewed = $services.changerequest.review.alreadyReviewed($request.userDoc, $changeRequest))
+    #define ($reviews)
+      &lt;span class="review-information"&gt;
+        $changeRequest.reviews.size() $services.localization.render('changerequest.livetable.approvers.reviews.performed')
+        #if ($hasBeenReviewed)
+        &lt;br /&gt;
+        &lt;span class="already-reviewed label label-success"&gt;
+          $services.localization.render('changerequest.livetable.approvers.reviews.alreadyReviewed')
+        &lt;/span&gt;
+        #end
+      &lt;/span&gt;
+    #end
+    #set ($discard = $row.put('reviews', "$reviews"))
     #set($discard = $newRows.add($row))
   #end
 #end

@@ -143,4 +143,19 @@ public class ChangeRequestReviewScriptService implements ScriptService
         return review.isLastFromAuthor() && status != ChangeRequestStatus.MERGED
             && review.getAuthor().equals(currentUserReference);
     }
+
+    /**
+     * Check if the given user already reviewed the given change request, and if the review is still valid.
+     *
+     * @param userReference the user who might have performed a review.
+     * @param changeRequest the change request which might have been reviewed
+     * @return {@code true} if a review has been performed by the given user on the given change request, and the review
+     *         is still valid.
+     */
+    public boolean alreadyReviewed(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return changeRequest.getReviews().stream()
+            .anyMatch(changeRequestReview ->
+                changeRequestReview.getAuthor().equals(userReference) && changeRequestReview.isValid());
+    }
 }

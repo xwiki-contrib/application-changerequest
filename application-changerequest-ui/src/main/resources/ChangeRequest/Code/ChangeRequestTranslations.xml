@@ -200,7 +200,9 @@ changerequest.savemodal.approvers.users=Users who can approve
 changerequest.savemodal.approvers.groups=Groups who can approve
 
 changerequest.sheet.message.reply.header=Reply to message from {0} sent {1}.
-changerequest.sheet.message.reply.link.title=Click to navigate to the previous message.</content>
+changerequest.sheet.message.reply.link.title=Click to navigate to the previous message.
+changerequest.livetable.approvers.reviews.performed=review(s) performed
+changerequest.livetable.approvers.reviews.alreadyReviewed=already reviewed</content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestTranslations</name>
     <number>0</number>
