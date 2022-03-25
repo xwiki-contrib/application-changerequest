@@ -175,12 +175,15 @@
         #end
       #end
     #elseif ($event.type == "changerequest.discussions")
+      #set ($dataTab = $NULL)
       #set ($discussionType = $event.parameters.get('changerequest.discussion.type'))
       #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
       #set ($localizationKey = "${localizationKey}.${discussionType}")
       #set ($messageURL = "$xwiki.getURL($doc)#$messageReference")
       #if ($discussionType == 'LINE_DIFF')
         #set ($dataTab = "data-tab='filechanges'")
+      #elseif ($discussionType == 'REVIEW')
+        #set ($dataTab = "data-tab='reviews'")
       #end
       #set ($link = "&lt;a href=""$messageURL"" data-message-reference=""$messageReference"" $dataTab&gt;")
       #set ($localizationArguments = [$userArgument, $link, '&lt;/a&gt;'])

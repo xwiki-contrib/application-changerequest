@@ -3001,9 +3001,6 @@ require(['jquery', 'bootstrap'], function ($) {
   border: 1px dashed #dbdbdb;
   padding: 1em;
 }
-.add-comment {
-  width: 66%;
-}
 .edit-description, .edit-title {
   float: right;
 }
