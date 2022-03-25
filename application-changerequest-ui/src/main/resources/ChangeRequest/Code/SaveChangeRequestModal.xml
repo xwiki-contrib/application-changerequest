@@ -95,7 +95,7 @@
   #set ($modalHeaderTranslationPrefix = 'changerequest.savemodal.header')
 #end
 ## Check if other changerequest exists targeting same document
-#set ($otherChangeRequestsWithSamePage = $services.changerequest.getChangeRequestWithChangesFor($request.get('docChange')))
+#set ($otherChangeRequestsWithSamePage = $services.changerequest.getOpenChangeRequestWithChangesFor($request.get('docChange')))
 #if (!$otherChangeRequestsWithSamePage.isEmpty())
 #set ($id = "changerequests-samechanges")
 #set ($columns = ["doc.title", "authors", "status", "changedDocuments"])

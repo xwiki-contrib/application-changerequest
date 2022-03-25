@@ -158,6 +158,22 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
+     * Retrieve all open change requests that contain a change for the given document.
+     *
+     * @param documentReference the reference to look for in the change requests.
+     * @return the list of all open change requests containing a change for the given document.
+     * @throws ChangeRequestException in case of problem when loading change request.
+     * @since 0.11
+     */
+    public List<ChangeRequest> getOpenChangeRequestWithChangesFor(DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        List<ChangeRequest> changeRequestTargeting =
+            this.changeRequestStorageManager.findChangeRequestTargeting(documentReference);
+        return changeRequestTargeting.stream().filter(cr -> cr.getStatus().isOpen()).collect(Collectors.toList());
+    }
+
+    /**
      * Retrieve change requests different from the given change request, that are not closed or merged and which
      * contains a change for one of the document reference modified by the given change request.
      *
@@ -173,12 +189,10 @@ public class ChangeRequestScriptService implements ScriptService
         Map<DocumentReference, List<ChangeRequest>> result = new HashMap<>();
 
         for (DocumentReference modifiedDocument : changeRequest.getModifiedDocuments()) {
-            List<ChangeRequest> changeRequests = getChangeRequestWithChangesFor(modifiedDocument).stream()
-                .filter(foundCR ->
-                    !foundCR.getId().equals(changeRequest.getId())
-                    && foundCR.getStatus() != ChangeRequestStatus.CLOSED
-                    && foundCR.getStatus() != ChangeRequestStatus.MERGED
-            ).collect(Collectors.toList());
+            List<ChangeRequest> changeRequests = getOpenChangeRequestWithChangesFor(modifiedDocument)
+                .stream()
+                .filter(foundCR -> !foundCR.getId().equals(changeRequest.getId()))
+                .collect(Collectors.toList());
             if (!changeRequests.isEmpty()) {
                 result.put(modifiedDocument, changeRequests);
             }
