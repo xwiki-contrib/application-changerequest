@@ -112,7 +112,7 @@ public class ChangeRequestSaveModal extends BaseModal
     {
         getDriver().findElement(By.id("saveChangeRequest")).click();
         ChangeRequestPage changeRequestPage = new ChangeRequestPage();
-        changeRequestPage.waitUntilPageIsLoaded();
+        changeRequestPage.waitUntilPageIsReady();
         return changeRequestPage;
     }
 }

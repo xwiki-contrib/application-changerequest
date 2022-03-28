@@ -77,7 +77,7 @@ public class ExtendedCreatePage extends CreatePagePage
         WebElement button = getDriver().findElementWithoutWaiting(By.id(CR_CREATE_BUTTON_ID));
         button.click();
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
-        extendedEditPage.getEditor().waitUntilPageIsLoaded();
+        extendedEditPage.getEditor().waitUntilPageIsReady();
         return extendedEditPage;
     }
 }

@@ -69,7 +69,7 @@ public class ExtendedViewPage extends ViewPage
     {
         super.edit();
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
-        extendedEditPage.getEditor().waitUntilPageIsLoaded();
+        extendedEditPage.getEditor().waitUntilPageIsReady();
         return extendedEditPage;
     }
 
@@ -82,7 +82,7 @@ public class ExtendedViewPage extends ViewPage
     {
         getDriver().findElement(By.id(CR_EDIT_ID)).findElement(By.className("btn-default")).click();
         ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
-        extendedEditPage.getEditor().waitUntilPageIsLoaded();
+        extendedEditPage.getEditor().waitUntilPageIsReady();
         return extendedEditPage;
     }
 

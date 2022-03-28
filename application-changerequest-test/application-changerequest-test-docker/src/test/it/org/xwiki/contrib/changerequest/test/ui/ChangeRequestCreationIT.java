@@ -169,7 +169,7 @@ class ChangeRequestCreationIT
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
         assertEquals(1, fileChangesPane.getFileChangesListLiveData().getTableLayout().countRows());
         DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(serializedReference);
-        assertEquals("(1 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
+        assertEquals("(2 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
 
         EntityDiff contentDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
         List<String> content = contentDiff.getDiff("Content");
