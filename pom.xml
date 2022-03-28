@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-platform</artifactId>
-    <version>14.0</version>
+    <version>14.2</version>
   </parent>
   <groupId>org.xwiki.contrib.changerequest</groupId>
   <artifactId>application-changerequest</artifactId>
@@ -94,6 +94,18 @@
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult org.xwiki.contrib.changerequest.ChangeRequestManager::getMergeDocumentResult(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Refactoring of Unstable API: method moved to ChangeRequestMergeManager.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.ChangeRequestMergeDocumentResult org.xwiki.contrib.changerequest.ChangeRequestManager::getMergeDocumentResult(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Refactoring of Unstable API: method moved to ChangeRequestMergeManager.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
                   <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestManager::hasConflicts(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
                   <justification>Refactoring of Unstable API: method moved to ChangeRequestMergeManager.</justification>
                 </item>
@@ -102,6 +114,12 @@
                   <code>java.method.removed</code>
                   <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestManager::isAuthorizedToEdit(org.xwiki.user.UserReference, org.xwiki.contrib.changerequest.ChangeRequest)</old>
                   <justification>Refactoring of Unstable API: method moved to ChangeRequestRightsManager.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestManager::isAuthorizedToFixConflict(org.xwiki.user.UserReference, org.xwiki.contrib.changerequest.FileChange)</old>
+                  <justification>Refactoring of Unstable API: method removed for simplification. This check should now use ChangeRequestRightsManager#isAuthorizedToEdit.</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
