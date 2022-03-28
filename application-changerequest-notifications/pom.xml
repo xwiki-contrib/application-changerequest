@@ -31,6 +31,9 @@
   <version>0.11-SNAPSHOT</version>
   <name>Application Change Request - Notifications</name>
   <packaging>jar</packaging>
+  <properties>
+    <xwiki.jacoco.instructionRatio>0.06</xwiki.jacoco.instructionRatio>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -62,6 +65,12 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-eventstream-store-hibernate</artifactId>
       <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
