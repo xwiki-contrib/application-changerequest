@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
@@ -97,8 +98,9 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
         Map<Event, DocumentReference> result = new HashMap<>();
         for (Event event : compositeEvent.getEvents()) {
             Map<String, String> parameters = event.getParameters();
-            if (parameters.containsKey(ChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY)) {
-                String crId = parameters.get(ChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY);
+            if (parameters.containsKey(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY)) {
+                String crId =
+                    parameters.get(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY);
                 try {
                     Optional<ChangeRequest> optionalChangeRequest = this.storageManager.load(crId);
                     if (optionalChangeRequest.isPresent()) {

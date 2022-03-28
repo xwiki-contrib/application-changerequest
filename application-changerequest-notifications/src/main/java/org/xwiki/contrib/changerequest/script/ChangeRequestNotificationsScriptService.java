@@ -25,7 +25,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventConverter;
+import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
 import org.xwiki.eventstream.EventSearchResult;
 import org.xwiki.eventstream.EventStore;
 import org.xwiki.eventstream.EventStreamException;
@@ -64,7 +64,7 @@ public class ChangeRequestNotificationsScriptService implements ScriptService
         // FIXME: this can be simplified with XWiki 13.9 API
         SimpleEventQuery eventQuery = new SimpleEventQuery(offset, limit)
             .eq(String.format("%s__properties_string",
-                ChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY), changeRequestId)
+                AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY), changeRequestId)
             .addSort("date", SortableEventQuery.SortClause.Order.ASC);
 
         return this.eventStoreProvider.get().search(eventQuery);
