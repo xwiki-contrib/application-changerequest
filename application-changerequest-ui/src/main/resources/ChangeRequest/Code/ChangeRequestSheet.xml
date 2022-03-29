@@ -1172,7 +1172,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       // from https://github.com/ckeditor/ckeditor4/blob/master/plugins/editorplaceholder/plugin.js#L67
       var fullPageRegex = /&lt;body.*?&gt;((?:.|[\n\r])*?)&lt;\/body&gt;/i;
       var bodyDataMatched = textareaContent.match(fullPageRegex);
-      if (textarea.attr('data-syntax').includes('annotatedxhtml') &amp;&amp; bodyDataMatched &amp;&amp; (bodyDataMatched.length &gt; 1)) {
+      if ((textarea.attr('data-syntax').includes('annotatedxhtml') || textarea.attr('data-syntax').includes('annotatedhtml')) &amp;&amp; bodyDataMatched &amp;&amp; (bodyDataMatched.length &gt; 1)) {
         textareaContent = bodyDataMatched[ 1 ];
       }
       return textareaContent.length === 0;
