@@ -19,7 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal.listeners;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -87,21 +88,29 @@ public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
      */
     public ReadyForReviewChangeRequestNotifier()
     {
-        super(NAME, Collections.singletonList(new ChangeRequestStatusChangedEvent()));
+        super(NAME, Arrays.asList(new ChangeRequestStatusChangedEvent(), new ChangeRequestCreatedEvent()));
     }
 
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        ChangeRequestStatus[] statuses = (ChangeRequestStatus[]) data;
-        if (statuses != null && statuses.length == 2 && statuses[1] == ChangeRequestStatus.READY_FOR_REVIEW) {
-            String changeRequestId = (String) source;
-            try {
-                Optional<ChangeRequest> optionalChangeRequest = this.changeRequestStorageManager.load(changeRequestId);
-                optionalChangeRequest.ifPresent(this::notifyChangeRequestApprovers);
-            } catch (ChangeRequestException e) {
-                logger.error("Error while loading change request [{}] in order to notify explicit approvers",
-                    changeRequestId, e);
+        if (event instanceof ChangeRequestStatusChangedEvent) {
+            ChangeRequestStatus[] statuses = (ChangeRequestStatus[]) data;
+            if (statuses != null && statuses.length == 2 && statuses[1] == ChangeRequestStatus.READY_FOR_REVIEW) {
+                String changeRequestId = (String) source;
+                try {
+                    Optional<ChangeRequest> optionalChangeRequest =
+                        this.changeRequestStorageManager.load(changeRequestId);
+                    optionalChangeRequest.ifPresent(this::notifyChangeRequestApprovers);
+                } catch (ChangeRequestException e) {
+                    logger.error("Error while loading change request [{}] in order to notify explicit approvers",
+                        changeRequestId, e);
+                }
+            }
+        } else if (event instanceof ChangeRequestCreatedEvent) {
+            ChangeRequest changeRequest = (ChangeRequest) data;
+            if (changeRequest.getStatus() == ChangeRequestStatus.READY_FOR_REVIEW) {
+                this.notifyChangeRequestApprovers(changeRequest);
             }
         }
     }
@@ -110,15 +119,18 @@ public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
     {
         try {
             Set<UserReference> allApprovers = this.changeRequestApproversManager.getAllApprovers(changeRequest, true);
-            Set<String> serializedApprovers = allApprovers.stream()
-                .map(this.userReferenceSerializer::serialize)
-                .collect(Collectors.toSet());
-            ChangeRequestReadyForReviewTargetableEvent event =
-                new ChangeRequestReadyForReviewTargetableEvent(serializedApprovers);
-            DocumentReference documentReference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-            DocumentModelBridge document =
-                this.documentAccessBridge.getTranslatedDocumentInstance(documentReference);
-            this.observationManager.notify(event, AbstractChangeRequestEventListener.EVENT_SOURCE, document);
+            if (!allApprovers.isEmpty()) {
+                Set<String> serializedApprovers = allApprovers.stream()
+                    .map(this.userReferenceSerializer::serialize)
+                    .collect(Collectors.toSet());
+                ChangeRequestReadyForReviewTargetableEvent event =
+                    new ChangeRequestReadyForReviewTargetableEvent(serializedApprovers);
+                DocumentReference documentReference =
+                    this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+                DocumentModelBridge document =
+                    this.documentAccessBridge.getTranslatedDocumentInstance(documentReference);
+                this.observationManager.notify(event, AbstractChangeRequestEventListener.EVENT_SOURCE, document);
+            }
         } catch (ChangeRequestException e) {
             logger.error("Error while loading the list of explicit approvers.", e);
         } catch (Exception e) {
