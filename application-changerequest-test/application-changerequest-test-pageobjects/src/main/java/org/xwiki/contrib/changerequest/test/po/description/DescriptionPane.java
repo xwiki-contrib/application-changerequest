@@ -134,7 +134,9 @@ public class DescriptionPane extends BaseElement
             List<TimelineEvent> events = getEvents();
             latestSize = events.size();
             if (latestSize > size) {
-                throw new AssertionError(String.format("[%s] events expected [%s] obtained.", size, latestSize));
+                TimelineEvent latestEvent = events.get(events.size() - 1);
+                throw new AssertionError(String.format("[%s] events expected [%s] obtained. Latest event is [%s].",
+                    size, latestSize, latestEvent.getContent().getText()));
             } else if (latestSize < size) {
                 getDriver().addPageNotYetReloadedMarker();
                 reloadUrl = originalUrl + "?refreshToken=" + RandomStringUtils.randomAlphanumeric(10);
