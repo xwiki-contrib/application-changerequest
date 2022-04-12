@@ -585,9 +585,12 @@ class DefaultFileChangeStorageManagerTest
     {
         FileChange fileChange = mock(FileChange.class);
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        DocumentReference mergerReference = new DocumentReference("xwiki", "XWiki", "Merger");
+        when(context.getUserReference()).thenReturn(mergerReference);
 
         XWikiDocument targetDoc = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(targetDoc);
+        when(targetDoc.clone()).thenReturn(targetDoc);
         String crTitle = "Some title";
         String crID = "someId";
         ChangeRequest changeRequest = mock(ChangeRequest.class);
@@ -598,6 +601,8 @@ class DefaultFileChangeStorageManagerTest
             .thenReturn(SAVE_MESSAGE);
 
         this.fileChangeStorageManager.merge(fileChange);
+        verify(targetDoc).clone();
+        verify(targetDoc).setCreatorReference(mergerReference);
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
     }
 

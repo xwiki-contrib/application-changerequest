@@ -519,7 +519,10 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     {
         XWikiContext context = contextProvider.get();
         XWiki wiki = context.getWiki();
-        XWikiDocument modifiedDoc = (XWikiDocument) fileChange.getModifiedDocument();
+        XWikiDocument modifiedDoc = ((XWikiDocument) fileChange.getModifiedDocument()).clone();
+
+        // the creator of the document should be the merge user.
+        modifiedDoc.setCreatorReference(context.getUserReference());
         try {
             wiki.saveDocument(modifiedDoc, getMergeSaveMessage(fileChange), context);
         } catch (XWikiException e) {
