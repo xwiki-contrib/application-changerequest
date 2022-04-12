@@ -19,10 +19,12 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
 import org.checkerframework.checker.units.qual.C;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionEditPage;
@@ -77,13 +79,10 @@ class ChangeRequestCreationIT
     private static final String CR_APPROVER = "Approver";
     private static final String CR_MERGER = "Merger";
 
-    @Test
-    @Order(1)
-    void createChangeRequest(TestUtils setup, TestReference testReference) throws Exception
+    @BeforeAll
+    void setupUsers(TestUtils setup)
     {
-        String serializedReference = testReference.getLocalDocumentReference().toString();
         setup.loginAsSuperAdmin();
-        setup.createPage(testReference, "Some content to the test page.");
 
         // Fixture with 3 users:
         // CRCreator: does not have edit rights, but has right to create CR
@@ -93,6 +92,19 @@ class ChangeRequestCreationIT
         setup.createUser(CR_APPROVER, CR_APPROVER, null);
         setup.createUser(CR_MERGER, CR_MERGER, null);
 
+        // We force the approver to use WYSIWYG editor, to avoid any problem to display the review modal.
+        // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
+        setup.updateObject("XWiki", CR_APPROVER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
+    }
+
+    @Test
+    @Order(1)
+    void createChangeRequest(TestUtils setup, TestReference testReference) throws Exception
+    {
+        String serializedReference = testReference.getLocalDocumentReference().toString();
+        setup.loginAsSuperAdmin();
+        setup.createPage(testReference, "Some content to the test page.");
+
         setup.setRights(testReference, "", CR_CREATOR, "edit", false);
         setup.setRights(testReference, "", CR_CREATOR, "changerequest", true);
 
@@ -101,10 +113,6 @@ class ChangeRequestCreationIT
 
         setup.setRights(testReference, "", CR_MERGER, "crapprove", false);
         setup.setRights(testReference, "", CR_MERGER, "edit", true);
-
-        // We force the approver to use WYSIWYG editor, to avoid any problem to display the review modal.
-        // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
-        setup.updateObject("XWiki", CR_APPROVER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
 
         // we go to the page to ensure there's no remaining lock on it.
         setup.gotoPage(testReference);
@@ -140,7 +148,7 @@ class ChangeRequestCreationIT
         assertTrue(timelineEvent.getDate().before(dateAfterCR));
         assertEquals("CRCreator\n"
                 + "created the change request with changes concerning "
-                + "xwiki:NestedChangeRequestCreationIT.createChangeRequest.WebHome",
+                + "xwiki:" + serializedReference,
             timelineEvent.getContent().getText());
 
         // Update the description and check related event
@@ -488,5 +496,87 @@ class ChangeRequestCreationIT
         assertTrue(review.isApproval());
         assertTrue(review.isOutdated());
         assertFalse(review.isToggleValidButtonEnabled());
+
+        assertEquals("Ready for review", changeRequestPage.getStatusLabel());
+        descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(12);
+        events = descriptionPane.getEvents();
+        assertEquals(12, events.size());
+
+        timelineEvent = events.get(10);
+        assertTrue(timelineEvent.getDate().after(dateAfterReview));
+        assertTrue(timelineEvent.getDate().before(dateAfterReview2));
+        assertEquals("Approver\n"
+                + "added a new review requesting for changes",
+            timelineEvent.getContent().getText());
+
+        timelineEvent = events.get(11);
+        assertTrue(timelineEvent.getDate().after(dateAfterReview));
+        assertTrue(timelineEvent.getDate().before(dateAfterReview2));
+        assertEquals("Approver\n"
+                + "changed the status of the change request from ready for merging to ready for review",
+            timelineEvent.getContent().getText());
+    }
+
+    @Test
+    @Order(2)
+    void editExistingChangeRequest(TestUtils setup, TestReference testReference)
+    {
+        String serializedReference = testReference.getLocalDocumentReference().toString();
+        setup.loginAsSuperAdmin();
+        setup.createPage(testReference, "Some content to the test page.");
+
+        setup.setRights(testReference, "", CR_CREATOR, "edit", false);
+        setup.setRights(testReference, "", CR_CREATOR, "changerequest", true);
+
+        setup.gotoPage(testReference);
+
+        setup.login(CR_CREATOR, CR_CREATOR);
+        setup.gotoPage(testReference);
+        ExtendedViewPage extendedViewPage = new ExtendedViewPage();
+        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
+        extendedEditPage.getEditor().setContent("Some new content.");
+        assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
+
+        ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
+        changeRequestSaveModal.setChangeRequestTitle("CR2");
+        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
+
+        Date afterSave = new Date();
+
+        // try editing the created change request
+        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
+        assertTrue(fileChangesPane.isEditActionAvailable(serializedReference));
+
+        extendedEditPage = fileChangesPane.clickEdit(serializedReference);
+        extendedEditPage.getEditor().setContent("Some new content after edition.");
+        ChangeRequestSaveModal saveModal = extendedEditPage.clickSaveAsChangeRequest();
+        assertFalse(saveModal.isCreateChangeRequestDisplayed());
+        assertTrue(saveModal.isAddChangesToExistingChangeRequestDisplayed());
+        changeRequestPage = saveModal.clickSave();
+
+        DescriptionPane descriptionPane = changeRequestPage.openDescription();
+        descriptionPane.waitUntilEventsSize(2);
+
+        // Check event
+        Date dateAfterNewChange = new Date();
+        List<TimelineEvent> events = descriptionPane.getEvents();
+        assertEquals(2, events.size());
+
+        TimelineEvent timelineEvent = events.get(1);
+        assertTrue(timelineEvent.getDate().after(afterSave));
+        assertTrue(timelineEvent.getDate().before(dateAfterNewChange));
+        assertEquals("CRCreator\n"
+                + "added a new file change concerning "
+                + "xwiki:" + serializedReference,
+            timelineEvent.getContent().getText());
+
+        fileChangesPane = changeRequestPage.openFileChanges();
+        EntityDiff contentDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
+        List<String> content = contentDiff.getDiff("Content");
+        assertEquals(3, content.size());
+        assertEquals("-Some content t<del>o th</del>e <del>t</del>e<del>s</del>t<del> page</del>.", content.get(1));
+        assertEquals("+Some <ins>new </ins>content <ins>af</ins>te<ins>r</ins> e<ins>di</ins>t<ins>ion</ins>.",
+            content.get(2));
     }
 }

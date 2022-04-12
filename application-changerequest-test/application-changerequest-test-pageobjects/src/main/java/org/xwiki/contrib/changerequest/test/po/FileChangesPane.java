@@ -30,6 +30,7 @@ import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.test.ui.po.BaseElement;
 import org.xwiki.test.ui.po.diff.DocumentDiffSummary;
 import org.xwiki.test.ui.po.diff.EntityDiff;
+import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
 /**
  * Represents the pane displaying the file changes in a change request.
@@ -41,6 +42,8 @@ public class FileChangesPane extends BaseElement
 {
     private static final String FIX_CONFLICT_ACTION_CLASS = "action_fixconflict";
     private static final String REBASE_ACTION_CLASS = "action_rebase";
+
+    private static final String EDIT_ACTION_CLASS = "action_edit";
     private static final String LOCATION_COLUMN_NAME = "Location";
 
     private final WebElement container;
@@ -262,6 +265,38 @@ public class FileChangesPane extends BaseElement
         } else {
             throw new NoSuchElementException(
                 String.format("The refresh content link is not available for [%s]", serializedReference));
+        }
+    }
+
+    /**
+     * Check if the edit link is displayed in the live data table for the given reference.
+     *
+     * @param serializedReference a compact serialization of a page reference.
+     * @return {@code true} if the edit link is displayed on the row of the reference.
+     */
+    public boolean isEditActionAvailable(String serializedReference)
+    {
+        return this.getActionLink(serializedReference, EDIT_ACTION_CLASS).isPresent();
+    }
+
+    /**
+     * Click on the refresh content link of the given reference, and wait for the reload of the page.
+     *
+     * @param serializedReference a compact serialization of a page reference.
+     * @return a new instance of the {@link ChangeRequestPage} since this action reload the page.
+     * @see #isRefreshActionAvailable(String)
+     */
+    public ExtendedEditPage<WYSIWYGEditPage> clickEdit(String serializedReference)
+    {
+        Optional<WebElement> optionalActionLink = this.getActionLink(serializedReference, EDIT_ACTION_CLASS);
+        if (optionalActionLink.isPresent()) {
+            optionalActionLink.get().click();
+            ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
+            extendedEditPage.getEditor().waitUntilPageIsReady();
+            return extendedEditPage;
+        } else {
+            throw new NoSuchElementException(
+                String.format("The edit link is not available for [%s]", serializedReference));
         }
     }
 

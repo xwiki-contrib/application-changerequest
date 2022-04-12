@@ -599,7 +599,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     break;
 
                 case FILECHANGE:
-                    result = (XWikiDocument) fileChange.getModifiedDocument();
+                    result = ((XWikiDocument) fileChange.getModifiedDocument()).clone();
                     // we ensure to update the RCS version to not compare with the same version as previous version.
                     result.setRCSVersion(result.getRCSVersion().next());
                     break;

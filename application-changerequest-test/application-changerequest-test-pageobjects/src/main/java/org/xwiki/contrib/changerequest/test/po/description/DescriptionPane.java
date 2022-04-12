@@ -129,6 +129,11 @@ public class DescriptionPane extends BaseElement
         int loop = 0;
         int latestSize = -1;
         String originalUrl = getDriver().getCurrentUrl();
+        // strip the anchor
+        String anchorSeparator = "#";
+        if (originalUrl.contains(anchorSeparator)) {
+            originalUrl = originalUrl.substring(0, originalUrl.lastIndexOf(anchorSeparator));
+        }
         String reloadUrl = "";
         do {
             List<TimelineEvent> events = getEvents();

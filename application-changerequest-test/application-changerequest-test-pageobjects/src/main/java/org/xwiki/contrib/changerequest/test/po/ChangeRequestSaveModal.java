@@ -43,21 +43,35 @@ public class ChangeRequestSaveModal extends BaseModal
         super(By.id("changeRequestModal"));
     }
 
-    private void openCollapsed(WebElement collapseLink)
+    private WebElement getCreateChangeRequestDiv()
     {
-        if (collapseLink.getAttribute(CLASS).contains(COLLAPSED)) {
-            collapseLink.click();
-            getDriver().waitUntilCondition(condition -> collapseLink.getAttribute(CLASS).contains(COLLAPSED));
+        return getDriver().findElementWithoutWaiting(this.container, By.id("newChangeRequest"));
+    }
+
+    /**
+     * Open the block containing inputs for creating a new change request.
+     */
+    public void openCreateChangeRequest()
+    {
+        if (!this.isCreateChangeRequestDisplayed()) {
+            WebElement link = getDriver().findElementWithoutWaiting(this.container,
+                By.cssSelector("a[aria-controls=newChangeRequest]"));
+            link.click();
+            getDriver().waitUntilCondition(driver -> this.isCreateChangeRequestDisplayed());
         }
     }
 
     /**
-     * Open the collapse containing inputs for creating a new change request.
+     * @return {@code true} if the block to create a new change request is collapsed.
      */
-    public void openCreateChangeRequestCollapse()
+    public boolean isCreateChangeRequestDisplayed()
     {
-        WebElement collapseLink = getDriver().findElement(By.linkText("Create new change request"));
-        this.openCollapsed(collapseLink);
+        return getCreateChangeRequestDiv().isDisplayed();
+    }
+
+    private WebElement getAddChangesToExistingChangeRequestDiv()
+    {
+        return getDriver().findElementWithoutWaiting(this.container, By.id("addToExistingChangeRequest"));
     }
 
     /**
@@ -65,9 +79,23 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public void openAddChangesToExistingChangeRequestCollapse()
     {
-        WebElement collapseLink = getDriver().findElement(By.linkText("Add changes to existing change request"));
-        this.openCollapsed(collapseLink);
+        if (!this.isAddChangesToExistingChangeRequestDisplayed()) {
+            WebElement link = getDriver().findElementWithoutWaiting(this.container,
+                By.cssSelector("a[aria-controls=addToExistingChangeRequest]"));
+            link.click();
+            getDriver().waitUntilCondition(driver -> this.isAddChangesToExistingChangeRequestDisplayed());
+        }
     }
+
+    /**
+     * @return {@code true} if the block to add changes to an existing change request is collapsed.
+     */
+    public boolean isAddChangesToExistingChangeRequestDisplayed()
+    {
+        return getAddChangesToExistingChangeRequestDiv().isDisplayed();
+    }
+
+
 
     /**
      * Set the title for a new change request.
