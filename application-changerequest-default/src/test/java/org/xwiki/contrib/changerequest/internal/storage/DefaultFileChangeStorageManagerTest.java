@@ -229,6 +229,7 @@ class DefaultFileChangeStorageManagerTest
         FileChange fileChange = mock(FileChange.class);
         XWikiDocument document = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(document);
+        when(document.clone()).thenReturn(document);
         when(document.getRCSVersion()).thenReturn(new Version("2.1"));
         assertEquals(document, this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange));
         verify(document).setRCSVersion(new Version("2.1").next());
@@ -506,6 +507,7 @@ class DefaultFileChangeStorageManagerTest
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         XWikiDocument modifiedDocument = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(modifiedDocument);
+        when(modifiedDocument.clone()).thenReturn(modifiedDocument);
         when(modifiedDocument.getRCSVersion()).thenReturn(new Version("2.1"));
 
         DocumentReference targetEntity = mock(DocumentReference.class);
@@ -651,6 +653,7 @@ class DefaultFileChangeStorageManagerTest
         XWikiDocument modifiedDoc = mock(XWikiDocument.class);
         when(modifiedDoc.getRCSVersion()).thenReturn(new Version("3.4"));
         when(cloneFileChange.getModifiedDocument()).thenReturn(modifiedDoc);
+        when(modifiedDoc.clone()).thenReturn(modifiedDoc);
         when(cloneFileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
         when(this.documentRevisionProvider.getRevision(documentReference, fileChangePreviousPublishedVersion))
             .thenReturn(previousDoc);
@@ -680,6 +683,7 @@ class DefaultFileChangeStorageManagerTest
         verify(cloneFileChange).setPreviousVersion(fileChangeVersion);
         verify(cloneFileChange).setVersion(nextFileChangeVersion);
         verify(cloneFileChange).isSaved();
+        verify(modifiedDoc).clone();
     }
 
     @Test
@@ -725,6 +729,7 @@ class DefaultFileChangeStorageManagerTest
         XWikiDocument modifiedDoc = mock(XWikiDocument.class);
         when(modifiedDoc.getRCSVersion()).thenReturn(new Version("3.4"));
         when(cloneFileChange.getModifiedDocument()).thenReturn(modifiedDoc);
+        when(modifiedDoc.clone()).thenReturn(modifiedDoc);
         when(cloneFileChange.getPreviousPublishedVersion()).thenReturn(fileChangePreviousPublishedVersion);
         when(this.documentRevisionProvider.getRevision(documentReference, fileChangePreviousPublishedVersion))
             .thenReturn(previousDoc);
@@ -754,6 +759,7 @@ class DefaultFileChangeStorageManagerTest
         verify(cloneFileChange).setPreviousVersion(fileChangeVersion);
         verify(cloneFileChange).setVersion(nextFileChangeVersion);
         verify(cloneFileChange).isSaved();
+        verify(modifiedDoc).clone();
     }
 
     @Test
