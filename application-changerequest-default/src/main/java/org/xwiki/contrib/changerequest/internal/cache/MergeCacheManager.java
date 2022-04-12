@@ -234,7 +234,7 @@ public class MergeCacheManager implements Initializable, Disposable
     public void invalidate(DocumentReference documentReference)
     {
         if (this.cacheKeysMap.containsKey(documentReference)) {
-            for (String key : this.cacheKeysMap.get(documentReference)) {
+            for (String key : new HashSet<>(this.cacheKeysMap.get(documentReference))) {
                 this.hasConflictCache.remove(key);
                 this.crMergeDocumentResultCache.remove(key);
             }
