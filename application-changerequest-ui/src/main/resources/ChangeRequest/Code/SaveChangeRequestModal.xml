@@ -374,24 +374,31 @@
         $('#saveChangeRequest').trigger('xwiki:document:saved');
         form.submit();
       } else {
-        // if there's a template we specify to use sync save, in order to trick actionButtons.js
+        var beforeSaveEvent = $.Event('xwiki:actions:beforeSave', {target: event.target});
         if (saveConfig.isInplaceEditing) {
           form['action'] = actionURL + "?" + actionURLParams.toString();
+          // if there's a template we specify to use sync save, in order to trick actionButtons.js
           if (form['template'] !== "") {
             form['async'] = "false";
           }
-          $('#xwikicontent').trigger('xwiki:actions:beforeSave');
-          $('#xwikicontent').trigger('xwiki:actions:save', {form: form, continue: true});
+          var data =  {form: form, continue: true};
         } else {
           form.attr('action', actionURL + "?" + actionURLParams.toString());
           if (form.find('input[name=template]').val() !== "") {
             form.find('input[name=async]').val('false');
           }
-          $(document).trigger('xwiki:actions:beforeSave');
-          $(document).trigger('xwiki:actions:save', {form: form[0], continue: true});
+          var data =  {form: form[0], continue: true};
         }
+        $(document).one('xwiki:actions:beforeSave', function (event) {
+          if (!event.isPropagationStopped()) {
+            $(document).trigger('xwiki:actions:save', data);
+          }
+        });
+        $(document).trigger(beforeSaveEvent, data);
       }
     };
+    
+    
 
     var validateForm = function () {
       var crTitle = $('#crTitle').val();
