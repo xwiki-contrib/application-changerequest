@@ -103,7 +103,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             EditForm editForm = this.prepareForm(request);
             modifiedDocument = this.prepareDocument(request, editForm, null);
         } else {
-            // TODO: Handle affectChildren
             String serializedReference = request.getParameter("docReference");
             DocumentReference referenceWithoutLocale = this.documentReferenceResolver.resolve(serializedReference);
             String localeString = request.getParameter("locale");

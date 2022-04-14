@@ -134,14 +134,35 @@
         'class': 'btn btn-warning',
         'name': 'delete_changerequest',
         'id': 'delete_changerequest',
-        'value': saveConfig.deleteButtonTranslation
+        'value': saveConfig.deleteButtonTranslation,
+        'title': saveConfig.deleteButtonTranslation
       });
       $(button).insertBefore('.xcontent form &gt; button.btn-danger.confirm');
+      
+      if ($('#affectChildren')) {
+        var nestedAlert = $("&lt;div&gt;", {
+          'class': 'alert alert-info',
+          'role': 'alert',
+          'id': 'nestedPageAlert'
+        });
+        nestedAlert.text(saveConfig.nestedPagesMessage);
+        $(nestedAlert).insertBefore($('#panel-children').parent());
+      }
     }
     $('#delete_changerequest').on('click', function(e) {
       var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-delete-config');
       e.preventDefault();
       saveChangeRequestModal.openModal();
+    });
+    $('#affectChildren').on('change', function (e) {
+      var deleteButton = $('#delete_changerequest');
+      var isChecked = $(this).is(':checked');
+      deleteButton.attr('disabled', isChecked);
+      if (isChecked) {
+        deleteButton.attr('title', saveConfig.disabledDeleteButtonTranslation);
+      } else {
+        deleteButton.attr('title', saveConfig.deleteButtonTranslation);
+      }
     });
   }
   attachButtons();
@@ -445,7 +466,9 @@
   #set ($changeRequestSaveConfig = {
     'createURL': $createURL,
     'addChangesURL': $addChangesURL,
-    'deleteButtonTranslation': $services.localization.render('changerequest.template.deletecr.confirm'),
+    'deleteButtonTranslation': $escapetool.json($services.localization.render('changerequest.template.deletecr.confirm')),
+    'disabledDeleteButtonTranslation': $escapetool.json($services.localization.render('changerequest.delete.button.disabled')),
+    'nestedPagesMessage': $escapetool.json($services.localization.render('changerequest.delete.nested.message')),
     'isDeletion': true
   })
   
