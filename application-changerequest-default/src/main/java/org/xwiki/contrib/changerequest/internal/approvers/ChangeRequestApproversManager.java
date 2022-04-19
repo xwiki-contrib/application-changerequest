@@ -112,4 +112,11 @@ public class ChangeRequestApproversManager implements ApproversManager<ChangeReq
         DocumentReference documentEntity = this.changeRequestDocumentReferenceResolver.resolve(entity);
         return this.documentReferenceApproversManager.getGroupsApprovers(documentEntity);
     }
+
+    @Override
+    public boolean wasManuallyEdited(ChangeRequest entity) throws ChangeRequestException
+    {
+        DocumentReference documentEntity = this.changeRequestDocumentReferenceResolver.resolve(entity);
+        return this.documentReferenceApproversManager.wasManuallyEdited(documentEntity);
+    }
 }

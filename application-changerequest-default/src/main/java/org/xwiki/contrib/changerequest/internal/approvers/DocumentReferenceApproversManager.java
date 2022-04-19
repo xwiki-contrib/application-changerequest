@@ -95,4 +95,10 @@ public class DocumentReferenceApproversManager implements ApproversManager<Docum
     {
         return this.documentApproversManager.getGroupsApprovers(getDocument(entity));
     }
+
+    @Override
+    public boolean wasManuallyEdited(DocumentReference entity) throws ChangeRequestException
+    {
+        return this.documentApproversManager.wasManuallyEdited(getDocument(entity));
+    }
 }

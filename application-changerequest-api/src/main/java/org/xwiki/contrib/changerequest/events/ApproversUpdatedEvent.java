@@ -27,7 +27,9 @@ import org.xwiki.stability.Unstable;
  * The event also send the following parameters:
  *  <ul>
  *      <li>source: the XWikiDocument instance containing the list of approvers</li>
- *      <li>data: a set of {@link String} representing the references to all approvers before and after the update</li>
+ *      <li>data: a {@link org.apache.commons.lang3.tuple.Pair} of {@link java.util.HashSet} of {@link String}
+ *          whose left element is the set of all approvers (groups and users) before the change, and right element is
+ *          the set of all approvers (groups and users) after the change</li>
  *  </ul>
  *
  * @version $Id$

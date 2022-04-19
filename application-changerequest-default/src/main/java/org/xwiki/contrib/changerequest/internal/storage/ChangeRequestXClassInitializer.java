@@ -53,10 +53,17 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Named("ChangeRequest.Code.ChangeRequestClass")
 public class ChangeRequestXClassInitializer implements MandatoryDocumentInitializer
 {
-    static final List<String> CHANGE_REQUEST_SPACE = Arrays.asList("ChangeRequest", "Code");
+    /**
+     * Default location for change request code.
+     */
+    public static final List<String> CHANGE_REQUEST_SPACE = Arrays.asList("ChangeRequest", "Code");
 
-    static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
+    /**
+     * Reference of the change request XClass.
+     */
+    public static final LocalDocumentReference CHANGE_REQUEST_XCLASS =
         new LocalDocumentReference(CHANGE_REQUEST_SPACE, "ChangeRequestClass");
+
     static final String STATUS_FIELD = "status";
     static final String CHANGED_DOCUMENTS_FIELD = "changedDocuments";
     static final String AUTHORS_FIELD = "authors";

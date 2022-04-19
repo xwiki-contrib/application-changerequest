@@ -99,4 +99,17 @@ public interface ApproversManager<T>
      * @throws ChangeRequestException in case of error when reading the values.
      */
     Set<DocumentReference> getGroupsApprovers(T entity) throws ChangeRequestException;
+
+    /**
+     * Check if the approvers list was manually edited or not.
+     *
+     * @param entity the entity for which to retrieve approvers information.
+     * @return {@code true} if the approvers list was manually edited.
+     * @throws ChangeRequestException in case of error when reading the values.
+     * @since 0.14
+     */
+    default boolean wasManuallyEdited(T entity) throws ChangeRequestException
+    {
+        return false;
+    }
 }

@@ -149,6 +149,8 @@ ChangeRequest.Code.ApproversClass_usersApprovers=Users who can approve
 ChangeRequest.Code.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
 ChangeRequest.Code.ApproversClass_groupsApprovers=Groups who can approve
 ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.
+ChangeRequest.Code.ApproversClass_manualEdition=Manually edited
+ChangeRequest.Code.ApproversClass_manualEdition_hint=Check the box if you don't want the approvers to be automatically synchronized when new changes are published.
 
 changerequest.timeline.changerequest.create={0} created the change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;

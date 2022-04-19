@@ -20,12 +20,14 @@
 package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ApproversUpdatedTargetableEvent;
@@ -65,7 +67,9 @@ public class ApproversUpdatedEventListener extends AbstractEventListener
     public void onEvent(Event event, Object source, Object data)
     {
         if (!this.remoteObservationManagerContext.isRemoteState()) {
-            Set<String> target = (Set<String>) data;
+            Pair<Set<String>, Set<String>> approvers = (Pair<Set<String>, Set<String>>) data;
+            Set<String> target = new HashSet<>(approvers.getLeft());
+            target.addAll(approvers.getRight());
             ApproversUpdatedTargetableEvent approversUpdatedTargetableEvent =
                 new ApproversUpdatedTargetableEvent(target);
             this.observationManager.notify(approversUpdatedTargetableEvent,

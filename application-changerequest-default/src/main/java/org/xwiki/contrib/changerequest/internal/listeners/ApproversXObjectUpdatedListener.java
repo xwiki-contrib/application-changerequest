@@ -32,6 +32,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
@@ -112,15 +113,18 @@ public class ApproversXObjectUpdatedListener extends AbstractLocalEventListener
             String[] previousGroupApprovers =
                 this.getValues(previousObject, ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY);
 
-            Set<String> targets = new HashSet<>();
-            targets.addAll(this.resolveAndSerializeLists(currentUsersApprovers));
-            targets.addAll(this.resolveAndSerializeLists(previousUsersApprovers));
-            targets.addAll(this.resolveAndSerializeLists(currentGroupApprovers));
-            targets.addAll(this.resolveAndSerializeLists(previousGroupApprovers));
+            Set<String> currentApprovers = new HashSet<>();
+            Set<String> previousApprovers = new HashSet<>();
+            currentApprovers.addAll(this.resolveAndSerializeLists(currentUsersApprovers));
+            previousApprovers.addAll(this.resolveAndSerializeLists(previousUsersApprovers));
+            currentApprovers.addAll(this.resolveAndSerializeLists(currentGroupApprovers));
+            previousApprovers.addAll(this.resolveAndSerializeLists(previousGroupApprovers));
 
             // filter out possible null values
-            targets = targets.stream().filter(Objects::nonNull).collect(Collectors.toSet());
-            this.observationManager.notify(new ApproversUpdatedEvent(), source, targets);
+            currentApprovers = currentApprovers.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+            previousApprovers = previousApprovers.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+            this.observationManager.notify(new ApproversUpdatedEvent(), source,
+                Pair.of(previousApprovers, currentApprovers));
         }
     }
 

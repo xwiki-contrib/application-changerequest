@@ -236,4 +236,16 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
         }
         return result;
     }
+
+    @Override
+    public boolean wasManuallyEdited(XWikiDocument entity) throws ChangeRequestException
+    {
+        Optional<BaseObject> approversObjectOpt = this.getApproversObject(entity, false);
+        boolean result = false;
+        if (approversObjectOpt.isPresent()) {
+            BaseObject baseObject = approversObjectOpt.get();
+            result = baseObject.getIntValue(ApproversXClassInitializer.MANUAL_EDITION_PROPERTY) == 1;
+        }
+        return result;
+    }
 }

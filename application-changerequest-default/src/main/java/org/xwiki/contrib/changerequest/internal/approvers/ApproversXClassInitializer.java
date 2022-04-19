@@ -64,6 +64,11 @@ public class ApproversXClassInitializer implements MandatoryDocumentInitializer
     public static final String GROUPS_APPROVERS_PROPERTY = "groupsApprovers";
 
     /**
+     * Name of the field defining if the list of approvers have been manually edited or not.
+     */
+    public static final String MANUAL_EDITION_PROPERTY = "manualEdition";
+
+    /**
      * Separator used in approvers lists.
      */
     public static final Character SEPARATOR_CHARACTER = ',';
@@ -83,16 +88,17 @@ public class ApproversXClassInitializer implements MandatoryDocumentInitializer
         boolean result = false;
 
         if (document.isNew()) {
-            BaseClass xClass = document.getXClass();
-            xClass.addUsersField(USERS_APPROVERS_PROPERTY, USERS_APPROVERS_PROPERTY);
-            xClass.addGroupsField(GROUPS_APPROVERS_PROPERTY, GROUPS_APPROVERS_PROPERTY);
-
             document.setHidden(true);
             DocumentReference userReference = this.contextProvider.get().getUserReference();
             document.setCreatorReference(userReference);
             document.setAuthorReference(userReference);
             result = true;
         }
+        BaseClass xClass = document.getXClass();
+        result |= xClass.addUsersField(USERS_APPROVERS_PROPERTY, USERS_APPROVERS_PROPERTY);
+        result |= xClass.addGroupsField(GROUPS_APPROVERS_PROPERTY, GROUPS_APPROVERS_PROPERTY);
+        result |= xClass.addBooleanField(MANUAL_EDITION_PROPERTY, MANUAL_EDITION_PROPERTY, "checkbox", false);
+
         return result;
     }
 }

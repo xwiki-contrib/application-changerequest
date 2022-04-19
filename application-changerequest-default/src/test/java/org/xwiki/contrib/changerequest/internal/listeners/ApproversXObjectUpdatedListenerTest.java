@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
@@ -128,19 +129,22 @@ class ApproversXObjectUpdatedListenerTest
                 ApproversXClassInitializer.SEPARATOR_CHARACTER));
         when(previousObj.getLargeStringValue(ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY)).thenReturn(null);
 
-        Set<String> expectedSet = new HashSet<>(Arrays.asList(
+        Set<String> expectedNextSet = new HashSet<>(Arrays.asList(
             xwikiPrefix + user1,
-            xwikiPrefix + user2,
-            xwikiPrefix + user3,
             xwikiPrefix + group1,
             xwikiPrefix + group2
         ));
 
+        Set<String> expectedPreviousSet = new HashSet<>(Arrays.asList(
+            xwikiPrefix + user2,
+            xwikiPrefix + user3
+        ));
+
         doAnswer(invocationOnMock -> {
             XWikiDocument doc = invocationOnMock.getArgument(1);
-            Set<String> targetSet = invocationOnMock.getArgument(2);
+            Pair<Set<String>, Set<String>> targetSet = invocationOnMock.getArgument(2);
             assertSame(sourceDoc, doc);
-            assertEquals(expectedSet, targetSet);
+            assertEquals(Pair.of(expectedPreviousSet, expectedNextSet), targetSet);
             return null;
         }).when(this.observationManager).notify(any(ApproversUpdatedEvent.class), any(), any());
 

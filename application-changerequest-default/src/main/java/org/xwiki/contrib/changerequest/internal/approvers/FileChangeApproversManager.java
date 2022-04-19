@@ -108,4 +108,10 @@ public class FileChangeApproversManager implements ApproversManager<FileChange>
         }
         return result;
     }
+
+    @Override
+    public boolean wasManuallyEdited(FileChange entity) throws ChangeRequestException
+    {
+        return this.documentApproversManager.wasManuallyEdited((XWikiDocument) entity.getModifiedDocument());
+    }
 }

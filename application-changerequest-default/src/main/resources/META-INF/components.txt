@@ -53,3 +53,4 @@ org.xwiki.contrib.changerequest.internal.approvers.XWikiDocumentDelegateApprover
 org.xwiki.contrib.changerequest.internal.jobs.DelegateApproversComputationJob
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestConfigurationUpdatedListener
 org.xwiki.contrib.changerequest.internal.listeners.UsersUpdatedListener
+org.xwiki.contrib.changerequest.internal.listeners.ApproversUpdatedListener
