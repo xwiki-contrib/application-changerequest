@@ -373,6 +373,10 @@
         form.attr('action', actionURL + "?" + actionURLParams.toString());
         $('#saveChangeRequest').trigger('xwiki:document:saved');
         form.submit();
+      } else if (saveConfig.isApproversEdition) {
+        form.attr('action', actionURL + "?" + actionURLParams.toString());
+        $('#saveChangeRequest').trigger('xwiki:document:saved');
+        form.submit();
       } else {
         var beforeSaveEvent = $.Event('xwiki:actions:beforeSave', {target: event.target});
         if (saveConfig.isInplaceEditing) {
