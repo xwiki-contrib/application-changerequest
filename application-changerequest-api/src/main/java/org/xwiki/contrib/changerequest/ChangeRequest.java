@@ -363,6 +363,17 @@ public class ChangeRequest
         return getReviews().stream().filter(review -> reviewer.equals(review.getAuthor())).findFirst();
     }
 
+    public Optional<ChangeRequestReview> getLatestReviewFromOrOnBehalfOf(UserReference reviewer)
+    {
+        return getReviews().stream().filter(review -> {
+            if (review.getOriginalApprover() == null) {
+                return reviewer.equals(review.getAuthor());
+            } else {
+                return reviewer.equals(review.getOriginalApprover());
+            }
+        }).findFirst();
+    }
+
     /**
      * Attach a new review to this change request. Note that the review are added on the head of the deque.
      * This method also automatically compute {@link ChangeRequestReview#isLastFromAuthor()} based on previous reviews

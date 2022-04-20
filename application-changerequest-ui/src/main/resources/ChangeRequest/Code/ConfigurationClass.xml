@@ -96,6 +96,46 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </changeRequestLocation>
+    <delegateClassPropertyList>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>input</displayType>
+      <freeText>allowed</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>delegateClassPropertyList</name>
+      <number>10</number>
+      <picker>0</picker>
+      <prettyName>delegateClassPropertyList</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values/>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </delegateClassPropertyList>
+    <delegateEnabled>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>select</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>delegateEnabled</name>
+      <number>9</number>
+      <prettyName>delegateEnabled</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </delegateEnabled>
     <durationBeforeClosingStale>
       <customDisplay/>
       <disabled>0</disabled>

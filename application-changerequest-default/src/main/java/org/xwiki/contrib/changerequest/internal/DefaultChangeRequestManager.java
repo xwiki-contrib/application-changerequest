@@ -187,11 +187,17 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     }
 
     @Override
-    public ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved)
-        throws ChangeRequestException
+    public ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved,
+        UserReference originalApprover) throws ChangeRequestException
     {
-        Optional<ChangeRequestReview> optionalLatestReview = changeRequest.getLatestReviewFrom(reviewer);
+        Optional<ChangeRequestReview> optionalLatestReview;
         ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, reviewer);
+        if (originalApprover != null) {
+            review.setOriginalApprover(originalApprover);
+            optionalLatestReview =  changeRequest.getLatestReviewFromOrOnBehalfOf(originalApprover);
+        } else {
+            optionalLatestReview = changeRequest.getLatestReviewFrom(reviewer);
+        }
         this.reviewStorageManager.save(review);
 
         // ensure previous review from latest author is considered outdated

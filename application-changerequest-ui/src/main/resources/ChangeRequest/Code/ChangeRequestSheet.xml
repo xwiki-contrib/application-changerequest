@@ -319,18 +319,26 @@
     &lt;div id="reviewsContainer"&gt;
     #foreach ($review in $changeRequest.reviews)
       #set ($reviewAuthor = $xwiki.getUserName($review.author.reference))
+      #if ($review.originalApprover &amp;&amp; $review.originalApprover != $review.author)
+        #set ($originalApprover = $xwiki.getUserName($review.originalApprover.reference))
+        #if ($review.approved)
+          #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved.onbehalf', ["$reviewAuthor", "$originalApprover"]))
+        #else
+          #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved.onbehalf', ["$reviewAuthor", "$originalApprover"]))
+        #end
+      #else
+        #if ($review.approved)
+          #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
+        #else
+          #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
+        #end
+      #end
       #if ($review.valid &amp;&amp; $review.approved)
         #set ($reviewPanelClass = "panel-success")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
       #elseif ($review.valid &amp;&amp; !$review.approved)
         #set ($reviewPanelClass = "panel-warning")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
-      #elseif (!$review.valid &amp;&amp; $review.approved)
-        #set ($reviewPanelClass = "panel-default")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.approved', ["$reviewAuthor"]))
       #else
         #set ($reviewPanelClass = "panel-default")
-        #set ($reviewPanelTitle = $services.localization.render('changerequest.sheet.tab.review.title.notapproved', ["$reviewAuthor"]))
       #end
       #set ($canEditReview = $services.changerequest.review.canEditReview($review))
       &lt;div class="panel $reviewPanelClass review" data-reviewid="$review.id" data-approved="$review.approved" data-valid="$review.valid" data-date="$review.reviewDate.time" data-author="$escapetool.xml($services.user.serialize($review.author))"&gt;
@@ -1221,6 +1229,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           'changerequest': self.changeRequestId,
           'approved': isApproved
         };
+        if ($('#reviewModal select[name=originalApprover]')) {
+          params['originalApprover'] = $('#reviewModal select[name=originalApprover]').val();
+        }
         self.notification = new XWiki.widgets.Notification('Posting review...','inprogress');
         $.post(self.postUrl, params).done(function (data) {
           if (data.success) {
@@ -1248,7 +1259,18 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
 
         $('#submitReview').on('click', self.submitAction);
         modal.find('input[name="reviewChoice"]').on('click', function () {
-          $('#submitReview').removeAttr('disabled');
+          var originalApprover = modal.find('select[name=originalApprover]');
+          if (originalApprover.length == 0 || originalApprover.val() != '-') {
+            $('#submitReview').prop('disabled', false);
+          }
+        });
+        modal.find('select[name=originalApprover]').on('change', function () {
+          var reviewChoice = modal.find('input[name="reviewChoice"]:checked');
+          if ($(this).val() != '-' &amp;&amp; reviewChoice.length &gt; 0) {
+            $('#submitReview').prop('disabled', false);
+          } else {
+            $('#submitReview').prop('disabled', true);
+          }
         });
         modal.modal('show');
       }
@@ -3847,7 +3869,7 @@ tr.discussion-line:hover {
 #set ($mergeUrl = $services.changerequest.getChangeRequestURL('merge', $changeRequestId))
 #set ($status = $changeRequest.status)
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
-#set ($canBeReviewed = $services.changerequest.authorization.isAuthorizedToReview($changeRequest))
+#set ($canBeReviewed = ($services.changerequest.authorization.isAuthorizedToReview($changeRequest) || $services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest)))
 #set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
 #if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}

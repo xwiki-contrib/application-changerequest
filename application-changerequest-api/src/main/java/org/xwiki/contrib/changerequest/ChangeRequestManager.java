@@ -95,6 +95,12 @@ public interface ChangeRequestManager
     {
     }
 
+    default ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved)
+        throws ChangeRequestException
+    {
+        return addReview(changeRequest, reviewer, approved, null);
+    }
+
     /**
      * Add a new review to the given change request.
      *
@@ -104,11 +110,8 @@ public interface ChangeRequestManager
      * @return the newly created review.
      * @throws ChangeRequestException in case of problem when saving the review.
      */
-    default ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved)
-        throws ChangeRequestException
-    {
-        return null;
-    }
+    ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved,
+        UserReference originalApprover) throws ChangeRequestException;
 
     /**
      * Define if the current file change is outdated and should be rebased.

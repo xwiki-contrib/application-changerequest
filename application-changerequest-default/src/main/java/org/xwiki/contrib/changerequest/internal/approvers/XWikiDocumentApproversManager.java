@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.model.reference.DocumentReference;
@@ -95,6 +96,9 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
 
     @Inject
     private AuthorizationManager authorizationManager;
+
+    @Inject
+    private DelegateApproverManager<XWikiDocument> documentDelegateApproverManager;
 
     private Optional<BaseObject> getApproversObject(XWikiDocument document, boolean create)
         throws ChangeRequestException

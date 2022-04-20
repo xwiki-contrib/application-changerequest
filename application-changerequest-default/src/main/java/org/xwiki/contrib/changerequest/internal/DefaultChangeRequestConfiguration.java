@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.internal;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -54,6 +55,10 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class DefaultChangeRequestConfiguration implements ChangeRequestConfiguration
 {
+    public static final String DELEGATE_CLASS_PROPERTY_LIST_PROPERTY = "delegateClassPropertyList";
+
+    public static final String DELEGATE_ENABLED_PROPERTY = "delegateEnabled";
+
     static final String DEFAULT_APPROVAL_STRATEGY = AcceptAllMergeApprovalStrategy.NAME;
     private static final List<String> CHANGE_REQUEST_SPACE_LOCATION = Arrays.asList("ChangeRequest", "Data");
 
@@ -166,5 +171,22 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
             }
         }
         return unit;
+    }
+
+    @Override
+    public List<String> getDelegateClassPropertyList()
+    {
+        String delegatesProperty = this.configurationSource.getProperty(DELEGATE_CLASS_PROPERTY_LIST_PROPERTY);
+        List<String> result = Collections.emptyList();
+        if (!StringUtils.isBlank(delegatesProperty)) {
+            result = Arrays.asList(StringUtils.split(delegatesProperty, ','));
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isDelegateEnabled()
+    {
+        return this.configurationSource.getProperty(DELEGATE_ENABLED_PROPERTY, false);
     }
 }

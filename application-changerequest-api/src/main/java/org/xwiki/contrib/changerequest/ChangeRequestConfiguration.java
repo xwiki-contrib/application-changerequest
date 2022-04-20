@@ -21,8 +21,14 @@ package org.xwiki.contrib.changerequest;
 
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.model.reference.ClassPropertyReference;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.GuestUserReference;
@@ -124,5 +130,15 @@ public interface ChangeRequestConfiguration
     default UserReference getMergeUser()
     {
         return GuestUserReference.INSTANCE;
+    }
+
+    default List<String> getDelegateClassPropertyList()
+    {
+        return Collections.emptyList();
+    }
+
+    default boolean isDelegateEnabled()
+    {
+        return false;
     }
 }

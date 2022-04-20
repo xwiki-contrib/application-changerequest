@@ -39,6 +39,7 @@ public class ChangeRequestReview
     private final ChangeRequest changeRequest;
     private final boolean approved;
     private final UserReference author;
+    private UserReference originalApprover;
     private Date reviewDate;
     private boolean isValid;
     private boolean isSaved;
@@ -169,6 +170,16 @@ public class ChangeRequestReview
     public void setLastFromAuthor(boolean lastFromAuthor)
     {
         isLastFromAuthor = lastFromAuthor;
+    }
+
+    public UserReference getOriginalApprover()
+    {
+        return originalApprover;
+    }
+
+    public void setOriginalApprover(UserReference originalApprover)
+    {
+        this.originalApprover = originalApprover;
     }
 
     /**

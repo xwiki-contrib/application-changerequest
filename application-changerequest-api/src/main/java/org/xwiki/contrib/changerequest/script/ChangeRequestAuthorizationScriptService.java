@@ -122,6 +122,21 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
         return this.changeRequestRightsManager.isAuthorizedToReview(currentUserReference, changeRequest);
     }
 
+    public boolean isAuthorizedToReviewOnBehalf(ChangeRequest changeRequest, UserReference originalApprover)
+        throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager
+            .isAuthorizedToReviewOnBehalf(currentUserReference, changeRequest, originalApprover);
+    }
+
+    public boolean isAuthorizedToReviewAsDelegate(ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToReviewAsDelegate(currentUserReference, changeRequest);
+    }
+
     /**
      * Check if the given user is authorized to review the given change request.
      *

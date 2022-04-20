@@ -46,3 +46,10 @@ org.xwiki.contrib.changerequest.internal.approvers.XWikiDocumentApproversManager
 org.xwiki.contrib.changerequest.internal.listeners.FileChangeCacheInvalidationListener
 org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager
 org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager
+org.xwiki.contrib.changerequest.internal.approvers.DelegateApproversXClassInitializer
+org.xwiki.contrib.changerequest.internal.approvers.ChangeRequestDelegateApproverManager
+org.xwiki.contrib.changerequest.internal.approvers.DocumentReferenceDelegateApproverManager
+org.xwiki.contrib.changerequest.internal.approvers.XWikiDocumentDelegateApproverManager
+org.xwiki.contrib.changerequest.internal.jobs.DelegateApproversComputationJob
+org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestConfigurationUpdatedListener
+org.xwiki.contrib.changerequest.internal.listeners.UsersUpdatedListener

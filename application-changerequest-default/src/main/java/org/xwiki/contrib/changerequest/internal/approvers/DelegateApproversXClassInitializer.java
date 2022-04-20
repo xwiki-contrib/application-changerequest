@@ -17,7 +17,9 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.internal.storage;
+package org.xwiki.contrib.changerequest.internal.approvers;
+
+import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,25 +37,18 @@ import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
-/**
- * Component responsible to initialize the review xclass.
- *
- * @version $Id$
- * @since 0.5
- */
 @Component
 @Singleton
-@Named("org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer")
-public class ReviewXClassInitializer implements MandatoryDocumentInitializer
+@Named("org.xwiki.contrib.changerequest.internal.approvers.DelegateApproversXClassInitializer")
+public class DelegateApproversXClassInitializer implements MandatoryDocumentInitializer
 {
-    static final LocalDocumentReference REVIEW_XCLASS =
-        new LocalDocumentReference(ChangeRequestXClassInitializer.CHANGE_REQUEST_SPACE, "ChangeRequestReviewClass");
+    public static final LocalDocumentReference DELEGATE_APPROVERS_XCLASS =
+        new LocalDocumentReference(Arrays.asList("ChangeRequest", "Code"), "DelegateApproversClass");
 
-    static final String AUTHOR_PROPERTY = "author";
-    static final String APPROVED_PROPERTY = "approved";
-    static final String DATE_PROPERTY = "reviewDate";
-    static final String VALID_PROPERTY = "valid";
-    static final String ORIGINAL_APPROVER_PROPERTY = "originalApprover";
+    /**
+     * Name of the field containing users list.
+     */
+    public static final String DELEGATED_USERS_PROPERTY = "delegatedUsers";
 
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -61,14 +56,15 @@ public class ReviewXClassInitializer implements MandatoryDocumentInitializer
     @Override
     public EntityReference getDocumentReference()
     {
-        // we use main wiki since the module is supposed to be installed on farm.
-        return new DocumentReference(REVIEW_XCLASS, new WikiReference(this.contextProvider.get().getMainXWiki()));
+        return new DocumentReference(DELEGATE_APPROVERS_XCLASS,
+            new WikiReference(this.contextProvider.get().getMainXWiki()));
     }
 
     @Override
     public boolean updateDocument(XWikiDocument document)
     {
         boolean result = false;
+
         if (document.isNew()) {
             document.setHidden(true);
             DocumentReference userReference = this.contextProvider.get().getUserReference();
@@ -77,12 +73,7 @@ public class ReviewXClassInitializer implements MandatoryDocumentInitializer
             result = true;
         }
         BaseClass xClass = document.getXClass();
-        result |= xClass.addBooleanField(APPROVED_PROPERTY, APPROVED_PROPERTY);
-        result |= xClass.addBooleanField(VALID_PROPERTY, VALID_PROPERTY);
-        result |= xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
-        result |= xClass.addDateField(DATE_PROPERTY, DATE_PROPERTY);
-        result |= xClass.addUsersField(ORIGINAL_APPROVER_PROPERTY, ORIGINAL_APPROVER_PROPERTY);
-
+        result |= xClass.addUsersField(DELEGATED_USERS_PROPERTY, DELEGATED_USERS_PROPERTY);
 
         return result;
     }

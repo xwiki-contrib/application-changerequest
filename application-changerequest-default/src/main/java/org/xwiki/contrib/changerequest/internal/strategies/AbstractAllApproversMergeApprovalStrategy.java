@@ -100,7 +100,11 @@ public abstract class AbstractAllApproversMergeApprovalStrategy extends Abstract
             List<ChangeRequestReview> reviews = changeRequest.getReviews();
             for (ChangeRequestReview review : reviews) {
                 if (review.isApproved() && review.isValid()) {
-                    allApprovers.remove(review.getAuthor());
+                    if (review.getOriginalApprover() == null) {
+                        allApprovers.remove(review.getAuthor());
+                    } else {
+                        allApprovers.remove(review.getOriginalApprover());
+                    }
                 }
             }
             result = allApprovers.isEmpty();

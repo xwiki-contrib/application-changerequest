@@ -46,6 +46,7 @@ import com.xpn.xwiki.objects.BaseObject;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.APPROVED_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.AUTHOR_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.DATE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.ORIGINAL_APPROVER_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.REVIEW_XCLASS;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.VALID_PROPERTY;
 
@@ -103,6 +104,10 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                 xObject.set(DATE_PROPERTY, review.getReviewDate(), context);
                 int validValue = (review.isValid()) ? 1 : 0;
                 xObject.set(VALID_PROPERTY, validValue, context);
+                if (review.getOriginalApprover() != null) {
+                    xObject.set(ORIGINAL_APPROVER_PROPERTY, this.userReferenceConverter.convert(
+                        review.getOriginalApprover()), context);
+                }
 
                 context.getWiki().saveDocument(changeRequestDoc, saveComment, context);
                 review.setSaved(true);
@@ -128,6 +133,7 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                 Date reviewDate = xObject.getDateValue(DATE_PROPERTY);
                 boolean isValid = StringUtils.equals(xObject.getStringValue(VALID_PROPERTY), "1");
                 String id = String.format(ID_FORMAT, xObject.getNumber());
+                String originalApproverSerialized = xObject.getStringValue(ORIGINAL_APPROVER_PROPERTY);
 
                 ChangeRequestReview review = new ChangeRequestReview(changeRequest, isApproved, author);
                 review
@@ -135,6 +141,12 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                     .setId(id)
                     .setReviewDate(reviewDate)
                     .setSaved(true);
+
+                if (!StringUtils.isEmpty(originalApproverSerialized)) {
+                    UserReference originalApprover = this.userReferenceResolver.resolve(originalApproverSerialized);
+                    review.setOriginalApprover(originalApprover);
+                }
+
                 changeRequest.addReview(review);
             }
             result = changeRequest.getReviews();

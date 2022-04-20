@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.script;
 
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
@@ -68,6 +70,9 @@ public class ChangeRequestReviewScriptService implements ScriptService
     private Provider<ComponentManager> componentManagerProvider;
 
     @Inject
+    private DelegateApproverManager<ChangeRequest> changeRequestDelegateApproverManager;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -81,6 +86,12 @@ public class ChangeRequestReviewScriptService implements ScriptService
     public ChangeRequestReview addReview(ChangeRequest changeRequest, boolean approved)
         throws ChangeRequestException
     {
+        return this.addReview(changeRequest, approved, null);
+    }
+
+    public ChangeRequestReview addReview(ChangeRequest changeRequest, boolean approved, UserReference originalApprover)
+        throws ChangeRequestException
+    {
         ChangeRequestReview review = null;
         UserReference userReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequestAuthorizationScriptService authorizationScriptService = null;
@@ -90,10 +101,23 @@ public class ChangeRequestReviewScriptService implements ScriptService
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException("Error when trying to access authorization script service.", e);
         }
-        if (authorizationScriptService.isAuthorizedToReview(changeRequest)) {
-            review = this.changeRequestManager.addReview(changeRequest, userReference, approved);
+        boolean isAuthorized;
+        String loggerMessage;
+        Object[] loggerParams;
+        if (originalApprover != null) {
+            isAuthorized = authorizationScriptService.isAuthorizedToReviewOnBehalf(changeRequest, originalApprover);
+            loggerMessage = "Unauthorized user [{}] trying to add review to [{}] on behalf of [{}].";
+            loggerParams = new Object[] { userReference, changeRequest, originalApprover };
         } else {
-            logger.warn("Unauthorized user [{}] trying to add review to [{}].", userReference, changeRequest);
+            isAuthorized = authorizationScriptService.isAuthorizedToReview(changeRequest);
+            loggerMessage = "Unauthorized user [{}] trying to add review to [{}].";
+            loggerParams = new Object[] { userReference, changeRequest };
+        }
+
+        if (isAuthorized) {
+            review = this.changeRequestManager.addReview(changeRequest, userReference, approved, originalApprover);
+        } else {
+            logger.warn(loggerMessage, loggerParams);
         }
         return review;
     }
@@ -157,5 +181,11 @@ public class ChangeRequestReviewScriptService implements ScriptService
         return changeRequest.getReviews().stream()
             .anyMatch(changeRequestReview ->
                 changeRequestReview.getAuthor().equals(userReference) && changeRequestReview.isValid());
+    }
+
+    public Set<UserReference> getOriginalApprovers(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestDelegateApproverManager.getOriginalApprovers(currentUserReference, changeRequest);
     }
 }

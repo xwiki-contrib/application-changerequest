@@ -37,6 +37,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.rights.RightsReader;
@@ -87,6 +88,9 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
 
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @Inject
+    private DelegateApproverManager<ChangeRequest> changeRequestDelegateApproverManager;
 
     @Inject
     private UserReferenceConverter userReferenceConverter;
@@ -494,7 +498,8 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         // explicitely approvers of the given change request.
         // This choice is mainly to avoid blocking a change request, in case approvers do not have write access
         // which can be quite common.
-        boolean isApprover = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
+        boolean isApprover = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)
+            || this.changeRequestDelegateApproverManager.isDelegateApproverOf(userReference, changeRequest);
 
         for (FileChange lastFileChange : changeRequest.getLastFileChanges()) {
             Right rightToBeChecked;
@@ -532,6 +537,29 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         boolean result = false;
         if (!(changeRequest.getAuthors().contains(userReference))) {
             result = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToReviewOnBehalf(UserReference userReference, ChangeRequest changeRequest,
+        UserReference originalApprover) throws ChangeRequestException
+    {
+        boolean result = false;
+        if (!(changeRequest.getAuthors().contains(userReference))) {
+            result = this.changeRequestDelegateApproverManager
+                .isDelegateApproverOf(userReference, changeRequest, originalApprover);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isAuthorizedToReviewAsDelegate(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        boolean result = false;
+        if (!(changeRequest.getAuthors().contains(userReference))) {
+            result = this.changeRequestDelegateApproverManager.isDelegateApproverOf(userReference, changeRequest);
         }
         return result;
     }

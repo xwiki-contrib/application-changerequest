@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ChangeRequestReview" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestReview" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestReview</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ChangeRequestReview</title>
@@ -66,7 +67,11 @@
       #end
     #elseif ("$!request.get('action')" == 'create' &amp;&amp; "$!request.get('approved')" != '')
       #set ($isApproved = $request.get('approved') == 'true')
-      #set ($review = $services.changerequest.review.addReview($changeRequest, $isApproved))
+      #if ($request.get('originalApprover'))
+        #set ($review = $services.changerequest.review.addReview($changeRequest, $isApproved, $request.get('originalApprover')))
+      #else
+        #set ($review = $services.changerequest.review.addReview($changeRequest, $isApproved))
+      #end
       #if ($review)
         #jsonResponse({
           'success': true, 
@@ -92,16 +97,37 @@
           &lt;div class="modal-content"&gt;
             &lt;div class="modal-header"&gt;
               &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;&lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-              &lt;h4 class="modal-title"&gt;Post a review&lt;/h4&gt;
+              &lt;h4 class="modal-title"&gt;$services.localization.render('changerequest.review.modal.title')&lt;/h4&gt;
             &lt;/div&gt;
             &lt;div class="modal-body"&gt;
+               #if ($services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest))
+               &lt;div class="panel panel-info"&gt;
+                 &lt;div class="panel-heading"&gt;
+                    &lt;h3 class="panel-title"&gt;$services.localization.render('changerequest.review.modal.selectApprover.title')&lt;/h3&gt;
+                 &lt;/div&gt;
+                 &lt;div class="panel-body"&gt;
+                   $services.localization.render('changerequest.review.modal.selectApprover.hint')
+                   #set ($originalApprovers = $services.changerequest.review.getOriginalApprovers($changeRequest))
+                   &lt;select id="originalApprover" name="originalApprover" class="form-control"&gt;
+                     #if ($services.changerequest.authorization.isAuthorizedToReview($changeRequest))
+                       &lt;option value="$escapetool.xml($xcontext.userReference)"&gt;$services.localization.render('changerequest.review.modal.selectApprover.themselves')&lt;/option&gt;
+                     #else
+                       &lt;option value="-"&gt;----&lt;/option&gt;
+                     #end
+                     #foreach ($originalApprover in $originalApprovers)
+                       &lt;option value="$escapetool.xml($services.user.serialize($originalApprover))"&gt;#displayUser($originalApprover)&lt;/option&gt;
+                     #end
+                   &lt;/select&gt;
+                 &lt;/div&gt;
+               &lt;/div&gt;
+               #end
                &lt;div class="panel-group" id="reviewChoice" role="tablist" aria-multiselectable="false"&gt;
                 &lt;div class="panel panel-success"&gt;
                   &lt;div class="panel-radio"&gt;
                     &lt;input type="radio" id="approveReview" name="reviewChoice" value="approve" /&gt;
                   &lt;/div&gt;
                   &lt;div class="panel-heading"&gt;
-                    &lt;label for="approveReview"&gt;Approve change request&lt;/label&gt;
+                    &lt;label for="approveReview"&gt;$services.localization.render('changerequest.review.modal.choice.approve')&lt;/label&gt;
                   &lt;/div&gt;
                &lt;/div&gt;
                &lt;div class="panel panel-warning"&gt;
@@ -109,12 +135,12 @@
                     &lt;input type="radio" id="requestChangeReview" name="reviewChoice" value="requestChange" /&gt;
                   &lt;/div&gt;
                   &lt;div class="panel-heading"&gt;
-                    &lt;label for="requestChangeReview"&gt;Request changes&lt;/label&gt;
+                    &lt;label for="requestChangeReview"&gt;$services.localization.render('changerequest.review.modal.choice.requestChanges')&lt;/label&gt;
                   &lt;/div&gt;
                &lt;/div&gt;
              &lt;/div&gt;&lt;!-- end panel-group --&gt;
              &lt;div class="form-group"&gt;
-               &lt;label for="reviewComment"&gt;Provide a comment&lt;/label&gt;
+               &lt;label for="reviewComment"&gt;$services.localization.render('changerequest.review.modal.comment.label')&lt;/label&gt;
                &lt;form name="discussion-review"&gt;
                &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequest.id" /&gt;
                &lt;input type="hidden" name="async" value="1" /&gt;

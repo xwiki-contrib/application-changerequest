@@ -118,6 +118,12 @@ public interface ChangeRequestRightsManager
     boolean isAuthorizedToReview(UserReference userReference, ChangeRequest changeRequest)
         throws ChangeRequestException;
 
+    boolean isAuthorizedToReviewOnBehalf(UserReference userReference, ChangeRequest changeRequest,
+        UserReference originalApprover) throws ChangeRequestException;
+
+    boolean isAuthorizedToReviewAsDelegate(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException;
+
     /**
      * Check if an user is authorized to comment a change request. This method should always check first if the user
      * is authorized to review (see {@link #isAuthorizedToReview(UserReference, ChangeRequest)}) and allow to comment if

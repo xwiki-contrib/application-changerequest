@@ -42,12 +42,12 @@ import org.xwiki.model.reference.LocalDocumentReference;
 @Singleton
 public class ChangeRequestConfigurationSource extends AbstractDocumentConfigurationSource
 {
-    private static final List<String> SPACE_NAMES = Arrays.asList("ChangeRequest", "Code");
+    public static final List<String> SPACE_NAMES = Arrays.asList("ChangeRequest", "Code");
 
-    private static final LocalDocumentReference CLASS_REFERENCE =
+    public static final LocalDocumentReference CLASS_REFERENCE =
         new LocalDocumentReference(SPACE_NAMES, "ConfigurationClass");
 
-    private static final LocalDocumentReference DOC_REFERENCE =
+    public static final LocalDocumentReference DOC_REFERENCE =
         new LocalDocumentReference(SPACE_NAMES, "Configuration");
 
     @Override
