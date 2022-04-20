@@ -79,6 +79,7 @@ public abstract class AbstractAllApproversMergeApprovalStrategy extends Abstract
         try {
             Set<UserReference> allApprovers =
                 new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, true));
+            allApprovers.removeAll(changeRequest.getAuthors());
             if (!allApprovers.isEmpty()) {
                 result = Optional.of(allApprovers);
             }
