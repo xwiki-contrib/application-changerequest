@@ -25,10 +25,10 @@
   <parent>
     <groupId>org.xwiki.contrib.changerequest</groupId>
     <artifactId>application-changerequest</artifactId>
-    <version>0.12</version>
+    <version>0.13-SNAPSHOT</version>
   </parent>
   <artifactId>application-changerequest-api</artifactId>
-  <version>0.12</version>
+  <version>0.13-SNAPSHOT</version>
   <name>Application Change Request - API</name>
   <packaging>jar</packaging>
   <properties>
