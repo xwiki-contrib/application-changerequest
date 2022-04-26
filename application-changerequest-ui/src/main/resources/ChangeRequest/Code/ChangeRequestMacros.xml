@@ -146,12 +146,18 @@
       #set ($reviewId = $event.parameters.get('changerequest.review.id'))
       #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
       #if ($reviewOpt.isPresent())
-        #if ($reviewOpt.get().approved)
+        #set ($review = $reviewOpt.get())
+        #if ($review.approved)
           #set ($localizationKey = "${localizationKey}.approval")
         #else
           #set ($localizationKey = "${localizationKey}.requestchanges")
         #end
-        #set ($localizationArguments = [$userArgument])
+        #if ($review.originalApprover &amp;&amp; $review.originalApprover != $review.author)
+          #set ($localizationKey = "${localizationKey}.delegate")
+          #set ($localizationArguments = [$userArgument, "#wrappedDisplayUser($review.originalApprover.reference), {'useInlineHTML': true})"])
+        #else
+          #set ($localizationArguments = [$userArgument])
+        #end
       #end
     #elseif ($event.type == "changerequest.rebased")
       #set ($concernsAllCR = $event.parameters.get('changerequest.rebased.all'))

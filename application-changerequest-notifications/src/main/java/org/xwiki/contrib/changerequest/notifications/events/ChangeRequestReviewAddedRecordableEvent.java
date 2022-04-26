@@ -36,6 +36,7 @@ public class ChangeRequestReviewAddedRecordableEvent extends AbstractChangeReque
     public static final String EVENT_NAME = "changerequest.review.added";
 
     private final String reviewId;
+    private final String originalApprover;
 
     /**
      * Default empty constructor.
@@ -53,8 +54,24 @@ public class ChangeRequestReviewAddedRecordableEvent extends AbstractChangeReque
      */
     public ChangeRequestReviewAddedRecordableEvent(String id, String reviewId)
     {
+        this(id, reviewId, null);
+    }
+
+    /**
+     * Default constructor with a change request id and an original approver.
+     *
+     * @param id the identifier of a change request for which the event is triggered.
+     * @param reviewId the identifier of the added review related to the event.
+     * @param originalApprover the approver on behalf of whom the review is performed: to be used only in case of
+     *        delegate approval mechanism.
+     * @since 0.13
+     */
+    @Unstable
+    public ChangeRequestReviewAddedRecordableEvent(String id, String reviewId, String originalApprover)
+    {
         super(id);
         this.reviewId = reviewId;
+        this.originalApprover = originalApprover;
     }
 
     @Override
@@ -69,6 +86,14 @@ public class ChangeRequestReviewAddedRecordableEvent extends AbstractChangeReque
     public String getReviewId()
     {
         return reviewId;
+    }
+
+    /**
+     * @return the original approver in case of a review performed by a delegate, or {@code null}.
+     */
+    public String getOriginalApprover()
+    {
+        return originalApprover;
     }
 
     @Override

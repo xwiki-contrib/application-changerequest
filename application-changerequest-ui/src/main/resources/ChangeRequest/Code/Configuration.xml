@@ -503,6 +503,8 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
         <value>durationBeforeClosingStale</value>
         <value>useCreationDateForStaleDurations</value>
         <value>schedulerContextUser</value>
+        <value>delegateEnabled</value>
+        <value>delegateClassPropertyList</value>
       </propertiesToShow>
     </property>
     <property>

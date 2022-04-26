@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -31,6 +32,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.observation.event.Event;
+import org.xwiki.user.UserReferenceSerializer;
 
 /**
  * Listener responsible to handle {@link ChangeRequestReviewAddedEvent}.
@@ -44,6 +46,9 @@ import org.xwiki.observation.event.Event;
 public class ChangeRequestReviewAddedEventListener extends AbstractChangeRequestEventListener
 {
     static final String NAME = "ChangeRequestReviewAddedEventListener";
+
+    @Inject
+    private UserReferenceSerializer<String> userReferenceSerializer;
 
     /**
      * Default constructor.
@@ -60,8 +65,14 @@ public class ChangeRequestReviewAddedEventListener extends AbstractChangeRequest
         try {
             DocumentModelBridge documentInstance = this.getChangeRequestDocument(changeRequestId);
             ChangeRequestReview review = (ChangeRequestReview) data;
-            ChangeRequestReviewAddedRecordableEvent recordableEvent =
-                new ChangeRequestReviewAddedRecordableEvent(changeRequestId, review.getId());
+            ChangeRequestReviewAddedRecordableEvent recordableEvent;
+            if (review.getOriginalApprover() == null || review.getOriginalApprover().equals(review.getAuthor())) {
+                recordableEvent = new ChangeRequestReviewAddedRecordableEvent(changeRequestId, review.getId());
+            } else {
+                String originalApprover = this.userReferenceSerializer.serialize(review.getOriginalApprover());
+                recordableEvent = new ChangeRequestReviewAddedRecordableEvent(changeRequestId, review.getId(),
+                    originalApprover);
+            }
             this.notifyChangeRequestRecordableEvent(recordableEvent, documentInstance);
         } catch (Exception e) {
             this.logger.error(

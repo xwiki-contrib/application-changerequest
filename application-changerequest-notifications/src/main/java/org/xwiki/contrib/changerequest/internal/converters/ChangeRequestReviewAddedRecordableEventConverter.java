@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.converters;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Named;
@@ -46,6 +47,13 @@ public class ChangeRequestReviewAddedRecordableEventConverter extends
     public static final String REVIEW_ID_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "review.id";
 
     /**
+     * Key used to retrieve the original approver in case of delegate approval.
+     * @since 0.13
+     */
+    public static final String ORIGINAL_APPROVER_PARAMETER_KEY = CHANGE_REQUEST_PREFIX_PARAMETER_KEY
+        + "review.originalApprover";
+
+    /**
      * Default constructor.
      */
     public ChangeRequestReviewAddedRecordableEventConverter()
@@ -56,6 +64,12 @@ public class ChangeRequestReviewAddedRecordableEventConverter extends
     @Override
     protected Map<String, String> getSpecificParameters(ChangeRequestReviewAddedRecordableEvent event)
     {
-        return Collections.singletonMap(REVIEW_ID_PARAMETER_KEY, event.getReviewId());
+        Map<String, String> parameterMap = new HashMap<>();
+        parameterMap.put(REVIEW_ID_PARAMETER_KEY, event.getReviewId());
+
+        if (event.getOriginalApprover() != null) {
+            parameterMap.put(ORIGINAL_APPROVER_PARAMETER_KEY, event.getOriginalApprover());
+        }
+        return parameterMap;
     }
 }
