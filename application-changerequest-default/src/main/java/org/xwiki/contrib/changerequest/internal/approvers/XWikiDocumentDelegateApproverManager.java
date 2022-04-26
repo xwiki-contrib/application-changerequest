@@ -45,7 +45,6 @@ import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
-import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -60,6 +59,12 @@ import com.xpn.xwiki.objects.BaseStringProperty;
 import com.xpn.xwiki.objects.ListProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
 
+/**
+ * Default implementation of {@link DelegateApproverManager} for {@link XWikiDocument} entity.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Singleton
 public class XWikiDocumentDelegateApproverManager implements DelegateApproverManager<XWikiDocument>, Initializable,
@@ -133,14 +138,15 @@ public class XWikiDocumentDelegateApproverManager implements DelegateApproverMan
                     context.getWiki().saveDocument(userDoc, "Computation of delegate approvers", context);
                 }
             } catch (XWikiException e) {
-                throw new RuntimeException(e);
+                throw new ChangeRequestException(
+                    String.format("Error when reading user document of [%s] to compute delegate", userReference), e);
             }
+            this.delegateCache.set(this.userReferenceSerializer.serialize(userReference), result);
         }
-        this.delegateCache.set(this.userReferenceSerializer.serialize(userReference), result);
         return result;
     }
 
-    private Set<UserReference> getDelegatesFromProperties(XWikiDocument userDoc)
+    private Set<UserReference> getDelegatesFromProperties(XWikiDocument userDoc) throws ChangeRequestException
     {
         Set<UserReference> result = new HashSet<>();
         BaseObject xObject = userDoc.getXObject(XWikiUsersDocumentInitializer.XWIKI_USERS_DOCUMENT_REFERENCE);
@@ -164,7 +170,8 @@ public class XWikiDocumentDelegateApproverManager implements DelegateApproverMan
                         }
                     }
                 } catch (XWikiException e) {
-                    throw new RuntimeException(e);
+                    throw new ChangeRequestException(
+                        String.format("Error when reading property [%s] to compute delegate", property), e);
                 }
             }
         }
@@ -172,36 +179,43 @@ public class XWikiDocumentDelegateApproverManager implements DelegateApproverMan
     }
 
     @Override
-    public Set<UserReference> getDelegates(UserReference userReference)
+    public Set<UserReference> getDelegates(UserReference userReference) throws ChangeRequestException
     {
         Set<UserReference> result = Collections.emptySet();
         if (configuration.isDelegateEnabled()) {
             String serializedReference = this.userReferenceSerializer.serialize(userReference);
             result = this.delegateCache.get(serializedReference);
             if (result == null) {
-                result = Collections.emptySet();
-                DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
-                XWikiContext context = this.contextProvider.get();
-                try {
-                    XWikiDocument userDoc = context.getWiki().getDocument(userDocReference, context);
-                    BaseObject delegateObject =
-                        userDoc.getXObject(DelegateApproversXClassInitializer.DELEGATE_APPROVERS_XCLASS);
-                    if (delegateObject != null) {
-                        String value =
-                            delegateObject.getLargeStringValue(
-                                DelegateApproversXClassInitializer.DELEGATED_USERS_PROPERTY);
-                        if (!StringUtils.isEmpty(value)) {
-                            result =
-                                Arrays.stream(StringUtils.split(value, ApproversXClassInitializer.SEPARATOR_CHARACTER))
-                                    .map(this.stringUserReferenceResolver::resolve)
-                                    .collect(Collectors.toSet());
-                        }
-                    }
-                } catch (XWikiException e) {
-
-                }
+                result = getDelegateWithoutCache(userReference);
                 this.delegateCache.set(serializedReference, result);
             }
+        }
+        return result;
+    }
+
+    private Set<UserReference> getDelegateWithoutCache(UserReference userReference) throws ChangeRequestException
+    {
+        Set<UserReference> result = Collections.emptySet();
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        XWikiContext context = this.contextProvider.get();
+        try {
+            XWikiDocument userDoc = context.getWiki().getDocument(userDocReference, context);
+            BaseObject delegateObject =
+                userDoc.getXObject(DelegateApproversXClassInitializer.DELEGATE_APPROVERS_XCLASS);
+            if (delegateObject != null) {
+                String value =
+                    delegateObject.getLargeStringValue(
+                        DelegateApproversXClassInitializer.DELEGATED_USERS_PROPERTY);
+                if (!StringUtils.isEmpty(value)) {
+                    result =
+                        Arrays.stream(StringUtils.split(value, ApproversXClassInitializer.SEPARATOR_CHARACTER))
+                            .map(this.stringUserReferenceResolver::resolve)
+                            .collect(Collectors.toSet());
+                }
+            }
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error when reading document of user [%s] to retrieve delegate", userDocReference), e);
         }
         return result;
     }

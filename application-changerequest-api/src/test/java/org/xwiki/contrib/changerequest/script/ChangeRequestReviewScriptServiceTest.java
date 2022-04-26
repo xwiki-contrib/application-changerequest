@@ -88,7 +88,7 @@ class ChangeRequestReviewScriptServiceTest
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(authorizationScriptService.isAuthorizedToReview(changeRequest)).thenReturn(true);
         ChangeRequestReview review = mock(ChangeRequestReview.class);
-        when(this.changeRequestManager.addReview(changeRequest, userReference, false)).thenReturn(review);
+        when(this.changeRequestManager.addReview(changeRequest, userReference, false, null)).thenReturn(review);
         assertEquals(review, this.scriptService.addReview(changeRequest, false));
         verify(authorizationScriptService).isAuthorizedToReview(changeRequest);
     }

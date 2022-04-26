@@ -32,6 +32,13 @@ import org.xwiki.refactoring.job.EntityJobStatus;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
+/**
+ * Job implementation for the computation of delegate approvers based on XWikiUsers fields.
+ * This job is only a proxy to {@link DelegateApproverManager#computeDelegates(UserReference)}.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Named(DelegateApproversComputationRequest.DELEGATE_APPROVERS_COMPUTATION_JOB)
 public class DelegateApproversComputationJob extends

@@ -32,23 +32,26 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
-import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
-import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.RegexEntityReference;
 import org.xwiki.observation.AbstractEventListener;
-import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
-import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.internal.event.XObjectUpdatedEvent;
 import com.xpn.xwiki.internal.mandatory.XWikiUsersDocumentInitializer;
 import com.xpn.xwiki.objects.BaseObjectReference;
 
+/**
+ * Listener in charge of updating the delegate approvers when the mechanism is enabled and some properties are set up
+ * to compute the delegate approvers.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Singleton
 @Named(UsersUpdatedListener.NAME)
@@ -79,6 +82,9 @@ public class UsersUpdatedListener extends AbstractEventListener
     @Inject
     private Logger logger;
 
+    /**
+     * Default constructor.
+     */
     public UsersUpdatedListener()
     {
         super(NAME, EVENT_LIST);

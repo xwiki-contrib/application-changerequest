@@ -55,8 +55,14 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class DefaultChangeRequestConfiguration implements ChangeRequestConfiguration
 {
+    /**
+     * Property value in the configuration source for the list of XWikiUser properties to use to compute delegate.
+     */
     public static final String DELEGATE_CLASS_PROPERTY_LIST_PROPERTY = "delegateClassPropertyList";
 
+    /**
+     * Property value in the configuration source to know if the delegate approver mechanism is enabled or not.
+     */
     public static final String DELEGATE_ENABLED_PROPERTY = "delegateEnabled";
 
     static final String DEFAULT_APPROVAL_STRATEGY = AcceptAllMergeApprovalStrategy.NAME;

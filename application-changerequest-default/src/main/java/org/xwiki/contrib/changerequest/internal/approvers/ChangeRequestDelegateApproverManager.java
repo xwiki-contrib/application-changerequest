@@ -32,6 +32,12 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.user.UserReference;
 
+/**
+ * Default implementation of {@link DelegateApproverManager} for {@link ChangeRequest} entity.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Singleton
 public class ChangeRequestDelegateApproverManager implements DelegateApproverManager<ChangeRequest>
@@ -49,7 +55,7 @@ public class ChangeRequestDelegateApproverManager implements DelegateApproverMan
     }
 
     @Override
-    public Set<UserReference> getDelegates(UserReference userReference)
+    public Set<UserReference> getDelegates(UserReference userReference) throws ChangeRequestException
     {
         return this.documentReferenceDelegateApproverManager.getDelegates(userReference);
     }

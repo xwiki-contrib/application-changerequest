@@ -53,6 +53,13 @@ import com.xpn.xwiki.internal.event.XObjectUpdatedEvent;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseObjectReference;
 
+/**
+ * Listener in charge of triggering a global computation of delegate approvers if the configuration change to enable
+ * the mechanism, or to update the list of fields to take into account in XWikiUser.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Singleton
 @Named(ChangeRequestConfigurationUpdatedListener.NAME)
@@ -86,6 +93,9 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
     @Inject
     private Logger logger;
 
+    /**
+     * Default constructor.
+     */
     public ChangeRequestConfigurationUpdatedListener()
     {
         super(NAME, EVENT_LIST);
@@ -98,9 +108,9 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
             && this.configuration.isDelegateEnabled()
             && !this.configuration.getDelegateClassPropertyList().isEmpty()) {
             XWikiDocument configurationDoc = (XWikiDocument) source;
-            XWikiDocument originalConfigurationDoc = configurationDoc.getOriginalDocument();
             if (configurationDoc.getDocumentReference().getLocalDocumentReference()
                 .equals(ChangeRequestConfigurationSource.DOC_REFERENCE)) {
+                XWikiDocument originalConfigurationDoc = configurationDoc.getOriginalDocument();
                 BaseObject currentObj = configurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
                 BaseObject previousObj =
                     originalConfigurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);

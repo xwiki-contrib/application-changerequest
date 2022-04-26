@@ -89,6 +89,17 @@ public class ChangeRequestReviewScriptService implements ScriptService
         return this.addReview(changeRequest, approved, null);
     }
 
+    /**
+     * Create and save a review to the given change request and returns it.
+     *
+     * @param changeRequest the change request for which to create a review.
+     * @param approved whether the review is an approval or not
+     * @param originalApprover the reference of the user on behalf of whom the review is done, or {@code null}.
+     * @return the review created
+     * @throws ChangeRequestException in case of problem for saving the review.
+     * @since 0.13
+     */
+    @Unstable
     public ChangeRequestReview addReview(ChangeRequest changeRequest, boolean approved, UserReference originalApprover)
         throws ChangeRequestException
     {
@@ -183,6 +194,15 @@ public class ChangeRequestReviewScriptService implements ScriptService
                 changeRequestReview.getAuthor().equals(userReference) && changeRequestReview.isValid());
     }
 
+    /**
+     * Retrieve the set of approvers on behalf of whom the current user can review if the delegate mechanism is enabled.
+     *
+     * @param changeRequest the change request for which to retrieve the approvers
+     * @return a set of user references corresponding to the approvers for whom the current user can perform a review
+     * @throws ChangeRequestException in case of problem for retrieving the original approvers
+     * @since 0.13
+     */
+    @Unstable
     public Set<UserReference> getOriginalApprovers(ChangeRequest changeRequest) throws ChangeRequestException
     {
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);

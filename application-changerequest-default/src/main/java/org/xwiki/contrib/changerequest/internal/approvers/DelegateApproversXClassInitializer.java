@@ -37,11 +37,20 @@ import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
+/**
+ * Initializer of the delegate approvers XClass document.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Singleton
 @Named("org.xwiki.contrib.changerequest.internal.approvers.DelegateApproversXClassInitializer")
 public class DelegateApproversXClassInitializer implements MandatoryDocumentInitializer
 {
+    /**
+     * Reference of the delegate approver xclass document.
+     */
     public static final LocalDocumentReference DELEGATE_APPROVERS_XCLASS =
         new LocalDocumentReference(Arrays.asList("ChangeRequest", "Code"), "DelegateApproversClass");
 

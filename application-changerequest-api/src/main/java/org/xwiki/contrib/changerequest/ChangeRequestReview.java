@@ -172,11 +172,23 @@ public class ChangeRequestReview
         isLastFromAuthor = lastFromAuthor;
     }
 
+    /**
+     * @return the original approver on behalf of whom the review has been performed.
+     * @since 0.13
+     */
+    @Unstable
     public UserReference getOriginalApprover()
     {
         return originalApprover;
     }
 
+    /**
+     * Set the approver on behalf of whom the review has been performed, when using the delegate approver mechanism.
+     *
+     * @param originalApprover the reference of the user on behalf of whom the review is performed.
+     * @since 0.13
+     */
+    @Unstable
     public void setOriginalApprover(UserReference originalApprover)
     {
         this.originalApprover = originalApprover;
@@ -233,6 +245,7 @@ public class ChangeRequestReview
             .append(approved, that.approved)
             .append(author, that.author)
             .append(reviewDate, that.reviewDate)
+            .append(originalApprover, that.originalApprover)
             .append(isValid, that.isValid)
             .append(id, that.id)
             .isEquals();
@@ -244,6 +257,7 @@ public class ChangeRequestReview
         return new HashCodeBuilder(17, 37)
             .append(approved)
             .append(author)
+            .append(originalApprover)
             .append(reviewDate)
             .append(isValid)
             .append(id)
@@ -255,6 +269,7 @@ public class ChangeRequestReview
         return new ToStringBuilder(this)
             .append("approved", approved)
             .append("author", author)
+            .append("originalApprover", originalApprover)
             .append("reviewDate", reviewDate)
             .append("isValid", isValid)
             .append("isSaved", isSaved)

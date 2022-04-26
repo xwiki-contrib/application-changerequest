@@ -363,6 +363,14 @@ public class ChangeRequest
         return getReviews().stream().filter(review -> reviewer.equals(review.getAuthor())).findFirst();
     }
 
+    /**
+     * Retrieve the latest review either performed by the given author, or on behalf of them.
+     *
+     * @param reviewer the author or the original approver of the review.
+     * @return an empty optional if the author didn't perform any review, else the latest one.
+     * @since 0.13
+     */
+    @Unstable
     public Optional<ChangeRequestReview> getLatestReviewFromOrOnBehalfOf(UserReference reviewer)
     {
         return getReviews().stream().filter(review -> {

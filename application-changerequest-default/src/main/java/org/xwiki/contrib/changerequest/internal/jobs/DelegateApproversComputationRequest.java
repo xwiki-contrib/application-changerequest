@@ -21,7 +21,16 @@ package org.xwiki.contrib.changerequest.internal.jobs;
 
 import org.xwiki.refactoring.job.EntityRequest;
 
+/**
+ * Job request to use to perform a recomputation of delegate approvers.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 public class DelegateApproversComputationRequest extends EntityRequest
 {
+    /**
+     * Default type for those jobs.
+     */
     public static final String DELEGATE_APPROVERS_COMPUTATION_JOB = "changerequest/delegateComputation";
 }

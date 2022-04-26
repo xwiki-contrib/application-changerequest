@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal.approvers;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -36,10 +35,18 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
+/**
+ * Default implementation of {@link DelegateApproverManager} for {@link DocumentReference} entity.
+ *
+ * @version $Id$
+ * @since 0.13
+ */
 @Component
 @Singleton
 public class DocumentReferenceDelegateApproverManager implements DelegateApproverManager<DocumentReference>
 {
+    private static final String ERROR_MSG = "Error when reading the document [%s] to get approvers";
+
     @Inject
     private DelegateApproverManager<XWikiDocument> documentDelegateApproverManager;
 
@@ -53,7 +60,7 @@ public class DocumentReferenceDelegateApproverManager implements DelegateApprove
     }
 
     @Override
-    public Set<UserReference> getDelegates(UserReference userReference)
+    public Set<UserReference> getDelegates(UserReference userReference) throws ChangeRequestException
     {
         return this.documentDelegateApproverManager.getDelegates(userReference);
     }
@@ -68,7 +75,7 @@ public class DocumentReferenceDelegateApproverManager implements DelegateApprove
             return this.documentDelegateApproverManager.isDelegateApproverOf(userReference, document);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
-                String.format("Error when reading the document [%s] to get approvers", entity), e);
+                String.format(ERROR_MSG, entity), e);
         }
     }
 
@@ -82,7 +89,7 @@ public class DocumentReferenceDelegateApproverManager implements DelegateApprove
             return this.documentDelegateApproverManager.isDelegateApproverOf(userReference, document, originalApprover);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
-                String.format("Error when reading the document [%s] to get approvers", entity), e);
+                String.format(ERROR_MSG, entity), e);
         }
     }
 
@@ -97,7 +104,7 @@ public class DocumentReferenceDelegateApproverManager implements DelegateApprove
             result = this.documentDelegateApproverManager.getOriginalApprovers(userReference, document);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
-                String.format("Error when reading the document [%s] to get approvers", entity), e);
+                String.format(ERROR_MSG, entity), e);
         }
         return result;
     }

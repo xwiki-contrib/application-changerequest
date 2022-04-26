@@ -122,6 +122,20 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
         return this.changeRequestRightsManager.isAuthorizedToReview(currentUserReference, changeRequest);
     }
 
+    /**
+     * Check if the current user is authorized to perform a review on behalf of the original approver, on the given
+     * change request.
+     * This should only returns {@code true} if the delegate approver mechanism is enabled, the original approver is an
+     * explicit approver and the current user is a delegate approver of them.
+     *
+     * @param changeRequest the change request for which to check the authorization
+     * @param originalApprover the user on behalf of whom the authorization might be given
+     * @return {@code true} if the delegate mechanism is enabled and the current user  is not an author, and is a
+     *         delegate of the original approver who is also an approver of the given change request.
+     * @throws ChangeRequestException in case of problem to resolve the delegate approvers.
+     * @since 0.13
+     */
+    @Unstable
     public boolean isAuthorizedToReviewOnBehalf(ChangeRequest changeRequest, UserReference originalApprover)
         throws ChangeRequestException
     {
@@ -130,6 +144,20 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
             .isAuthorizedToReviewOnBehalf(currentUserReference, changeRequest, originalApprover);
     }
 
+    /**
+     * Check if the current user is authorized to perform a review as a delegate of one of the approver of the given
+     * change request.
+     * This should only returns {@code true} if the delegate mechanism is enabled, the change request has explicit
+     * approvers, and  the current user is a delegate of at least one of them. Moreover, this cannot return {@code true}
+     * if the given user is an author of the change request.
+     *
+     * @param changeRequest the change request for which to check the authorization
+     * @return {@code true} if the delegate mechanism is enabled, the change request has explicit
+     *         approvers, the current user is not an author of the change request, and is a delegate of at least one of
+     *         the approvers.
+     * @throws ChangeRequestException in case of problem to resolve the delegate approvers.
+     * @since 0.13
+     */
     public boolean isAuthorizedToReviewAsDelegate(ChangeRequest changeRequest)
         throws ChangeRequestException
     {

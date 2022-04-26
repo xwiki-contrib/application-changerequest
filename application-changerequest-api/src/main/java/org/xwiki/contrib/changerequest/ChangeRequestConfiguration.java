@@ -21,14 +21,10 @@ package org.xwiki.contrib.changerequest;
 
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.model.reference.ClassPropertyReference;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.GuestUserReference;
@@ -132,11 +128,25 @@ public interface ChangeRequestConfiguration
         return GuestUserReference.INSTANCE;
     }
 
+    /**
+     * Defines the list of XWikiUsers properties that should be used to automatically compute delegate approvers.
+     *
+     * @return the list of XWikiUsers properties to use to compute delegate approvers, or an empty list.
+     * @since 0.13
+     */
+    @Unstable
     default List<String> getDelegateClassPropertyList()
     {
         return Collections.emptyList();
     }
 
+    /**
+     * Defines if the delegate approver mechanism should be enabled or not.
+     *
+     * @return {@code true} if the delegate approver mechanism is enabled.
+     * @since 0.13
+     */
+    @Unstable
     default boolean isDelegateEnabled()
     {
         return false;

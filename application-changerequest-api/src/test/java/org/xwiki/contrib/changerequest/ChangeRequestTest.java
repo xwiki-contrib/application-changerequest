@@ -480,4 +480,83 @@ class ChangeRequestTest
 
         assertEquals(Optional.of(fileChange1RefC), changeRequest.getFileChangeWithChangeBefore(fileChange3RefC));
     }
+
+    @Test
+    void getLatestReviewFrom()
+    {
+        ChangeRequest changeRequest = new ChangeRequest();
+        UserReference userReference1 = mock(UserReference.class);
+        UserReference userReference2 = mock(UserReference.class);
+        UserReference userReference3 = mock(UserReference.class);
+
+        ChangeRequestReview review1 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review2 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review3 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review4 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review5 = mock(ChangeRequestReview.class);
+
+        when(review1.getAuthor()).thenReturn(userReference1);
+        when(review2.getAuthor()).thenReturn(userReference2);
+        when(review3.getAuthor()).thenReturn(userReference2);
+        when(review4.getAuthor()).thenReturn(userReference3);
+        when(review5.getAuthor()).thenReturn(userReference1);
+
+        changeRequest.addReview(review1)
+            .addReview(review2)
+            .addReview(review3)
+            .addReview(review4)
+            .addReview(review5);
+
+        assertEquals(Optional.of(review5), changeRequest.getLatestReviewFrom(userReference1));
+        assertEquals(Optional.of(review4), changeRequest.getLatestReviewFrom(userReference3));
+        assertEquals(Optional.of(review3), changeRequest.getLatestReviewFrom(userReference2));
+        assertEquals(Optional.empty(), changeRequest.getLatestReviewFrom(mock(UserReference.class)));
+    }
+
+    @Test
+    void getLatestReviewFromOrOnBehalfOf()
+    {
+        ChangeRequest changeRequest = new ChangeRequest();
+        UserReference userReference1 = mock(UserReference.class);
+        UserReference userReference2 = mock(UserReference.class);
+        UserReference userReference3 = mock(UserReference.class);
+        UserReference userReference4 = mock(UserReference.class);
+        UserReference userReference5 = mock(UserReference.class);
+
+        ChangeRequestReview review1 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review2 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review3 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review4 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review5 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review6 = mock(ChangeRequestReview.class);
+
+        when(review1.getAuthor()).thenReturn(userReference5);
+        when(review2.getAuthor()).thenReturn(userReference2);
+
+        when(review3.getAuthor()).thenReturn(userReference2);
+        when(review3.getOriginalApprover()).thenReturn(userReference4);
+
+        when(review4.getAuthor()).thenReturn(userReference3);
+        when(review4.getOriginalApprover()).thenReturn(userReference1);
+
+        when(review5.getAuthor()).thenReturn(userReference1);
+        when(review5.getOriginalApprover()).thenReturn(userReference3);
+
+        when(review6.getAuthor()).thenReturn(userReference5);
+        when(review6.getOriginalApprover()).thenReturn(userReference5);
+
+        changeRequest.addReview(review1)
+            .addReview(review2)
+            .addReview(review3)
+            .addReview(review4)
+            .addReview(review5)
+            .addReview(review6);
+
+        assertEquals(Optional.of(review4), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference1));
+        assertEquals(Optional.of(review2), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference2));
+        assertEquals(Optional.of(review5), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference3));
+        assertEquals(Optional.of(review3), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference4));
+        assertEquals(Optional.of(review6), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference5));
+        assertEquals(Optional.empty(), changeRequest.getLatestReviewFromOrOnBehalfOf(mock(UserReference.class)));
+    }
 }
