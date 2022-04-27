@@ -106,9 +106,8 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
         boolean result = false;
         try {
             ChangeRequestStatus changeRequestStatus = ChangeRequestStatus.valueOf(statusParameter.toUpperCase());
-            boolean isReopenAuthorized = changeRequest.getStatus() == ChangeRequestStatus.CLOSED
-                && (changeRequestStatus == ChangeRequestStatus.READY_FOR_REVIEW
-                || changeRequestStatus == ChangeRequestStatus.DRAFT)
+            boolean isReopenAuthorized = isReopenStatusTransitionAuthorized(changeRequest.getStatus(),
+                changeRequestStatus)
                 && this.changeRequestRightsManager.isAuthorizedToOpen(getCurrentUser(), changeRequest);
             if (!this.changeRequestRightsManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)
                 && !isReopenAuthorized) {
@@ -123,6 +122,13 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
                 String.format("Wrong status parameter: [%s]", statusParameter));
         }
         return result;
+    }
+
+    private boolean isReopenStatusTransitionAuthorized(ChangeRequestStatus currentStatus,
+        ChangeRequestStatus nextStatus)
+    {
+        return (currentStatus == ChangeRequestStatus.CLOSED || currentStatus == ChangeRequestStatus.STALE)
+            && (nextStatus == ChangeRequestStatus.READY_FOR_REVIEW || nextStatus == ChangeRequestStatus.DRAFT);
     }
 
     private boolean handleDescriptionOrTitleUpdate(HttpServletRequest request, HttpServletResponse response,
