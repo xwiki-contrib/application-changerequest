@@ -57,6 +57,7 @@ import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -68,6 +69,7 @@ import org.xwiki.query.QueryManager;
 import org.xwiki.refactoring.job.EntityRequest;
 import org.xwiki.refactoring.job.RefactoringJobs;
 import org.xwiki.refactoring.script.RequestFactory;
+import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
 
 import com.xpn.xwiki.XWiki;
@@ -148,6 +150,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Inject
     private ChangeRequestStorageCacheManager changeRequestStorageCacheManager;
 
+    @Inject
+    @Named("document")
+    private UserReferenceResolver<DocumentReference> userReferenceResolver;
+
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
     {
@@ -161,7 +167,11 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             XWikiDocument document = wiki.getDocument(reference, context);
             document.setTitle(changeRequest.getTitle());
             document.setContent(changeRequest.getDescription());
-            document.getAuthors().setCreator(changeRequest.getCreator());
+            DocumentAuthors authors = document.getAuthors();
+            if (document.isNew()) {
+                authors.setCreator(changeRequest.getCreator());
+            }
+            authors.setOriginalMetadataAuthor(this.userReferenceResolver.resolve(context.getUserReference()));
             BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
             xObject.set(STATUS_FIELD, changeRequest.getStatus().name().toLowerCase(Locale.ROOT), context);
 

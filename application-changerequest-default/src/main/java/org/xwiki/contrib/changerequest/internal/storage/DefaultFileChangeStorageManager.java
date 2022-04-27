@@ -44,6 +44,7 @@ import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.localization.LocaleUtils;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -189,6 +190,11 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 this.createFileChangeObject(fileChange, fileChangeDocument);
 
                 fileChangeDocument.setHidden(true);
+                DocumentAuthors authors = fileChangeDocument.getAuthors();
+                if (fileChangeDocument.isNew()) {
+                    authors.setCreator(fileChange.getAuthor());
+                }
+                authors.setOriginalMetadataAuthor(fileChange.getAuthor());
 
                 if (fileChange.getModifiedDocument() != null) {
                     this.createAttachment(fileChange, fileChangeDocument, filename);

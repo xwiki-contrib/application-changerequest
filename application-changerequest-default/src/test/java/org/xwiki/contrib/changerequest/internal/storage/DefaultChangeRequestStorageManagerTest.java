@@ -114,6 +114,10 @@ class DefaultChangeRequestStorageManagerTest
     @MockComponent
     private ChangeRequestStorageCacheManager changeRequestStorageCacheManager;
 
+    @MockComponent
+    @Named("document")
+    private UserReferenceResolver<DocumentReference> userReferenceResolver;
+
     private XWikiContext context;
     private XWiki wiki;
 
@@ -148,9 +152,13 @@ class DefaultChangeRequestStorageManagerTest
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(documentReference);
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
-
+        when(document.isNew()).thenReturn(true);
         DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
         when(document.getAuthors()).thenReturn(documentAuthors);
+
+        DocumentReference userDocRef = mock(DocumentReference.class);
+        when(context.getUserReference()).thenReturn(userDocRef);
+        when(this.userReferenceResolver.resolve(userDocRef)).thenReturn(userReference);
 
         BaseObject xobject = mock(BaseObject.class);
         when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
@@ -162,6 +170,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(document).setTitle(title);
         verify(document).setContent(description);
         verify(documentAuthors).setCreator(userReference);
+        verify(documentAuthors).setOriginalMetadataAuthor(userReference);
         verify(xobject).set("status", "draft", this.context);
         verify(this.fileChangeStorageManager).save(fileChange1);
         verify(this.fileChangeStorageManager).save(fileChange2);
