@@ -23,6 +23,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
+import org.xwiki.ckeditor.test.po.CKEditor;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseModal;
 
@@ -37,12 +38,15 @@ public class ReviewModal extends BaseModal
 {
     private static final String SELECT_ORIGINAL_APPROVER_ID = "originalApprover";
 
+    private final CKEditor commentEditor;
+
     /**
      * Default constructor.
      */
     public ReviewModal()
     {
         super(By.id("reviewModal"));
+        this.commentEditor = new CKEditor("content").waitToLoad();
     }
 
     /**
@@ -68,9 +72,8 @@ public class ReviewModal extends BaseModal
      */
     public void setComment(String comment)
     {
-        WebElement content = this.container.findElement(By.id("content"));
-        content.clear();
-        content.sendKeys(comment);
+        this.commentEditor.getRichTextArea().clear();
+        this.commentEditor.getRichTextArea().setContent(comment);
     }
 
     /**

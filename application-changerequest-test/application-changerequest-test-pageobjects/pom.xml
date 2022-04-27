@@ -42,5 +42,10 @@
       <artifactId>xwiki-platform-livedata-test-pageobjects</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>application-ckeditor-test-pageobjects</artifactId>
+      <version>1.61</version>
+    </dependency>
   </dependencies>
 </project>

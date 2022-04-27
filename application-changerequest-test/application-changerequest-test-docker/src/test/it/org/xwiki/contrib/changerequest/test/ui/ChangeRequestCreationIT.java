@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.test.ui;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -95,6 +96,11 @@ class ChangeRequestCreationIT
         // We force the approver to use WYSIWYG editor, to avoid any problem to display the review modal.
         // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
         setup.updateObject("XWiki", CR_APPROVER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
+
+        // Ensure to use right strategy
+        setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "approvalStrategy", "onlyapproved");
     }
 
     @Test

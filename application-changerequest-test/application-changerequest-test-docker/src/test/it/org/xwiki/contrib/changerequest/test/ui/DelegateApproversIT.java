@@ -135,12 +135,15 @@ class DelegateApproversIT
         editPage.getEditor().setContent("Some new content");
         ChangeRequestSaveModal saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("Delegate test");
-        saveModal.clickSave();
+        ChangeRequestPage changeRequestPage = saveModal.clickSave();
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertFalse(changeRequestPage.isReviewButtonEnabled());
+
         String changeRequestUrl = setup.getDriver().getCurrentUrl();
 
         setup.login("Buz", "BuzPassword");
         setup.gotoPage(changeRequestUrl);
-        ChangeRequestPage changeRequestPage = new ChangeRequestPage();
+        changeRequestPage = new ChangeRequestPage();
 
         // Review button should be enabled for buz by Delegation
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
