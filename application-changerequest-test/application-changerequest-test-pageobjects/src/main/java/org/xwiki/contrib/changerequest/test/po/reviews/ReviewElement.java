@@ -80,6 +80,14 @@ public class ReviewElement extends BaseElement
         return this.reviewElement.getAttribute("data-author");
     }
 
+    /**
+     * @return the original approver of the review
+     */
+    public String getOriginalApprover()
+    {
+        return this.reviewElement.getAttribute("data-original-approver");
+    }
+
     private WebElement getToggleValidButton()
     {
         return this.reviewElement.findElement(By.className("review-toggle-valid"));

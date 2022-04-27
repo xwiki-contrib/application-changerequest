@@ -133,6 +133,10 @@ ChangeRequest.Code.ConfigurationClass_schedulerContextUser=Scheduler user
 ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=The user selected here will be the author of the notifications and updates when detecting a stale change request. This user should have appropriate rights for this. By default the author of the scheduler documents is used.
 ChangeRequest.Code.ConfigurationClass_mergeUser=Merge user
 ChangeRequest.Code.ConfigurationClass_mergeUser.hint=If a user is specified here, this user will always be used when merging change requests to save the actual changes. So this user should have appropriate rights to do so. If nothing is specified here, then the user clicking on the merge button is used to save the changes.
+ChangeRequest.Code.ConfigurationClass_delegateEnabled=Enable delegate approvers
+ChangeRequest.Code.ConfigurationClass_delegateEnabled.hint=If enabled, allow to use delegate approval mechanism: the delegates are users allowed to perform reviews on behalf of the official explicit approvers of a page. 
+ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=User properties to use for computing delegates
+ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=This configuration specifies the list of XWikiUsers properties that should be used for automatically compute the delegate approvers. If the list is empty then the delegates should be set manually.
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion

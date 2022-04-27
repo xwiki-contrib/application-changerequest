@@ -192,11 +192,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     {
         Optional<ChangeRequestReview> optionalLatestReview;
         ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, reviewer);
-        if (originalApprover != null) {
+        if (originalApprover != null && !originalApprover.equals(reviewer)) {
             review.setOriginalApprover(originalApprover);
             optionalLatestReview =  changeRequest.getLatestReviewFromOrOnBehalfOf(originalApprover);
         } else {
-            optionalLatestReview = changeRequest.getLatestReviewFrom(reviewer);
+            optionalLatestReview = changeRequest.getLatestReviewFromOrOnBehalfOf(reviewer);
         }
         this.reviewStorageManager.save(review);
 

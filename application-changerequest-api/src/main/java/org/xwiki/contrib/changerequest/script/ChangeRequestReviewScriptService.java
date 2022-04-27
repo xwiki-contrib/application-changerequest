@@ -115,7 +115,7 @@ public class ChangeRequestReviewScriptService implements ScriptService
         boolean isAuthorized;
         String loggerMessage;
         Object[] loggerParams;
-        if (originalApprover != null) {
+        if (originalApprover != null && !originalApprover.equals(userReference)) {
             isAuthorized = authorizationScriptService.isAuthorizedToReviewOnBehalf(changeRequest, originalApprover);
             loggerMessage = "Unauthorized user [{}] trying to add review to [{}] on behalf of [{}].";
             loggerParams = new Object[] { userReference, changeRequest, originalApprover };

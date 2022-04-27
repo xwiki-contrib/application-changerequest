@@ -20,7 +20,9 @@
 package org.xwiki.contrib.changerequest.test.po.reviews;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseModal;
 
@@ -33,6 +35,8 @@ import org.xwiki.test.ui.po.BaseModal;
 @Unstable
 public class ReviewModal extends BaseModal
 {
+    private static final String SELECT_ORIGINAL_APPROVER_ID = "originalApprover";
+
     /**
      * Default constructor.
      */
@@ -102,5 +106,30 @@ public class ReviewModal extends BaseModal
         getDriver().addPageNotYetReloadedMarker();
         this.getSaveButton().click();
         getDriver().waitUntilPageIsReloaded();
+    }
+
+    /**
+     * @return {@code true} if the select allowing to chose on behalf of whom to review is displayed.
+     * @since 0.13
+     */
+    public boolean isSelectOnBehalfDisplayed()
+    {
+        try {
+            WebElement selectElement =
+                getDriver().findElementWithoutWaiting(By.id(SELECT_ORIGINAL_APPROVER_ID));
+            return selectElement.isDisplayed();
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return the select allowing to chose on behalf of whom to review
+     */
+    public Select getOriginalApproverSelector()
+    {
+        WebElement selectElement =
+            getDriver().findElementWithoutWaiting(By.id(SELECT_ORIGINAL_APPROVER_ID));
+        return new Select(selectElement);
     }
 }

@@ -154,7 +154,7 @@
         #end
         #if ($review.originalApprover &amp;&amp; $review.originalApprover != $review.author)
           #set ($localizationKey = "${localizationKey}.delegate")
-          #set ($localizationArguments = [$userArgument, "#wrappedDisplayUser($review.originalApprover.reference), {'useInlineHTML': true})"])
+          #set ($localizationArguments = [$userArgument, "#wrappedDisplayUser($review.originalApprover.reference, {'useInlineHTML': true})"])
         #else
           #set ($localizationArguments = [$userArgument])
         #end

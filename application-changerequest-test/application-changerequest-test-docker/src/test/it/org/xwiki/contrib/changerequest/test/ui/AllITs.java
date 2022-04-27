@@ -49,4 +49,10 @@ public class AllITs
     class NestedChangeRequestConflictsIT extends ChangeRequestConflictsIT
     {
     }
+
+    @Nested
+    @DisplayName("Delegate Approvers mechanism")
+    class NestedDelegateApproversIT extends DelegateApproversIT
+    {
+    }
 }
