@@ -42,6 +42,7 @@ import org.xwiki.diff.ConflictDecision;
 import org.xwiki.diff.internal.DefaultConflictDecision;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 
 /**
@@ -173,5 +174,19 @@ public class ChangeRequestMergeScriptService implements ScriptService
             }
         }
         return false;
+    }
+
+    /**
+     * Check if the given change request has any conflict.
+     *
+     * @param changeRequest the change request for which to check if it has conflict.
+     * @return {@code true} if at least one conflict has been found in a document.
+     * @throws ChangeRequestException in case of problem when checking presence of conflict.
+     * @since 0.13
+     */
+    @Unstable
+    public boolean hasConflict(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        return this.changeRequestMergeManager.hasConflict(changeRequest);
     }
 }

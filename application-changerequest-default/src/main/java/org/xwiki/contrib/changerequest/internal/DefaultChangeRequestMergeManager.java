@@ -113,7 +113,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     private Logger logger;
 
     @Override
-    public boolean hasConflicts(FileChange fileChange) throws ChangeRequestException
+    public boolean hasConflict(FileChange fileChange) throws ChangeRequestException
     {
         boolean result;
         Optional<Boolean> optional = this.mergeCacheManager.hasConflict(fileChange);
@@ -199,7 +199,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
                 changeRequest.getLatestFileChangeFor(documentReference);
             if (fileChangeOptional.isPresent()) {
                 FileChange fileChange = fileChangeOptional.get();
-                if (this.hasConflicts(fileChange)) {
+                if (this.hasConflict(fileChange)) {
                     result = true;
                     break;
                 }

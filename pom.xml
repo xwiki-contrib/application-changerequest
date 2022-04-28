@@ -109,6 +109,18 @@
                   <new>method org.xwiki.contrib.changerequest.ChangeRequestReview org.xwiki.contrib.changerequest.ChangeRequestManager::addReview(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.user.UserReference, boolean, org.xwiki.user.UserReference) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
                   <justification>Unstable API: new API to deal with delegate approvers.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.addedToInterface</code>
+                  <new>method boolean org.xwiki.contrib.changerequest.ChangeRequestMergeManager::hasConflict(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <justification>Unstable API: method renamed from "hasConflicts" to be consistent.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestMergeManager::hasConflicts(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Unstable API: method renamed "hasConflict" to be consistent.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

@@ -3872,6 +3872,7 @@ tr.discussion-line:hover {
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
 #set ($canBeReviewed = ($services.changerequest.authorization.isAuthorizedToReview($changeRequest) || $services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest)))
 #set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
+#set ($hasConflict = $services.changerequest.merge.hasConflict($changeRequest))
 #if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
@@ -3883,11 +3884,13 @@ tr.discussion-line:hover {
     &lt;span class="sr-only"&gt;Toggle dropdown&lt;/span&gt;
   &lt;/button&gt;
   &lt;ul class="dropdown-menu"&gt;
+    #if (!$hasConflict)
     &lt;li class="cr-rebase"&gt;
       &lt;a href="$rebaseUrl" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
+    #end
     &lt;li class="cr-close"&gt;
       &lt;a href="$closeUrl" title="$services.localization.render('changerequest.sheet.close.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('lock') $services.localization.render('changerequest.sheet.close.button')
@@ -3922,11 +3925,13 @@ tr.discussion-line:hover {
     &lt;/li&gt;
     #end
     #if ($canBeEdited)
+    #if (!$hasConflict)
     &lt;li class="cr-rebase"&gt;
       &lt;a href="$services.changerequest.getChangeRequestURL('rebase', $changeRequestId)?form_token=$services.csrf.token" title="$services.localization.render('changerequest.sheet.rebase.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('refresh') $services.localization.render('changerequest.sheet.rebase.button')
       &lt;/a&gt;
     &lt;/li&gt;
+    #end
     &lt;li class="cr-convert-to-draft"&gt;
       &lt;a href="$draftUrl" title="$services.localization.render('changerequest.sheet.markdraft.button.title')" rel="nofollow"&gt;
         $services.icon.renderHTML('coffee') $services.localization.render('changerequest.sheet.markdraft.button')

@@ -122,7 +122,7 @@ class DefaultChangeRequestMergeManagerTest
     {
         FileChange fileChange = mock(FileChange.class);
         when(this.mergeCacheManager.hasConflict(fileChange)).thenReturn(Optional.of(false));
-        assertFalse(this.crMergeManager.hasConflicts(fileChange));
+        assertFalse(this.crMergeManager.hasConflict(fileChange));
         verifyNoInteractions(this.mergeManager);
 
         when(this.mergeCacheManager.hasConflict(fileChange)).thenReturn(Optional.empty());
@@ -154,7 +154,7 @@ class DefaultChangeRequestMergeManagerTest
             });
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
-        assertTrue(this.crMergeManager.hasConflicts(fileChange));
+        assertTrue(this.crMergeManager.hasConflict(fileChange));
         verify(this.mergeManager)
             .mergeDocument(eq(previousDoc), eq(currentDoc), eq(modifiedDoc), any(MergeConfiguration.class));
         verify(this.mergeCacheManager).setConflictStatus(fileChange, true);

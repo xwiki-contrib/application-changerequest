@@ -45,7 +45,7 @@ public interface ChangeRequestMergeManager
      * @return {@code true} if it contains conflicts, {@code false} otherwise.
      * @throws ChangeRequestException in case of problem for detecting conflicts.
      */
-    boolean hasConflicts(FileChange fileChange) throws ChangeRequestException;
+    boolean hasConflict(FileChange fileChange) throws ChangeRequestException;
 
     /**
      * Check if any of the latest filechange of the given change request expose conflicts with the current published
@@ -55,7 +55,7 @@ public interface ChangeRequestMergeManager
      * @return {@code true} if any of the latest filechange contains a conflict, {@code false} if all latest filechanges
      *          have no conflicts.
      * @throws ChangeRequestException in case of problem for detecting conflicts.
-     * @see #hasConflicts(FileChange)
+     * @see #hasConflict(FileChange)
      */
     boolean hasConflict(ChangeRequest changeRequest) throws ChangeRequestException;
 
