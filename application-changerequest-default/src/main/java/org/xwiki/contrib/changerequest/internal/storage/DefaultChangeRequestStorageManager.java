@@ -45,6 +45,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.events.ChangeRequestMergeFailedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
@@ -271,20 +272,31 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public void merge(ChangeRequest changeRequest) throws ChangeRequestException
     {
         this.observationManager.notify(new ChangeRequestMergingEvent(), changeRequest.getId(), changeRequest);
-        Set<DocumentReference> documentReferences = changeRequest.getFileChanges().keySet();
-        for (DocumentReference documentReference : documentReferences) {
-            Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-            if (optionalFileChange.isPresent()) {
-                this.fileChangeStorageManager.merge(optionalFileChange.get());
-            }
-        }
-
+        // We immediately save the merge status to avoid having the listeners to consider this change request
+        // when computing status changes.
         ChangeRequestStatus oldStatus = changeRequest.getStatus();
         changeRequest.setStatus(ChangeRequestStatus.MERGED);
+        this.save(changeRequest);
         this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
             new ChangeRequestStatus[] {oldStatus, ChangeRequestStatus.MERGED});
-        this.save(changeRequest);
-        this.observationManager.notify(new ChangeRequestMergedEvent(), changeRequest.getId(), changeRequest);
+
+        try {
+            Set<DocumentReference> documentReferences = changeRequest.getFileChanges().keySet();
+            for (DocumentReference documentReference : documentReferences) {
+                Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+                if (optionalFileChange.isPresent()) {
+                    this.fileChangeStorageManager.merge(optionalFileChange.get());
+                }
+            }
+            this.observationManager.notify(new ChangeRequestMergedEvent(), changeRequest.getId(), changeRequest);
+        } catch (ChangeRequestException e) {
+            // in case of error we reset the status
+            changeRequest.setStatus(oldStatus);
+            this.save(changeRequest);
+            this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
+                new ChangeRequestStatus[] {ChangeRequestStatus.MERGED, oldStatus});
+            this.observationManager.notify(new ChangeRequestMergeFailedEvent(), changeRequest.getId(), changeRequest);
+        }
     }
 
     @Override

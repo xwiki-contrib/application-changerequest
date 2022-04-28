@@ -86,7 +86,9 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
         try {
             List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
             for (ChangeRequest changeRequest : changeRequests) {
-                this.changeRequestManager.get().computeReadyForMergingStatus(changeRequest);
+                if (changeRequest.getStatus().isOpen()) {
+                    this.changeRequestManager.get().computeReadyForMergingStatus(changeRequest);
+                }
             }
         } catch (ChangeRequestException e) {
             logger.warn("Error while computing the merging status of change requests after update of [{}]: [{}]",

@@ -26,6 +26,7 @@ import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.internal.listeners.DocumentUpdatedListener;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -36,6 +37,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,9 +72,11 @@ class DocumentUpdatedListenerTest
             changeRequest1,
             changeRequest2
         ));
+        when(changeRequest1.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(changeRequest2.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_MERGING);
 
         this.listener.processLocalEvent(new DocumentUpdatedEvent(), sourceDoc, null);
-        verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest1);
+        verify(this.changeRequestManager, never()).computeReadyForMergingStatus(changeRequest1);
         verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest2);
     }
 }
