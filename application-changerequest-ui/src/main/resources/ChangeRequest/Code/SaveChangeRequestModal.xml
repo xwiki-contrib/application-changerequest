@@ -308,7 +308,7 @@
     var saveConfig = JSON.parse($(configSelector).text());
     var asyncQuery = true;
 
-    var saveChangeRequest = function (event) {
+    self.saveChangeRequest = function (event, fromChangeRequest) {
       var isNewCR = $('#existingCRSelector').val() === "";
       var actionURL;
       var form;
@@ -324,7 +324,9 @@
       }
       
       var urlParams = new URLSearchParams(window.location.search);
-      if (isNewCR) {
+      if (fromChangeRequest) {
+        actionURL = saveConfig.addChangesURL.replace("__CR__", fromChangeRequest);
+      } else if (isNewCR) {
         var crTitleField = $("&lt;input&gt;", {
           'type': 'hidden',
           'name': 'crTitle',
@@ -348,7 +350,7 @@
         actionURLParams.append("async", "1");
       }
       
-      if (!isNewCR &amp;&amp; urlParams.has('changerequest')) {
+      if (fromChangeRequest) {
         actionURLParams.append("fromchangerequest", "1")
       }
       var docField = $("&lt;input&gt;", {
@@ -443,7 +445,7 @@
           $('body').append(data);
           $('#changeRequestModal').modal('show');
           $('#saveChangeRequest').on('click', function (event) {
-            saveChangeRequest(event);
+            self.saveChangeRequest(event);
           });
           $('#crTitle').on('change', validateForm);
           $('#crTitle').on('keyup', validateForm);

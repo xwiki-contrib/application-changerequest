@@ -173,11 +173,15 @@
     }
     if (buttonAdded) {
       var saveChangeRequestModal = new SaveChangeRequestModal('changerequest-save-config');
-      button.on('click', function() {
-        saveChangeRequestModal.openModal();
-      });
       var urlParams = new URLSearchParams(window.location.search);
-      var editExistingCR = urlParams.has('changerequest');
+      var editExistingCR = urlParams.get('changerequest');
+      button.on('click', function(event) {
+        if (editExistingCR) {
+          saveChangeRequestModal.saveChangeRequest(event, editExistingCR);
+        } else {
+          saveChangeRequestModal.openModal();
+        }
+      });
       var hasEditRight = saveConfig.hasEditRight;
       // hide minor edit and autosave capabilities
       if (!hasEditRight || editExistingCR) {
