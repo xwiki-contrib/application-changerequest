@@ -21,7 +21,9 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -29,11 +31,15 @@ import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.observation.event.Event;
 
 /**
  * Component responsible to handle {@link ChangeRequestCreatedEvent}.
+ *
+ * This listener is responsible of 2 things: creating the dedicated {@link ChangeRequestCreatedRecordableEvent}, and
+ * handling the autowatch mechanism for the created change request document.
  *
  * @version $Id$
  * @since 0.6
@@ -44,6 +50,9 @@ import org.xwiki.observation.event.Event;
 public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEventListener
 {
     static final String NAME = "ChangeRequestCreatedEventListener";
+
+    @Inject
+    private Provider<ChangeRequestAutoWatchHandler> autoWatchHandlerProvider;
 
     /**
      * Default constructor.
@@ -59,6 +68,9 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
         String changeRequestId = (String) source;
         try {
             ChangeRequest changeRequest = (ChangeRequest) data;
+            if (this.autoWatchHandlerProvider.get().shouldCreateWatchedEntity(changeRequest)) {
+                this.autoWatchHandlerProvider.get().watchChangeRequest(changeRequest);
+            }
             DocumentModelBridge documentInstance = this.documentAccessBridge.getTranslatedDocumentInstance(
                 changeRequest.getModifiedDocuments().iterator().next());
             ChangeRequestCreatedRecordableEvent recordableEvent =
