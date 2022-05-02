@@ -582,7 +582,9 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         boolean result = false;
         ChangeRequestStatus status = changeRequest.getStatus();
         if (status != ChangeRequestStatus.MERGED && (status.isOpen() || checkForOpening)) {
-            if (changeRequest.getAuthors().contains(userReference)) {
+            // if change request was created by guest, then anybody should be able to edit it.
+            if (changeRequest.getAuthors().contains(GuestUserReference.INSTANCE)
+                || changeRequest.getAuthors().contains(userReference)) {
                 result = true;
             } else {
                 DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
