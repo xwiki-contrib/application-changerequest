@@ -146,6 +146,7 @@ class ChangeRequestCreationIT
 
         // Check event
         Date dateAfterCR = new Date();
+        descriptionPane.waitUntilEventsSize(1);
         List<TimelineEvent> events = descriptionPane.getEvents();
         assertEquals(1, events.size());
 

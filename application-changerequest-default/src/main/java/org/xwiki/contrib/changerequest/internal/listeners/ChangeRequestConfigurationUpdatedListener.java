@@ -31,7 +31,6 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestConfigurationSource;
 import org.xwiki.contrib.changerequest.internal.DefaultChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.jobs.DelegateApproversComputationRequest;
@@ -79,9 +78,6 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
-    private ChangeRequestConfiguration configuration;
-
-    @Inject
     private Provider<QueryManager> queryManagerProvider;
 
     @Inject
@@ -104,9 +100,7 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (!this.remoteObservationManagerContext.isRemoteState()
-            && this.configuration.isDelegateEnabled()
-            && !this.configuration.getDelegateClassPropertyList().isEmpty()) {
+        if (!this.remoteObservationManagerContext.isRemoteState()) {
             XWikiDocument configurationDoc = (XWikiDocument) source;
             if (configurationDoc.getDocumentReference().getLocalDocumentReference()
                 .equals(ChangeRequestConfigurationSource.DOC_REFERENCE)) {
@@ -175,8 +169,9 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
                 currentObj.getIntValue(DefaultChangeRequestConfiguration.DELEGATE_ENABLED_PROPERTY);
             int oldDelegateEnabledValue =
                 previousObj.getIntValue(DefaultChangeRequestConfiguration.DELEGATE_ENABLED_PROPERTY);
-            result = currentDelegateEnabledValue != oldDelegateEnabledValue
-                || !StringUtils.equals(currentDelegatePropertyValue, oldDelegatePropertyValue);
+            result = (currentDelegateEnabledValue == 1 && !StringUtils.isEmpty(currentDelegatePropertyValue))
+                && (currentDelegateEnabledValue != oldDelegateEnabledValue
+                || !StringUtils.equals(currentDelegatePropertyValue, oldDelegatePropertyValue));
         }
 
         return result;

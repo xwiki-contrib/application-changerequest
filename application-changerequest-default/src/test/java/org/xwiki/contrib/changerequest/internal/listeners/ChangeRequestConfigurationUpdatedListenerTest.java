@@ -19,13 +19,11 @@
  */
 package org.xwiki.contrib.changerequest.internal.listeners;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.Test;
-import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestConfigurationSource;
 import org.xwiki.contrib.changerequest.internal.DefaultChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.jobs.DelegateApproversComputationRequest;
@@ -36,12 +34,10 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
-import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
@@ -72,9 +68,6 @@ class ChangeRequestConfigurationUpdatedListenerTest
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @MockComponent
-    private ChangeRequestConfiguration configuration;
-
-    @MockComponent
     private Provider<QueryManager> queryManagerProvider;
 
     @MockComponent
@@ -87,33 +80,11 @@ class ChangeRequestConfigurationUpdatedListenerTest
     void onEventNoRecomputation()
     {
         XWikiDocument source = mock(XWikiDocument.class);
-        when(this.configuration.isDelegateEnabled()).thenReturn(false);
-        when(this.configuration.getDelegateClassPropertyList()).thenReturn(Collections.emptyList());
-        when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(true);
-
-        this.configurationUpdatedListener.onEvent(null, source, null);
-        verifyNoInteractions(source);
-
-        when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
-        this.configurationUpdatedListener.onEvent(null, source, null);
-        verifyNoInteractions(source);
-
-        when(this.configuration.getDelegateClassPropertyList()).thenReturn(Collections.singletonList("delegate"));
-        this.configurationUpdatedListener.onEvent(null, source, null);
-        verifyNoInteractions(source);
-
-        when(this.configuration.isDelegateEnabled()).thenReturn(true);
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(true);
         this.configurationUpdatedListener.onEvent(null, source, null);
         verifyNoInteractions(source);
 
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
-        when(this.configuration.isDelegateEnabled()).thenReturn(true);
-        when(this.configuration.getDelegateClassPropertyList()).thenReturn(Collections.emptyList());
-        this.configurationUpdatedListener.onEvent(null, source, null);
-        verifyNoInteractions(source);
-
-        when(this.configuration.getDelegateClassPropertyList()).thenReturn(Collections.singletonList("delegate"));
         when(source.getDocumentReference()).thenReturn(new DocumentReference("xwiki", "Foo", "Bar"));
         this.configurationUpdatedListener.onEvent(null, source, null);
         verify(source, never()).getOriginalDocument();
@@ -139,14 +110,29 @@ class ChangeRequestConfigurationUpdatedListenerTest
         this.configurationUpdatedListener.onEvent(null, source, null);
         verifyNoInteractions(this.queryManagerProvider);
         verifyNoInteractions(this.jobExecutorProvider);
+
+        when(currentObj.getStringValue(DefaultChangeRequestConfiguration.DELEGATE_CLASS_PROPERTY_LIST_PROPERTY))
+            .thenReturn("");
+
+        this.configurationUpdatedListener.onEvent(null, source, null);
+        verifyNoInteractions(this.queryManagerProvider);
+        verifyNoInteractions(this.jobExecutorProvider);
+
+        when(currentObj.getStringValue(DefaultChangeRequestConfiguration.DELEGATE_CLASS_PROPERTY_LIST_PROPERTY))
+            .thenReturn("delegate");
+        when(previousObj.getStringValue(DefaultChangeRequestConfiguration.DELEGATE_CLASS_PROPERTY_LIST_PROPERTY))
+            .thenReturn("");
+        when(currentObj.getIntValue(DefaultChangeRequestConfiguration.DELEGATE_ENABLED_PROPERTY)).thenReturn(0);
+
+        this.configurationUpdatedListener.onEvent(null, source, null);
+        verifyNoInteractions(this.queryManagerProvider);
+        verifyNoInteractions(this.jobExecutorProvider);
     }
 
     @Test
     void onEventConfigEnabled() throws Exception
     {
         XWikiDocument source = mock(XWikiDocument.class);
-        when(this.configuration.isDelegateEnabled()).thenReturn(true);
-        when(this.configuration.getDelegateClassPropertyList()).thenReturn(Collections.singletonList("delegate"));
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
 
         when(source.getDocumentReference()).thenReturn(
