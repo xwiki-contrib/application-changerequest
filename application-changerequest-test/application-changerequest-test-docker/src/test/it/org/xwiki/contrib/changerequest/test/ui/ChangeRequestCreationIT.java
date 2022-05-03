@@ -556,11 +556,7 @@ class ChangeRequestCreationIT
 
         extendedEditPage = fileChangesPane.clickEdit(serializedReference);
         extendedEditPage.getEditor().setContent("Some new content after edition.");
-        ChangeRequestSaveModal saveModal = extendedEditPage.clickSaveAsChangeRequest();
-        assertFalse(saveModal.isCreateChangeRequestDisplayed());
-        assertTrue(saveModal.isAddChangesToExistingChangeRequestDisplayed());
-        changeRequestPage = saveModal.clickSave();
-
+        changeRequestPage = extendedEditPage.clickSaveAsChangeRequestInExistingCR();
         DescriptionPane descriptionPane = changeRequestPage.openDescription();
         descriptionPane.waitUntilEventsSize(2);
 
