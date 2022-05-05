@@ -189,4 +189,15 @@ public interface ChangeRequestManager
     default void rebase(FileChange fileChange) throws ChangeRequestException
     {
     }
+
+    /**
+     * Invalidate all reviews of a change request. This method should be called whenever any content has been updated
+     * in a change request.
+     *
+     * @param changeRequest the change request for which to invalidate reviews
+     * @throws ChangeRequestException in case of problem for saving the reviews
+     */
+    default void invalidateReviews(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+    }
 }

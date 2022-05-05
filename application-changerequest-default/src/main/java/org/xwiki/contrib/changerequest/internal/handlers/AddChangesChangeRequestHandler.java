@@ -37,7 +37,6 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
@@ -119,8 +118,6 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     this.storageManager.save(changeRequest);
                     this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
                     this.copyApprovers(fileChange);
-                    this.invalidateApprovals(changeRequest);
-                    this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
                     this.observationManager
                         .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
                     this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
@@ -260,17 +257,5 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     modifiedDocument.getDocumentReferenceWithLocale()));
         }
         return result;
-    }
-
-    private void invalidateApprovals(ChangeRequest changeRequest) throws ChangeRequestException
-    {
-        List<ChangeRequestReview> reviews = changeRequest.getReviews();
-        for (ChangeRequestReview review : reviews) {
-            if (review.isApproved()) {
-                review.setValid(false);
-                review.setSaved(false);
-            }
-            this.reviewStorageManager.save(review);
-        }
     }
 }

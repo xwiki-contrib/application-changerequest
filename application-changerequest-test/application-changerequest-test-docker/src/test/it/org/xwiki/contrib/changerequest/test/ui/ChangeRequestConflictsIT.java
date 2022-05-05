@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,9 @@ import org.xwiki.contrib.changerequest.test.po.ExtendedDeleteConfirmationPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.test.docker.junit5.TestReference;
@@ -66,6 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ChangeRequestConflictsIT
 {
     private static final String CR_USER = "CRConflictTest";
+    private static final String CR_APPROVER = "CRConflictApproverTest";
 
     @BeforeAll
     void beforeAll(TestUtils setup)
@@ -74,6 +80,14 @@ class ChangeRequestConflictsIT
         setup.createUser(CR_USER, CR_USER, null);
         setup.setGlobalRights("", CR_USER, "edit", false);
         setup.setGlobalRights("", CR_USER, "delete", false);
+
+        setup.createUser(CR_APPROVER, CR_APPROVER, null);
+        // We force the approver to use WYSIWYG editor, to avoid any problem to display the review modal.
+        // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
+        setup.updateObject("XWiki", CR_APPROVER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
+
+        setup.setGlobalRights("", CR_APPROVER, "edit", false);
+        setup.setGlobalRights("", CR_APPROVER, "crapprove", true);
     }
 
     @Test
@@ -191,6 +205,23 @@ class ChangeRequestConflictsIT
         assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
         assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
 
+        // Create an approval review to checks it's invalidated after the conflict is fixed
+        testUtils.login(CR_APPROVER, CR_APPROVER);
+        testUtils.gotoPage(crUrl);
+        changeRequestPage = new ChangeRequestPage();
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertTrue(changeRequestPage.isReviewButtonEnabled());
+        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
+        reviewModal.selectApprove();
+        reviewModal.save();
+        changeRequestPage = new ChangeRequestPage();
+        ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
+        List<ReviewElement> reviews = reviewsPane.getReviews();
+        assertEquals(1, reviews.size());
+        ReviewElement reviewElement = reviews.get(0);
+        assertTrue(reviewElement.isApproval());
+        assertFalse(reviewElement.isOutdated());
+
         testUtils.loginAsSuperAdmin();
         testUtils.createPage(nestedTestReference, "Some new content");
 
@@ -223,6 +254,14 @@ class ChangeRequestConflictsIT
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
         assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
         assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+
+        // check that the review is now outdated
+        reviewsPane = changeRequestPage.openReviewsPane();
+        reviews = reviewsPane.getReviews();
+        assertEquals(1, reviews.size());
+        reviewElement = reviews.get(0);
+        assertTrue(reviewElement.isApproval());
+        assertTrue(reviewElement.isOutdated());
     }
 
     @Test

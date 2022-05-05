@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -317,5 +318,18 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     {
         this.fileChangeStorageManager.rebase(fileChange);
         this.observationManager.notify(new FileChangeRebasedEvent(), fileChange.getChangeRequest().getId(), fileChange);
+    }
+
+    @Override
+    public void invalidateReviews(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        List<ChangeRequestReview> reviews = changeRequest.getReviews();
+        for (ChangeRequestReview review : reviews) {
+            if (review.isApproved() && review.isValid()) {
+                review.setValid(false);
+                review.setSaved(false);
+                this.reviewStorageManager.save(review);
+            }
+        }
     }
 }
