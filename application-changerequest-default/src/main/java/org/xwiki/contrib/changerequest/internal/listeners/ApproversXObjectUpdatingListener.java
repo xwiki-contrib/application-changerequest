@@ -39,10 +39,8 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEve
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.user.group.GroupException;
@@ -63,7 +61,7 @@ import com.xpn.xwiki.objects.BaseObject;
 @Component
 @Named(ApproversXObjectUpdatingListener.NAME)
 @Singleton
-public class ApproversXObjectUpdatingListener extends AbstractEventListener
+public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
 {
     /**
      * The name of the listener.
@@ -89,9 +87,6 @@ public class ApproversXObjectUpdatingListener extends AbstractEventListener
     private ObservationContext observationContext;
 
     @Inject
-    private RemoteObservationManagerContext remoteObservationManagerContext;
-
-    @Inject
     private Logger logger;
 
     /**
@@ -103,7 +98,7 @@ public class ApproversXObjectUpdatingListener extends AbstractEventListener
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         // We don't perform any check if current user has admin right
         // we want admin to be able to perform this kind of change.
@@ -112,8 +107,7 @@ public class ApproversXObjectUpdatingListener extends AbstractEventListener
         // Finally we don't take into account remote events.
         if (!this.contextualAuthorizationManager.hasAccess(Right.ADMIN)
             && !this.observationContext.isIn(new ChangeRequestMergingEvent())
-            && !this.observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())
-            && !this.remoteObservationManagerContext.isRemoteState()) {
+            && !this.observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())) {
             XWikiDocument document = (XWikiDocument) source;
 
             UserEvent userEvent = (UserEvent) event;

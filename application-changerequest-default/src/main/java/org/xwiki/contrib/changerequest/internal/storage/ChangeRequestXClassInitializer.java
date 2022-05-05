@@ -35,7 +35,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
@@ -51,7 +50,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
  */
 @Component
 @Singleton
-@Named("org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer")
+@Named("ChangeRequest.Code.ChangeRequestClass")
 public class ChangeRequestXClassInitializer implements MandatoryDocumentInitializer
 {
     static final List<String> CHANGE_REQUEST_SPACE = Arrays.asList("ChangeRequest", "Code");
@@ -78,9 +77,7 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
     @Override
     public EntityReference getDocumentReference()
     {
-        // we use main wiki since the module is supposed to be installed on farm.
-        return new DocumentReference(CHANGE_REQUEST_XCLASS,
-            new WikiReference(this.contextProvider.get().getMainXWiki()));
+        return new DocumentReference(CHANGE_REQUEST_XCLASS, this.contextProvider.get().getWikiReference());
     }
 
     @Override

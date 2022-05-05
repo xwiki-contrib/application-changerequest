@@ -30,7 +30,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
@@ -45,7 +44,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
  */
 @Component
 @Singleton
-@Named("org.xwiki.contrib.changerequest.internal.approvers.DelegateApproversXClassInitializer")
+@Named("ChangeRequest.Code.DelegateApproversClass")
 public class DelegateApproversXClassInitializer implements MandatoryDocumentInitializer
 {
     /**
@@ -65,8 +64,7 @@ public class DelegateApproversXClassInitializer implements MandatoryDocumentInit
     @Override
     public EntityReference getDocumentReference()
     {
-        return new DocumentReference(DELEGATE_APPROVERS_XCLASS,
-            new WikiReference(this.contextProvider.get().getMainXWiki()));
+        return new DocumentReference(DELEGATE_APPROVERS_XCLASS, this.contextProvider.get().getWikiReference());
     }
 
     @Override

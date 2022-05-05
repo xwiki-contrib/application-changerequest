@@ -43,7 +43,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.observation.event.Event;
-import org.xwiki.refactoring.internal.listener.AbstractDocumentEventListener;
 import org.xwiki.security.authorization.ReadableSecurityRule;
 import org.xwiki.security.authorization.Right;
 
@@ -55,7 +54,7 @@ import org.xwiki.security.authorization.Right;
  */
 @Component
 @Singleton
-public class RightsUpdatedListener extends AbstractDocumentEventListener
+public class RightsUpdatedListener extends AbstractLocalEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.RightsUpdatedListener";
 
@@ -76,7 +75,7 @@ public class RightsUpdatedListener extends AbstractDocumentEventListener
      */
     public RightsUpdatedListener()
     {
-        super(NAME, new RightUpdatedEvent());
+        super(NAME, List.of(new RightUpdatedEvent()));
     }
 
     @Override

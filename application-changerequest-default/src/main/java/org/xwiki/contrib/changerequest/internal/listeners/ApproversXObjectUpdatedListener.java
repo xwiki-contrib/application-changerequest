@@ -40,11 +40,9 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.RegexEntityReference;
-import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.remote.RemoteObservationManagerContext;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.internal.event.XObjectUpdatedEvent;
@@ -60,7 +58,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Component
 @Named(ApproversXObjectUpdatedListener.NAME)
 @Singleton
-public class ApproversXObjectUpdatedListener extends AbstractEventListener
+public class ApproversXObjectUpdatedListener extends AbstractLocalEventListener
 {
     /**
      * The name of the listener.
@@ -81,9 +79,6 @@ public class ApproversXObjectUpdatedListener extends AbstractEventListener
     private EntityReferenceSerializer<String> entityReferenceSerializer;
 
     @Inject
-    private RemoteObservationManagerContext remoteObservationManagerContext;
-
-    @Inject
     private ObservationContext observationContext;
 
     @Inject
@@ -98,10 +93,9 @@ public class ApproversXObjectUpdatedListener extends AbstractEventListener
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
-        if (!this.remoteObservationManagerContext.isRemoteState()
-            && !this.observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())) {
+        if (!this.observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())) {
             XWikiDocument document = (XWikiDocument) source;
             XWikiDocument originalDoc = ((XWikiDocument) source).getOriginalDocument();
 

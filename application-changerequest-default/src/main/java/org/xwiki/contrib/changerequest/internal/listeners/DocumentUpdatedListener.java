@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal.listeners;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -37,10 +38,13 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.job.Job;
+import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.event.Event;
-import org.xwiki.refactoring.internal.listener.AbstractDocumentEventListener;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
@@ -53,9 +57,15 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Component
 @Singleton
 @Named(DocumentUpdatedListener.NAME)
-public class DocumentUpdatedListener extends AbstractDocumentEventListener
+public class DocumentUpdatedListener extends AbstractLocalEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.DocumentUpdatedListener";
+
+    private static final List<Event> EVENT_LIST = Arrays.asList(
+        new DocumentCreatedEvent(),
+        new DocumentUpdatedEvent(),
+        new DocumentDeletedEvent()
+    );
 
     @Inject
     private Provider<ChangeRequestStorageManager> storageManager;
@@ -67,6 +77,9 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
     private Provider<MergeCacheManager> conflictCacheManager;
 
     @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -74,7 +87,7 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
      */
     public DocumentUpdatedListener()
     {
-        super(NAME, new DocumentCreatedEvent(), new DocumentUpdatedEvent(), new DocumentDeletedEvent());
+        super(NAME, EVENT_LIST);
     }
 
     @Override
@@ -82,17 +95,33 @@ public class DocumentUpdatedListener extends AbstractDocumentEventListener
     {
         XWikiDocument sourceDoc = (XWikiDocument) source;
         DocumentReference reference = sourceDoc.getDocumentReferenceWithLocale();
-        this.conflictCacheManager.get().invalidate(reference);
-        try {
-            List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
-            for (ChangeRequest changeRequest : changeRequests) {
-                if (changeRequest.getStatus().isOpen()) {
-                    this.changeRequestManager.get().computeReadyForMergingStatus(changeRequest);
+
+        // We ignore all updates occurring during a wiki initialization.
+        if (isWikiReady(reference.getWikiReference())) {
+            this.conflictCacheManager.get().invalidate(reference);
+            try {
+                List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
+                for (ChangeRequest changeRequest : changeRequests) {
+                    if (changeRequest.getStatus().isOpen()) {
+                        this.changeRequestManager.get().computeReadyForMergingStatus(changeRequest);
+                    }
                 }
+            } catch (ChangeRequestException e) {
+                logger.warn("Error while computing the merging status of change requests after update of [{}]: [{}]",
+                    reference, ExceptionUtils.getRootCauseMessage(e));
             }
-        } catch (ChangeRequestException e) {
-            logger.warn("Error while computing the merging status of change requests after update of [{}]: [{}]",
-                reference, ExceptionUtils.getRootCauseMessage(e));
         }
+    }
+
+    private boolean isWikiReady(WikiReference wikiReference)
+    {
+        XWikiContext context = this.contextProvider.get();
+        boolean result = true;
+        if (!context.getMainXWiki().equals(wikiReference.getName())) {
+            Job wikiInitializerJob = context.getWiki().getWikiInitializerJob(wikiReference.getName());
+            result = wikiInitializerJob != null
+                && wikiInitializerJob.getStatus().getState() == JobStatus.State.FINISHED;
+        }
+        return result;
     }
 }

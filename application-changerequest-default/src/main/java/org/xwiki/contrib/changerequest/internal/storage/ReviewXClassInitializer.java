@@ -28,7 +28,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
@@ -43,7 +42,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
  */
 @Component
 @Singleton
-@Named("org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer")
+@Named("ChangeRequest.Code.ChangeRequestReviewClass")
 public class ReviewXClassInitializer implements MandatoryDocumentInitializer
 {
     static final LocalDocumentReference REVIEW_XCLASS =
@@ -61,8 +60,7 @@ public class ReviewXClassInitializer implements MandatoryDocumentInitializer
     @Override
     public EntityReference getDocumentReference()
     {
-        // we use main wiki since the module is supposed to be installed on farm.
-        return new DocumentReference(REVIEW_XCLASS, new WikiReference(this.contextProvider.get().getMainXWiki()));
+        return new DocumentReference(REVIEW_XCLASS, this.contextProvider.get().getWikiReference());
     }
 
     @Override

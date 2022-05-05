@@ -40,9 +40,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.RegexEntityReference;
 import org.xwiki.model.reference.WikiReference;
-import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -62,7 +60,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Component
 @Singleton
 @Named(ChangeRequestConfigurationUpdatedListener.NAME)
-public class ChangeRequestConfigurationUpdatedListener extends AbstractEventListener
+public class ChangeRequestConfigurationUpdatedListener extends AbstractLocalEventListener
 {
     static final String NAME =
         "org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestConfigurationUpdatedListener";
@@ -73,9 +71,6 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
     private static final List<Event> EVENT_LIST = Collections.singletonList(
         new XObjectUpdatedEvent(REFERENCE)
     );
-
-    @Inject
-    private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
     private Provider<QueryManager> queryManagerProvider;
@@ -98,22 +93,20 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractEventList
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
-        if (!this.remoteObservationManagerContext.isRemoteState()) {
-            XWikiDocument configurationDoc = (XWikiDocument) source;
-            if (configurationDoc.getDocumentReference().getLocalDocumentReference()
-                .equals(ChangeRequestConfigurationSource.DOC_REFERENCE)) {
-                XWikiDocument originalConfigurationDoc = configurationDoc.getOriginalDocument();
-                BaseObject currentObj = configurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
-                BaseObject previousObj =
-                    originalConfigurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
+        XWikiDocument configurationDoc = (XWikiDocument) source;
+        if (configurationDoc.getDocumentReference().getLocalDocumentReference()
+            .equals(ChangeRequestConfigurationSource.DOC_REFERENCE)) {
+            XWikiDocument originalConfigurationDoc = configurationDoc.getOriginalDocument();
+            BaseObject currentObj = configurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
+            BaseObject previousObj =
+                originalConfigurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
 
-                if (this.shouldRecomputeDelegate(currentObj, previousObj)) {
-                    List<EntityReference> allUsers =
-                        this.getAllUsers(configurationDoc.getDocumentReference().getWikiReference());
-                    this.startComputationJob(allUsers);
-                }
+            if (this.shouldRecomputeDelegate(currentObj, previousObj)) {
+                List<EntityReference> allUsers =
+                    this.getAllUsers(configurationDoc.getDocumentReference().getWikiReference());
+                this.startComputationJob(allUsers);
             }
         }
     }

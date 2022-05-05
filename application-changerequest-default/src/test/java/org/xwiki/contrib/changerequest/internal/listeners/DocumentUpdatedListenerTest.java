@@ -21,23 +21,31 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Arrays;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
-import org.xwiki.contrib.changerequest.internal.listeners.DocumentUpdatedListener;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.job.Job;
+import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,12 +67,26 @@ class DocumentUpdatedListenerTest
     @MockComponent
     private ChangeRequestManager changeRequestManager;
 
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
+    private XWikiContext context;
+
+    @BeforeEach
+    void setup()
+    {
+        this.context = mock(XWikiContext.class);
+        when(this.contextProvider.get()).thenReturn(this.context);
+    }
+
     @Test
     void processLocalEvent() throws ChangeRequestException
     {
         XWikiDocument sourceDoc = mock(XWikiDocument.class);
-        DocumentReference documentReference = mock(DocumentReference.class);
+        DocumentReference documentReference = new DocumentReference("foo", "XWiki", "Document");
         when(sourceDoc.getDocumentReferenceWithLocale()).thenReturn(documentReference);
+        when(this.context.getMainXWiki()).thenReturn("foo");
+
         ChangeRequest changeRequest1 = mock(ChangeRequest.class);
         ChangeRequest changeRequest2 = mock(ChangeRequest.class);
 
@@ -76,7 +98,39 @@ class DocumentUpdatedListenerTest
         when(changeRequest2.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_MERGING);
 
         this.listener.processLocalEvent(new DocumentUpdatedEvent(), sourceDoc, null);
+
         verify(this.changeRequestManager, never()).computeReadyForMergingStatus(changeRequest1);
         verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest2);
+
+        when(this.context.getMainXWiki()).thenReturn("bar");
+        XWiki wiki = mock(XWiki.class);
+        when(context.getWiki()).thenReturn(wiki);
+        when(wiki.getWikiInitializerJob("foo")).thenReturn(null);
+
+        // this will do nothing
+        this.listener.processLocalEvent(new DocumentUpdatedEvent(), sourceDoc, null);
+
+        verify(this.changeRequestManager, never()).computeReadyForMergingStatus(changeRequest1);
+        verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest2);
+
+        Job job = mock(Job.class);
+        when(wiki.getWikiInitializerJob("foo")).thenReturn(job);
+        JobStatus jobStatus = mock(JobStatus.class);
+        when(job.getStatus()).thenReturn(jobStatus);
+        when(jobStatus.getState()).thenReturn(JobStatus.State.RUNNING);
+
+        // this will do nothing
+        this.listener.processLocalEvent(new DocumentUpdatedEvent(), sourceDoc, null);
+
+        verify(this.changeRequestManager, never()).computeReadyForMergingStatus(changeRequest1);
+        verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest2);
+
+        when(jobStatus.getState()).thenReturn(JobStatus.State.FINISHED);
+
+        // this will be process again the event
+        this.listener.processLocalEvent(new DocumentUpdatedEvent(), sourceDoc, null);
+
+        verify(this.changeRequestManager, never()).computeReadyForMergingStatus(changeRequest1);
+        verify(this.changeRequestManager, times(2)).computeReadyForMergingStatus(changeRequest2);
     }
 }

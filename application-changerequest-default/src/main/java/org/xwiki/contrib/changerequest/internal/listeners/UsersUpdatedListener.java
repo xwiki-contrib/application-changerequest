@@ -34,9 +34,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.RegexEntityReference;
-import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
@@ -55,7 +53,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Component
 @Singleton
 @Named(UsersUpdatedListener.NAME)
-public class UsersUpdatedListener extends AbstractEventListener
+public class UsersUpdatedListener extends AbstractLocalEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.UsersUpdatedListener";
 
@@ -77,9 +75,6 @@ public class UsersUpdatedListener extends AbstractEventListener
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
 
     @Inject
-    private RemoteObservationManagerContext remoteObservationManagerContext;
-
-    @Inject
     private Logger logger;
 
     /**
@@ -91,11 +86,10 @@ public class UsersUpdatedListener extends AbstractEventListener
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         if (this.configuration.isDelegateEnabled()
-            && !this.configuration.getDelegateClassPropertyList().isEmpty()
-            && !this.remoteObservationManagerContext.isRemoteState()) {
+            && !this.configuration.getDelegateClassPropertyList().isEmpty()) {
             XWikiDocument userDoc = (XWikiDocument) source;
             UserReference userReference = this.userReferenceResolver.resolve(userDoc.getDocumentReference());
             try {

@@ -33,7 +33,6 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
@@ -48,7 +47,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
  */
 @Component
 @Singleton
-@Named("org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer")
+@Named("ChangeRequest.Code.FileChangeClass")
 public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
 {
     static final LocalDocumentReference FILECHANGE_XCLASS =
@@ -71,7 +70,7 @@ public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
     @Override
     public EntityReference getDocumentReference()
     {
-        return new DocumentReference(FILECHANGE_XCLASS, new WikiReference(this.contextProvider.get().getMainXWiki()));
+        return new DocumentReference(FILECHANGE_XCLASS, this.contextProvider.get().getWikiReference());
     }
 
     @Override
