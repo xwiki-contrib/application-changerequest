@@ -551,6 +551,7 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
         <value>schedulerContextUser</value>
         <value>delegateEnabled</value>
         <value>delegateClassPropertyList</value>
+        <value>preventAuthorsToReview</value>
       </propertiesToShow>
     </property>
     <property>

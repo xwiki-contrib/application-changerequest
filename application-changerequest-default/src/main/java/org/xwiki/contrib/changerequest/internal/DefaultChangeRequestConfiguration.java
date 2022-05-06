@@ -195,4 +195,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty(DELEGATE_ENABLED_PROPERTY, false);
     }
+
+    @Override
+    public boolean preventAuthorToReview()
+    {
+        return this.configurationSource.getProperty("preventAuthorsToReview", false);
+    }
 }

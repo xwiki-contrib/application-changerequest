@@ -126,7 +126,8 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
     {
         DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
         Right approveRight = ChangeRequestApproveRight.getRight();
-        return this.authorizationManager.hasAccess(approveRight, userDocReference, entity.getDocumentReference());
+        return this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, entity.getDocumentReference())
+            || this.authorizationManager.hasAccess(approveRight, userDocReference, entity.getDocumentReference());
     }
 
     @Override

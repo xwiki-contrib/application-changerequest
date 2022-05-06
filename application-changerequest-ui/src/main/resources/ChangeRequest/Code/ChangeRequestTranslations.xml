@@ -137,6 +137,8 @@ ChangeRequest.Code.ConfigurationClass_delegateEnabled=Enable delegate approvers
 ChangeRequest.Code.ConfigurationClass_delegateEnabled.hint=If enabled, allow to use delegate approval mechanism: the delegates are users allowed to perform reviews on behalf of the official explicit approvers of a page. 
 ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=User properties to use for computing delegates
 ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=This configuration specifies the list of XWikiUsers properties that should be used for automatically compute the delegate approvers. If the list is empty then the delegates should be set manually.
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=Prevent authors to review their own change requests
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=If checked authors won't be allowed to review their own change requests. 
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion

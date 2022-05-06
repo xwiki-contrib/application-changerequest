@@ -151,4 +151,14 @@ public interface ChangeRequestConfiguration
     {
         return false;
     }
+
+    /**
+     * Define if an author might be authorized to review a change request themselves.
+     *
+     * @return {@code false} if an author can review their own change requests
+     */
+    default boolean preventAuthorToReview()
+    {
+        return false;
+    }
 }

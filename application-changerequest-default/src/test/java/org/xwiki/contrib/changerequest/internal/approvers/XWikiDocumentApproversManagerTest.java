@@ -34,6 +34,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -197,6 +198,16 @@ class XWikiDocumentApproversManagerTest
         when(xWikiDocument.getXObject(ApproversXClassInitializer.APPROVERS_XCLASS, false, this.context))
             .thenReturn(null);
 
+        assertTrue(this.manager.isApprover(user3, xWikiDocument, false));
+        assertFalse(this.manager.isApprover(user3, xWikiDocument, true));
+
+        when(this.authorizationManager.hasAccess(ChangeRequestApproveRight.getRight(), user3DocRef, documentReference))
+            .thenReturn(false);
+        assertFalse(this.manager.isApprover(user3, xWikiDocument, false));
+        assertFalse(this.manager.isApprover(user3, xWikiDocument, true));
+
+        when(this.authorizationManager.hasAccess(Right.ADMIN, user3DocRef, documentReference))
+            .thenReturn(true);
         assertTrue(this.manager.isApprover(user3, xWikiDocument, false));
         assertFalse(this.manager.isApprover(user3, xWikiDocument, true));
     }

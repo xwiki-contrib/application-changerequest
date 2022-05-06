@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.approvers.ChangeRequestApproversManager;
 import org.xwiki.contrib.rights.RightsReader;
@@ -70,6 +71,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -107,6 +109,9 @@ class DefaultChangeRequestRightsManagerTest
 
     @MockComponent
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @MockComponent
+    private DelegateApproverManager<ChangeRequest> changeRequestDelegateApproverManager;
 
     @Test
     void copyAllButViewRights() throws AuthorizationException, ChangeRequestException, XWikiException
@@ -677,6 +682,12 @@ class DefaultChangeRequestRightsManagerTest
         assertTrue(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
 
         when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        assertFalse(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(GuestUserReference.INSTANCE));
+        assertTrue(this.rightsManager.isAuthorizedToEdit(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
         DocumentReference userDocReference = mock(DocumentReference.class);
         DocumentReference changeRequestDoc = mock(DocumentReference.class);
 
@@ -714,5 +725,146 @@ class DefaultChangeRequestRightsManagerTest
 
         when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
         assertTrue(this.rightsManager.isAuthorizedToOpen(userReference, changeRequest));
+    }
+
+    @Test
+    void isAuthorizedToReview() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        when(changeRequest.getAuthors()).thenReturn(new HashSet<>(List.of(userReference, mock(UserReference.class))));
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+        verifyNoInteractions(this.changeRequestApproversManager);
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReview(userReference, changeRequest));
+    }
+
+    @Test
+    void isAuthorizedToReviewOnBehalf() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        UserReference originalApprover = mock(UserReference.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        when(changeRequest.getAuthors()).thenReturn(new HashSet<>(List.of(userReference, mock(UserReference.class))));
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+        verifyNoInteractions(this.changeRequestDelegateApproverManager);
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest, originalApprover)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest, originalApprover)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest, originalApprover)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest, originalApprover)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest, originalApprover)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest, originalApprover)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReviewOnBehalf(userReference, changeRequest, originalApprover));
+    }
+
+    @Test
+    void isAuthorizedToReviewAsDelegate() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        when(changeRequest.getAuthors()).thenReturn(new HashSet<>(List.of(userReference, mock(UserReference.class))));
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        assertFalse(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+        verifyNoInteractions(this.changeRequestDelegateApproverManager);
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+
+        when(changeRequest.getAuthors()).thenReturn(Collections.singleton(mock(UserReference.class)));
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+
+        when(this.changeRequestDelegateApproverManager
+            .isDelegateApproverOf(userReference, changeRequest)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest));
+    }
+
+    @Test
+    void isAuthorizedToComment() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        DocumentReference changeRequestDoc = mock(DocumentReference.class);
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDoc);
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToComment(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, changeRequestDoc)).thenReturn(false);
+        when(this.authorizationManager.hasAccess(Right.COMMENT, userDocReference, changeRequestDoc)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToComment(userReference, changeRequest));
+
+        when(this.authorizationManager.hasAccess(Right.COMMENT, userDocReference, changeRequestDoc)).thenReturn(false);
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(true);
+        assertTrue(this.rightsManager.isAuthorizedToComment(userReference, changeRequest));
+
+        when(this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)).thenReturn(false);
+        assertFalse(this.rightsManager.isAuthorizedToComment(userReference, changeRequest));
     }
 }

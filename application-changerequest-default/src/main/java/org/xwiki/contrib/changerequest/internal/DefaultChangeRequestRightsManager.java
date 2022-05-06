@@ -535,7 +535,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         throws ChangeRequestException
     {
         boolean result = false;
-        if (!(changeRequest.getAuthors().contains(userReference))) {
+        if (!this.configuration.preventAuthorToReview() || !(changeRequest.getAuthors().contains(userReference))) {
             result = this.changeRequestApproversManager.isApprover(userReference, changeRequest, false);
         }
         return result;
@@ -546,7 +546,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         UserReference originalApprover) throws ChangeRequestException
     {
         boolean result = false;
-        if (!(changeRequest.getAuthors().contains(userReference))) {
+        if (!this.configuration.preventAuthorToReview() || !(changeRequest.getAuthors().contains(userReference))) {
             result = this.changeRequestDelegateApproverManager
                 .isDelegateApproverOf(userReference, changeRequest, originalApprover);
         }
@@ -558,7 +558,7 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
         throws ChangeRequestException
     {
         boolean result = false;
-        if (!(changeRequest.getAuthors().contains(userReference))) {
+        if (!this.configuration.preventAuthorToReview() || !(changeRequest.getAuthors().contains(userReference))) {
             result = this.changeRequestDelegateApproverManager.isDelegateApproverOf(userReference, changeRequest);
         }
         return result;

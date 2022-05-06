@@ -214,6 +214,21 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
     </mergeUser>
+    <preventAuthorsToReview>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>preventAuthorsToReview</name>
+      <number>11</number>
+      <prettyName>preventAuthorsToReview</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </preventAuthorsToReview>
     <schedulerContextUser>
       <cache>0</cache>
       <customDisplay/>
