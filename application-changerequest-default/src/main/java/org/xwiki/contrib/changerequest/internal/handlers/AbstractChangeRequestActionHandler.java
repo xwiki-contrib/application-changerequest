@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -118,6 +119,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @Inject
+    private ChangeRequestConfiguration configuration;
 
     protected HttpServletRequest prepareRequest() throws ChangeRequestException
     {
@@ -284,12 +288,17 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         // Existing approvers of the change request.
         Set<UserReference> usersCRApprovers =
             new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, false));
-
         Set<DocumentReference> groupsCRApprovers =
             new HashSet<>(this.changeRequestApproversManager.getGroupsApprovers(changeRequest));
 
         usersCRApprovers.addAll(this.fileChangeApproversManager.getAllApprovers(fileChange, false));
         groupsCRApprovers.addAll(this.fileChangeApproversManager.getGroupsApprovers(fileChange));
+
+        if (configuration.getMinimumApprovers() > 0 && usersCRApprovers.size() < configuration.getMinimumApprovers()) {
+            throw new ChangeRequestException(
+                String.format("The minimum number of approvers [%s] has not been respected: "
+                    + "only [%s] approvers defined.", configuration.getMinimumApprovers(), usersCRApprovers.size()));
+        }
 
         if (!groupsCRApprovers.isEmpty()) {
             this.changeRequestApproversManager.setGroupsApprovers(groupsCRApprovers, changeRequest);

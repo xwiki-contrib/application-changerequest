@@ -57,6 +57,7 @@
 #set ($isEditingChangeRequest = ("$!request.get('changerequest')" != ''))
 #set ($setApprovers = $request.get('setApprovers') == 1)
 #set ($isApproversEdition = $request.get('manageApprovers') == 1)
+#set ($minimumApprovers = $services.changerequest.minimumApprovers)
 #if ($isApproversEdition || $setApprovers)
   #set ($approversPageReference = $services.model.resolveDocument($request.get('docChange')))
   ##set ($approversPageReference = $services.model.createDocumentReference($approversPageReference, $request.get('approversLocale')))
@@ -73,7 +74,7 @@
       &lt;div class="panel-heading" role="tab" id="approversHeading"&gt;
         &lt;h4 class="panel-title"&gt;$services.localization.render('changerequest.savemodal.approvers.heading')&lt;/h4&gt;
       &lt;/div&gt;&lt;!-- End panel heading --&gt;
-      &lt;div id="approversSelection" class="panel-body" role="tabpanel" aria-labelledby="approversHeading"&gt;
+      &lt;div id="approversSelection" data-minimumApprovers="$escapetool.xml($minimumApprovers)" class="panel-body" role="tabpanel" aria-labelledby="approversHeading"&gt;
         &lt;div class="form-group"&gt;
           &lt;label for="approverUsers"&gt;$services.localization.render('changerequest.savemodal.approvers.users')&lt;/label&gt;
           #stripHTMLMacro($usersApproversInput)
@@ -134,6 +135,7 @@
 &lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
     &lt;div class="modal-content"&gt;
+      &lt;form id="saveChangeRequestForm"&gt;
       &lt;div class="modal-header"&gt;
         &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
         &lt;div class="modal-title" id="changeRequestModalTitle"&gt;
@@ -148,7 +150,6 @@
       #if ($otherChangeRequestLT)
         $otherChangeRequestLT
       #end
-      &lt;form id="saveChangeRequestForm"&gt;
         &lt;div class="panel-group" id="changeRequestChoiceGroup" role="tablist" aria-multiselectable="false"&gt;
           #if ($isApproversEdition)
             $approversPanel
@@ -194,12 +195,16 @@
             $approversPanel
           #end
         &lt;/div&gt;&lt;!-- End panel group --&gt;
-        &lt;/form&gt;
+        &lt;div id="form-validation-error"&gt;
+          &lt;div id="missingChangeRequest" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.missingChangerequest')&lt;/div&gt;
+          &lt;div id="minimumApprovers" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.minimumApprovers', ["$minimumApprovers"])&lt;/div&gt;
+        &lt;/div&gt;
       &lt;/div&gt;&lt;!-- End modal body --&gt;
       &lt;div class="modal-footer"&gt;
-        &lt;input type="button" id="saveChangeRequest" class="btn btn-primary" value="$services.localization.render('save')" #if(!$isEditingChangeRequest)disabled="disabled"#end /&gt;
+        &lt;input type="button" id="saveChangeRequest" class="btn btn-primary" value="$services.localization.render('save')" /&gt;
         &lt;input type="button" id="cancelChangeRequest" class="btn btn-default" value="$services.localization.render('cancel')" data-dismiss="modal" aria-hidden="true" /&gt;
       &lt;/div&gt;
+      &lt;/form&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -407,14 +412,28 @@
     
 
     var validateForm = function () {
-      var crTitle = $('#crTitle').val();
-      var crSelector = $('#existingCRSelector').val();
-      var saveButton = $('#saveChangeRequest');
-      if (crTitle === "" &amp;&amp; crSelector === "") {
-        saveButton.attr('disabled', 'disabled');
+      var crTitleField = $('#crTitle');
+      var crSelectorField = $('#existingCRSelector');
+      
+      var isValid = crTitleField.val() || crSelectorField.val();
+      if (!isValid) {
+        $('#missingChangeRequest').removeClass('hidden');
       } else {
-        saveButton.removeAttr('disabled');
+        $('#missingChangeRequest').addClass('hidden');
       }
+      
+      if ($('#approversSelection') &amp;&amp; $('#approversSelection').attr('data-minimumApprovers')) {
+        var approversUsersFieldName = "ChangeRequest\\.Code\\.ApproversClass_0_usersApprovers";
+        var crApproverOptions = $('#'+ approversUsersFieldName+ ' option:selected');
+        var minimumApprovers = parseInt($('#approversSelection').attr('data-minimumApprovers'));
+        if (minimumApprovers &gt; 0 &amp;&amp; crApproverOptions.length &lt; minimumApprovers) {
+          isValid = false;
+          $('#minimumApprovers').removeClass('hidden');
+        } else {
+          $('#minimumApprovers').addClass('hidden');
+        }
+      }
+      return isValid;
     };
 
     self.openModal = function () {
@@ -445,11 +464,10 @@
           $('body').append(data);
           $('#changeRequestModal').modal('show');
           $('#saveChangeRequest').on('click', function (event) {
-            self.saveChangeRequest(event);
+            if (validateForm()) {
+              self.saveChangeRequest(event);
+            }
           });
-          $('#crTitle').on('change', validateForm);
-          $('#crTitle').on('keyup', validateForm);
-          $('#existingCRSelector').on('change', validateForm);
           $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
         }).fail(function (data) {
           console.log(data);

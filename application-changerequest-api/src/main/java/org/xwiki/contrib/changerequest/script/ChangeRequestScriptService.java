@@ -39,6 +39,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -87,6 +88,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ScriptServiceManager scriptServiceManager;
+
+    @Inject
+    private ChangeRequestConfiguration configuration;
 
     @Inject
     @Named("context")
@@ -400,5 +404,18 @@ public class ChangeRequestScriptService implements ScriptService
         throws ChangeRequestException
     {
         return this.changeRequestManager.isTemplateSupported(templateProviderReference);
+    }
+
+    /**
+     * Define the minimum numbers of explicit users approvers needed: this minimum only concerns the explicit approvers
+     * and it also only concerns the users approvers: groups are not counted, as well as group members.
+     * Here 0 means that no minimum is required.
+     *
+     * @return the minimum needed of explicit approvers.
+     * @since 0.13
+     */
+    public int getMinimumApprovers()
+    {
+        return this.configuration.getMinimumApprovers();
     }
 }

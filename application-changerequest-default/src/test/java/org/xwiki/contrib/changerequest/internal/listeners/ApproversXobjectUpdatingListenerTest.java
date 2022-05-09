@@ -23,6 +23,7 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
 import org.xwiki.model.reference.DocumentReference;
@@ -41,7 +42,10 @@ import com.xpn.xwiki.internal.event.UserUpdatingDocumentEvent;
 import com.xpn.xwiki.objects.BaseObject;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -75,6 +79,9 @@ class ApproversXobjectUpdatingListenerTest
     @MockComponent
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
+    @MockComponent
+    private ChangeRequestConfiguration configuration;
+
     private XWikiDocument source;
     private DocumentReference user;
     private UserUpdatingDocumentEvent event;
@@ -95,6 +102,7 @@ class ApproversXobjectUpdatingListenerTest
         when(this.contextualAuthorizationManager.hasAccess(Right.ADMIN)).thenReturn(true);
         this.listener.onEvent(this.event, this.source, null);
         verifyNoInteractions(this.source);
+        verifyNoInteractions(this.configuration);
     }
 
     @Test
@@ -136,5 +144,61 @@ class ApproversXobjectUpdatingListenerTest
             .thenReturn(TEST_USER);
         this.listener.onEvent(this.event, this.source, null);
         verify(this.source).removeXObject(approverObject);
+    }
+
+    @Test
+    void onEvent_needsCancelMinimumApproversNotRespected()
+    {
+        when(this.contextualAuthorizationManager.hasAccess(Right.ADMIN)).thenReturn(false);
+        when(this.observationContext.isIn(any(ChangeRequestMergingEvent.class))).thenReturn(false);
+        when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
+
+        when(this.configuration.getMinimumApprovers()).thenReturn(3);
+        XWikiDocument originalDocument = mock(XWikiDocument.class);
+        when(this.source.getOriginalDocument()).thenReturn(originalDocument);
+
+        BaseObject previousObject = mock(BaseObject.class);
+        when(originalDocument.getXObjects(ApproversXClassInitializer.APPROVERS_XCLASS))
+            .thenReturn(Collections.singletonList(previousObject));
+        when(previousObject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
+            .thenReturn("user1");
+
+        BaseObject approverObject = mock(BaseObject.class);
+        when(this.source.getXObjects(ApproversXClassInitializer.APPROVERS_XCLASS))
+            .thenReturn(Collections.singletonList(approverObject));
+        when(approverObject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
+            .thenReturn("user2");
+
+        this.listener.onEvent(this.event, this.source, null);
+        verify(approverObject).apply(previousObject, true);
+    }
+
+    @Test
+    void onEvent()
+    {
+        when(this.contextualAuthorizationManager.hasAccess(Right.ADMIN)).thenReturn(false);
+        when(this.observationContext.isIn(any(ChangeRequestMergingEvent.class))).thenReturn(false);
+        when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
+
+        when(this.configuration.getMinimumApprovers()).thenReturn(2);
+        XWikiDocument originalDocument = mock(XWikiDocument.class);
+        when(this.source.getOriginalDocument()).thenReturn(originalDocument);
+
+        BaseObject previousObject = mock(BaseObject.class);
+        when(originalDocument.getXObjects(ApproversXClassInitializer.APPROVERS_XCLASS))
+            .thenReturn(Collections.singletonList(previousObject));
+        when(previousObject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
+            .thenReturn("user1");
+
+        BaseObject approverObject = mock(BaseObject.class);
+        when(this.source.getXObjects(ApproversXClassInitializer.APPROVERS_XCLASS))
+            .thenReturn(Collections.singletonList(approverObject));
+        when(approverObject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
+            .thenReturn("user2,user3");
+
+        this.listener.onEvent(this.event, this.source, null);
+        verify(approverObject, never()).apply(any(), anyBoolean());
+        verify(this.source, never()).setXObject(anyInt(), any());
+        verify(this.source, never()).removeXObjects(any());
     }
 }

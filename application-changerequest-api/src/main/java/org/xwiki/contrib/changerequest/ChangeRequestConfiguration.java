@@ -161,4 +161,16 @@ public interface ChangeRequestConfiguration
     {
         return false;
     }
+
+    /**
+     * Define the minimum numbers of explicit users approvers needed: this minimum only concerns the explicit approvers
+     * and it also only concerns the users approvers: groups are not counted, as well as group members.
+     * Here 0 means that no minimum is required.
+     *
+     * @return the minimum needed of explicit approvers.
+     */
+    default int getMinimumApprovers()
+    {
+        return 0;
+    }
 }

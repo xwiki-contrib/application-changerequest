@@ -28,12 +28,14 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
@@ -54,6 +56,7 @@ import com.xpn.xwiki.objects.BaseObject;
 /**
  * Listener in charge of checking the updates performed on approvers list to discard changes done on behalf of the
  * current user: basically the current user should not be able to add themselves from the list of approvers.
+ * This listener also check if the configuration for minimum of approvers is respected.
  *
  * @version $Id$
  * @since 0.8
@@ -82,6 +85,9 @@ public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
 
     @Inject
     private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    @Inject
+    private Provider<ChangeRequestConfiguration> changeRequestConfigurationProvider;
 
     @Inject
     private ObservationContext observationContext;
@@ -175,7 +181,7 @@ public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
         return this.resolveLists(newUsersString);
     }
 
-    private boolean shouldSaveBeReverted(DocumentReference currentUser,
+    private boolean isCurrentUserContainedInAddedApprovers(DocumentReference currentUser,
         List<DocumentReference> newUsers, List<DocumentReference> newGroups)
     {
         boolean result = false;
@@ -205,9 +211,21 @@ public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
         if (newApprover != null) {
             List<DocumentReference> addedGroups = this.getAddedGroups(originalApprover, newApprover);
             List<DocumentReference> addedUsers = this.getAddedUsers(originalApprover, newApprover);
-            shouldCancel = this.shouldSaveBeReverted(user, addedUsers, addedGroups);
+            shouldCancel = this.isCurrentUserContainedInAddedApprovers(user, addedUsers, addedGroups)
+                || !this.isMinimumApproverConfigurationRespected(newApprover);
         }
         return shouldCancel;
+    }
+
+    private boolean isMinimumApproverConfigurationRespected(BaseObject newApprover)
+    {
+        int minimumApprovers = this.changeRequestConfigurationProvider.get().getMinimumApprovers();
+        boolean result = true;
+        if (minimumApprovers > 0) {
+            result =
+                getValues(newApprover, ApproversXClassInitializer.USERS_APPROVERS_PROPERTY).length >= minimumApprovers;
+        }
+        return result;
     }
 
     // Directly inspired from code in RightsFilterListener

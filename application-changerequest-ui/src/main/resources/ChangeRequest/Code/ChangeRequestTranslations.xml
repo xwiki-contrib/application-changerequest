@@ -139,6 +139,9 @@ ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=User properties 
 ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=This configuration specifies the list of XWikiUsers properties that should be used for automatically compute the delegate approvers. If the list is empty then the delegates should be set manually.
 ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=Prevent authors to review their own change requests
 ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=If checked authors won't be allowed to review their own change requests. 
+ChangeRequest.Code.ConfigurationClass_minimumApprovers=Minimum number of explicit approvers
+ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Define a required minimum numbers of explicit users approvers when managing change request approvers. Note that 0 means no minimum.
+
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion
@@ -210,6 +213,8 @@ changerequest.savemodal.approvers.header.hint=You can specify the list of users 
 changerequest.savemodal.approvers.heading=Approvers
 changerequest.savemodal.approvers.users=Users who can approve
 changerequest.savemodal.approvers.groups=Groups who can approve
+changerequest.savemodal.error.missingChangerequest=Please type a new change request title, or select an existing change request.
+changerequest.savemodal.error.minimumApprovers=You must select a minimum of {0} approvers to save your changes.
 
 changerequest.sheet.message.reply.header=Reply to message from {0} sent {1}.
 changerequest.sheet.message.reply.link.title=Click to navigate to the previous message.

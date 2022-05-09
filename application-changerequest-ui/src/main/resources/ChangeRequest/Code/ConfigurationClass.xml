@@ -214,6 +214,20 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
     </mergeUser>
+    <minimumApprovers>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>minimumApprovers</name>
+      <number>12</number>
+      <numberType>integer</numberType>
+      <prettyName>minimumApprovers</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </minimumApprovers>
     <preventAuthorsToReview>
       <customDisplay/>
       <defaultValue/>

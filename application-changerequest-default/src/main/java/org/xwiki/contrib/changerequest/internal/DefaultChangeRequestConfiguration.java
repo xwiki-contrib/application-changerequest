@@ -201,4 +201,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty("preventAuthorsToReview", false);
     }
+
+    @Override
+    public int getMinimumApprovers()
+    {
+        return this.configurationSource.getProperty("minimumApprovers", 0);
+    }
 }
