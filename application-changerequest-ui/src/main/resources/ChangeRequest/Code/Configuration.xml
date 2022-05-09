@@ -552,6 +552,7 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
         <value>delegateEnabled</value>
         <value>delegateClassPropertyList</value>
         <value>preventAuthorsToReview</value>
+        <value>minimumApprovers</value>
       </propertiesToShow>
     </property>
     <property>
