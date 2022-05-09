@@ -20,7 +20,7 @@
 package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.ElementNotVisibleException;
+import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
@@ -125,13 +125,13 @@ public class ChangeRequestPage extends ViewPage
 
     /**
      * @return {@code true} if the review button is displayed and enabled.
-     * @throws ElementNotVisibleException if the review button is not displayed
+     * @throws ElementNotInteractableException if the review button is not displayed
      * @see #isReviewButtonDisplayed()
      */
     public boolean isReviewButtonEnabled()
     {
         if (!isReviewButtonDisplayed()) {
-            throw new ElementNotVisibleException("The review button is not displayed.");
+            throw new ElementNotInteractableException("The review button is not displayed.");
         } else {
             WebElement reviewButton = getReviewButton();
             return isElementEnabled(reviewButton);
@@ -185,13 +185,13 @@ public class ChangeRequestPage extends ViewPage
 
     /**
      * @return {@code true} if the ready for review button is displayed and enabled.
-     * @throws ElementNotVisibleException if the ready for review button is not displayed
+     * @throws ElementNotInteractableException if the ready for review button is not displayed
      * @see #isReadyForReviewButtonDisplayed()
      */
     public boolean isReadyForReviewButtonEnabled()
     {
         if (!isReadyForReviewButtonDisplayed()) {
-            throw new ElementNotVisibleException("The ready for review button is not displayed.");
+            throw new ElementNotInteractableException("The ready for review button is not displayed.");
         } else {
             WebElement readyForReviewButton = getReadyForReviewButton();
             return isElementEnabled(readyForReviewButton);
@@ -325,13 +325,13 @@ public class ChangeRequestPage extends ViewPage
 
     /**
      * @return {@code true} if the open button is displayed and enabled.
-     * @throws ElementNotVisibleException if the open button is not displayed
+     * @throws ElementNotInteractableException if the open button is not displayed
      * @see #isOpenButtonDisplayed()
      */
     public boolean isOpenButtonEnabled()
     {
         if (!isOpenButtonDisplayed()) {
-            throw new ElementNotVisibleException("The open button is not displayed.");
+            throw new ElementNotInteractableException("The open button is not displayed.");
         } else {
             WebElement openButton = getOpenButton();
             return isElementEnabled(openButton);
@@ -408,13 +408,13 @@ public class ChangeRequestPage extends ViewPage
 
     /**
      * @return {@code true} if the merge button is displayed and enabled.
-     * @throws ElementNotVisibleException if the merge button is not displayed
+     * @throws ElementNotInteractableException if the merge button is not displayed
      * @see #isMergeButtonDisplayed()
      */
     public boolean isMergeButtonEnabled()
     {
         if (!isMergeButtonDisplayed()) {
-            throw new ElementNotVisibleException("The merge button is not displayed.");
+            throw new ElementNotInteractableException("The merge button is not displayed.");
         } else {
             WebElement mergeButton = getMergeButton();
             return isElementEnabled(mergeButton);
