@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,7 +33,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
@@ -45,7 +43,6 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusC
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
 import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.eventstream.Event;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -81,9 +78,6 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
-    private ChangeRequestStorageManager storageManager;
-
-    @Inject
     private TemplateManager templateManager;
 
     @Inject
@@ -101,20 +95,13 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
             if (parameters.containsKey(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY)) {
                 String crId =
                     parameters.get(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY);
-                try {
-                    Optional<ChangeRequest> optionalChangeRequest = this.storageManager.load(crId);
-                    if (optionalChangeRequest.isPresent()) {
-                        DocumentReference changeRequestDocReference =
-                            this.changeRequestDocumentReferenceResolver.resolve(optionalChangeRequest.get());
-                        result.put(event, changeRequestDocReference);
-                    } else {
-                        throw new NotificationException(
-                            String.format("No change request can be found with id [%s]", crId));
-                    }
-                } catch (ChangeRequestException e) {
-                    throw new NotificationException(
-                        String.format("Error while loading change request with id [%s]", crId), e);
-                }
+                // We don't load the change request on purpose here:
+                // we still want it to be resolved even if it has been deleted, so that the notifications are displayed.
+                ChangeRequest changeRequest = new ChangeRequest();
+                changeRequest.setId(crId);
+                DocumentReference changeRequestDocReference =
+                    this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+                result.put(event, changeRequestDocReference);
             } else {
                 throw new NotificationException(
                     String.format("The event [%s] did not have the appropriate parameter to retrieve "
