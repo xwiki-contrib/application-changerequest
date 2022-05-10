@@ -28,6 +28,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.script.ScriptContext;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -53,6 +54,7 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
 import com.xpn.xwiki.web.Utils;
+import com.xpn.xwiki.web.XWikiRequest;
 
 /**
  * Default handler for managing URLs such as {@code basewiki/editcr/Space/Page}.
@@ -141,11 +143,19 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
     protected XWikiDocument prepareEditedDocument(XWikiContext context) throws XWikiException
     {
         EditForm editForm = new EditForm();
-        editForm.setRequest(context.getRequest());
+        XWikiRequest request = context.getRequest();
+        editForm.setRequest(request);
         editForm.readRequest();
+
         context.setForm(editForm);
         // Determine the edited document (translation).
         XWikiDocument editedDocument = getEditedDocument(context);
+
+        // We always force the lock in change request edition, since the goal is to create a change request:
+        // we don't want to get warnings about another edition session already existing.
+        HttpSession session = request.getSession();
+        String sessionForceName = String.format("force_edit_%s", editedDocument.getPrefixedFullName());
+        session.setAttribute(sessionForceName, true);
 
         // Update the edited document based on the template specified on the request.
         readFromTemplate(editedDocument, editForm.getTemplate(), context);
