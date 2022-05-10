@@ -213,6 +213,7 @@ changerequest.savemodal.approvers.header.hint=You can specify the list of users 
 changerequest.savemodal.approvers.heading=Approvers
 changerequest.savemodal.approvers.users=Users who can approve
 changerequest.savemodal.approvers.groups=Groups who can approve
+changerequest.savemodal.approvers.minimumUsers.hint=Please note that you must select a minimum of {0} users approvers.
 changerequest.savemodal.error.missingChangerequest=Please type a new change request title, or select an existing change request.
 changerequest.savemodal.error.minimumApprovers=You must select a minimum of {0} approvers to save your changes.
 

@@ -58,11 +58,14 @@
 #set ($setApprovers = $request.get('setApprovers') == 1)
 #set ($isApproversEdition = $request.get('manageApprovers') == 1)
 #set ($minimumApprovers = $services.changerequest.minimumApprovers)
-#if ($isApproversEdition || $setApprovers)
-  #set ($approversPageReference = $services.model.resolveDocument($request.get('docChange')))
-  ##set ($approversPageReference = $services.model.createDocumentReference($approversPageReference, $request.get('approversLocale')))
-  #set ($approversDoc = $xwiki.getDocument($approversPageReference))
-  #set ($approversXObject = $approversDoc.getObject('ChangeRequest.Code.ApproversClass'))
+#set ($approversPageReference = $services.model.resolveDocument($request.get('docChange')))
+#set ($approversDoc = $xwiki.getDocument($approversPageReference))
+#set ($approversXObject = $approversDoc.getObject('ChangeRequest.Code.ApproversClass'))
+#set ($definedUsersApprovers = $approversXObject.getValue('usersApprovers'))
+#set ($splittedApprovers = $stringtool.split($definedUsersApprovers, ','))
+#set ($numberOfDefinedUsersApprovers = $splittedApprovers.size())
+#set ($hasApprovalMinimum = ($minimumApprovers &gt; 0) &amp;&amp; (!$numberOfDefinedUsersApprovers || $numberOfDefinedUsersApprovers &lt; $minimumApprovers))
+#if ($isApproversEdition || $setApprovers || $hasApprovalMinimum)
   #if (!$approversXObject)
     #set ($shouldAddXObject = true)
     #set ($approversXObject = $approversDoc.newObject('ChangeRequest.Code.ApproversClass'))
@@ -75,6 +78,11 @@
         &lt;h4 class="panel-title"&gt;$services.localization.render('changerequest.savemodal.approvers.heading')&lt;/h4&gt;
       &lt;/div&gt;&lt;!-- End panel heading --&gt;
       &lt;div id="approversSelection" data-minimumApprovers="$escapetool.xml($minimumApprovers)" class="panel-body" role="tabpanel" aria-labelledby="approversHeading"&gt;
+        #if ($hasApprovalMinimum)
+        &lt;div class="xHint"&gt;
+          $services.localization.render('changerequest.savemodal.approvers.minimumUsers.hint', ["$minimumApprovers"])
+        &lt;/div&gt;
+        #end
         &lt;div class="form-group"&gt;
           &lt;label for="approverUsers"&gt;$services.localization.render('changerequest.savemodal.approvers.users')&lt;/label&gt;
           #stripHTMLMacro($usersApproversInput)
@@ -191,7 +199,7 @@
               &lt;/div&gt;&lt;!-- End panel body --&gt;
            &lt;/div&gt;&lt;!-- End panel collapse --&gt;
           &lt;/div&gt;&lt;!-- End panel --&gt;
-          #if ($setApprovers)
+          #if ($setApprovers || $hasApprovalMinimum)
             $approversPanel
           #end
         &lt;/div&gt;&lt;!-- End panel group --&gt;
