@@ -3873,6 +3873,12 @@ tr.discussion-line:hover {
 #set ($canBeReviewed = ($services.changerequest.authorization.isAuthorizedToReview($changeRequest) || $services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest)))
 #set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
 #set ($hasConflict = $services.changerequest.merge.hasConflict($changeRequest))
+#set ($isAlreadyReviewed = $services.changerequest.review.alreadyReviewed($changeRequest))
+#if ($isAlreadyReviewed || $hasConflict)
+  #set ($reviewClassName = 'btn-default')
+#else
+  #set ($reviewClassName = 'btn-primary')
+#end
 #if ($status == 'DRAFT' &amp;&amp; $canBeEdited)
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
@@ -3903,7 +3909,7 @@ tr.discussion-line:hover {
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
   #if (!$canBeMerged)
-    &lt;button title="$services.localization.render('changerequest.sheet.review.button.title')" class="btn btn-primary #if(!$canBeReviewed)disabled#end" id="addReview"&gt;
+    &lt;button title="$services.localization.render('changerequest.sheet.review.button.title')" class="btn $reviewClassName #if(!$canBeReviewed)disabled#end" id="addReview"&gt;
       $services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.review.button')
     &lt;/button&gt;
   #else

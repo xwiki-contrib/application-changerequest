@@ -195,6 +195,21 @@ public class ChangeRequestReviewScriptService implements ScriptService
     }
 
     /**
+     * Check if the given change request is already reviewed by the current user.
+     *
+     * @param changeRequest the change request which might have been reviewed
+     * @return {@code true} if a review has been performed by the given user on the given change request, and the review
+     *         is still valid.
+     * @see #alreadyReviewed(UserReference, ChangeRequest)
+     * @since 0.13
+     */
+    public boolean alreadyReviewed(ChangeRequest changeRequest)
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return alreadyReviewed(currentUserReference, changeRequest);
+    }
+
+    /**
      * Retrieve the set of approvers on behalf of whom the current user can review if the delegate mechanism is enabled.
      *
      * @param changeRequest the change request for which to retrieve the approvers

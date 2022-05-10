@@ -91,6 +91,7 @@
         'discussionReference': $discussionReviewReferenceString
       })
     #elseif ("$!request.get('action')" == 'create')
+      #set ($hasConflict = $services.changerequest.merge.hasConflict($changeRequest))
       {{html clean="false"}}
       &lt;div class="modal fade" tabindex="-1" role="dialog" id="reviewModal"&gt;
         &lt;div class="modal-dialog" role="document"&gt;
@@ -100,6 +101,16 @@
               &lt;h4 class="modal-title"&gt;$services.localization.render('changerequest.review.modal.title')&lt;/h4&gt;
             &lt;/div&gt;
             &lt;div class="modal-body"&gt;
+               #if ($hasConflict)
+               &lt;div class="alert alert-warning"&gt;
+                 $services.localization.render('changerequest.review.modal.warningConflict')
+               &lt;/div&gt;
+               #end
+               #if ($services.changerequest.review.alreadyReviewed($changeRequest))
+               &lt;div class="alert alert-info"&gt;
+                 $services.localization.render('changerequest.review.modal.warningReview')
+               &lt;/div&gt;
+               #end
                #if ($services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest))
                &lt;div class="panel panel-info"&gt;
                  &lt;div class="panel-heading"&gt;

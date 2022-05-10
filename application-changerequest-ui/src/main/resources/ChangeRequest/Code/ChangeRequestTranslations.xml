@@ -228,7 +228,9 @@ changerequest.review.modal.selectApprover.hint=Select the user for which you wan
 changerequest.review.modal.selectApprover.themselves=Review for yourself
 changerequest.review.modal.choice.approve=Approve change request
 changerequest.review.modal.choice.requestChanges=Request for changes
-changerequest.review.modal.comment.label=Provide a comment</content>
+changerequest.review.modal.comment.label=Provide a comment
+changerequest.review.modal.warningConflict=The change request you are about to review contains one or several conflict(s), be aware that any approval review will be invalidated when the change request will be modified to fix the conflict(s).
+changerequest.review.modal.warningReview=You already have a valid review concerning this change request, this new review will invalidate the previous one.</content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestTranslations</name>
     <number>0</number>
