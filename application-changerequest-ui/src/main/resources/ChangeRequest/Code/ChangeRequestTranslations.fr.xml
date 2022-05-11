@@ -205,6 +205,7 @@ changerequest.savemodal.approvers.header.hint=Vous pouvez indiquer la liste des 
 changerequest.savemodal.approvers.heading=Approbateurs
 changerequest.savemodal.approvers.users=Utilisateurs pouvant approuver
 changerequest.savemodal.approvers.groups=Groupes pouvant approuver
+changerequest.savemodal.approvers.minimumUsers.hint=Veuillez sélectionner au moins {0} approbateurs.
 changerequest.savemodal.error.missingChangerequest=Veuillez saisir un titre pour la demande de modification ou sélectionner une demande de modification existante.
 changerequest.savemodal.error.minimumApprovers=Vous devez sélectionner au minimum {0} approbateurs pour enregistrer vos modifications.
 changerequest.sheet.message.reply.header=Répondre au message envoyé par {0} le {1}.
@@ -218,5 +219,7 @@ changerequest.review.modal.selectApprover.themselves=Vérifier moi-même
 changerequest.review.modal.choice.approve=Approuver la demande de modification
 changerequest.review.modal.choice.requestChanges=Demandes de modification
 changerequest.review.modal.comment.label=Renseignez un commentaire
+changerequest.review.modal.warningConflict=La demande de modification que vous êtes en train de vérifier est en conflit, sachez qu'une nouvelle approbation sera nécessaire après résolution de ce conflit.
+changerequest.review.modal.warningReview=Vous avez déjà vérifié cette demande de modification, une nouvelle vérification invalidera la vérification précédente.
 </content>
 </xwikidoc>
