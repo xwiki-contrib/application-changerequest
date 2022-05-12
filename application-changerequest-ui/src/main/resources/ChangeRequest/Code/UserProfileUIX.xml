@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.UserProfileUIX" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.UserProfileUIX" locale="">
   <web>ChangeRequest.Code</web>
   <name>UserProfileUIX</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>UserProfileUIX</title>
@@ -50,9 +51,19 @@
   properties="doc.date,doc.title,authors,status,changedDocuments"
   source="liveTable"
   sourceParameters="className=ChangeRequest.Code.ChangeRequestClass&amp;translationPrefix=changerequest.livetable."
-  filters="authors=$currentUserDocSerialization"
   sort="doc.date:desc"
   limit="10"}}{
+  "query": {
+    "filters": [
+      {
+        "property": "authors",
+        "matchAll": true,
+        "constraints": [
+          {"operator": "contains", "value": "$escapetool.json($currentUserDocSerialization)"}
+        ]
+      }
+    ]
+  },
   "meta": {
     "actions": [{
       "id": "edit",
