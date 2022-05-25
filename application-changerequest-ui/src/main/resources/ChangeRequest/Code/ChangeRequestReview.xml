@@ -125,8 +125,9 @@
                      #else
                        &lt;option value="-"&gt;----&lt;/option&gt;
                      #end
+                     #set ($singleApprover = ($originalApprovers.size() == 1))
                      #foreach ($originalApprover in $originalApprovers)
-                       &lt;option value="$escapetool.xml($services.user.serialize($originalApprover))"&gt;#displayUser($originalApprover)&lt;/option&gt;
+                       &lt;option value="$escapetool.xml($services.user.serialize($originalApprover))" #if($singleApprover)selected="selected"#end&gt;#displayUser($originalApprover)&lt;/option&gt;
                      #end
                    &lt;/select&gt;
                  &lt;/div&gt;
