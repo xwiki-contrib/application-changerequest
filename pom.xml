@@ -83,45 +83,8 @@
         <configuration>
           <analysisConfiguration>
             <revapi.differences>
-              <criticality>highlight</criticality>
-              <differences>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.addedToInterface</code>
-                  <new>method boolean org.xwiki.contrib.changerequest.ChangeRequestRightsManager::isAuthorizedToReviewOnBehalf(org.xwiki.user.UserReference, org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.user.UserReference) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>Unstable API: new API to deal with delegate approvers.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.addedToInterface</code>
-                  <new>method boolean org.xwiki.contrib.changerequest.ChangeRequestRightsManager::isAuthorizedToReviewAsDelegate(org.xwiki.user.UserReference, org.xwiki.contrib.changerequest.ChangeRequest) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>Unstable API: new API to deal with delegate approvers.</justification>
-                </item>
-              </differences>
-            </revapi.differences>
-            <!-- Putting it in a different block because of some weird revapi bugs -->
-            <revapi.differences>
               <criticality>allowed</criticality>
-              <differences>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.addedToInterface</code>
-                  <new>method org.xwiki.contrib.changerequest.ChangeRequestReview org.xwiki.contrib.changerequest.ChangeRequestManager::addReview(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.user.UserReference, boolean, org.xwiki.user.UserReference) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>Unstable API: new API to deal with delegate approvers.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.addedToInterface</code>
-                  <new>method boolean org.xwiki.contrib.changerequest.ChangeRequestMergeManager::hasConflict(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>Unstable API: method renamed from "hasConflicts" to be consistent.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method boolean org.xwiki.contrib.changerequest.ChangeRequestMergeManager::hasConflicts(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <justification>Unstable API: method renamed "hasConflict" to be consistent.</justification>
-                </item>
-              </differences>
+              <differences/>
             </revapi.differences>
           </analysisConfiguration>
         </configuration>
