@@ -300,6 +300,11 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
                     + "only [%s] approvers defined.", configuration.getMinimumApprovers(), usersCRApprovers.size()));
         }
 
+        // If the authored are prevented to review, we ensure to remove it from the list of users approvers.
+        if (this.configuration.preventAuthorToReview()) {
+            usersCRApprovers.remove(fileChange.getAuthor());
+        }
+
         if (!groupsCRApprovers.isEmpty()) {
             this.changeRequestApproversManager.setGroupsApprovers(groupsCRApprovers, changeRequest);
         }
