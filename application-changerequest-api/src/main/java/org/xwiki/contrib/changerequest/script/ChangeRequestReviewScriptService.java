@@ -191,7 +191,9 @@ public class ChangeRequestReviewScriptService implements ScriptService
     {
         return changeRequest.getReviews().stream()
             .anyMatch(changeRequestReview ->
-                changeRequestReview.getAuthor().equals(userReference) && changeRequestReview.isValid());
+                changeRequestReview.isValid()
+                && (changeRequestReview.getAuthor().equals(userReference)
+                ||  userReference.equals(changeRequestReview.getOriginalApprover())));
     }
 
     /**

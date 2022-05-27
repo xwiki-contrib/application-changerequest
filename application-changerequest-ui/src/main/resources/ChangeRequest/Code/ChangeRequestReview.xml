@@ -106,11 +106,7 @@
                  $services.localization.render('changerequest.review.modal.warningConflict')
                &lt;/div&gt;
                #end
-               #if ($services.changerequest.review.alreadyReviewed($changeRequest))
-               &lt;div class="alert alert-info"&gt;
-                 $services.localization.render('changerequest.review.modal.warningReview')
-               &lt;/div&gt;
-               #end
+               #set ($originalApprovers = $NULL)
                #if ($services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest))
                &lt;div class="panel panel-info"&gt;
                  &lt;div class="panel-heading"&gt;
@@ -123,15 +119,27 @@
                      #if ($services.changerequest.authorization.isAuthorizedToReview($changeRequest))
                        &lt;option value="$escapetool.xml($xcontext.userReference)"&gt;$services.localization.render('changerequest.review.modal.selectApprover.themselves')&lt;/option&gt;
                      #else
+                       #set ($singleApprover = ($originalApprovers.size() == 1))
                        &lt;option value="-"&gt;----&lt;/option&gt;
                      #end
-                     #set ($singleApprover = ($originalApprovers.size() == 1))
                      #foreach ($originalApprover in $originalApprovers)
                        &lt;option value="$escapetool.xml($services.user.serialize($originalApprover))" #if($singleApprover)selected="selected"#end&gt;#displayUser($originalApprover)&lt;/option&gt;
                      #end
                    &lt;/select&gt;
                  &lt;/div&gt;
                &lt;/div&gt;
+               #end
+               #if ($services.changerequest.review.alreadyReviewed($changeRequest))
+               &lt;div class="alert alert-warning warning-review" data-user="$escapetool.xml($xcontext.userReference)"&gt;
+                 $services.localization.render('changerequest.review.modal.warningReview')
+               &lt;/div&gt;
+               #end
+               #foreach ($originalApprover in $originalApprovers)
+                 #if ($services.changerequest.review.alreadyReviewed($originalApprover, $changeRequest))
+                   &lt;div class="alert alert-warning warning-review #if (!$singleApprover)hidden#end" data-user="$escapetool.xml($services.user.serialize($originalApprover))"&gt;
+                     $services.localization.render('changerequest.review.modal.warningReview.onBehalf', ["#displayUser($originalApprover, {'useInlineHTML': true})"])
+                   &lt;/div&gt;
+                 #end
                #end
                &lt;div class="panel-group" id="reviewChoice" role="tablist" aria-multiselectable="false"&gt;
                 &lt;div class="panel panel-success"&gt;

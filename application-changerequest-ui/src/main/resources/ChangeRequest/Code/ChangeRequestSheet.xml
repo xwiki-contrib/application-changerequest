@@ -1267,6 +1267,8 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         });
         modal.find('select[name=originalApprover]').on('change', function () {
           var reviewChoice = modal.find('input[name="reviewChoice"]:checked');
+          $('.warning-review').addClass('hidden');
+          $('.warning-review[data-user="'+$(this).val()+'"]').removeClass('hidden');
           if ($(this).val() != '-' &amp;&amp; reviewChoice.length &gt; 0) {
             $('#submitReview').prop('disabled', false);
           } else {
