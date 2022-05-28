@@ -155,7 +155,7 @@ changerequest.timeline.changerequest.review.added.requestchanges.delegate={0} a 
 changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0} a ajouté {1}un nouveau commentaire global{2}
 changerequest.timeline.changerequest.discussions.LINE_DIFF={0} a ajouté {1}un nouveau commentaire de diff{2}
 changerequest.timeline.changerequest.discussions.REVIEW={0} a ajouté {1}un nouveau commentaire{2}
-changerequest.timeline.changerequest.updated={0} a modifié la description ou le titre de la demande de modification.
+changerequest.timeline.changerequest.updated={0} a modifié la description ou le titre de la demande de modification
 changerequest.timeline.changerequest.stale={0} a marqué la demande de modification comme périmée
 changerequest.timeline.changerequest.rebased.all={0} a actualisé toute la demande de modification
 changerequest.timeline.changerequest.rebased.filechange={0} a actualisé les modifications concernant &lt;a href="{1}"&gt;{2}&lt;/a&gt;
@@ -209,7 +209,7 @@ changerequest.savemodal.approvers.minimumUsers.hint=Veuillez sélectionner au mo
 changerequest.savemodal.error.missingChangerequest=Veuillez saisir un titre pour la demande de modification ou sélectionner une demande de modification existante.
 changerequest.savemodal.error.minimumApprovers=Vous devez sélectionner au minimum {0} approbateurs pour enregistrer vos modifications.
 changerequest.sheet.message.reply.header=Répondre au message envoyé par {0} le {1}.
-changerequest.sheet.message.reply.link.title=Cliquez pour accéder au message précédent
+changerequest.sheet.message.reply.link.title=Cliquez pour accéder au message précédent.
 changerequest.livetable.approvers.reviews.performed=vérification(s) faite(s)
 changerequest.livetable.approvers.reviews.alreadyReviewed=déjà vérifié
 changerequest.review.modal.title=Vérifier cette demande de modification
@@ -221,5 +221,6 @@ changerequest.review.modal.choice.requestChanges=Demandes de modification
 changerequest.review.modal.comment.label=Renseignez un commentaire
 changerequest.review.modal.warningConflict=La demande de modification que vous êtes en train de vérifier est en conflit, sachez qu'une nouvelle approbation sera nécessaire après résolution de ce conflit.
 changerequest.review.modal.warningReview=Vous avez déjà vérifié cette demande de modification, une nouvelle vérification invalidera la vérification précédente.
+changerequest.review.modal.warningReview.onBehalf=Une révision de cette demande de modification a déjà été effectuée par ou au nom de {0}, cette nouvelle révision invalidera la précédente.
 </content>
 </xwikidoc>
