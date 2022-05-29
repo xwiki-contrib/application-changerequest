@@ -222,5 +222,6 @@ changerequest.review.modal.choice.requestChanges=Änderungen anfordern
 changerequest.review.modal.comment.label=Kommentar abgeben
 changerequest.review.modal.warningConflict=Die Änderungsanforderung, die Sie gerade prüfen, enthält einen oder mehrere Konflikte. Beachten Sie, dass jede Genehmigungsprüfung ungültig wird, wenn die Änderungsanforderung geändert wird, um den Konflikt/die Konflikte zu beheben.
 changerequest.review.modal.warningReview=Sie haben bereits eine gültige Überprüfung zu dieser Änderungsanforderung. Diese neue Überprüfung macht die vorherige ungültig.
+changerequest.review.modal.warningReview.onBehalf=Es existiert bereits eine gültige Überprüfung bezüglich dieser Änderungsanforderung, die von oder im Auftrag von {0} durchgeführt wurde. Diese neue Überprüfung macht die vorherige ungültig.
 </content>
   </xwikidoc>
