@@ -166,6 +166,27 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
     }
 
     /**
+     * Check if the given user is authorized to perform a review as a delegate of one of the approver of the given
+     * change request.
+     * This should only returns {@code true} if the delegate mechanism is enabled, the change request has explicit
+     * approvers, and  the current user is a delegate of at least one of them. Moreover, this cannot return {@code true}
+     * if the given user is an author of the change request.
+     *
+     * @param changeRequest the change request for which to check the authorization
+     * @param userReference the user for which to check if they can review
+     * @return {@code true} if the delegate mechanism is enabled, the change request has explicit
+     *         approvers, the user is not an author of the change request, and is a delegate of at least one of
+     *         the approvers.
+     * @throws ChangeRequestException in case of problem to resolve the delegate approvers.
+     * @since 0.14
+     */
+    public boolean isAuthorizedToReviewAsDelegate(ChangeRequest changeRequest, UserReference userReference)
+        throws ChangeRequestException
+    {
+        return this.changeRequestRightsManager.isAuthorizedToReviewAsDelegate(userReference, changeRequest);
+    }
+
+    /**
      * Check if the given user is authorized to review the given change request.
      *
      * @param changeRequest the change request about to be reviewed.

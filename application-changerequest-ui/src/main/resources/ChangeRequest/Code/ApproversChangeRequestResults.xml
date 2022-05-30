@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.ApproversChangeRequestResults" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ApproversChangeRequestResults" locale="">
   <web>ChangeRequest.Code</web>
   <name>ApproversChangeRequestResults</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>ApproversChangeRequestResults</title>
@@ -58,7 +59,7 @@
 #foreach($row in $map.get('rows'))
   #set ($changeRequestId = $services.model.resolveDocument($row.get('doc_fullName')).lastSpaceReference.name)
   #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
-  #if ($changeRequestOpt.isPresent() &amp;&amp; $services.changerequest.authorization.isAuthorizedToReview($changeRequestOpt.get(), $request.userDoc))
+  #if ($changeRequestOpt.isPresent() &amp;&amp; ($services.changerequest.authorization.isAuthorizedToReview($changeRequestOpt.get(), $request.userDoc) || ($services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequestOpt.get(), $request.userDoc))))
     #set ($changeRequest = $changeRequestOpt.get())
     #set ($hasBeenReviewed = $services.changerequest.review.alreadyReviewed($request.userDoc, $changeRequest))
     #define ($reviews)
