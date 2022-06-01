@@ -3200,10 +3200,10 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 @spacing: 20px;
 @radius: 4px;
 
-@date: 300px;
+@avatar: 150px;
 @dotborder: 4px;
 @dot: 11px;
-@line: 4px;
+@line: 2px;
 
 #timeline-content {
   margin-top: @spacing;
@@ -3222,7 +3222,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
   padding: @spacing;   
   list-style: none;
   text-align: left;  
-  max-width: 60%;
+  max-width: 70%;
   
   .event {
     border-bottom: 1px dashed fade(@color-light, 10%);
@@ -3244,15 +3244,20 @@ input#edit-title-input:focus, .edit-title-icon:hover {
     .content {
       position: relative;
       top: -1.5em;
+      left: (@avatar * 0.5) * -1;
     }
 
-    .date {
-      left: (((@date * 0.6) + @spacing + @line + @dot + (@dotborder * 2)) * 1.5) * -1;    
+    .user-avatar {
+      left: ((@avatar * 0.6) + @spacing + @line + @dot + (@dotborder * 2)) * -1;    
       color: fade(@color-light, 40%);
       text-align: right;
-      min-width: @date;
       position: relative;
       display: inline-block;
+      top: -1.5em;
+      
+      img {
+        width: @avatar * 0.5;
+      }
     }
 
     &amp;:after {

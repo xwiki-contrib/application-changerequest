@@ -118,85 +118,89 @@
   #set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
   $stringtool.lowerCase($translation)
 #end
+
 #macro (displayEvent $event)
   ## we skip the document modified events, since they are basically redundant with the filechanges ones.
   #if ($event.type != "changerequest.document.modified")
-  &lt;li class="event"&gt;
-    &lt;span class="date" data-date="$event.date.time"&gt;$datetool.format($event.date)&lt;/span&gt;
-    &lt;span class="content"&gt;
-    #set ($userArgument = "#wrappedDisplayUser($event.user)")
-    #set ($localizationKey = "changerequest.timeline.$event.type")
-    #set ($localizationArguments = [])
-    #if ($event.type == "changerequest.create")
-      #set ($actualDoc = $xwiki.getDocument($event.document))
-      #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
-    #elseif ($event.type == "changerequest.filechange.added")
-      #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+  #set ($escapedUserName = "$escapetool.xml($xwiki.getPlainUserName($event.user))")
+  #set ($userArgument = "&lt;a class=""user-name"" href=""$escapetool.xml($xwiki.getURL($event.user))""&gt;$escapedUserName&lt;/a&gt;")
+  #set ($localizationKey = "changerequest.timeline.$event.type")
+  #set ($localizationArguments = [])
+  #if ($event.type == "changerequest.create")
+    #set ($actualDoc = $xwiki.getDocument($event.document))
+    #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
+  #elseif ($event.type == "changerequest.filechange.added")
+    #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+    #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
+    #if ($fileChangeOpt.isPresent())
+      #set ($eventDoc = $fileChangeOpt.get().targetEntity)
+      #set ($actualDoc = $xwiki.getDocument($eventDoc))
+      #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+    #end
+  #elseif ($event.type == "changerequest.status.modified")
+    #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
+    #set ($newStatus = $event.parameters.get('changerequest.status.new'))
+    #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
+  #elseif ($event.type == "changerequest.review.added")
+    #set ($reviewId = $event.parameters.get('changerequest.review.id'))
+    #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
+    #if ($reviewOpt.isPresent())
+      #set ($review = $reviewOpt.get())
+      #if ($review.approved)
+        #set ($localizationKey = "${localizationKey}.approval")
+      #else
+        #set ($localizationKey = "${localizationKey}.requestchanges")
+      #end
+      #if ($review.originalApprover &amp;&amp; $review.originalApprover != $review.author)
+        #set ($localizationKey = "${localizationKey}.delegate")
+        #set ($localizationArguments = [$userArgument, "#wrappedDisplayUser($review.originalApprover.reference, {'useInlineHTML': true})"])
+      #else
+        #set ($localizationArguments = [$userArgument])
+      #end
+    #end
+  #elseif ($event.type == "changerequest.rebased")
+    #set ($concernsAllCR = $event.parameters.get('changerequest.rebased.all'))
+    #set ($isAboutConflictFixing = $event.parameters.get('changerequest.rebased.conflictRelated'))
+    #set ($fileChangeId = $event.parameters.get('changerequest.rebased.filechange.id'))
+
+    #if ($concernsAllCR == 'true')
+      #set ($localizationArguments = [$userArgument])
+      #set ($localizationKey = "${localizationKey}.all")
+    #else
       #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
       #if ($fileChangeOpt.isPresent())
         #set ($eventDoc = $fileChangeOpt.get().targetEntity)
         #set ($actualDoc = $xwiki.getDocument($eventDoc))
         #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
       #end
-    #elseif ($event.type == "changerequest.status.modified")
-      #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
-      #set ($newStatus = $event.parameters.get('changerequest.status.new'))
-      #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
-    #elseif ($event.type == "changerequest.review.added")
-      #set ($reviewId = $event.parameters.get('changerequest.review.id'))
-      #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
-      #if ($reviewOpt.isPresent())
-        #set ($review = $reviewOpt.get())
-        #if ($review.approved)
-          #set ($localizationKey = "${localizationKey}.approval")
-        #else
-          #set ($localizationKey = "${localizationKey}.requestchanges")
-        #end
-        #if ($review.originalApprover &amp;&amp; $review.originalApprover != $review.author)
-          #set ($localizationKey = "${localizationKey}.delegate")
-          #set ($localizationArguments = [$userArgument, "#wrappedDisplayUser($review.originalApprover.reference, {'useInlineHTML': true})"])
-        #else
-          #set ($localizationArguments = [$userArgument])
-        #end
-      #end
-    #elseif ($event.type == "changerequest.rebased")
-      #set ($concernsAllCR = $event.parameters.get('changerequest.rebased.all'))
-      #set ($isAboutConflictFixing = $event.parameters.get('changerequest.rebased.conflictRelated'))
-      #set ($fileChangeId = $event.parameters.get('changerequest.rebased.filechange.id'))
-      
-      #if ($concernsAllCR == 'true')
-        #set ($localizationArguments = [$userArgument])
-        #set ($localizationKey = "${localizationKey}.all")
+      #if ($isAboutConflictFixing == 'true')
+        #set ($localizationKey = "${localizationKey}.conflictFixing")
       #else
-        #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
-        #if ($fileChangeOpt.isPresent())
-          #set ($eventDoc = $fileChangeOpt.get().targetEntity)
-          #set ($actualDoc = $xwiki.getDocument($eventDoc))
-          #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
-        #end
-        #if ($isAboutConflictFixing == 'true')
-          #set ($localizationKey = "${localizationKey}.conflictFixing")
-        #else
-          #set ($localizationKey = "${localizationKey}.filechange")
-        #end
+        #set ($localizationKey = "${localizationKey}.filechange")
       #end
-    #elseif ($event.type == "changerequest.discussions")
-      #set ($dataTab = $NULL)
-      #set ($discussionType = $event.parameters.get('changerequest.discussion.type'))
-      #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
-      #set ($localizationKey = "${localizationKey}.${discussionType}")
-      #set ($messageURL = "$xwiki.getURL($doc)#$messageReference")
-      #if ($discussionType == 'LINE_DIFF')
-        #set ($dataTab = "data-tab='filechanges'")
-      #elseif ($discussionType == 'REVIEW')
-        #set ($dataTab = "data-tab='reviews'")
-      #end
-      #set ($link = "&lt;a href=""$messageURL"" data-message-reference=""$messageReference"" $dataTab&gt;")
-      #set ($localizationArguments = [$userArgument, $link, '&lt;/a&gt;'])
-    #else
-      #set ($localizationArguments = [$userArgument])
     #end
-    $services.localization.render($localizationKey, $localizationArguments)
+  #elseif ($event.type == "changerequest.discussions")
+    #set ($dataTab = $NULL)
+    #set ($discussionType = $event.parameters.get('changerequest.discussion.type'))
+    #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
+    #set ($localizationKey = "${localizationKey}.${discussionType}")
+    #set ($messageURL = "$xwiki.getURL($doc)#$messageReference")
+    #if ($discussionType == 'LINE_DIFF')
+      #set ($dataTab = "data-tab='filechanges'")
+    #elseif ($discussionType == 'REVIEW')
+      #set ($dataTab = "data-tab='reviews'")
+    #end
+    #set ($link = "&lt;a href=""$messageURL"" data-message-reference=""$messageReference"" $dataTab&gt;")
+    #set ($localizationArguments = [$userArgument, $link, '&lt;/a&gt;'])
+  #else
+    #set ($localizationArguments = [$userArgument])
+  #end
+  &lt;li class="event"&gt;
+    #getUserAvatarURL($event.user $avatarURL 80)
+    &lt;span class="user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
+    &lt;span class="content"&gt;
+      $services.localization.render($localizationKey, $localizationArguments)
+      &lt;span class="date" data-date="$event.date.time" title="$escapetool.xml($datetool.format($event.date))"&gt;$services.date.displayTimeAgo($event.date)&lt;/span&gt;
     &lt;/span&gt;
   &lt;/li&gt;
   #end
