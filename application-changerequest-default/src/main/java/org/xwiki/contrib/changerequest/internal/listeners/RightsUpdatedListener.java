@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -54,6 +55,7 @@ import org.xwiki.security.authorization.Right;
  */
 @Component
 @Singleton
+@Named(RightsUpdatedListener.NAME)
 public class RightsUpdatedListener extends AbstractLocalEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.RightsUpdatedListener";
