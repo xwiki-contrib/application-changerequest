@@ -148,6 +148,8 @@ ChangeRequest.Code.ApproversClass_usersApprovers=Benutzer, die genehmigen könne
 ChangeRequest.Code.ApproversClass_usersApprovers_hint=Benutzer des Wikis, die Änderungsanforderungen für dieses Dokument genehmigen können.
 ChangeRequest.Code.ApproversClass_groupsApprovers=Gruppen, die genehmigen können
 ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Gruppen von Benutzern des Wikis, die Änderungsanforderungen für dieses Dokument genehmigen können.
+ChangeRequest.Code.ApproversClass_manualEdition=Manuell bearbeitet
+ChangeRequest.Code.ApproversClass_manualEdition_hint=Aktivieren Sie das Kontrollkästchen, wenn Sie nicht möchten, dass die genehmigenden Personen automatisch synchronisiert werden, wenn neue Änderungen veröffentlicht werden.
 changerequest.timeline.changerequest.create={0} hat die Änderungsanforderung mit Änderungen bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; erstellt
 changerequest.timeline.changerequest.filechange.added={0} hat eine Dateiänderung bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; hinzugefügt
 changerequest.timeline.changerequest.status.modified={0} hat den Status der Änderungsanforderung von {1} in {2} geändert
