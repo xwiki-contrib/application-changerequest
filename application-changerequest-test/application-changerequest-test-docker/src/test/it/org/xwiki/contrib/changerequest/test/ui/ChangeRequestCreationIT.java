@@ -153,8 +153,7 @@ class ChangeRequestCreationIT
         TimelineEvent timelineEvent = events.get(0);
         assertTrue(timelineEvent.getDate().after(dateBeforeCR));
         assertTrue(timelineEvent.getDate().before(dateAfterCR));
-        assertEquals("CRCreator\n"
-                + "created the change request with changes concerning "
+        assertEquals("CRCreator created the change request with changes concerning "
                 + "xwiki:" + serializedReference,
             timelineEvent.getContent().getText());
 
@@ -176,8 +175,7 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(1);
         assertTrue(timelineEvent.getDate().after(dateAfterCR));
         assertTrue(timelineEvent.getDate().before(dateAfterDescriptionUpdate));
-        assertEquals("CRCreator\n"
-                + "edited the description or the title of the change request",
+        assertEquals("CRCreator edited the description or the title of the change request",
             timelineEvent.getContent().getText());
 
         // Check the diff
@@ -249,8 +247,7 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(2);
         assertTrue(timelineEvent.getDate().after(dateAfterDescriptionUpdate));
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange));
-        assertEquals("CRCreator\n"
-                + "changed the status of the change request from ready for review to draft",
+        assertEquals("CRCreator changed the status of the change request from ready for review to draft",
             timelineEvent.getContent().getText());
 
         // Check buttons with guest user
@@ -285,8 +282,7 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(3);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange));
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange2));
-        assertEquals("CRCreator\n"
-                + "changed the status of the change request from draft to ready for review",
+        assertEquals("CRCreator changed the status of the change request from draft to ready for review",
             timelineEvent.getContent().getText());
 
         // Close the change request, check the label and the timeline
@@ -309,8 +305,7 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(4);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange2));
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange3));
-        assertEquals("CRCreator\n"
-                + "changed the status of the change request from ready for review to closed",
+        assertEquals("CRCreator changed the status of the change request from ready for review to closed",
             timelineEvent.getContent().getText());
 
         // Check the button display with guest
@@ -355,22 +350,19 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(5);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange3));
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange4));
-        assertEquals("CRCreator\n"
-                + "changed the status of the change request from closed to draft",
+        assertEquals("CRCreator changed the status of the change request from closed to draft",
             timelineEvent.getContent().getText());
 
         timelineEvent = events.get(6);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange3));
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange4));
-        assertEquals("CRCreator\n"
-                + "changed the status of the change request from draft to closed",
+        assertEquals("CRCreator changed the status of the change request from draft to closed",
             timelineEvent.getContent().getText());
 
         timelineEvent = events.get(7);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange3));
         assertTrue(timelineEvent.getDate().before(dateAfterStatusChange4));
-        assertEquals("CRCreator\n"
-                + "changed the status of the change request from closed to ready for review",
+        assertEquals("CRCreator changed the status of the change request from closed to ready for review",
             timelineEvent.getContent().getText());
 
         // Add an approval review to the page
@@ -418,15 +410,13 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(8);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
         assertTrue(timelineEvent.getDate().before(dateAfterReview));
-        assertEquals("Approver\n"
-                + "added a new approval review",
+        assertEquals("Approver added a new approval review",
             timelineEvent.getContent().getText());
 
         timelineEvent = events.get(9);
         assertTrue(timelineEvent.getDate().after(dateAfterStatusChange4));
         assertTrue(timelineEvent.getDate().before(dateAfterReview));
-        assertEquals("Approver\n"
-                + "changed the status of the change request from ready for review to ready for merging",
+        assertEquals("Approver changed the status of the change request from ready for review to ready for merging",
             timelineEvent.getContent().getText());
 
         // Since we have an approval review, checks should be all good and CR should be ready to be merged
@@ -513,15 +503,13 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(10);
         assertTrue(timelineEvent.getDate().after(dateAfterReview));
         assertTrue(timelineEvent.getDate().before(dateAfterReview2));
-        assertEquals("Approver\n"
-                + "added a new review requesting for changes",
+        assertEquals("Approver added a new review requesting for changes",
             timelineEvent.getContent().getText());
 
         timelineEvent = events.get(11);
         assertTrue(timelineEvent.getDate().after(dateAfterReview));
         assertTrue(timelineEvent.getDate().before(dateAfterReview2));
-        assertEquals("Approver\n"
-                + "changed the status of the change request from ready for merging to ready for review",
+        assertEquals("Approver changed the status of the change request from ready for merging to ready for review",
             timelineEvent.getContent().getText());
     }
 
@@ -569,8 +557,7 @@ class ChangeRequestCreationIT
         TimelineEvent timelineEvent = events.get(1);
         assertTrue(timelineEvent.getDate().after(afterSave));
         assertTrue(timelineEvent.getDate().before(dateAfterNewChange));
-        assertEquals("CRCreator\n"
-                + "added a new file change concerning "
+        assertEquals("CRCreator added a new file change concerning "
                 + "xwiki:" + serializedReference,
             timelineEvent.getContent().getText());
 

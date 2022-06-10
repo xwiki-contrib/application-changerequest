@@ -3241,7 +3241,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       top: 0;
     }
     
-    .content {
+    .content, .date {
       position: relative;
       top: -1.5em;
       left: (@avatar * 0.5) * -1;

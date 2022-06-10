@@ -105,6 +105,12 @@
       <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-date</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- We depend on CKEditor until XWIKI-19281 is fixed -->
     <dependency>
       <groupId>org.xwiki.contrib</groupId>

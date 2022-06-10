@@ -200,8 +200,8 @@
     &lt;span class="user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
     &lt;span class="content"&gt;
       $services.localization.render($localizationKey, $localizationArguments)
-      &lt;span class="date" data-date="$event.date.time" title="$escapetool.xml($datetool.format($event.date))"&gt;$services.date.displayTimeAgo($event.date)&lt;/span&gt;
     &lt;/span&gt;
+    &lt;span class="date" data-date="$event.date.time" title="$escapetool.xml($datetool.format($event.date))"&gt;$services.date.displayTimeAgo($event.date)&lt;/span&gt;
   &lt;/li&gt;
   #end
 #end

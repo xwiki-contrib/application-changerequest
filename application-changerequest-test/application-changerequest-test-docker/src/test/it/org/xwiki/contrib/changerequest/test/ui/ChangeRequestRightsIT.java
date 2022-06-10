@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -50,7 +52,8 @@ class ChangeRequestRightsIT
         // CR strategy: acceptall
         // so that we don't need to review CR to check the rights for merging
         testUtils.loginAsSuperAdmin();
-        testUtils.updateObject("ChangeRequest.Code", "Configuration", "ChangeRequest.Code.ConfigurationClass", 0,
+        testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
             "approvalStrategy","acceptall");
     }
 
