@@ -84,17 +84,15 @@
   &lt;div id="discussions" class="hidden"&gt;
   #foreach ($changeRequestDiscussion in $allDiscussions)
     #set ($reference = $changeRequestDiscussion.reference)
-    #if ($reference.type != "CHANGE_REQUEST_COMMENT")
-      ## TODO: handle pagination
-      #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
-      #set ($dataAttributes = $NULL)
-      #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
-      &lt;div class="discussion" ${dataAttributes} &gt;
-        #foreach ($message in $messages)
-          #displayMessage($message $changeRequest)
-        #end
-      &lt;/div&gt;
-    #end
+    ## TODO: handle pagination
+    #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
+    #set ($dataAttributes = $NULL)
+    #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
+    &lt;div class="discussion" ${dataAttributes} &gt;
+      #foreach ($message in $messages)
+        #displayMessage($message $changeRequest)
+      #end
+    &lt;/div&gt;
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
   &lt;!-- Nav tabs --&gt;
@@ -141,18 +139,6 @@
         &lt;/ul&gt;
       &lt;/div&gt;&lt;!-- End timeline --&gt;
       &lt;div id="discussion-comments"&gt;
-        #foreach ($changeRequestDiscussion in $allDiscussions)
-          #set ($reference = $changeRequestDiscussion.reference)
-          #if ($reference.type == "CHANGE_REQUEST_COMMENT")
-            ## TODO: handle pagination
-            #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
-            &lt;div class="discussion" data-type="$reference.type" data-reference="$reference.reference"&gt;
-              #foreach ($message in $messages)
-                #displayMessage($message $changeRequest)
-              #end
-            &lt;/div&gt;
-          #end
-        #end
         #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
         &lt;div class="add-comment"&gt;
           &lt;button type="button" class="btn btn-default open-editor"&gt;
@@ -1256,6 +1242,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           $('#submitReview').off('click');
           modal.remove();
           $('div.modal-backdrop').remove();
+          $(document).trigger('xwiki:actions:cancel');
         });
 
         $('#submitReview').on('click', self.submitAction);
@@ -2031,13 +2018,24 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       reviewElement.append(discussion);
       discussion.wrap('&lt;div class="panel-body"&gt;&lt;/div&gt;');
     }
+    discussion.clone().find('.message').each(function (index, message) {
+      placeMessage('review', index, message);
+    });
   };
   
   var placeCommentDiscussion = function (discussion) {
-    if ($('#discussion-comments .discussion')) {
-      $('#discussion-comments .discussion').append(discussion.find('.message'));
-    } else {
-      discussion.insertBefore($('#discussion-comments .add-comment'));
+    discussion.find('.message').each(placeCommentMessage);
+  };
+  
+  var placeCommentMessage = function (index, message) {
+    placeMessage('global-comment', index, message);
+  };
+  
+  var placeMessage = function (cssClass, index, message) {
+    var messageId = $(message).attr('data-reference');
+    var discussionElement = $('.discussion.'+cssClass+'[data-message-reference="'+messageId+'"]');
+    if (discussionElement) {
+      discussionElement.append($(message));
     }
   };
   
@@ -3247,7 +3245,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       left: (@avatar * 0.5) * -1;
     }
 
-    .user-avatar {
+    .user-event.user-avatar {
       left: ((@avatar * 0.6) + @spacing + @line + @dot + (@dotborder * 2)) * -1;    
       color: fade(@color-light, 40%);
       text-align: right;

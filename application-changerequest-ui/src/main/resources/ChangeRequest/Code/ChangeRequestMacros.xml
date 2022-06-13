@@ -126,6 +126,8 @@
   #set ($userArgument = "&lt;a class=""user-name"" href=""$escapetool.xml($xwiki.getURL($event.user))""&gt;$escapedUserName&lt;/a&gt;")
   #set ($localizationKey = "changerequest.timeline.$event.type")
   #set ($localizationArguments = [])
+  #set ($discussionClass = $NULL)
+  #set ($dataReviewId = $NULL)
   #if ($event.type == "changerequest.create")
     #set ($actualDoc = $xwiki.getDocument($event.document))
     #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
@@ -180,7 +182,7 @@
       #end
     #end
   #elseif ($event.type == "changerequest.discussions")
-    #set ($dataTab = $NULL)
+    #set ($dataTab = "")
     #set ($discussionType = $event.parameters.get('changerequest.discussion.type'))
     #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
     #set ($localizationKey = "${localizationKey}.${discussionType}")
@@ -189,6 +191,9 @@
       #set ($dataTab = "data-tab='filechanges'")
     #elseif ($discussionType == 'REVIEW')
       #set ($dataTab = "data-tab='reviews'")
+      #set ($discussionClass = "review")
+    #elseif ($discussionType == "CHANGE_REQUEST_COMMENT")
+      #set ($discussionClass = "global-comment")
     #end
     #set ($link = "&lt;a href=""$messageURL"" data-message-reference=""$messageReference"" $dataTab&gt;")
     #set ($localizationArguments = [$userArgument, $link, '&lt;/a&gt;'])
@@ -197,11 +202,14 @@
   #end
   &lt;li class="event"&gt;
     #getUserAvatarURL($event.user $avatarURL 80)
-    &lt;span class="user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
+    &lt;span class="user-event user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
     &lt;span class="content"&gt;
       $services.localization.render($localizationKey, $localizationArguments)
     &lt;/span&gt;
     &lt;span class="date" data-date="$event.date.time" title="$escapetool.xml($datetool.format($event.date))"&gt;$services.date.displayTimeAgo($event.date)&lt;/span&gt;
+    #if ($discussionClass)
+      &lt;div class="discussion timeline-comment $discussionClass" data-message-reference="$messageReference"&gt;&lt;/div&gt;
+    #end
   &lt;/li&gt;
   #end
 #end
