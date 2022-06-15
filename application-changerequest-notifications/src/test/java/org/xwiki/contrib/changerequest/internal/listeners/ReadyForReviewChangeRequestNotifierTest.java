@@ -29,14 +29,13 @@ import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -74,7 +73,7 @@ class ReadyForReviewChangeRequestNotifierTest
     private UserReferenceSerializer<String> userReferenceSerializer;
 
     @MockComponent
-    private ObservationManager observationManager;
+    private ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
 
     @MockComponent
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
@@ -91,7 +90,7 @@ class ReadyForReviewChangeRequestNotifierTest
         this.changeRequestNotifier.onEvent(event, null, new ChangeRequestStatus[] {
             ChangeRequestStatus.CLOSED, ChangeRequestStatus.DRAFT
         });
-        verifyNoInteractions(this.observationManager);
+        verifyNoInteractions(this.changeRequestRecordableEventNotifier);
         verifyNoInteractions(this.changeRequestStorageManager);
 
         String changeRequestId = "crId";
@@ -123,12 +122,14 @@ class ReadyForReviewChangeRequestNotifierTest
             ChangeRequestReadyForReviewTargetableEvent targetableEvent = invocationOnMock.getArgument(0);
             assertEquals(expectedTargets, targetableEvent.getTarget());
             return null;
-        }).when(this.observationManager).notify(any(ChangeRequestReadyForReviewTargetableEvent.class), any(), any());
+        }).when(this.changeRequestRecordableEventNotifier).notifyChangeRequestRecordableEvent(
+            any(ChangeRequestReadyForReviewTargetableEvent.class), any());
 
         this.changeRequestNotifier.onEvent(event, changeRequestId, new ChangeRequestStatus[] {
             ChangeRequestStatus.DRAFT, ChangeRequestStatus.READY_FOR_REVIEW
         });
-        verify(this.observationManager).notify(any(ChangeRequestReadyForReviewTargetableEvent.class),
-            eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(documentModelBridge));
+        verify(this.changeRequestRecordableEventNotifier).notifyChangeRequestRecordableEvent(
+            any(ChangeRequestReadyForReviewTargetableEvent.class),
+            eq(documentModelBridge));
     }
 }

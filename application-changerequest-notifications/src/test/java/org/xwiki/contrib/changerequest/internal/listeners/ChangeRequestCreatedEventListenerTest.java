@@ -29,17 +29,16 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.ObservationContext;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -64,7 +63,7 @@ class ChangeRequestCreatedEventListenerTest
     private Provider<ChangeRequestAutoWatchHandler> autoWatchHandlerProvider;
 
     @MockComponent
-    private ObservationManager observationManager;
+    private ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
 
     @MockComponent
     private ObservationContext observationContext;
@@ -92,14 +91,15 @@ class ChangeRequestCreatedEventListenerTest
 
         doAnswer(invocation -> {
             ChangeRequestCreatedRecordableEvent event = invocation.getArgument(0);
-            assertEquals(source, event.getChangeRequestId());
             assertTrue(event.isFromSplit());
             return null;
-        }).when(this.observationManager).notify(any(ChangeRequestCreatedRecordableEvent.class),
-            eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(document));
+        }).when(this.changeRequestRecordableEventNotifier).notifyChangeRequestRecordableEvent(
+            any(ChangeRequestCreatedRecordableEvent.class),
+            eq(document));
 
         this.listener.onEvent(new ChangeRequestCreatedEvent(), source, data);
-        verify(this.observationManager).notify(any(ChangeRequestCreatedRecordableEvent.class),
-            eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(document));
+        verify(this.changeRequestRecordableEventNotifier).notifyChangeRequestRecordableEvent(
+            any(ChangeRequestCreatedRecordableEvent.class),
+            eq(document));
     }
 }

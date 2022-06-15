@@ -59,6 +59,7 @@
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
     <discussions.version>2.0-rc-4</discussions.version>
     <rights-api.version>2.0-rc-6</rights-api.version>
+    <replication.version>0.13</replication.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
@@ -66,6 +67,7 @@
     <module>application-changerequest-ui</module>
     <module>application-changerequest-notifications</module>
     <module>application-changerequest-discussions</module>
+    <module>application-changerequest-replication</module>
   </modules>
   <profiles>
     <profile>

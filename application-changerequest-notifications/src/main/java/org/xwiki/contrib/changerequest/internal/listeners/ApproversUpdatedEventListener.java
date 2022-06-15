@@ -28,11 +28,12 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ApproversUpdatedTargetableEvent;
 import org.xwiki.observation.AbstractEventListener;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 
@@ -50,10 +51,10 @@ public class ApproversUpdatedEventListener extends AbstractEventListener
     static final String NAME = "ApproversUpdatedEventListener";
 
     @Inject
-    private ObservationManager observationManager;
+    private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
-    private RemoteObservationManagerContext remoteObservationManagerContext;
+    private ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
 
     /**
      * Default constructor.
@@ -72,8 +73,8 @@ public class ApproversUpdatedEventListener extends AbstractEventListener
             target.addAll(approvers.getRight());
             ApproversUpdatedTargetableEvent approversUpdatedTargetableEvent =
                 new ApproversUpdatedTargetableEvent(target);
-            this.observationManager.notify(approversUpdatedTargetableEvent,
-                AbstractChangeRequestEventListener.EVENT_SOURCE, source);
+            this.changeRequestRecordableEventNotifier
+                .notifyChangeRequestRecordableEvent(approversUpdatedTargetableEvent, (DocumentModelBridge) source);
         }
     }
 }

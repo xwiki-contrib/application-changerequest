@@ -38,12 +38,12 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceSerializer;
@@ -72,7 +72,7 @@ public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
     private UserReferenceSerializer<String> userReferenceSerializer;
 
     @Inject
-    private ObservationManager observationManager;
+    private ChangeRequestRecordableEventNotifier recordableEventNotifier;
 
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
@@ -129,7 +129,7 @@ public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
                     this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
                 DocumentModelBridge document =
                     this.documentAccessBridge.getTranslatedDocumentInstance(documentReference);
-                this.observationManager.notify(event, AbstractChangeRequestEventListener.EVENT_SOURCE, document);
+                this.recordableEventNotifier.notifyChangeRequestRecordableEvent(event, document);
             }
         } catch (ChangeRequestException e) {
             logger.error("Error while loading the list of explicit approvers.", e);

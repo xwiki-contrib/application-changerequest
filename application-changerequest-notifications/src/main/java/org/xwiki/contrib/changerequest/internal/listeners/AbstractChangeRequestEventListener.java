@@ -20,20 +20,15 @@
 package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.bridge.DocumentModelBridge;
-import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
-import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 
 /**
@@ -44,11 +39,6 @@ import org.xwiki.observation.event.Event;
  */
 public abstract class AbstractChangeRequestEventListener extends AbstractEventListener
 {
-    /**
-     * Default event source.
-     */
-    static final String EVENT_SOURCE = "org.xwiki.contrib.changerequest:application-changerequest-notifications";
-
     @Inject
     protected Logger logger;
 
@@ -56,13 +46,7 @@ public abstract class AbstractChangeRequestEventListener extends AbstractEventLi
     protected DocumentAccessBridge documentAccessBridge;
 
     @Inject
-    private ObservationManager observationManager;
-
-    @Inject
-    private Provider<ChangeRequestStorageManager> changeRequestStorageManager;
-
-    @Inject
-    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
+    protected ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
 
     /**
      * Default constructor.
@@ -78,20 +62,11 @@ public abstract class AbstractChangeRequestEventListener extends AbstractEventLi
     protected void notifyChangeRequestRecordableEvent(AbstractChangeRequestRecordableEvent event,
         DocumentModelBridge document)
     {
-        this.observationManager.notify(event, EVENT_SOURCE, document);
+        this.changeRequestRecordableEventNotifier.notifyChangeRequestRecordableEvent(event, document);
     }
 
     protected DocumentModelBridge getChangeRequestDocument(String changeRequestId) throws Exception
     {
-        Optional<ChangeRequest> optionalChangeRequest =
-            this.changeRequestStorageManager.get().load(changeRequestId);
-        if (optionalChangeRequest.isPresent()) {
-            ChangeRequest changeRequest = optionalChangeRequest.get();
-            return this.documentAccessBridge.getTranslatedDocumentInstance(
-                this.changeRequestDocumentReferenceResolver.resolve(changeRequest));
-        } else {
-            logger.error("Cannot find change request with identifier [{}]", changeRequestId);
-            return null;
-        }
+        return this.changeRequestRecordableEventNotifier.getChangeRequestDocument(changeRequestId);
     }
 }
