@@ -30,3 +30,4 @@ org.xwiki.contrib.changerequest.internal.converters.ChangeRequestReviewAddedReco
 org.xwiki.contrib.changerequest.internal.converters.ChangeRequestStatusChangedRecordableEventConverter
 org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler
 org.xwiki.contrib.changerequest.internal.converters.ChangeRequestCreatedRecordableEventConverter
+org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier

@@ -29,6 +29,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.ObservationContext;
@@ -96,10 +97,10 @@ class ChangeRequestCreatedEventListenerTest
             assertTrue(event.isFromSplit());
             return null;
         }).when(this.observationManager).notify(any(ChangeRequestCreatedRecordableEvent.class),
-            eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(document));
+            eq(ChangeRequestRecordableEventNotifier.EVENT_SOURCE), eq(document));
 
         this.listener.onEvent(new ChangeRequestCreatedEvent(), source, data);
         verify(this.observationManager).notify(any(ChangeRequestCreatedRecordableEvent.class),
-            eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(document));
+            eq(ChangeRequestRecordableEventNotifier.EVENT_SOURCE), eq(document));
     }
 }

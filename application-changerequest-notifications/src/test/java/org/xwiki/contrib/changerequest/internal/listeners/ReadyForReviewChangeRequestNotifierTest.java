@@ -32,6 +32,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -129,6 +130,6 @@ class ReadyForReviewChangeRequestNotifierTest
             ChangeRequestStatus.DRAFT, ChangeRequestStatus.READY_FOR_REVIEW
         });
         verify(this.observationManager).notify(any(ChangeRequestReadyForReviewTargetableEvent.class),
-            eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(documentModelBridge));
+            eq(ChangeRequestRecordableEventNotifier.EVENT_SOURCE), eq(documentModelBridge));
     }
 }

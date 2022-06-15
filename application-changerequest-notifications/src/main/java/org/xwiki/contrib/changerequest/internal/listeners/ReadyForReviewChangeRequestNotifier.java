@@ -38,6 +38,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -129,7 +130,7 @@ public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
                     this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
                 DocumentModelBridge document =
                     this.documentAccessBridge.getTranslatedDocumentInstance(documentReference);
-                this.observationManager.notify(event, AbstractChangeRequestEventListener.EVENT_SOURCE, document);
+                this.observationManager.notify(event, ChangeRequestRecordableEventNotifier.EVENT_SOURCE, document);
             }
         } catch (ChangeRequestException e) {
             logger.error("Error while loading the list of explicit approvers.", e);

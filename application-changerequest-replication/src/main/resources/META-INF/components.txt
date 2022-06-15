@@ -1,0 +1,9 @@
+org.xwiki.contrib.changerequest.replication.internal.listeners.ChangeRequestCreatedListener
+org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestCreatedReplicationSenderMessage
+org.xwiki.contrib.changerequest.replication.internal.receivers.ChangeRequestCreatedEventReceiver
+org.xwiki.contrib.changerequest.replication.internal.receivers.FileChangeAddedEventReceiver
+org.xwiki.contrib.changerequest.replication.internal.messages.FileChangeAddedReplicationSenderMessage
+org.xwiki.contrib.changerequest.replication.internal.listeners.FileChangeAddedListener
+org.xwiki.contrib.changerequest.replication.internal.listeners.StatusUpdatedListener
+org.xwiki.contrib.changerequest.replication.internal.messages.StatusUpdatedReplicationSenderMessage
+org.xwiki.contrib.changerequest.replication.internal.receivers.StatusUpdatedEventReceiver
