@@ -187,7 +187,7 @@ public class ChangeRequestConflictModal extends BaseModal
                     return this.forceSaveChoice.isDisplayed();
 
                 case CUSTOM:
-                    return this.customChoice.isDisplayed();
+                    return this.customChoice.isDisplayed() && this.customChoice.isEnabled();
 
                 default:
                     return false;
