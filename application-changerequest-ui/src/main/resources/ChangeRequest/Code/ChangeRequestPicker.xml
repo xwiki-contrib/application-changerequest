@@ -59,9 +59,7 @@
 
 {{velocity}}
 #if ("$!request.get('text')" != "")
-  #set ($references = $services.changerequest.findChangeRequestMatchingTitle($request.get('text')))
-  ## We filter out the change request that are not compatible with current doc.
-  #set ($references = $services.changerequest.filterCompatibleChangeRequest($references, $request.get('docChange')))
+  #set ($references = $services.changerequest.findOpenChangeRequestMatchingTitle($request.get('text')))
   #set ($result = [])
   #foreach ($reference in $references)
     #set ($crDoc = $xwiki.getDocument($reference))

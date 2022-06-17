@@ -206,6 +206,7 @@
         &lt;div id="form-validation-error"&gt;
           &lt;div id="missingChangeRequest" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.missingChangerequest')&lt;/div&gt;
           &lt;div id="minimumApprovers" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.minimumApprovers', ["$minimumApprovers"])&lt;/div&gt;
+          &lt;div id="crSelectorIncompatibilityReason" class="hidden text-danger"&gt;&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;&lt;!-- End modal body --&gt;
       &lt;div class="modal-footer"&gt;
@@ -222,6 +223,12 @@
   #set ($isTemplateSupported = $services.changerequest.isTemplateSupported($request.get('template')))
   #jsonResponse({
     'isSupported': $isTemplateSupported
+  })
+#elseif ($request.get('action') == 'checkCompatibility')
+  #set ($isCompatibleResult = $services.changerequest.checkDocumentChangeCompatibility($request.get('changeRequestTarget'), $request.get('docChange'), $request.get('changeType')))
+  #jsonResponse({
+    'isCompatible': $isCompatibleResult.left,
+    'incompatibilityReason': $isCompatibleResult.right
   })
 #end
 {{/velocity}}</content>
@@ -419,7 +426,7 @@
     
     
 
-    var validateForm = function () {
+    var validateForm = function (successCallback) {
       var crTitleField = $('#crTitle');
       var crSelectorField = $('#existingCRSelector');
       
@@ -441,7 +448,40 @@
           $('#minimumApprovers').addClass('hidden');
         }
       }
-      return isValid;
+      
+      if (crSelectorField.val()) {
+        var changeType = "EDITION";
+        if (saveConfig.isDeletion) {
+          changeType = "DELETION";
+        } else if (saveConfig.isCreation) {
+          changeType = "CREATION";
+        }
+
+        var validateSelectedCRUrl = saveChangeRequestModalDoc.getURL('get');
+        var data = {
+          'action': 'checkCompatibility',
+          'changeType': changeType,
+          'changeRequestTarget': crSelectorField.val(),
+          'outputSyntax': 'plain',
+          'docChange': xm.documentReference.toString()
+        }
+        $.get(validateSelectedCRUrl, data).done(function (data) {
+          if (!data.isCompatible) {
+            $('#crSelectorIncompatibilityReason').text(data.incompatibilityReason);
+            $('#crSelectorIncompatibilityReason').removeClass('hidden');
+          } else {
+            $('#crSelectorIncompatibilityReason').addClass('hidden');
+            if (isValid) {
+              successCallback();
+            }
+          }
+        }).fail(function (data) {
+          console.log(data);
+          new XWiki.widgets.Notification("Error while checking the compatibility of the selected change request:" + data, 'error');
+        });
+      } else if (isValid) {
+        successCallback();
+      }
     };
 
     self.openModal = function () {
@@ -472,9 +512,9 @@
           $('body').append(data);
           $('#changeRequestModal').modal('show');
           $('#saveChangeRequest').on('click', function (event) {
-            if (validateForm()) {
+            validateForm(function() {
               self.saveChangeRequest(event);
-            }
+            });
           });
           $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
         }).fail(function (data) {

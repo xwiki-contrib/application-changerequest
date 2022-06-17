@@ -84,7 +84,39 @@
           <analysisConfiguration>
             <revapi.differences>
               <criticality>allowed</criticality>
-              <differences/>
+              <differences>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference)</old>
+                  <new>method boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType)</new>
+                  <justification>Refactoring of the compatibility checker: we introduced the change type since it might impact the check.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.addedToInterface</code>
+                  <new>method java.lang.String org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::getIncompatibilityReason(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType)</new>
+                  <justification>Refactoring of the compatibility checker</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::filterCompatibleChangeRequest(java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt;, org.xwiki.model.reference.DocumentReference) throws org.xwiki.component.manager.ComponentLookupException, org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Refactoring of the compatibility checker: this method has been removed as it's not needed anymore for the picker.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::findChangeRequestMatchingTitle(java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Refactoring of the compatibility checker: this has been renamed to findOpenChangeRequestMatchingTitle.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager::getChangeRequestMatchingName(java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
+                  <justification>Refactoring of the compatibility checker: this has been renamed to getOpenChangeRequestMatchingName.</justification>
+                </item>
+              </differences>
             </revapi.differences>
           </analysisConfiguration>
         </configuration>

@@ -36,10 +36,25 @@ public interface FileChangeCompatibilityChecker
     /**
      * Check if the given document reference can be added to the given change request.
      *
-     * @param changeRequest the change request in which to add new chnages.
+     * @param changeRequest the change request in which to add new changes.
      * @param documentReference the reference of the document with new changes.
+     * @param changeType the type of change to be added in the change request.
      * @return {@code true} if the document can be added to the change request, {@code false} it there's an
      *          incompatibility.
      */
-    boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference);
+    boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType changeType);
+
+    /**
+     * Provides an explanation as of the reasons of the incompatibility.
+     * This method should return a localized explanation, the explanation can be static and the same for all inputs
+     * or can be dynamic and provides the very specific incompatibility reason for this specific document.
+     *
+     * @param changeRequest the change request in which to add new changes.
+     * @param documentReference the reference of the document with new changes.
+     * @param changeType the type of change to be added in the change request.
+     * @return a localized explanation as of the incompatibility reasons.
+     */
+    String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType changeType);
 }

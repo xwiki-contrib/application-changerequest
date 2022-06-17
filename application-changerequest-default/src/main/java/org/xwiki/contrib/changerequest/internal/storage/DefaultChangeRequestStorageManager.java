@@ -300,13 +300,16 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     }
 
     @Override
-    public List<DocumentReference> getChangeRequestMatchingName(String title) throws ChangeRequestException
+    public List<DocumentReference> getOpenChangeRequestMatchingName(String title) throws ChangeRequestException
     {
-        String statement = String.format("from doc.object(%s) as cr where doc.fullName like :reference",
-            this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS));
+        String statement = String.format(", BaseObject as obj , StringProperty as obj_status where "
+            + "doc.fullName like :reference and obj_status.value in %s and "
+            + "doc.fullName=obj.name and obj.className='%s' and obj_status.id.id=obj.id and obj_status.id.name='%s'",
+            getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
+            STATUS_FIELD);
         SpaceReference changeRequestSpaceLocation = this.configuration.getChangeRequestSpaceLocation();
         try {
-            Query query = this.queryManager.createQuery(statement, Query.XWQL);
+            Query query = this.queryManager.createQuery(statement, Query.HQL);
             query.bindValue(REFERENCE, String.format("%s.%%%s%%",
                 this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation), title));
             List<String> changeRequestDocuments = query.execute();

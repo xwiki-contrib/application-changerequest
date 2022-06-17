@@ -19,13 +19,16 @@
  */
 package org.xwiki.contrib.changerequest.internal.checkers;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -39,10 +42,21 @@ import org.xwiki.model.reference.DocumentReference;
 @Singleton
 public class ChangeRequestStatusChecker implements FileChangeCompatibilityChecker
 {
+    @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
+
     @Override
-    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference)
+    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType fileChangeType)
     {
         ChangeRequestStatus status = changeRequest.getStatus();
         return status != ChangeRequestStatus.CLOSED && status != ChangeRequestStatus.MERGED;
+    }
+
+    @Override
+    public String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType changeType)
+    {
+        return contextualLocalizationManager.getTranslationPlain("changerequest.checkers.status.incompatibilityReason");
     }
 }

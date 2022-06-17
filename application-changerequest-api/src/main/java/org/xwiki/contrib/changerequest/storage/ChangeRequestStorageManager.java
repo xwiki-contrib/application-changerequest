@@ -134,7 +134,7 @@ public interface ChangeRequestStorageManager
      * @throws ChangeRequestException in case of problem to find the change requests.
      * @since 0.3
      */
-    default List<DocumentReference> getChangeRequestMatchingName(String title) throws ChangeRequestException
+    default List<DocumentReference> getOpenChangeRequestMatchingName(String title) throws ChangeRequestException
     {
         return Collections.emptyList();
     }

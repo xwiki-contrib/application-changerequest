@@ -103,10 +103,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             fileChangeType = FileChange.FileChangeType.EDITION;
         }
         if (changeRequest != null) {
-            if (!this.checkDocumentCompatibility(changeRequest, documentReference)) {
-                this.contextProvider.get().getResponse()
-                    .sendError(412, "Error when checking the compatibility of the changes");
-            } else {
+            if (this.checkDocumentCompatibility(changeRequest, documentReference, fileChangeType)) {
                 UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
                 FileChange fileChange =
                     this.createFileChange(fileChangeType, changeRequest, modifiedDocument, documentReference, request,
@@ -128,15 +125,25 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         }
     }
 
-    private boolean checkDocumentCompatibility(ChangeRequest changeRequest, DocumentReference documentReference)
-        throws ChangeRequestException
+    private boolean checkDocumentCompatibility(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType fileChangeType)
+        throws ChangeRequestException, IOException
     {
         boolean canBeAdded = true;
         try {
             List<FileChangeCompatibilityChecker> checkers =
                 this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
+            String incompatibilityReason = "";
             for (FileChangeCompatibilityChecker checker : checkers) {
-                canBeAdded = canBeAdded && checker.canChangeOnDocumentBeAdded(changeRequest, documentReference);
+                canBeAdded = checker.canChangeOnDocumentBeAdded(changeRequest, documentReference, fileChangeType);
+                if (!canBeAdded) {
+                    incompatibilityReason =
+                        checker.getIncompatibilityReason(changeRequest, documentReference, fileChangeType);
+                    break;
+                }
+            }
+            if (!canBeAdded) {
+                this.contextProvider.get().getResponse().sendError(412, incompatibilityReason);
             }
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "

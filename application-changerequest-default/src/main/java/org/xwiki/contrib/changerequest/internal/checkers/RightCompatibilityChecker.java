@@ -29,7 +29,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -47,10 +49,14 @@ public class RightCompatibilityChecker implements FileChangeCompatibilityChecker
     private ChangeRequestRightsManager changeRequestRightsManager;
 
     @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
+
+    @Inject
     private Logger logger;
 
     @Override
-    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference)
+    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType changeType)
     {
         try {
             return this.changeRequestRightsManager.isViewAccessConsistent(changeRequest, documentReference);
@@ -59,5 +65,13 @@ public class RightCompatibilityChecker implements FileChangeCompatibilityChecker
                 changeRequest.getId(), documentReference, ExceptionUtils.getRootCauseMessage(e));
             return false;
         }
+    }
+
+    @Override
+    public String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
+        FileChange.FileChangeType changeType)
+    {
+        return this.contextualLocalizationManager
+            .getTranslationPlain("changerequest.checkers.right.incompatibilityReason");
     }
 }

@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +32,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -213,44 +213,53 @@ public class ChangeRequestScriptService implements ScriptService
      * @throws ChangeRequestException in case of problem for loading other change request.
      * @since 0.3
      */
-    public List<DocumentReference> findChangeRequestMatchingTitle(String title) throws ChangeRequestException
+    public List<DocumentReference> findOpenChangeRequestMatchingTitle(String title) throws ChangeRequestException
     {
-        return this.changeRequestStorageManager.getChangeRequestMatchingName(title);
+        return this.changeRequestStorageManager.getOpenChangeRequestMatchingName(title);
     }
 
     /**
-     * Filter the list of change request document references to only keep the ones that are compatible with the given
-     * document reference.
-     * @param changeRequestReferences the document references of change requests.
-     * @param newDocumentChange the new document that should be added to a change request.
-     * @return the list containing same entries than {@code changeRequestReferences} without the ones that are not
-     *         compatible given the {@link FileChangeCompatibilityChecker} implementations.
-     * @throws ComponentLookupException in case of problem to find the {@link FileChangeCompatibilityChecker}.
-     * @throws ChangeRequestException in case of problem to load the change request.
+     * Check if the given change identified by the document and the change type can be added to the given change
+     * request, or if there's an incompatibility. If there is an incompatibility, this method will return the reason
+     * of the incompatibility.
+     *
+     * @param changeRequestId the identifier of the change request.
+     * @param newDocumentChange the reference of the document to add in the change request.
+     * @param changeType the type of change to be made.
+     * @return a {@link Pair} whose left value is a boolean representing the compatibility, and left value is an empty
+     *         string in case of compatibility, or the actual incompatibility reason.
+     * @throws ComponentLookupException in case of problem to load the compatibility checkers components
+     * @throws ChangeRequestException in case of problem to load the change request
+     * @since 0.14
      */
-    public List<DocumentReference> filterCompatibleChangeRequest(List<DocumentReference> changeRequestReferences,
-        DocumentReference newDocumentChange) throws ComponentLookupException, ChangeRequestException
+    public Pair<Boolean, String> checkDocumentChangeCompatibility(String changeRequestId,
+        DocumentReference newDocumentChange, FileChange.FileChangeType changeType)
+        throws ComponentLookupException, ChangeRequestException
     {
-        List<FileChangeCompatibilityChecker> checkerList =
-            this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
+        boolean isCompatible = true;
+        String incompatibilityReason = "";
 
-        List<DocumentReference> result = new ArrayList<>();
-        for (DocumentReference changeRequestReference : changeRequestReferences) {
-            Optional<ChangeRequest> changeRequestOptional =
-                this.changeRequestStorageManager.load(changeRequestReference.getLastSpaceReference().getName());
-            boolean shouldBeAdded = false;
-            if (changeRequestOptional.isPresent()) {
-                shouldBeAdded = true;
-                for (FileChangeCompatibilityChecker compatibilityChecker : checkerList) {
-                    shouldBeAdded = shouldBeAdded && compatibilityChecker
-                        .canChangeOnDocumentBeAdded(changeRequestOptional.get(), newDocumentChange);
+        Optional<ChangeRequest> changeRequestOptional =
+            this.changeRequestStorageManager.load(changeRequestId);
+        if (changeRequestOptional.isEmpty()) {
+            isCompatible = false;
+            incompatibilityReason = String.format("Cannot find the given change request: %s", changeRequestId);
+        } else {
+            ChangeRequest changeRequest = changeRequestOptional.get();
+            List<FileChangeCompatibilityChecker> checkerList =
+                this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
+            for (FileChangeCompatibilityChecker fileChangeCompatibilityChecker : checkerList) {
+                if (!fileChangeCompatibilityChecker.canChangeOnDocumentBeAdded(changeRequest, newDocumentChange,
+                    changeType))
+                {
+                    isCompatible = false;
+                    incompatibilityReason = fileChangeCompatibilityChecker.getIncompatibilityReason(changeRequest,
+                        newDocumentChange, changeType);
+                    break;
                 }
             }
-            if (shouldBeAdded) {
-                result.add(changeRequestReference);
-            }
         }
-        return result;
+        return Pair.of(isCompatible, incompatibilityReason);
     }
 
     /**
@@ -321,8 +330,6 @@ public class ChangeRequestScriptService implements ScriptService
     {
         this.changeRequestManager.updateStatus(changeRequest, ChangeRequestStatus.CLOSED);
     }
-
-
 
     /**
      * Retrieve the {@link MergeApprovalStrategy} to be used.
