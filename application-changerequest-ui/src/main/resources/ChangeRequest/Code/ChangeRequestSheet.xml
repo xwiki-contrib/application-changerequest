@@ -3069,6 +3069,9 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 }
 .title-button-wrapper {
   float: right;
+}
+.panel-default.disabled &gt; .panel-heading {
+  color: #8e8e8e;
 }</code>
     </property>
     <property>

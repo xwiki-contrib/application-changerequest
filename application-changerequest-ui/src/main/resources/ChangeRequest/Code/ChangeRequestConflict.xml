@@ -61,6 +61,7 @@
       #set ($mergeDocument = $crMergeDocument.wrappedResult)
       #set ($fileChangeType = $crMergeDocument.type)
       #set ($contentConflicts = $mergeDocument.getConflicts('CONTENT'))
+      #set ($disableCustomResolution = !($contentConflicts &amp;&amp; !$contentConflicts.isEmpty() &amp;&amp; $contentConflicts.size() == $mergeDocument.conflicts.size()))
       #if ("$!request.get('decision')" == '')
 {{html clean="false"}}
 #set ($discard = $services.template.execute('diff_macros.vm'))
@@ -138,12 +139,9 @@
               &lt;div class="xHint"&gt;$services.localization.render('changerequest.conflict.modal.options.keeppublished.description')&lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
-          ## Display the custom choice only if there is conflicts only on the content of the page, for now we don't provide
-          ## a way to solve other kind of conflicts.
-          #if ($contentConflicts &amp;&amp; !$contentConflicts.isEmpty() &amp;&amp; $contentConflicts.size() == $mergeDocument.conflicts.size())
-          &lt;div class="panel #if ($warningConflictAction == "custom")panel-primary#{else}panel-default#end"&gt;
+          &lt;div class="panel #if ($warningConflictAction == "custom")panel-primary#{else}panel-default#end #if ($disableCustomResolution)disabled#end"&gt;
             &lt;div class="panel-radio"&gt;
-              &lt;input type="radio" id="actionCustomRadio" name="warningConflictAction" value="custom"#if ($warningConflictAction == "custom") checked="checked"#end /&gt;
+              &lt;input type="radio" id="actionCustomRadio" name="warningConflictAction" value="custom"#if ($warningConflictAction == "custom") checked="checked"#end #if ($disableCustomResolution)disabled="disabled"#end" /&gt;
             &lt;/div&gt;
             &lt;div class="panel-heading"&gt;
               &lt;label class="panel-title"&gt;
@@ -152,10 +150,13 @@
               &lt;/label&gt;
               &lt;div class="xHint"&gt;
                 $services.localization.render('core.editors.save.previewDiff.custom.hint')
+                &lt;br /&gt;
+                #if ($disableCustomResolution)
+                  $services.localization.render('changerequest.conflict.modal.custom.hint.disabled')
+                #end
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
-          #end
         &lt;/div&gt;
         &lt;div class="panel"&gt;
           &lt;div class="panel-heading" id="headingDiffChanges"&gt;
