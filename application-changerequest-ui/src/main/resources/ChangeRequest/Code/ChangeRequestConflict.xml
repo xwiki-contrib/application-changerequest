@@ -140,7 +140,7 @@
           &lt;/div&gt;
           ## Display the custom choice only if there is conflicts only on the content of the page, for now we don't provide
           ## a way to solve other kind of conflicts.
-          #if ($contentConflicts &amp;&amp; !$contentConflicts.isEmpty() &amp;&amp; $contentConflicts.size() == $mergeDocument.allConflicts.size())
+          #if ($contentConflicts &amp;&amp; !$contentConflicts.isEmpty() &amp;&amp; $contentConflicts.size() == $mergeDocument.conflicts.size())
           &lt;div class="panel #if ($warningConflictAction == "custom")panel-primary#{else}panel-default#end"&gt;
             &lt;div class="panel-radio"&gt;
               &lt;input type="radio" id="actionCustomRadio" name="warningConflictAction" value="custom"#if ($warningConflictAction == "custom") checked="checked"#end /&gt;
