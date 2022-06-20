@@ -50,8 +50,16 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Named("ChangeRequest.Code.FileChangeClass")
 public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
 {
-    static final LocalDocumentReference FILECHANGE_XCLASS =
+    /**
+     * Reference of the xclass.
+     */
+    public static final LocalDocumentReference FILECHANGE_XCLASS =
         new LocalDocumentReference(ChangeRequestXClassInitializer.CHANGE_REQUEST_SPACE, "FileChangeClass");
+
+    /**
+     * Name of the xobject property containing the change request identifier.
+     */
+    public static final String CHANGE_REQUEST_ID = "changeRequestId";
 
     static final String PREVIOUS_VERSION_PROPERTY = "previousVersion";
     static final String PREVIOUS_PUBLISHED_VERSION_PROPERTY = "previousPublishedVersion";
@@ -101,6 +109,7 @@ public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
             Arrays.stream(FileChange.FileChangeType.values())
                 .map(value -> value.name().toLowerCase(Locale.ROOT))
                 .collect(Collectors.joining()));
+        result |= xClass.addTextField(CHANGE_REQUEST_ID, CHANGE_REQUEST_ID, 100);
 
         return result;
     }

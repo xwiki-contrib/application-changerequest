@@ -67,6 +67,7 @@ import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.util.Util;
 
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.AUTHOR_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.CHANGE_REQUEST_ID;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.CREATION_DATE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILECHANGE_XCLASS;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILENAME_PROPERTY;
@@ -251,6 +252,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         }
         fileChangeObject.set(REFERENCE_LOCALE_PROPERTY, locale, context);
         fileChangeObject.set(TYPE_PROPERTY, fileChange.getType().name().toLowerCase(), context);
+        fileChangeObject.set(CHANGE_REQUEST_ID, fileChange.getChangeRequest().getId(), context);
     }
 
     @Override
