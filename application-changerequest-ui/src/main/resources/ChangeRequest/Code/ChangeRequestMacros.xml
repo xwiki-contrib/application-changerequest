@@ -120,15 +120,17 @@
 #end
 
 #macro (displayEvent $event)
-  ## we skip the document modified events, since they are basically redundant with the filechanges ones.
-  #if ($event.type != "changerequest.document.modified")
   #set ($escapedUserName = "$escapetool.xml($xwiki.getPlainUserName($event.user))")
   #set ($userArgument = "&lt;a class=""user-name"" href=""$escapetool.xml($xwiki.getURL($event.user))""&gt;$escapedUserName&lt;/a&gt;")
   #set ($localizationKey = "changerequest.timeline.$event.type")
   #set ($localizationArguments = [])
   #set ($discussionClass = $NULL)
   #set ($dataReviewId = $NULL)
-  #if ($event.type == "changerequest.create")
+  #set ($skip = false)
+  ## we skip the document modified events, since they are basically redundant with the filechanges ones.
+  #if ($event.type == "changerequest.document.modified")
+    #set ($skip = true)
+  #elseif ($event.type == "changerequest.create")
     #set ($actualDoc = $xwiki.getDocument($event.document))
     #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
   #elseif ($event.type == "changerequest.filechange.added")
@@ -138,6 +140,8 @@
       #set ($eventDoc = $fileChangeOpt.get().targetEntity)
       #set ($actualDoc = $xwiki.getDocument($eventDoc))
       #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+    #else
+      #set ($skip = true)
     #end
   #elseif ($event.type == "changerequest.status.modified")
     #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
@@ -174,6 +178,8 @@
         #set ($eventDoc = $fileChangeOpt.get().targetEntity)
         #set ($actualDoc = $xwiki.getDocument($eventDoc))
         #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+      #else
+        #set ($skip = true)
       #end
       #if ($isAboutConflictFixing == 'true')
         #set ($localizationKey = "${localizationKey}.conflictFixing")
@@ -200,6 +206,7 @@
   #else
     #set ($localizationArguments = [$userArgument])
   #end
+  #if (!$skip)
   &lt;li class="event"&gt;
     #getUserAvatarURL($event.user $avatarURL 80)
     &lt;span class="user-event user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
