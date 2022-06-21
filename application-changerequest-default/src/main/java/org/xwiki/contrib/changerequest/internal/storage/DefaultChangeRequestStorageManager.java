@@ -50,7 +50,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestMergeFailedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
-import org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent;
+import org.xwiki.contrib.changerequest.events.SplitChangeRequestEvent;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
@@ -499,7 +499,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 String.format("Error while performing deletion of change request document [%s]", changeRequestDocument),
                 e);
         }
-        this.observationManager.notify(new SplittedChangeRequestEvent(), changeRequest.getId(), result);
+        this.observationManager.notify(new SplitChangeRequestEvent(), changeRequest.getId(), result);
 
         return result;
     }

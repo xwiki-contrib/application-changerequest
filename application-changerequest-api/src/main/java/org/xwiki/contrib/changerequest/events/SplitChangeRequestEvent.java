@@ -24,7 +24,7 @@ import java.io.Serializable;
 import org.xwiki.observation.event.Event;
 
 /**
- * Event triggered when a change request is being splitted.
+ * Event triggered when a change request is split.
  *
  * The event also send the following parameters:
  * <ul>
@@ -35,11 +35,11 @@ import org.xwiki.observation.event.Event;
  * @version $Id$
  * @since 0.7
  */
-public class SplittedChangeRequestEvent implements Event, Serializable
+public class SplitChangeRequestEvent implements Event, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof SplittedChangeRequestEvent;
+        return otherEvent instanceof SplitChangeRequestEvent;
     }
 }

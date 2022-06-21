@@ -116,6 +116,13 @@
                   <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager::getChangeRequestMatchingName(java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
                   <justification>Refactoring of the compatibility checker: this has been renamed to getOpenChangeRequestMatchingName.</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.class.removed</code>
+                  <old>class org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent</old>
+                  <justification>Renamed the class to SplitChangeRequestEvent to fix english mistake...</justification>
+                </item>
+
               </differences>
             </revapi.differences>
           </analysisConfiguration>

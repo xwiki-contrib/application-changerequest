@@ -35,6 +35,8 @@ public class ChangeRequestCreatedRecordableEvent extends AbstractChangeRequestRe
      */
     public static final String EVENT_NAME = "changerequest.create";
 
+    private boolean fromSplit;
+
     /**
      * Default empty constructor.
      */
@@ -50,6 +52,23 @@ public class ChangeRequestCreatedRecordableEvent extends AbstractChangeRequestRe
     public ChangeRequestCreatedRecordableEvent(String id)
     {
         super(id);
+        this.fromSplit = false;
+    }
+
+    /**
+     * @return {@code true} if the change request is created because of a split.
+     */
+    public boolean isFromSplit()
+    {
+        return fromSplit;
+    }
+
+    /**
+     * @param fromSplit set {@code true} if the change request is created because of a split.
+     */
+    public void setFromSplit(boolean fromSplit)
+    {
+        this.fromSplit = fromSplit;
     }
 
     @Override

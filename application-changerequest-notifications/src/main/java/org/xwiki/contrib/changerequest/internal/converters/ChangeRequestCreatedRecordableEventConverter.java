@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal.converters;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -27,39 +26,36 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
-import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
-import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
-import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 
 /**
- * Default converter to be used for any {@link AbstractChangeRequestRecordableEvent} which don't have any specific
- * parameters.
+ * Converter for {@link ChangeRequestCreatedRecordableEvent}.
  *
  * @version $Id$
- * @since 0.11
+ * @since 0.14
  */
 @Component
 @Singleton
-@Named("org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent")
-public class DefaultChangeRequestRecordableEventConverter extends
-    AbstractChangeRequestRecordableEventConverter<AbstractChangeRequestRecordableEvent>
+@Named(ChangeRequestCreatedRecordableEvent.EVENT_NAME)
+public class ChangeRequestCreatedRecordableEventConverter extends
+    AbstractChangeRequestRecordableEventConverter<ChangeRequestCreatedRecordableEvent>
 {
+    /**
+     * Parameter for {@link ChangeRequestCreatedRecordableEvent#isFromSplit()} value.
+     */
+    public static final String IS_FROM_SPLIT_PARAMETER = "isFromSplit";
+
     /**
      * Default constructor.
      */
-    public DefaultChangeRequestRecordableEventConverter()
+    public ChangeRequestCreatedRecordableEventConverter()
     {
-        super(Arrays.asList(
-            new DocumentModifiedInChangeRequestEvent(),
-            new ChangeRequestUpdatedRecordableEvent(),
-            new StaleChangeRequestRecordableEvent()
-        ));
+        super(Collections.singletonList(new ChangeRequestCreatedRecordableEvent()));
     }
 
     @Override
-    protected Map<String, String> getSpecificParameters(AbstractChangeRequestRecordableEvent event)
+    protected Map<String, String> getSpecificParameters(ChangeRequestCreatedRecordableEvent event)
     {
-        return Collections.emptyMap();
+        return Collections.singletonMap(IS_FROM_SPLIT_PARAMETER, Boolean.toString(event.isFromSplit()));
     }
 }

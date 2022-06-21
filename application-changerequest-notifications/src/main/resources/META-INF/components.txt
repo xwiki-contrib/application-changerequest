@@ -29,3 +29,5 @@ org.xwiki.contrib.changerequest.internal.converters.ChangeRequestRebasedRecordab
 org.xwiki.contrib.changerequest.internal.converters.ChangeRequestReviewAddedRecordableEventConverter
 org.xwiki.contrib.changerequest.internal.converters.ChangeRequestStatusChangedRecordableEventConverter
 org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler
+org.xwiki.contrib.changerequest.internal.listeners.SplitChangeRequestEventListener
+org.xwiki.contrib.changerequest.internal.converters.ChangeRequestCreatedRecordableEventConverter
