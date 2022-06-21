@@ -233,6 +233,7 @@ class DefaultChangeRequestManagerTest
         UserReference userReference = mock(UserReference.class);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         ChangeRequestReview review = new ChangeRequestReview(changeRequest, false, userReference);
+        review.setNew(true);
         doAnswer(invocationOnMock -> {
             ChangeRequestReview review1 = invocationOnMock.getArgument(0);
             review.setReviewDate(review1.getReviewDate());

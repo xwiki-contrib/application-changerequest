@@ -27,4 +27,5 @@
 <suppressions>
   <!-- FIXME: this should be improved in the future -->
   <suppress checks="ClassFanOutComplexity" files="ChangeRequestDiscussionScriptService.java"/>
+  <suppress checks="ClassFanOutComplexity" files="DefaultChangeRequestDiscussionService.java"/>
 </suppressions>

@@ -88,7 +88,7 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                 XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
                 BaseObject xObject;
                 String saveComment;
-                if (StringUtils.isEmpty(review.getId())) {
+                if (StringUtils.isEmpty(review.getId()) || review.isNew()) {
                     int xObjectNumber = changeRequestDoc.createXObject(REVIEW_XCLASS, context);
                     xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
                     review.setId(String.format(ID_FORMAT, xObjectNumber));
@@ -111,6 +111,7 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
 
                 context.getWiki().saveDocument(changeRequestDoc, saveComment, context);
                 review.setSaved(true);
+                review.setNew(false);
             } catch (XWikiException e) {
                 throw new ChangeRequestException("Error while saving review", e);
             }

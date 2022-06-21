@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
@@ -42,6 +43,7 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestLineD
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionService;
 import org.xwiki.contrib.discussions.domain.Discussion;
@@ -72,6 +74,9 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
 
     @Inject
     private EntityReferenceSerializer<String> stringEntityReferenceSerializer;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public <T extends AbstractChangeRequestDiscussionContextReference> Discussion getOrCreateDiscussionFor(T reference)
@@ -180,19 +185,31 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         throws ChangeRequestDiscussionException
     {
         AbstractChangeRequestDiscussionContextReference reference = this.getReferenceFrom(discussion);
+        ChangeRequest newChangeRequest = null;
+        FileDiffLocation fileDiffLocation;
+        String lostDiscussionLoggerMsg = "Cannot find change request associated with file [{}] the discussion might be "
+            + "lost";
         switch (reference.getType()) {
             case FILE_DIFF:
-            case LINE_DIFF:
                 ChangeRequestFileDiffReference fileDiffReference = (ChangeRequestFileDiffReference) reference;
-                ChangeRequest newChangeRequest = null;
-                for (Map.Entry<List<String>, ChangeRequest> entry : splittedChangeRequests.entrySet()) {
-                    if (entry.getKey().contains(fileDiffReference.getFileDiffLocation().getTargetReference())) {
-                        newChangeRequest = entry.getValue();
-                        break;
-                    }
+                fileDiffLocation = fileDiffReference.getFileDiffLocation();
+                newChangeRequest = findChangeRequest(splittedChangeRequests, fileDiffLocation);
+                if (newChangeRequest != null) {
+                    this.moveFileDiffDiscussion(fileDiffReference, discussion, newChangeRequest);
+                } else {
+                    this.logger.error(lostDiscussionLoggerMsg, fileDiffLocation.getTargetReference());
                 }
+                break;
 
-                this.moveFileDiffDiscussion(fileDiffReference, discussion, newChangeRequest);
+            case LINE_DIFF:
+                ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) reference;
+                fileDiffLocation = lineDiffReference.getLineDiffLocation().getFileDiffLocation();
+                newChangeRequest = findChangeRequest(splittedChangeRequests, fileDiffLocation);
+                if (newChangeRequest != null) {
+                    this.moveLineDiffDiscussion(lineDiffReference, discussion, newChangeRequest);
+                } else {
+                    this.logger.error(lostDiscussionLoggerMsg, fileDiffLocation.getTargetReference());
+                }
                 break;
 
             case REVIEW:
@@ -202,6 +219,19 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
             default:
                 this.moveGlobalDiscussion(reference, discussion, splittedChangeRequests.values());
         }
+    }
+
+    private ChangeRequest findChangeRequest(Map<List<String>, ChangeRequest> splittedChangeRequests,
+        FileDiffLocation fileDiffLocation)
+    {
+        ChangeRequest result = null;
+        for (Map.Entry<List<String>, ChangeRequest> entry : splittedChangeRequests.entrySet()) {
+            if (entry.getKey().contains(fileDiffLocation.getTargetReference())) {
+                result = entry.getValue();
+                break;
+            }
+        }
+        return result;
     }
 
     private void moveLineDiffDiscussion(ChangeRequestLineDiffReference lineDiffReference, Discussion discussion,

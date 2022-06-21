@@ -470,7 +470,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 ChangeRequestReview clonedReview = review.cloneWithChangeRequest(splittedChangeRequest);
 
                 // we consider reviews as outdated for splitted change requests
-                // and we keep same id to avoid having to perform a mapping old/new reviews
+                // and we keep same id to avoid having to perform a mapping old/new reviews in discussions
                 clonedReview.setValid(false);
                 clonedReview.setId(review.getId());
 
@@ -482,10 +482,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
             result.add(splittedChangeRequest);
         }
-
-        this.discussionService.moveDiscussions(changeRequest, result);
         this.handleApproversInSplittedCR(changeRequest, result);
 
+        // Handle discussions last to not break the CR in case of problem there.
+        this.discussionService.moveDiscussions(changeRequest, result);
         DocumentReference changeRequestDocument = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         EntityRequest deleteRequest =
             this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(changeRequestDocument));
@@ -500,7 +500,6 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 e);
         }
         this.observationManager.notify(new SplitChangeRequestEvent(), changeRequest.getId(), result);
-
         return result;
     }
 

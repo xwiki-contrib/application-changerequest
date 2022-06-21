@@ -44,6 +44,8 @@ public class ChangeRequestReview
     private boolean isValid;
     private boolean isSaved;
     private boolean isLastFromAuthor;
+
+    private boolean isNew;
     private String id;
 
     /**
@@ -61,6 +63,7 @@ public class ChangeRequestReview
         this.reviewDate = new Date();
         this.isValid = true;
         this.isLastFromAuthor = true;
+        this.isNew = false;
     }
 
     /**
@@ -213,6 +216,24 @@ public class ChangeRequestReview
     }
 
     /**
+     * @return {@code true} if the review is a new one and has never been saved.
+     */
+    public boolean isNew()
+    {
+        return isNew;
+    }
+
+    /**
+     * @param aNew set to {@code true} if the review is a new one and has never been saved.
+     * @return the current instance.
+     */
+    public ChangeRequestReview setNew(boolean aNew)
+    {
+        isNew = aNew;
+        return this;
+    }
+
+    /**
      * Clone a review and assign it to the given change request. Note that the cloned review is marked as not saved by
      * default.
      *
@@ -225,7 +246,8 @@ public class ChangeRequestReview
         return new ChangeRequestReview(changeRequest, this.approved, this.author)
             .setReviewDate(this.reviewDate)
             .setValid(this.isValid)
-            .setSaved(false);
+            .setSaved(false)
+            .setNew(true);
     }
 
     @Override
@@ -248,6 +270,7 @@ public class ChangeRequestReview
             .append(originalApprover, that.originalApprover)
             .append(isValid, that.isValid)
             .append(id, that.id)
+            .append(isNew, that.isNew)
             .isEquals();
     }
 
@@ -261,6 +284,7 @@ public class ChangeRequestReview
             .append(reviewDate)
             .append(isValid)
             .append(id)
+            .append(isNew)
             .toHashCode();
     }
 
@@ -274,6 +298,7 @@ public class ChangeRequestReview
             .append("isValid", isValid)
             .append("isSaved", isSaved)
             .append("id", id)
+            .append("isNew", isNew)
             .toString();
     }
 }
