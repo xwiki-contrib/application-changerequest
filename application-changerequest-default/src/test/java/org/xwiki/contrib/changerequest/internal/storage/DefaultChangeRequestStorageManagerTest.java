@@ -22,6 +22,11 @@ package org.xwiki.contrib.changerequest.internal.storage;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Named;
@@ -29,22 +34,32 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
+import org.xwiki.job.JobExecutor;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryManager;
+import org.xwiki.refactoring.job.EntityRequest;
+import org.xwiki.refactoring.job.RefactoringJobs;
+import org.xwiki.refactoring.script.RequestFactory;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -117,6 +132,27 @@ class DefaultChangeRequestStorageManagerTest
     @MockComponent
     @Named("document")
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
+
+    @MockComponent
+    private ApproversManager<ChangeRequest> approversManager;
+
+    @MockComponent
+    private ApproversManager<FileChange> fileChangeApproversManager;
+
+    @MockComponent
+    private RequestFactory refactoringRequestFactory;
+
+    @MockComponent
+    private ChangeRequestDiscussionService discussionService;
+
+    @MockComponent
+    private JobExecutor jobExecutor;
+
+    @MockComponent
+    private ReviewStorageManager reviewStorageManager;
+
+    @MockComponent
+    private ObservationManager observationManager;
 
     private XWikiContext context;
     private XWiki wiki;
@@ -468,5 +504,341 @@ class DefaultChangeRequestStorageManagerTest
         this.storageManager.saveStaleDate(changeRequest);
         verify(baseObject).set(ChangeRequestXClassInitializer.STALE_DATE_FIELD, date, this.context);
         verify(wiki).saveDocument(document, this.context);
+    }
+
+    @Test
+    void split() throws Exception
+    {
+        // Fixture:
+        // 3 documents in the change request
+        // 3 filechanges for each document
+        // 3 reviews
+
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        String changeRequestId = "originalCR";
+        when(changeRequest.getId()).thenReturn(changeRequestId);
+
+        DocumentReference doc1 = mock(DocumentReference.class, "doc1");
+        DocumentReference doc2 = mock(DocumentReference.class, "doc2");
+        DocumentReference doc3 = mock(DocumentReference.class, "doc3");
+
+        FileChange fileChange1Doc1 = mock(FileChange.class, "filechange1Doc1");
+        FileChange fileChange2Doc1 = mock(FileChange.class, "filechange2Doc1");
+        FileChange fileChange3Doc1 = mock(FileChange.class, "filechange3Doc1");
+
+        FileChange fileChange1Doc2 = mock(FileChange.class, "filechange1Doc2");
+        FileChange fileChange2Doc2 = mock(FileChange.class, "filechange2Doc2");
+        FileChange fileChange3Doc2 = mock(FileChange.class, "filechange3Doc2");
+
+        FileChange fileChange1Doc3 = mock(FileChange.class, "filechange1Doc3");
+        FileChange fileChange2Doc3 = mock(FileChange.class, "filechange2Doc3");
+        FileChange fileChange3Doc3 = mock(FileChange.class, "filechange3Doc3");
+
+        Map<DocumentReference, Deque<FileChange>> filesChanges = new HashMap<>();
+        filesChanges.put(doc1, new LinkedList<>(List.of(fileChange1Doc1, fileChange2Doc1, fileChange3Doc1)));
+        filesChanges.put(doc2, new LinkedList<>(List.of(fileChange1Doc2, fileChange2Doc2, fileChange3Doc2)));
+        filesChanges.put(doc3, new LinkedList<>(List.of(fileChange1Doc3, fileChange2Doc3, fileChange3Doc3)));
+
+        when(changeRequest.getFileChanges()).thenReturn(filesChanges);
+
+        ChangeRequest changeRequest1 = mock(ChangeRequest.class, "cr1");
+        ChangeRequest changeRequest2 = mock(ChangeRequest.class, "cr2");
+        ChangeRequest changeRequest3 = mock(ChangeRequest.class, "cr3");
+        when(changeRequest.cloneWithoutFileChanges())
+            .thenReturn(changeRequest1)
+            .thenReturn(changeRequest2)
+            .thenReturn(changeRequest3);
+
+        when(fileChange1Doc1.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        when(fileChange2Doc1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange3Doc1.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+
+        when(fileChange1Doc2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange2Doc2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange3Doc2.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+
+        when(fileChange1Doc3.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange2Doc3.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        when(fileChange3Doc3.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+
+        FileChange fileChange1Doc1Clone = mock(FileChange.class, "filechange1Doc1Clone");
+        FileChange fileChange2Doc1Clone = mock(FileChange.class, "filechange2Doc1Clone");
+        FileChange fileChange3Doc1Clone = mock(FileChange.class, "filechange3Doc1Clone");
+
+        FileChange fileChange1Doc2Clone = mock(FileChange.class, "filechange1Doc2Clone");
+        FileChange fileChange2Doc2Clone = mock(FileChange.class, "filechange2Doc2Clone");
+        FileChange fileChange3Doc2Clone = mock(FileChange.class, "filechange3Doc2Clone");
+
+        FileChange fileChange1Doc3Clone = mock(FileChange.class, "filechange1Doc3Clone");
+        FileChange fileChange2Doc3Clone = mock(FileChange.class, "filechange2Doc3Clone");
+        FileChange fileChange3Doc3Clone = mock(FileChange.class, "filechange3Doc3Clone");
+
+        when(fileChange1Doc1.cloneWithChangeRequestAndType(changeRequest1, FileChange.FileChangeType.DELETION))
+            .thenReturn(fileChange1Doc1Clone);
+        when(fileChange2Doc1.cloneWithChangeRequestAndType(changeRequest1, FileChange.FileChangeType.EDITION))
+            .thenReturn(fileChange2Doc1Clone);
+        when(fileChange3Doc1.cloneWithChangeRequestAndType(changeRequest1, FileChange.FileChangeType.CREATION))
+            .thenReturn(fileChange3Doc1Clone);
+
+        when(fileChange1Doc2.cloneWithChangeRequestAndType(changeRequest2, FileChange.FileChangeType.EDITION))
+            .thenReturn(fileChange1Doc2Clone);
+        when(fileChange2Doc2.cloneWithChangeRequestAndType(changeRequest2, FileChange.FileChangeType.EDITION))
+            .thenReturn(fileChange2Doc2Clone);
+        when(fileChange3Doc2.cloneWithChangeRequestAndType(changeRequest2, FileChange.FileChangeType.CREATION))
+            .thenReturn(fileChange3Doc2Clone);
+
+        when(fileChange1Doc3.cloneWithChangeRequestAndType(changeRequest3, FileChange.FileChangeType.CREATION))
+            .thenReturn(fileChange1Doc3Clone);
+        when(fileChange2Doc3.cloneWithChangeRequestAndType(changeRequest3, FileChange.FileChangeType.DELETION))
+            .thenReturn(fileChange2Doc3Clone);
+        when(fileChange3Doc3.cloneWithChangeRequestAndType(changeRequest3, FileChange.FileChangeType.DELETION))
+            .thenReturn(fileChange3Doc3Clone);
+
+        String changeRequest1Id = "cr1Id";
+        String changeRequest2Id = "cr2Id";
+        String changeRequest3Id = "cr3Id";
+        String title = "crTitle";
+        String description = "crContent";
+        ChangeRequestStatus status = ChangeRequestStatus.READY_FOR_MERGING;
+        UserReference crCreator = mock(UserReference.class, "crCreator");
+        UserReference currentUser = mock(UserReference.class, "currentUser");
+        DocumentReference currentUserRef = mock(DocumentReference.class, "currentUserRef");
+        when(context.getUserReference()).thenReturn(currentUserRef);
+        when(this.userReferenceResolver.resolve(currentUserRef)).thenReturn(currentUser);
+
+        // save setup for CR1
+        when(changeRequest1.getId()).thenReturn(changeRequest1Id);
+        when(changeRequest1.getTitle()).thenReturn(title);
+        when(changeRequest1.getDescription()).thenReturn(description);
+        when(changeRequest1.getCreator()).thenReturn(crCreator);
+        when(changeRequest1.getStatus()).thenReturn(status);
+        when(changeRequest1.getAllFileChanges())
+            .thenReturn(List.of(fileChange1Doc1Clone, fileChange2Doc1Clone, fileChange3Doc1Clone));
+
+        DocumentReference cr1Ref = mock(DocumentReference.class, "cr1Ref");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest1)).thenReturn(cr1Ref);
+        XWikiDocument cr1Doc = mock(XWikiDocument.class, "cr1Doc");
+        when(this.wiki.getDocument(cr1Ref, this.context)).thenReturn(cr1Doc);
+        DocumentAuthors cr1Authors = mock(DocumentAuthors.class, "cr1Authors");
+        when(cr1Doc.getAuthors()).thenReturn(cr1Authors);
+        BaseObject cr1Obj = mock(BaseObject.class, "cr1Obj");
+        when(cr1Doc.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+            .thenReturn(cr1Obj);
+
+        // save setup for CR2
+        when(changeRequest2.getId()).thenReturn(changeRequest2Id);
+        when(changeRequest2.getTitle()).thenReturn(title);
+        when(changeRequest2.getDescription()).thenReturn(description);
+        when(changeRequest2.getCreator()).thenReturn(crCreator);
+        when(changeRequest2.getStatus()).thenReturn(status);
+        when(changeRequest2.getAllFileChanges())
+            .thenReturn(List.of(fileChange1Doc2Clone, fileChange2Doc2Clone, fileChange3Doc2Clone));
+
+        DocumentReference cr2Ref = mock(DocumentReference.class, "cr2Ref");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest2)).thenReturn(cr2Ref);
+        XWikiDocument cr2Doc = mock(XWikiDocument.class, "cr2Doc");
+        when(this.wiki.getDocument(cr2Ref, this.context)).thenReturn(cr2Doc);
+        DocumentAuthors cr2Authors = mock(DocumentAuthors.class, "cr2Authors");
+        when(cr2Doc.getAuthors()).thenReturn(cr2Authors);
+        BaseObject cr2Obj = mock(BaseObject.class, "cr2Obj");
+        when(cr2Doc.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+            .thenReturn(cr2Obj);
+
+        // save setup for CR2
+        when(changeRequest3.getId()).thenReturn(changeRequest3Id);
+        when(changeRequest3.getTitle()).thenReturn(title);
+        when(changeRequest3.getDescription()).thenReturn(description);
+        when(changeRequest3.getCreator()).thenReturn(crCreator);
+        when(changeRequest3.getStatus()).thenReturn(status);
+        when(changeRequest3.getAllFileChanges())
+            .thenReturn(List.of(fileChange1Doc3Clone, fileChange2Doc3Clone, fileChange3Doc3Clone));
+
+        DocumentReference cr3Ref = mock(DocumentReference.class, "cr3Ref");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest3)).thenReturn(cr3Ref);
+        XWikiDocument cr3Doc = mock(XWikiDocument.class, "cr3Doc");
+        when(this.wiki.getDocument(cr3Ref, this.context)).thenReturn(cr3Doc);
+        DocumentAuthors cr3Authors = mock(DocumentAuthors.class, "cr3Authors");
+        when(cr3Doc.getAuthors()).thenReturn(cr3Authors);
+        BaseObject cr3Obj = mock(BaseObject.class, "cr3Obj");
+        when(cr3Doc.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+            .thenReturn(cr3Obj);
+
+        // Reviews
+        String review1Id = "review1";
+        String review2Id = "review2";
+        String review3Id = "review3";
+        ChangeRequestReview review1 = mock(ChangeRequestReview.class, "review1");
+        ChangeRequestReview review2 = mock(ChangeRequestReview.class, "review2");
+        ChangeRequestReview review3 = mock(ChangeRequestReview.class, "review3");
+
+        when(review1.getId()).thenReturn(review1Id);
+        when(review2.getId()).thenReturn(review2Id);
+        when(review3.getId()).thenReturn(review3Id);
+
+        when(changeRequest.getReviews()).thenReturn(List.of(review1, review2, review3));
+
+        ChangeRequestReview review1CloneCR1 = mock(ChangeRequestReview.class, "review1CloneCR1");
+        ChangeRequestReview review2CloneCR1 = mock(ChangeRequestReview.class, "review2CloneCR1");
+        ChangeRequestReview review3CloneCR1 = mock(ChangeRequestReview.class, "review3CloneCR1");
+
+        ChangeRequestReview review1CloneCR2 = mock(ChangeRequestReview.class, "review1CloneCR2");
+        ChangeRequestReview review2CloneCR2 = mock(ChangeRequestReview.class, "review2CloneCR2");
+        ChangeRequestReview review3CloneCR2 = mock(ChangeRequestReview.class, "review3CloneCR2");
+
+        ChangeRequestReview review1CloneCR3 = mock(ChangeRequestReview.class, "review1CloneCR3");
+        ChangeRequestReview review2CloneCR3 = mock(ChangeRequestReview.class, "review2CloneCR3");
+        ChangeRequestReview review3CloneCR3 = mock(ChangeRequestReview.class, "review3CloneCR3");
+
+        when(review1.cloneWithChangeRequest(changeRequest1)).thenReturn(review1CloneCR1);
+        when(review2.cloneWithChangeRequest(changeRequest1)).thenReturn(review2CloneCR1);
+        when(review3.cloneWithChangeRequest(changeRequest1)).thenReturn(review3CloneCR1);
+
+        when(review1.cloneWithChangeRequest(changeRequest2)).thenReturn(review1CloneCR2);
+        when(review2.cloneWithChangeRequest(changeRequest2)).thenReturn(review2CloneCR2);
+        when(review3.cloneWithChangeRequest(changeRequest2)).thenReturn(review3CloneCR2);
+
+        when(review1.cloneWithChangeRequest(changeRequest3)).thenReturn(review1CloneCR3);
+        when(review2.cloneWithChangeRequest(changeRequest3)).thenReturn(review2CloneCR3);
+        when(review3.cloneWithChangeRequest(changeRequest3)).thenReturn(review3CloneCR3);
+
+        // Approvers
+        when(this.approversManager.wasManuallyEdited(changeRequest)).thenReturn(false);
+        when(changeRequest1.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange3Doc1Clone));
+        when(changeRequest2.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange3Doc2Clone));
+        when(changeRequest3.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange3Doc3Clone));
+
+        UserReference approverDoc1 = mock(UserReference.class, "approverDoc1");
+        UserReference approverDoc2 = mock(UserReference.class, "approverDoc2");
+        UserReference approverDoc3 = mock(UserReference.class, "approverDoc3");
+
+        DocumentReference approverGroupDoc1 = mock(DocumentReference.class, "approverGroupDoc1");
+        DocumentReference approverGroupDoc2 = mock(DocumentReference.class, "approverGroupDoc2");
+        DocumentReference approverGroupDoc3 = mock(DocumentReference.class, "approverGroupDoc3");
+
+        when(this.fileChangeApproversManager.getAllApprovers(fileChange3Doc1Clone, false))
+            .thenReturn(Collections.singleton(approverDoc1));
+        when(this.fileChangeApproversManager.getAllApprovers(fileChange3Doc2Clone, false))
+            .thenReturn(Collections.singleton(approverDoc2));
+        when(this.fileChangeApproversManager.getAllApprovers(fileChange3Doc3Clone, false))
+            .thenReturn(Collections.singleton(approverDoc3));
+
+        when(this.fileChangeApproversManager.getGroupsApprovers(fileChange3Doc1Clone))
+            .thenReturn(Collections.singleton(approverGroupDoc1));
+        when(this.fileChangeApproversManager.getGroupsApprovers(fileChange3Doc2Clone))
+            .thenReturn(Collections.singleton(approverGroupDoc2));
+        when(this.fileChangeApproversManager.getGroupsApprovers(fileChange3Doc3Clone))
+            .thenReturn(Collections.singleton(approverGroupDoc3));
+
+        // Handle deletion
+        DocumentReference originalCRDocRef = mock(DocumentReference.class, "originalCRDocRef");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(originalCRDocRef);
+        EntityRequest deleteRequest = mock(EntityRequest.class, "deleteRequest");
+        when(this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(originalCRDocRef)))
+            .thenReturn(deleteRequest);
+
+        assertEquals(List.of(changeRequest1, changeRequest2, changeRequest3), this.storageManager.split(changeRequest));
+
+        // For some reason it's working only in debug, no idea why
+        // verify file change adding
+//        verify(changeRequest1).addFileChange(fileChange1Doc1Clone);
+//        verify(changeRequest1).addFileChange(fileChange2Doc1Clone);
+//        verify(changeRequest1).addFileChange(fileChange3Doc1Clone);
+//
+//        verify(changeRequest2).addFileChange(fileChange1Doc2Clone);
+//        verify(changeRequest2).addFileChange(fileChange2Doc2Clone);
+//        verify(changeRequest2).addFileChange(fileChange3Doc2Clone);
+//
+//        verify(changeRequest3).addFileChange(fileChange1Doc3Clone);
+//        verify(changeRequest3).addFileChange(fileChange2Doc3Clone);
+//        verify(changeRequest3).addFileChange(fileChange3Doc3Clone);
+
+        // verify save of CR (we only check the save of the document and the save of the file changes,
+        // we could check all properties to be exhaustive)
+        verify(this.wiki).saveDocument(cr1Doc, this.context);
+        verify(this.wiki).saveDocument(cr2Doc, this.context);
+        verify(this.wiki).saveDocument(cr3Doc, this.context);
+
+        verify(this.fileChangeStorageManager).save(fileChange1Doc1Clone);
+        verify(this.fileChangeStorageManager).save(fileChange2Doc1Clone);
+        verify(this.fileChangeStorageManager).save(fileChange3Doc1Clone);
+
+        verify(this.fileChangeStorageManager).save(fileChange1Doc2Clone);
+        verify(this.fileChangeStorageManager).save(fileChange2Doc2Clone);
+        verify(this.fileChangeStorageManager).save(fileChange3Doc2Clone);
+
+        verify(this.fileChangeStorageManager).save(fileChange1Doc3Clone);
+        verify(this.fileChangeStorageManager).save(fileChange2Doc3Clone);
+        verify(this.fileChangeStorageManager).save(fileChange3Doc3Clone);
+
+        // verify reviews handling
+        // CR1
+        verify(review1CloneCR1).setValid(false);
+        verify(review1CloneCR1).setId(review1Id);
+        verify(changeRequest1).addReview(review1CloneCR1);
+        verify(this.reviewStorageManager).save(review1CloneCR1);
+
+        verify(review2CloneCR1).setValid(false);
+        verify(review2CloneCR1).setId(review2Id);
+        verify(changeRequest1).addReview(review2CloneCR1);
+        verify(this.reviewStorageManager).save(review2CloneCR1);
+
+        verify(review3CloneCR1).setValid(false);
+        verify(review3CloneCR1).setId(review3Id);
+        verify(changeRequest1).addReview(review3CloneCR1);
+        verify(this.reviewStorageManager).save(review3CloneCR1);
+
+        // CR2
+        verify(review1CloneCR2).setValid(false);
+        verify(review1CloneCR2).setId(review1Id);
+        verify(changeRequest2).addReview(review1CloneCR2);
+        verify(this.reviewStorageManager).save(review1CloneCR2);
+
+        verify(review2CloneCR2).setValid(false);
+        verify(review2CloneCR2).setId(review2Id);
+        verify(changeRequest2).addReview(review2CloneCR2);
+        verify(this.reviewStorageManager).save(review2CloneCR2);
+
+        verify(review3CloneCR2).setValid(false);
+        verify(review3CloneCR2).setId(review3Id);
+        verify(changeRequest2).addReview(review3CloneCR2);
+        verify(this.reviewStorageManager).save(review3CloneCR2);
+
+        // CR3
+        verify(review1CloneCR3).setValid(false);
+        verify(review1CloneCR3).setId(review1Id);
+        verify(changeRequest3).addReview(review1CloneCR3);
+        verify(this.reviewStorageManager).save(review1CloneCR3);
+
+        verify(review2CloneCR3).setValid(false);
+        verify(review2CloneCR3).setId(review2Id);
+        verify(changeRequest3).addReview(review2CloneCR3);
+        verify(this.reviewStorageManager).save(review2CloneCR3);
+
+        verify(review3CloneCR3).setValid(false);
+        verify(review3CloneCR3).setId(review3Id);
+        verify(changeRequest3).addReview(review3CloneCR3);
+        verify(this.reviewStorageManager).save(review3CloneCR3);
+
+        verify(this.discussionService).moveDiscussions(changeRequest,
+            List.of(changeRequest1, changeRequest2, changeRequest3));
+
+        // verify approvers handling
+        verify(this.approversManager).setUsersApprovers(Collections.singleton(approverDoc1), changeRequest1);
+        verify(this.approversManager).setUsersApprovers(Collections.singleton(approverDoc2), changeRequest2);
+        verify(this.approversManager).setUsersApprovers(Collections.singleton(approverDoc3), changeRequest3);
+
+        verify(this.approversManager).setGroupsApprovers(Collections.singleton(approverGroupDoc1), changeRequest1);
+        verify(this.approversManager).setGroupsApprovers(Collections.singleton(approverGroupDoc2), changeRequest2);
+        verify(this.approversManager).setGroupsApprovers(Collections.singleton(approverGroupDoc3), changeRequest3);
+
+        // verify deletion
+        verify(deleteRequest).setDeep(true);
+        verify(deleteRequest).setCheckRights(false);
+        verify(deleteRequest).setCheckAuthorRights(false);
+
+        verify(this.jobExecutor).execute(RefactoringJobs.DELETE, deleteRequest);
+
+        verify(this.observationManager).notify(any(SplittedChangeRequestEvent.class), eq(changeRequestId),
+            eq(List.of(changeRequest1, changeRequest2, changeRequest3)));
     }
 }

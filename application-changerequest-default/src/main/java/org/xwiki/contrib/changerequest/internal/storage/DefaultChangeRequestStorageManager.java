@@ -38,6 +38,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
@@ -70,6 +71,7 @@ import org.xwiki.query.QueryManager;
 import org.xwiki.refactoring.job.EntityRequest;
 import org.xwiki.refactoring.job.RefactoringJobs;
 import org.xwiki.refactoring.script.RequestFactory;
+import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
 
@@ -154,6 +156,12 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Inject
     @Named("document")
     private UserReferenceResolver<DocumentReference> userReferenceResolver;
+
+    @Inject
+    private ApproversManager<ChangeRequest> approversManager;
+
+    @Inject
+    private ApproversManager<FileChange> fileChangeApproversManager;
 
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
@@ -463,19 +471,20 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
                 // we consider reviews as outdated for splitted change requests
                 // and we keep same id to avoid having to perform a mapping old/new reviews
-                clonedReview
-                    .setValid(false)
-                    .setId(review.getId());
+                clonedReview.setValid(false);
+                clonedReview.setId(review.getId());
 
-                splittedChangeRequest.addReview(review);
+                splittedChangeRequest.addReview(clonedReview);
                 this.reviewStorageManager.save(clonedReview);
             }
             this.changeRequestRightsManager.copyAllButViewRights(changeRequest, splittedChangeRequest);
             this.changeRequestRightsManager.copyViewRights(splittedChangeRequest, entry.getKey());
+
             result.add(splittedChangeRequest);
         }
 
         this.discussionService.moveDiscussions(changeRequest, result);
+        this.handleApproversInSplittedCR(changeRequest, result);
 
         DocumentReference changeRequestDocument = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         EntityRequest deleteRequest =
@@ -490,10 +499,33 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 String.format("Error while performing deletion of change request document [%s]", changeRequestDocument),
                 e);
         }
-        // TODO: put placeholder with redirect
-
         this.observationManager.notify(new SplittedChangeRequestEvent(), changeRequest.getId(), result);
 
         return result;
+    }
+
+    private void handleApproversInSplittedCR(ChangeRequest changeRequest, List<ChangeRequest> result)
+        throws ChangeRequestException
+    {
+        // Set back the list of approvers
+        if (this.approversManager.wasManuallyEdited(changeRequest)) {
+            Set<DocumentReference> groupsApprovers = this.approversManager.getGroupsApprovers(changeRequest);
+            Set<UserReference> usersApprovers = this.approversManager.getAllApprovers(changeRequest, false);
+
+            for (ChangeRequest splittedChangeRequest : result) {
+                this.approversManager.setGroupsApprovers(groupsApprovers, splittedChangeRequest);
+                this.approversManager.setUsersApprovers(usersApprovers, splittedChangeRequest);
+            }
+        } else {
+            for (ChangeRequest splittedChangeRequest : result) {
+                // Each change request contains filechanges for a single document reference, so we can get it like that
+                FileChange fileChange = splittedChangeRequest.getLastFileChanges().get(0);
+                Set<DocumentReference> groupsApprovers =
+                    this.fileChangeApproversManager.getGroupsApprovers(fileChange);
+                Set<UserReference> usersApprovers = this.fileChangeApproversManager.getAllApprovers(fileChange, false);
+                this.approversManager.setGroupsApprovers(groupsApprovers, splittedChangeRequest);
+                this.approversManager.setUsersApprovers(usersApprovers, splittedChangeRequest);
+            }
+        }
     }
 }
