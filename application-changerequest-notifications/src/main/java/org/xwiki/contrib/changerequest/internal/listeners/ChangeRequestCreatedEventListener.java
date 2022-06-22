@@ -31,8 +31,10 @@ import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
 
 /**
@@ -53,6 +55,9 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
 
     @Inject
     private Provider<ChangeRequestAutoWatchHandler> autoWatchHandlerProvider;
+
+    @Inject
+    private ObservationContext observationContext;
 
     /**
      * Default constructor.
@@ -75,6 +80,9 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
                 changeRequest.getModifiedDocuments().iterator().next());
             ChangeRequestCreatedRecordableEvent recordableEvent =
                 new ChangeRequestCreatedRecordableEvent(changeRequestId);
+            if (observationContext.isIn(new SplitBeginChangeRequestEvent())) {
+                recordableEvent.setFromSplit(true);
+            }
             this.notifyChangeRequestRecordableEvent(recordableEvent, documentInstance);
         } catch (Exception e) {
             this.logger.error(

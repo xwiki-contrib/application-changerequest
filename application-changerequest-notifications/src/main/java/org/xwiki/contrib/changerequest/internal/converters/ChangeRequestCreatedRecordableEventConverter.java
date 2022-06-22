@@ -43,7 +43,7 @@ public class ChangeRequestCreatedRecordableEventConverter extends
     /**
      * Parameter for {@link ChangeRequestCreatedRecordableEvent#isFromSplit()} value.
      */
-    public static final String IS_FROM_SPLIT_PARAMETER = "isFromSplit";
+    public static final String IS_FROM_SPLIT_PARAMETER = CHANGE_REQUEST_PREFIX_PARAMETER_KEY + "create.fromSplit";
 
     /**
      * Default constructor.

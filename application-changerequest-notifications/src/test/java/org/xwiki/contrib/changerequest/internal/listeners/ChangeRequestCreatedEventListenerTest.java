@@ -27,9 +27,11 @@ import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -38,6 +40,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -64,6 +67,9 @@ class ChangeRequestCreatedEventListenerTest
     private ObservationManager observationManager;
 
     @MockComponent
+    private ObservationContext observationContext;
+
+    @MockComponent
     private DocumentAccessBridge documentAccessBridge;
 
     @Test
@@ -82,9 +88,12 @@ class ChangeRequestCreatedEventListenerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.documentAccessBridge.getTranslatedDocumentInstance(documentReference)).thenReturn(document);
 
+        when(observationContext.isIn(any(SplitBeginChangeRequestEvent.class))).thenReturn(true);
+
         doAnswer(invocation -> {
             ChangeRequestCreatedRecordableEvent event = invocation.getArgument(0);
             assertEquals(source, event.getChangeRequestId());
+            assertTrue(event.isFromSplit());
             return null;
         }).when(this.observationManager).notify(any(ChangeRequestCreatedRecordableEvent.class),
             eq(AbstractChangeRequestEventListener.EVENT_SOURCE), eq(document));

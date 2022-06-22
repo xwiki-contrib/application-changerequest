@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     private ChangeRequestDiscussionFactory changeRequestDiscussionFactory;
 
     @Inject
+    @Named("compactwiki")
     private EntityReferenceSerializer<String> stringEntityReferenceSerializer;
 
     @Inject

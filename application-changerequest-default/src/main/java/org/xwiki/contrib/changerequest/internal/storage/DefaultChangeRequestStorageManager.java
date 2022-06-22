@@ -46,11 +46,13 @@ import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergeFailedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
-import org.xwiki.contrib.changerequest.events.SplitChangeRequestEvent;
+import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
+import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
@@ -454,8 +456,11 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public List<ChangeRequest> split(ChangeRequest changeRequest) throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
+        this.observationManager.notify(new SplitBeginChangeRequestEvent(), changeRequest.getId(), changeRequest);
         Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
 
+        // Split the change request and create the new ones with appropriate file changes
+        // and handle rights right away
         for (Map.Entry<DocumentReference, Deque<FileChange>> entry : fileChanges.entrySet()) {
             ChangeRequest splittedChangeRequest = changeRequest.cloneWithoutFileChanges();
 
@@ -466,6 +471,17 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             }
 
             this.save(splittedChangeRequest);
+
+            this.changeRequestRightsManager.copyAllButViewRights(changeRequest, splittedChangeRequest);
+            this.changeRequestRightsManager.copyViewRights(splittedChangeRequest, entry.getKey());
+
+            this.observationManager.notify(new ChangeRequestCreatedEvent(),
+                splittedChangeRequest.getId(), splittedChangeRequest);
+            result.add(splittedChangeRequest);
+        }
+
+        // Handle the reviews
+        for (ChangeRequest splittedChangeRequest : result) {
             for (ChangeRequestReview review : changeRequest.getReviews()) {
                 ChangeRequestReview clonedReview = review.cloneWithChangeRequest(splittedChangeRequest);
 
@@ -477,11 +493,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 splittedChangeRequest.addReview(clonedReview);
                 this.reviewStorageManager.save(clonedReview);
             }
-            this.changeRequestRightsManager.copyAllButViewRights(changeRequest, splittedChangeRequest);
-            this.changeRequestRightsManager.copyViewRights(splittedChangeRequest, entry.getKey());
 
-            result.add(splittedChangeRequest);
         }
+
+        // Handle the approvers
         this.handleApproversInSplittedCR(changeRequest, result);
 
         // Handle discussions last to not break the CR in case of problem there.
@@ -499,7 +514,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 String.format("Error while performing deletion of change request document [%s]", changeRequestDocument),
                 e);
         }
-        this.observationManager.notify(new SplitChangeRequestEvent(), changeRequest.getId(), result);
+        this.observationManager.notify(new SplitEndChangeRequestEvent(), changeRequest.getId(), result);
         return result;
     }
 

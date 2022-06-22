@@ -153,6 +153,7 @@ ChangeRequest.Code.ApproversClass_manualEdition=Manually edited
 ChangeRequest.Code.ApproversClass_manualEdition_hint=Check the box if you don't want the approvers to be automatically synchronized when new changes are published.
 
 changerequest.timeline.changerequest.create={0} created the change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.create.fromSplit={0} created the change request by splitting an old change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.status.modified={0} changed the status of the change request from {1} to {2}
 changerequest.timeline.changerequest.review.added.approval={0} added a new approval review

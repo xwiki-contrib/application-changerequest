@@ -42,7 +42,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
-import org.xwiki.contrib.changerequest.events.SplitChangeRequestEvent;
+import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
@@ -838,7 +838,7 @@ class DefaultChangeRequestStorageManagerTest
 
         verify(this.jobExecutor).execute(RefactoringJobs.DELETE, deleteRequest);
 
-        verify(this.observationManager).notify(any(SplitChangeRequestEvent.class), eq(changeRequestId),
+        verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
             eq(List.of(changeRequest1, changeRequest2, changeRequest3)));
     }
 }

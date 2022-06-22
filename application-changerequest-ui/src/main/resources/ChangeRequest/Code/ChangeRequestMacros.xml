@@ -131,6 +131,10 @@
   #if ($event.type == "changerequest.document.modified")
     #set ($skip = true)
   #elseif ($event.type == "changerequest.create")
+    #set ($isFromSplit = $event.parameters.get('changerequest.create.fromSplit'))
+    #if ($isFromSplit)
+      #set ($localizationKey = "${localizationKey}.fromSplit")
+    #end
     #set ($actualDoc = $xwiki.getDocument($event.document))
     #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
   #elseif ($event.type == "changerequest.filechange.added")

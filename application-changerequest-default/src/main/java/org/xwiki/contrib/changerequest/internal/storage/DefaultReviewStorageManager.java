@@ -63,6 +63,8 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
 {
     static final String ID_FORMAT = "xobject_%s";
 
+    static final String REVIEW_ID_SEPARATOR = "_";
+
     @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
@@ -87,14 +89,16 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
             try {
                 XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
                 BaseObject xObject;
-                String saveComment;
-                if (StringUtils.isEmpty(review.getId()) || review.isNew()) {
+                String saveComment = "Add new review";
+                if (StringUtils.isEmpty(review.getId())) {
                     int xObjectNumber = changeRequestDoc.createXObject(REVIEW_XCLASS, context);
                     xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
                     review.setId(String.format(ID_FORMAT, xObjectNumber));
-                    saveComment = "Add new review";
+                } else if (review.isNew()) {
+                    int xObjectNumber = Integer.parseInt(review.getId().split(REVIEW_ID_SEPARATOR)[1]);
+                    xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber, true, context);
                 } else {
-                    int xObjectNumber = Integer.parseInt(review.getId().split("_")[1]);
+                    int xObjectNumber = Integer.parseInt(review.getId().split(REVIEW_ID_SEPARATOR)[1]);
                     xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
                     saveComment = "Update existing review";
                 }

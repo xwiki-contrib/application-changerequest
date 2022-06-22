@@ -19,27 +19,25 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
-import java.io.Serializable;
-
-import org.xwiki.observation.event.Event;
+import org.xwiki.observation.event.BeginEvent;
 
 /**
- * Event triggered when a change request is split.
+ * Event triggered when a change request is about to be split.
  *
  * The event also send the following parameters:
  * <ul>
  *     <li>source: the original change request identifier</li>
- *     <li>data: the list of created change requests</li>
+ *     <li>data: the change request object</li>
  * </ul>
  *
  * @version $Id$
  * @since 0.7
  */
-public class SplitChangeRequestEvent implements Event, Serializable
+public class SplitBeginChangeRequestEvent implements BeginEvent
 {
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof SplitChangeRequestEvent;
+        return otherEvent instanceof SplitBeginChangeRequestEvent;
     }
 }
