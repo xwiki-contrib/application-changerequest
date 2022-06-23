@@ -55,4 +55,10 @@ public class AllITs
     class NestedDelegateApproversIT extends DelegateApproversIT
     {
     }
+    
+    @Nested
+    @DisplayName("Split Change Request feature")
+    class NestedSplitChangeRequestIT extends SplitChangeRequestIT
+    {
+    }
 }
