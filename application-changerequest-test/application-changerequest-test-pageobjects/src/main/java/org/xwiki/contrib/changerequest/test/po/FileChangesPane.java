@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.test.po;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -107,9 +109,7 @@ public class FileChangesPane extends BaseElement
      */
     public LiveDataElement getFileChangesListLiveData()
     {
-        LiveDataElement liveDataElement = new LiveDataElement("changerequest-filechanges");
-        liveDataElement.getTableLayout().waitUntilReady();
-        return liveDataElement;
+        return new LiveDataElement("changerequest-filechanges");
     }
 
     private WebElement getDiffHeading(String serializedReference)
@@ -313,5 +313,19 @@ public class FileChangesPane extends BaseElement
         tableLayout.filterColumn(LOCATION_COLUMN_NAME, serializedReference);
         WebElement changeType = tableLayout.getCell("Change type", 1);
         return ChangeType.relaxedValueOf(changeType.getText());
+    }
+
+    /**
+     * @return the list of modified documents.
+     */
+    public List<String> getListOfChangedFiles()
+    {
+        TableLayoutElement tableLayout = this.getFileChangesListLiveData().getTableLayout();
+        int rows = tableLayout.countRows();
+        List<String> result = new ArrayList<>();
+        for (int i = 1; i <= rows; i++) {
+            result.add(tableLayout.getCell("Title", i).getText());
+        }
+        return result;
     }
 }

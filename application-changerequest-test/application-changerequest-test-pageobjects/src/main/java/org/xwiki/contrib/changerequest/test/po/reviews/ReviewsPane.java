@@ -20,7 +20,9 @@
 package org.xwiki.contrib.changerequest.test.po.reviews;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -36,6 +38,10 @@ import org.xwiki.test.ui.po.BaseElement;
 @Unstable
 public class ReviewsPane extends BaseElement
 {
+    private static final String APPROVERS_CLASS = "approvers";
+
+    private static final String APPROVERS_LIST_CLASS = "approvers-list";
+
     private final WebElement container;
 
     /**
@@ -55,8 +61,24 @@ public class ReviewsPane extends BaseElement
      */
     public boolean hasListOfApprovers()
     {
-        WebElement approvers = this.container.findElement(By.className("approvers"));
-        return getDriver().hasElement(approvers, By.className("approvers-list"));
+        WebElement approvers = this.container.findElement(By.className(APPROVERS_CLASS));
+        return getDriver().hasElement(approvers, By.className(APPROVERS_LIST_CLASS));
+    }
+
+    /**
+     * @return the list of approvers.
+     */
+    public List<String> getListOfApprovers()
+    {
+        if (hasListOfApprovers()) {
+            WebElement approvers = this.container.findElement(By.className(APPROVERS_CLASS));
+            List<WebElement> elements = approvers
+                .findElement(By.className(APPROVERS_LIST_CLASS))
+                .findElements(By.tagName("li"));
+            return elements.stream().map(WebElement::getText).collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     /**

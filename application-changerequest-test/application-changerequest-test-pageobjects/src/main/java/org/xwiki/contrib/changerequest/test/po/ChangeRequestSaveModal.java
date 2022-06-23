@@ -129,7 +129,7 @@ public class ChangeRequestSaveModal extends BaseModal
             new SuggestInputElement(this.getDriver().findElement(By.id("existingCRSelector")));
         suggestInputElement.sendKeys(changeRequestName);
         suggestInputElement.waitForSuggestions();
-        suggestInputElement.selectTypedText();
+        suggestInputElement.selectByVisibleText(changeRequestName);
     }
 
     /**

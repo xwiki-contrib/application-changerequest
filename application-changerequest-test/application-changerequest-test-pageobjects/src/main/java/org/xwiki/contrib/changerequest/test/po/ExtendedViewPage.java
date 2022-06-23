@@ -40,6 +40,8 @@ public class ExtendedViewPage extends ViewPage
     private static final String STANDARD_CREATE_ID = "tmCreate";
     private static final String CR_CREATE_ID = "crCreate";
 
+    private static final String CR_TAB_ID = "org.xwiki.contrib.changerequest.docextratab";
+
     /**
      * Check if the current view has a change request edit button: this button is normally visible only when users does
      * not have edit right, but has right to create a change request.
@@ -192,5 +194,16 @@ public class ExtendedViewPage extends ViewPage
         WebElement createButton = getDriver().findElementWithoutWaiting(By.id(CR_CREATE_ID));
         createButton.click();
         return new ExtendedCreatePage();
+    }
+
+    /**
+     * Open the doc tab on the bottom of the page containing the list of change requests for that page.
+     * @return the {@link ChangeRequestLiveDataElement} containing in the tab.
+     */
+    public ChangeRequestLiveDataElement openChangeRequestTab()
+    {
+        WebElement tab = getDriver().findElementWithoutWaiting(By.id(CR_TAB_ID));
+        tab.click();
+        return new ChangeRequestLiveDataElement("changerequest-livetable");
     }
 }
