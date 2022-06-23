@@ -151,6 +151,7 @@ ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Gruppen von Benutzern des
 ChangeRequest.Code.ApproversClass_manualEdition=Manuell bearbeitet
 ChangeRequest.Code.ApproversClass_manualEdition_hint=Aktivieren Sie das Kontrollkästchen, wenn Sie nicht möchten, dass die genehmigenden Personen automatisch synchronisiert werden, wenn neue Änderungen veröffentlicht werden.
 changerequest.timeline.changerequest.create={0} hat die Änderungsanforderung mit Änderungen bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; erstellt
+changerequest.timeline.changerequest.create.fromSplit={0} hat die Änderungsanforderung erstellt, indem eine alte Änderungsanforderung mit Änderungen bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; geteilt wurde
 changerequest.timeline.changerequest.filechange.added={0} hat eine Dateiänderung bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; hinzugefügt
 changerequest.timeline.changerequest.status.modified={0} hat den Status der Änderungsanforderung von {1} in {2} geändert
 changerequest.timeline.changerequest.review.added.approval={0} hat eine neue Genehmigungsprüfung hinzugefügt
@@ -203,6 +204,7 @@ changerequest.conflict.modal.options.keepcr.title=Änderungsanforderung behalten
 changerequest.conflict.modal.options.keepcr.description=Beheben Sie die Konflikte, indem Sie die Version der Änderungsanforderung nehmen.
 changerequest.conflict.modal.options.keeppublished.title=Veröffentlichte Version behalten
 changerequest.conflict.modal.options.keeppublished.description=Beheben Sie die Konflikte, indem Sie die veröffentlichte Version nehmen.
+changerequest.conflict.modal.custom.hint.disabled=Diese Option ist deaktiviert: In einigen Teilen des Dokuments tritt ein Konflikt auf, der nicht durch eine benutzerdefinierte Auflösung behandelt werden kann.
 changerequest.savemodal.approvers.header.title=Verwaltung der Genehmiger
 changerequest.savemodal.approvers.header.hint=Sie können die Liste der Benutzer und Gruppen angeben, die berechtigt sein sollen, die Änderungen auf dieser Seite zu genehmigen. Diese Listen werden in einem Änderungsantrag eingereicht, entweder einem neuen oder einem bestehenden.
 changerequest.savemodal.approvers.heading=Genehmiger
