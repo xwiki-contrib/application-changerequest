@@ -2149,6 +2149,10 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     } else {
       insertLineDiffDiscussion(discussion);
     }
+    
+    discussion.clone().find('.message').each(function (index, message) {
+      placeMessage('diff', index, message);
+    });
   }
   
   var placeAllDiscussions = function () {
