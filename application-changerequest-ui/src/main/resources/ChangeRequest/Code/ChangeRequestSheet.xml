@@ -3195,16 +3195,18 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       <code>/* Variables */
 
 @background: white;
-@color-primary: black;
-@color-light: black;
+@color-primary: grey;
+@color-light: #d7d6d6;
 @color-dim: #6c6d6d;
-@spacing: 20px;
+@color-success: green;
+@color-warning: orange;
+@spacing: 22px;
 @radius: 4px;
 
-@avatar: 150px;
+@avatar: 80px;
 @dotborder: 4px;
-@dot: 11px;
-@line: 2px;
+@dot: 22px;
+@line: 1px;
 
 #timeline-content {
   margin-top: @spacing;
@@ -3214,7 +3216,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 /* Timeline */
 
 .timeline {
-  border-left: @line solid @color-primary;
+  border-left: @line solid @color-light;
   border-bottom-right-radius: @radius;
   border-top-right-radius: @radius;
   margin: @spacing auto;  
@@ -3226,7 +3228,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
   max-width: 70%;
   
   .event {
-    border-bottom: 1px dashed fade(@color-light, 10%);
+    border-bottom: 1px dashed @color-light;
     margin-bottom: @spacing;  
     position: relative;
 
@@ -3241,35 +3243,51 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       display: block;
       top: 0;
     }
+
+    .event-icon {
+      position: absolute;
+      display: block;
+      left: (@spacing + @line + (@dot * 0.4 * 0.5)) * -1;
+      z-index: 10;
+      top: (@dot * 0.1);
+      color: @color-primary;
+    }
     
+    .icon-success {
+      color: @color-success;
+    }
+      
+    .icon-warning {
+      color: @color-warning;
+    }
+
     .content, .date {
       position: relative;
-      top: -1.5em;
+      top: -0.5em;
       left: (@avatar * 0.5) * -1;
     }
 
     .user-event.user-avatar {
-      left: ((@avatar * 0.6) + @spacing + @line + @dot + (@dotborder * 2)) * -1;    
+      left: ((@avatar * 0.6) + @spacing + @line + @dot + (@dotborder * 2)) * -1;
       color: fade(@color-light, 40%);
       text-align: right;
       position: relative;
       display: inline-block;
-      top: -1.5em;
-      
+      top: -0.5em;
+
       img {
         width: @avatar * 0.5;
       }
     }
 
     &amp;:after {
-      box-shadow: 0 0 0 @dotborder fade(@color-primary,100%);    
-      left: (@spacing + @line + (@dot * 0.35)) * -1;        
-      background: lighten(@background,5%);    
-      border-radius: 50%;  
+      box-shadow: 0 0 0 @dotborder fade(@color-light,100%);
+      left: (@spacing + @line + (@dot * 0.4)) * -1;
+      background: lighten(@background,5%);
+      border-radius: 50%;
       height: @dot;
       width: @dot;
       content: "";
-      top: 5px;
     }
   }
 }</code>

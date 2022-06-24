@@ -126,20 +126,20 @@
   #set ($localizationArguments = [])
   #set ($discussionClass = $NULL)
   #set ($dataReviewId = $NULL)
+  #set ($icon = $NULL)
+  #set ($iconClass = "")
   #set ($skip = false)
   ## we skip the document modified events, since they are basically redundant with the filechanges ones.
   #if ($event.type == "changerequest.document.modified")
     #set ($skip = true)
   #elseif ($event.type == "changerequest.create")
-    #set ($isFromSplit = $event.parameters.get('changerequest.create.fromSplit'))
-    #if ($isFromSplit)
-      #set ($localizationKey = "${localizationKey}.fromSplit")
-    #end
     #set ($actualDoc = $xwiki.getDocument($event.document))
     #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
+    #set ($icon = 'space')
   #elseif ($event.type == "changerequest.filechange.added")
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
     #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
+    #set ($icon = 'add')
     #if ($fileChangeOpt.isPresent())
       #set ($eventDoc = $fileChangeOpt.get().targetEntity)
       #set ($actualDoc = $xwiki.getDocument($eventDoc))
@@ -151,6 +151,17 @@
     #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
     #set ($newStatus = $event.parameters.get('changerequest.status.new'))
     #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
+    #if ($newStatus == 'DRAFT')
+      #set ($icon = 'pause')
+    #elseif ($newStatus == 'READY_FOR_REVIEW')
+      #set ($icon = 'play')
+    #elseif ($newStatus == 'MERGED')
+      #set ($icon = 'world')
+    #elseif ($newStatus == 'CLOSED' || $newStatus == 'STALE')
+      #set ($icon = 'stop')
+    #elseif ($newStatus == 'READY_FOR_MERGE')
+      #set ($icon = 'lightbulb')
+    #end
   #elseif ($event.type == "changerequest.review.added")
     #set ($reviewId = $event.parameters.get('changerequest.review.id'))
     #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
@@ -158,8 +169,12 @@
       #set ($review = $reviewOpt.get())
       #if ($review.approved)
         #set ($localizationKey = "${localizationKey}.approval")
+        #set ($icon = 'check')
+        #set ($iconClass = 'icon-success')
       #else
         #set ($localizationKey = "${localizationKey}.requestchanges")
+        #set ($icon = 'remove')
+        #set ($iconClass = 'icon-warning')
       #end
       #if ($review.originalApprover &amp;&amp; $review.originalApprover != $review.author)
         #set ($localizationKey = "${localizationKey}.delegate")
@@ -172,6 +187,7 @@
     #set ($concernsAllCR = $event.parameters.get('changerequest.rebased.all'))
     #set ($isAboutConflictFixing = $event.parameters.get('changerequest.rebased.conflictRelated'))
     #set ($fileChangeId = $event.parameters.get('changerequest.rebased.filechange.id'))
+    #set ($icon = 'refresh')
 
     #if ($concernsAllCR == 'true')
       #set ($localizationArguments = [$userArgument])
@@ -197,6 +213,7 @@
     #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
     #set ($localizationKey = "${localizationKey}.${discussionType}")
     #set ($messageURL = "$xwiki.getURL($doc)#$messageReference")
+    #set ($icon = 'comment')
     #if ($discussionType == 'LINE_DIFF')
       #set ($dataTab = "data-tab='filechanges'")
     #elseif ($discussionType == 'REVIEW')
@@ -214,6 +231,7 @@
   &lt;li class="event"&gt;
     #getUserAvatarURL($event.user $avatarURL 80)
     &lt;span class="user-event user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
+    &lt;span class="event-icon $iconClass"&gt;$services.icon.renderHTML($icon)&lt;/span&gt;
     &lt;span class="content"&gt;
       $services.localization.render($localizationKey, $localizationArguments)
     &lt;/span&gt;
