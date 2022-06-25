@@ -146,9 +146,9 @@ ChangeRequest.Code.ApproversClass_usersApprovers_hint=Utilisateurs du wiki autor
 ChangeRequest.Code.ApproversClass_groupsApprovers=Groupes pouvant approuver
 ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Groupes d'utilisateurs du wiki autorisés à approuver les demandes de modification pour ce document.
 ChangeRequest.Code.ApproversClass_manualEdition=Modifié manuellement
-### Missing: ChangeRequest.Code.ApproversClass_manualEdition_hint=Check the box if you don't want the approvers to be automatically synchronized when new changes are published.
+ChangeRequest.Code.ApproversClass_manualEdition_hint=Cochez la case si vous ne souhaitez pas que les approbateurs soient automatiquement synchronisés lorsque de nouvelles modifications sont publiées.
 changerequest.timeline.changerequest.create={0} a créé la demande de modification pour &lt;a href="{1}"&gt;{2}&lt;/a&gt;
-### Missing: changerequest.timeline.changerequest.create.fromSplit={0} created the change request by splitting an old change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.create.fromSplit={0} a créé la demande de modification à partir d''une ancienne demande de modification concernant &lt;a href="{1}"&gt;{2}&lt;/a&gt;.
 changerequest.timeline.changerequest.filechange.added={0} a ajouté une modification de fichier pour &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.status.modified={0} a modifié le statut de la demande de modification de {1} à {2}
 changerequest.timeline.changerequest.review.added.approval={0} a ajouté une demande de vérification
@@ -203,7 +203,7 @@ changerequest.conflict.modal.options.keepcr.title=Conserver la demande de modifi
 changerequest.conflict.modal.options.keepcr.description=Résoudre le conflit en conservant la version de la demande de modification.
 changerequest.conflict.modal.options.keeppublished.title=Conserver la version publiée
 changerequest.conflict.modal.options.keeppublished.description=Résoudre le conflit en conservant la version publiée.
-### Missing: changerequest.conflict.modal.custom.hint.disabled=This option is disabled: some conflict occurs in some part of the document that cannot be handled by custom resolution.
+changerequest.conflict.modal.custom.hint.disabled=Cette option est désactivée : des conflits existent pour une partie du document et ils ne peuvent pas être résolus de manière personnalisée.
 changerequest.savemodal.approvers.header.title=Gestion des approbateurs
 changerequest.savemodal.approvers.header.hint=Vous pouvez indiquer la liste des utilisateurs et des groupes autorisés à approuver les modifications de cette page.
 changerequest.savemodal.approvers.heading=Approbateurs
