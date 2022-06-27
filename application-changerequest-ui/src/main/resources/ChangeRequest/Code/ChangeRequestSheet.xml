@@ -3204,12 +3204,13 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 @color-dim: #6c6d6d;
 @color-success: green;
 @color-warning: orange;
-@spacing: 22px;
+@spacing: 35px;
 @radius: 4px;
 
+@icon-height: 14px;
 @avatar: 80px;
-@dotborder: 4px;
-@dot: 22px;
+@dotborder: 2px;
+@dot: 32px;
 @line: 1px;
 
 #timeline-content {
@@ -3242,19 +3243,21 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       border: none;      
     }
 
-    &amp;:before, &amp;:after {
-      position: absolute;
-      display: block;
-      top: 0;
-    }
-
     .event-icon {
       position: absolute;
-      display: block;
-      left: (@spacing + @line + (@dot * 0.4 * 0.5)) * -1;
-      z-index: 10;
-      top: (@dot * 0.1);
+      display: flex;
+      top: 0;
+      box-shadow: 0 0 0 @dotborder fade(@color-light,100%);
+      left: (@spacing + @line + (@dot * 0.5)) * -1;
+      background: lighten(@background,5%);
+      border-radius: 50%;
+      height: @dot;
+      width: @dot;
       color: @color-primary;
+      
+      span {
+        margin: auto;
+      }
     }
     
     .icon-success {
@@ -3282,16 +3285,6 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       img {
         width: @avatar * 0.5;
       }
-    }
-
-    &amp;:after {
-      box-shadow: 0 0 0 @dotborder fade(@color-light,100%);
-      left: (@spacing + @line + (@dot * 0.4)) * -1;
-      background: lighten(@background,5%);
-      border-radius: 50%;
-      height: @dot;
-      width: @dot;
-      content: "";
     }
   }
 }</code>
@@ -3556,34 +3549,35 @@ tr.discussion-line:hover {
     </property>
     <property>
       <code>.discussion {
-  width: 50%;
+  width: 75%;
 }
 .message {
-  border: 1px solid black;
+  border: 1px solid lightgrey;
   margin: 1em;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
 }
 .message-metadata {
-  background-color: lightgray;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
   padding: 1em;
-  border-bottom: 1px solid black;
+  border-bottom: 1px dotted lightgrey;
 }
 .showMessage &gt; .message-metadata {
-  background-color: #fffbc3;
 }
 .message-content {
   padding: 1em;
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
 }
 .message-badges {
   float: right;
 }
 .reply-to-header {
   padding: 1em;
-  background-color: #e1e2fb;
-  border-bottom: 1px solid black;
+  border-bottom: 1px dotted lightgrey;
   
   .reply-to-navigation {
     float: right;
