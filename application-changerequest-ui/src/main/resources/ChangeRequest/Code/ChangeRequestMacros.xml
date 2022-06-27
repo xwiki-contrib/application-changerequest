@@ -250,6 +250,14 @@
   &lt;/li&gt;
   #end
 #end
+#macro (displayAllEvents $changeRequestId)
+  &lt;ul class="timeline"&gt;
+    #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
+    #foreach ($event in $eventSearchResult.stream().iterator())
+      #displayEvent($event)
+    #end
+  &lt;/ul&gt;
+#end
 #macro (displayDescription)
   ## Code inspired from AWM.Content page
   #if ("$!request.edit" == 'description' &amp;&amp; $canBeEdited)

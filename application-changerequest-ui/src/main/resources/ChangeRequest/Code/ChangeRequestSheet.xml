@@ -1650,7 +1650,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
     var changeRequestDiscussionRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestDiscussion");
     self.postUrl = new XWiki.Document(changeRequestDiscussionRef).getURL('get');
     
-    self.requestEditor = function() {
+    self.requestEditor = function(originButton) {
       var notification = new XWiki.widgets.Notification('Requesting discussion modal...','inprogress');
       var params = {
         'action': 'displayEditor',
@@ -1659,7 +1659,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
       $.extend(params, self.requestData)
       $.post(self.postUrl, params).done(function (data) {
         notification.hide();
-        self.initEditor(data);
+        self.initEditor(data, originButton);
       }).fail(function (data) {
         notification.replace(new XWiki.widgets.Notification('Error while getting discussion information.','error'));
       });
@@ -1676,6 +1676,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
       $(document).trigger('xwiki:actions:cancel');
       $.post(url, data).done(function (data) {
         notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
+        $(document).trigger('xwiki:changerequest:refreshTimeline');
         DiscussionHandler.retrieveMessage(data);
         self.editorDiv.remove();
       }).fail(function (data) {
@@ -1699,7 +1700,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
       return parent;
     }
     
-    self.initEditor = function (data) {
+    self.initEditor = function (data, originButton) {
       if (self.requestData.type == 'diffLine') {
         var currentLine = getLine(self.element);
         if (currentLine.next('.discussion-line').length) {
@@ -1715,10 +1716,13 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
         $('.add-comment').prepend(self.editorDiv);
       } else if (self.requestData.type == 'replyTo') {
         var originalMessageReference = self.requestData.originalMessage;
-        var selector = '.message[data-reference="' + originalMessageReference +'"]';
+        console.log("DEBUG replyTo");
+        console.log($(originButton));
+        console.log($(originButton).parents('.message').first());
+        var originalMessage = $(originButton).parents('.message').first();
         self.editorDiv = $('&lt;div&gt;');
         self.editorDiv.append($(data));
-        self.editorDiv.insertAfter($(selector));
+        self.editorDiv.insertAfter(originalMessage);
       }
       $(document).trigger('xwiki:dom:updated', {'elements': self.editorDiv.toArray()});
       self.editorDiv.find('.comment-button').on('click', self.submitAction);
@@ -1998,7 +2002,7 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
       <code>'use strict';
 require(['jquery', 'xwiki-meta'], function ($, xm) {
   var placeDiscussions = function (index, element) {
-    var discussion = $(element);
+    var discussion = $(element).clone();
     if (discussion.find('.message').length &gt; 0) {
       var entityType = discussion.attr('data-type');
       if (entityType === 'LINE_DIFF') {
@@ -2015,6 +2019,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var reviewId = discussion.attr('data-reference');
     var reviewElement = $('.review[data-reviewid=' + reviewId +']');
     if (reviewElement) {
+      reviewElement.empty();
       reviewElement.append(discussion);
       discussion.wrap('&lt;div class="panel-body"&gt;&lt;/div&gt;');
     }
@@ -2034,7 +2039,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var placeMessage = function (cssClass, index, message) {
     var messageId = $(message).attr('data-reference');
     var discussionElement = $('.discussion.'+cssClass+'[data-message-reference="'+messageId+'"]');
-    if (discussionElement) {
+    if (discussionElement &amp;&amp; discussionElement.find('.message[data-reference="' + messageId+ '"]').length == 0) {
       discussionElement.append($(message));
     }
   };
@@ -2157,6 +2162,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   
   var placeAllDiscussions = function () {
     $('#discussions .discussion').each(placeDiscussions);
+    $(document).trigger('xwiki:dom:updated', {'elements': $('#discussions .discussion').toArray()});
   };
   
   var toggleCollapseExpandButton = function (isExpanded, element) {
@@ -2171,7 +2177,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   
   var initialize = function () {
     placeAllDiscussions();
-    $(document).on('xwiki:dom:updated', placeAllDiscussions);
+    $(document).on('xwiki:changerequest:refreshComments', placeAllDiscussions);
     $(document).on('hidden.bs.collapse', '.message-content', function (event) {
       toggleCollapseExpandButton(false, $(this).parent());
     });
@@ -2768,7 +2774,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <code>'use strict';
 require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEditor'], function ($, xm, DiscussionHandler, CommentEditor) {
   var initReply = function () {
-    $('.message .reply-button').on('click', function () {
+    $('.message .reply-button:visible').on('click', function (event) {
       var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
       var message = $(this).parents('.message');
       var discussion = message.parents('.discussion');
@@ -2783,7 +2789,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEdito
           'originalDiscussionType': discussionType,
           'originalDiscussionReference': discussionReference
       });
-      editor.requestEditor();
+      editor.requestEditor(event.target);
     });
   };
   initReply() &amp;&amp; $(document).on('xwiki:dom:updated', initReply);
@@ -2901,6 +2907,133 @@ require(['jquery', 'bootstrap'], function ($) {
     </property>
     <property>
       <name>tab navigation</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>16</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>089266bd-a2ff-49a5-a696-fd00a644a881</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var currentReference = xm.documentReference;
+  var timelinePageRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestTimeline");
+  var timelinePageUrl = new XWiki.Document(timelinePageRef).getURL('get');
+  var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
+  
+  var refreshTimeline = function() {
+    var data = {
+      form_token: xm.form_token,
+      changerequest: changeRequestId,
+      outputSyntax: 'plain'
+    };
+    $.get(timelinePageUrl, data).done(function (data) {
+      var timelineHolder = $('#timeline-content');
+      timelineHolder.empty();
+      timelineHolder.append(data);
+      $(document).trigger('xwiki:changerequest:refreshComments');
+      $(document).trigger('xwiki:dom:updated', {'elements': timelineHolder.toArray()});
+    }).fail(function (data) {
+       console.error("Error while trying to refresh the timeline: " + data);
+       console.log(data);
+    });
+  }
+  
+  $(document).on('xwiki:changerequest:refreshTimeline', function () {
+    setTimeout(refreshTimeline, 1000);
+  });
+});</code>
+    </property>
+    <property>
+      <name>Timeline refresh</name>
     </property>
     <property>
       <parse>0</parse>
