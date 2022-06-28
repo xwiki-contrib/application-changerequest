@@ -279,7 +279,7 @@
         &lt;/a&gt;
       &lt;/h4&gt;
     &lt;/div&gt;
-    &lt;div id="diff-$diffKey" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
+    &lt;div id="diff-$diffKey" class="panel-collapse collapse diff-panel" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
       &lt;div class="panel-body diff-body" data-diffId="$escapetool.xml($diffKey)" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;$diffContent&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
@@ -1716,9 +1716,6 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
         $('.add-comment').prepend(self.editorDiv);
       } else if (self.requestData.type == 'replyTo') {
         var originalMessageReference = self.requestData.originalMessage;
-        console.log("DEBUG replyTo");
-        console.log($(originButton));
-        console.log($(originButton).parents('.message').first());
         var originalMessage = $(originButton).parents('.message').first();
         self.editorDiv = $('&lt;div&gt;');
         self.editorDiv.append($(data));
@@ -1875,8 +1872,8 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
   
   var initialize = function() {
     if (sheetConfig.hasCommentRight) {
-      $('.diff-container tr').addClass('changerequest-commentable');
-      $('.diff-container tr').on('click', function () {
+      $('.diff-container td.diff-line-number').addClass('changerequest-commentable');
+      $('.diff-container td.diff-line-number').on('click', function () {
         var diffBody = $(this).parents('.diff-body');
         var diffId = diffBody.attr('data-diffid');
         var targetReference = diffBody.attr('data-documentreference');
@@ -2792,7 +2789,13 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEdito
       editor.requestEditor(event.target);
     });
   };
-  initReply() &amp;&amp; $(document).on('xwiki:dom:updated', initReply);
+  
+  var initialize = function () {
+    initReply();
+    $(document).on('xwiki:dom:updated', initReply);
+    $('.diff-panel').on('shown.bs.collapse', initReply);
+  };
+  (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
 });</code>
     </property>
     <property>
@@ -3541,19 +3544,14 @@ input#edit-title-input:focus, .edit-title-icon:hover {
     </property>
     <property>
       <code>@highlighted: rgba(255, 255, 0, 0.2);
+@dotborder: 2px;
+@dot: 32px;
 
-.diff-container tr.changerequest-commentable {
+.diff-container td.changerequest-commentable {
   cursor: pointer;
 }
-.diff-container tr.changerequest-commentable:hover {
+.diff-container tr:hover td.changerequest-commentable {
   background: @highlighted;
-}
-.diff-line-deleted:hover, .diff-line-added:hover {
-  background: inherit;
-}
-// FIXME: Should probably be inherited from XWiki?
-tr.discussion-line:hover {
-  background: white;
 }
 .diff-labels {
   float: right;
