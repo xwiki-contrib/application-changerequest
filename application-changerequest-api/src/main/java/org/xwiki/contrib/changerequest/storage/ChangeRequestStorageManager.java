@@ -96,6 +96,22 @@ public interface ChangeRequestStorageManager
     }
 
     /**
+     * Find the document reference of all change requests that contains a file change for the given reference.
+     * This method should be used instead of {@link #findChangeRequestTargeting(DocumentReference)} whenever the change
+     * request information won't be used directly: it avoids loading in memory lots of information.
+     *
+     * @param documentReference the reference of the document subject of a change.
+     * @return a list of references of change requests.
+     * @throws ChangeRequestException in case of problem to execute the query.
+     * @since 0.14
+     */
+    default List<DocumentReference> findChangeRequestReferenceTargeting(DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
+    /**
      * Find all change requests that are opened (i.e. not merged, or closed) and that have been created or updated
      * before the given limit date. The goal of this method is mainly to retrieve the old change requests that might
      * be stale.

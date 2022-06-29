@@ -336,6 +336,18 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
+        List<DocumentReference> changeRequestReferences = this.findChangeRequestReferenceTargeting(documentReference);
+        for (DocumentReference crReference : changeRequestReferences) {
+            this.load(crReference.getLastSpaceReference().getName()).ifPresent(result::add);
+        }
+        return result;
+    }
+
+    @Override
+    public List<DocumentReference> findChangeRequestReferenceTargeting(DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        List<DocumentReference> result = new ArrayList<>();
         String statement = String.format("from doc.object(%s) as obj where :reference member of obj.%s",
             this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS), CHANGED_DOCUMENTS_FIELD);
         try {
@@ -344,13 +356,12 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             List<String> changeRequestDocuments = query.execute();
             for (String changeRequestDocument : changeRequestDocuments) {
                 DocumentReference crReference = this.documentReferenceResolver.resolve(changeRequestDocument);
-                this.load(crReference.getLastSpaceReference().getName()).ifPresent(result::add);
+                result.add(crReference);
             }
         } catch (QueryException e) {
             throw new ChangeRequestException(
                 String.format("Error while trying to get change request for document [%s]", documentReference), e);
         }
-
         return result;
     }
 
