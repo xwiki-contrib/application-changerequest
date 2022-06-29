@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.events;
 
 import java.io.Serializable;
 
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.observation.event.Event;
 import org.xwiki.stability.Unstable;
 
@@ -30,7 +31,7 @@ import org.xwiki.stability.Unstable;
  * The event also send the following parameters:
  * <ul>
  *     <li>source: the change request identifier</li>
- *     <li>data: an array containing the old and the new status</li>
+ *     <li>data: an array of {@link ChangeRequestStatus} containing the old and the new status</li>
  * </ul>
  *
  * @version $Id$
