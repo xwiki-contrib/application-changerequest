@@ -46,6 +46,20 @@ public interface FileChangeCompatibilityChecker
         FileChange.FileChangeType changeType);
 
     /**
+     * Check if the filechange can be added to the given change request.
+     *
+     * @param changeRequest the change request in which to add new changes.
+     * @param fileChange the file change that might be added.
+     * @return {@code true} if the filechange can be added to the change request, {@code false} it there's an
+     *          incompatibility.
+     * @since 0.14
+     */
+    default boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, FileChange fileChange)
+    {
+        return canChangeOnDocumentBeAdded(changeRequest, fileChange.getTargetEntity(), fileChange.getType());
+    }
+
+    /**
      * Provides an explanation as of the reasons of the incompatibility.
      * This method should return a localized explanation, the explanation can be static and the same for all inputs
      * or can be dynamic and provides the very specific incompatibility reason for this specific document.
@@ -54,7 +68,23 @@ public interface FileChangeCompatibilityChecker
      * @param documentReference the reference of the document with new changes.
      * @param changeType the type of change to be added in the change request.
      * @return a localized explanation as of the incompatibility reasons.
+     * @since 0.14
      */
     String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
         FileChange.FileChangeType changeType);
+
+    /**
+     * Provides an explanation as of the reasons of the incompatibility.
+     * This method should return a localized explanation, the explanation can be static and the same for all inputs
+     * or can be dynamic and provides the very specific incompatibility reason for this specific filechange.
+     *
+     * @param changeRequest the change request in which to add new changes.
+     * @param fileChange the change to be added.
+     * @return a localized explanation as of the incompatibility reasons.
+     * @since 0.14
+     */
+    default String getIncompatibilityReason(ChangeRequest changeRequest, FileChange fileChange)
+    {
+        return getIncompatibilityReason(changeRequest, fileChange.getTargetEntity(), fileChange.getType());
+    }
 }

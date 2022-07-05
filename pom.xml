@@ -87,8 +87,15 @@
               <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.numberOfParametersChanged</code>
-                  <old>method boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference)</old>
+                  <code>java.method.parameterTypeChanged</code>
+                  <old>parameter boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, ===org.xwiki.model.reference.DocumentReference===)</old>
+                  <new>parameter boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, ===org.xwiki.contrib.changerequest.FileChange===)</new>
+                  <parameterIndex>1</parameterIndex>
+                  <justification>Refactoring of the compatibility checker: we introduced the change type since it might impact the check.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.addedToInterface</code>
                   <new>method boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType)</new>
                   <justification>Refactoring of the compatibility checker: we introduced the change type since it might impact the check.</justification>
                 </item>

@@ -103,30 +103,27 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             fileChangeType = FileChange.FileChangeType.EDITION;
         }
         if (changeRequest != null) {
-            if (this.checkDocumentCompatibility(changeRequest, documentReference, fileChangeType)) {
-                UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-                FileChange fileChange =
-                    this.createFileChange(fileChangeType, changeRequest, modifiedDocument, documentReference, request,
-                        currentUser);
-                if (fileChange != null) {
-                    this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
-                        changeRequest);
-                    changeRequest.addFileChange(fileChange);
-                    this.storageManager.save(changeRequest);
-                    this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
-                    this.copyApprovers(fileChange);
-                    this.observationManager
-                        .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
-                    this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
-                        fileChange);
-                    this.responseSuccess(changeRequest);
-                }
+            UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+            FileChange fileChange =
+                this.createFileChange(fileChangeType, changeRequest, modifiedDocument, documentReference, request,
+                    currentUser);
+            if (fileChange != null && this.checkDocumentCompatibility(changeRequest, fileChange)) {
+                this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
+                    changeRequest);
+                changeRequest.addFileChange(fileChange);
+                this.storageManager.save(changeRequest);
+                this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
+                this.copyApprovers(fileChange);
+                this.observationManager
+                    .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
+                this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+                    fileChange);
+                this.responseSuccess(changeRequest);
             }
         }
     }
 
-    private boolean checkDocumentCompatibility(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType fileChangeType)
+    private boolean checkDocumentCompatibility(ChangeRequest changeRequest, FileChange fileChange)
         throws ChangeRequestException, IOException
     {
         boolean canBeAdded = true;
@@ -135,10 +132,10 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
             String incompatibilityReason = "";
             for (FileChangeCompatibilityChecker checker : checkers) {
-                canBeAdded = checker.canChangeOnDocumentBeAdded(changeRequest, documentReference, fileChangeType);
+                canBeAdded = checker.canChangeOnDocumentBeAdded(changeRequest, fileChange);
                 if (!canBeAdded) {
                     incompatibilityReason =
-                        checker.getIncompatibilityReason(changeRequest, documentReference, fileChangeType);
+                        checker.getIncompatibilityReason(changeRequest, fileChange);
                     break;
                 }
             }
@@ -147,7 +144,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             }
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "
-                + "adding new changes from [%s] in [%s].", documentReference, changeRequest.getId()), e);
+                + "adding new changes from [%s] in [%s].", fileChange, changeRequest.getId()), e);
         }
         return canBeAdded;
     }
