@@ -23,6 +23,8 @@ import org.xwiki.observation.event.EndEvent;
 
 /**
  * Event triggered when a change request has been split.
+ * Note that in case of a split a {@link ChangeRequestCreatedEvent} is triggered for any created change request, so
+ * this event should only be used in case of operations to perform after the split is entirely complete.
  *
  * The event also send the following parameters:
  * <ul>

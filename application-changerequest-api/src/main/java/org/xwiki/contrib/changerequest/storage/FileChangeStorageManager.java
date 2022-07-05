@@ -78,7 +78,7 @@ public interface FileChangeStorageManager
     /**
      * Retrieve the modified file change in a {@link DocumentModelBridge} in order to be used in the diff APIs.
      * Note that in most cases {@link FileChange#getModifiedDocument()} should be used, this API performs a clone
-     * of the document and modify the version so that it's properly used in diff. 
+     * of the document and modify the version so that it's properly used in diff.
      *
      * @param fileChange an instance of a file change.
      * @return a {@link DocumentModelBridge} whose content matches the changes performed for the file change.
