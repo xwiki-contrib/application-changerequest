@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -521,6 +522,12 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference doc1 = mock(DocumentReference.class, "doc1");
         DocumentReference doc2 = mock(DocumentReference.class, "doc2");
         DocumentReference doc3 = mock(DocumentReference.class, "doc3");
+
+        when(changeRequest.getModifiedDocuments()).thenReturn(new HashSet<>(List.of(
+            doc1,
+            doc2,
+            doc3
+        )));
 
         FileChange fileChange1Doc1 = mock(FileChange.class, "filechange1Doc1");
         FileChange fileChange2Doc1 = mock(FileChange.class, "filechange2Doc1");

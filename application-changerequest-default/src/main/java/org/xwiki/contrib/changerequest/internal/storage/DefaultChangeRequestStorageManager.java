@@ -467,7 +467,57 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public List<ChangeRequest> split(ChangeRequest changeRequest) throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
-        this.observationManager.notify(new SplitBeginChangeRequestEvent(), changeRequest.getId(), changeRequest);
+
+        // If the CR only contains a single document, the split shouldn't have any effect.
+        if (changeRequest.getModifiedDocuments().size() > 1) {
+            this.observationManager.notify(new SplitBeginChangeRequestEvent(), changeRequest.getId(), changeRequest);
+
+            // Perform the actual split
+            result.addAll(this.performFileChangeSplit(changeRequest));
+
+            // Handle the reviews
+            for (ChangeRequest splittedChangeRequest : result) {
+                for (ChangeRequestReview review : changeRequest.getReviews()) {
+                    ChangeRequestReview clonedReview = review.cloneWithChangeRequest(splittedChangeRequest);
+
+                    // we consider reviews as outdated for splitted change requests
+                    // and we keep same id to avoid having to perform a mapping old/new reviews in discussions
+                    clonedReview.setValid(false);
+                    clonedReview.setId(review.getId());
+
+                    splittedChangeRequest.addReview(clonedReview);
+                    this.reviewStorageManager.save(clonedReview);
+                }
+            }
+
+            // Handle the approvers
+            this.handleApproversInSplittedCR(changeRequest, result);
+
+            // Handle discussions last to not break the CR in case of problem there.
+            this.discussionService.moveDiscussions(changeRequest, result);
+            DocumentReference changeRequestDocument =
+                this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+            EntityRequest deleteRequest =
+                this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(changeRequestDocument));
+            deleteRequest.setDeep(true);
+            deleteRequest.setCheckAuthorRights(false);
+            deleteRequest.setCheckRights(false);
+            try {
+                this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
+            } catch (JobException e) {
+                throw new ChangeRequestException(
+                    String.format("Error while performing deletion of change request document [%s]",
+                        changeRequestDocument),
+                    e);
+            }
+            this.observationManager.notify(new SplitEndChangeRequestEvent(), changeRequest.getId(), result);
+        }
+        return result;
+    }
+
+    private List<ChangeRequest> performFileChangeSplit(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        List<ChangeRequest> result = new ArrayList<>();
         Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
 
         // Split the change request and create the new ones with appropriate file changes
@@ -490,42 +540,6 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 splittedChangeRequest.getId(), splittedChangeRequest);
             result.add(splittedChangeRequest);
         }
-
-        // Handle the reviews
-        for (ChangeRequest splittedChangeRequest : result) {
-            for (ChangeRequestReview review : changeRequest.getReviews()) {
-                ChangeRequestReview clonedReview = review.cloneWithChangeRequest(splittedChangeRequest);
-
-                // we consider reviews as outdated for splitted change requests
-                // and we keep same id to avoid having to perform a mapping old/new reviews in discussions
-                clonedReview.setValid(false);
-                clonedReview.setId(review.getId());
-
-                splittedChangeRequest.addReview(clonedReview);
-                this.reviewStorageManager.save(clonedReview);
-            }
-
-        }
-
-        // Handle the approvers
-        this.handleApproversInSplittedCR(changeRequest, result);
-
-        // Handle discussions last to not break the CR in case of problem there.
-        this.discussionService.moveDiscussions(changeRequest, result);
-        DocumentReference changeRequestDocument = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-        EntityRequest deleteRequest =
-            this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(changeRequestDocument));
-        deleteRequest.setDeep(true);
-        deleteRequest.setCheckAuthorRights(false);
-        deleteRequest.setCheckRights(false);
-        try {
-            this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
-        } catch (JobException e) {
-            throw new ChangeRequestException(
-                String.format("Error while performing deletion of change request document [%s]", changeRequestDocument),
-                e);
-        }
-        this.observationManager.notify(new SplitEndChangeRequestEvent(), changeRequest.getId(), result);
         return result;
     }
 
