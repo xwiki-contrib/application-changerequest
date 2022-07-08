@@ -606,7 +606,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     }
 
     @Override
-    public List<ChangeRequest> getChangeRequests(boolean onlyOpen, int offset, int limit)
+    public List<DocumentReference> getChangeRequestsReferences(boolean onlyOpen, int offset, int limit)
         throws ChangeRequestException
     {
         String statement = getAllChangeRequestQueryStatement(onlyOpen);
@@ -615,10 +615,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 .setOffset(offset)
                 .setLimit(limit)
                 .execute();
-            List<ChangeRequest> result = new ArrayList<>();
+            List<DocumentReference> result = new ArrayList<>();
             for (String crDocument : crDocuments) {
-                DocumentReference documentReference = this.documentReferenceResolver.resolve(crDocument);
-                this.load(documentReference.getLastSpaceReference().getName()).ifPresent(result::add);
+                result.add(this.documentReferenceResolver.resolve(crDocument));
             }
             return result;
         } catch (QueryException e) {
@@ -626,5 +625,18 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 String.format("Error while getting change request [onlyOpen: %s] [offset: %s] [limit: %s]",
                     onlyOpen, offset, limit), e);
         }
+    }
+
+    @Override
+    public List<ChangeRequest> getChangeRequests(boolean onlyOpen, int offset, int limit)
+        throws ChangeRequestException
+    {
+        List<DocumentReference> changeRequestsReferences = this.getChangeRequestsReferences(onlyOpen, offset, limit);
+        List<ChangeRequest> result = new ArrayList<>();
+
+        for (DocumentReference changeRequestsReference : changeRequestsReferences) {
+            this.load(changeRequestsReference.getLastSpaceReference().getName()).ifPresent(result::add);
+        }
+        return result;
     }
 }

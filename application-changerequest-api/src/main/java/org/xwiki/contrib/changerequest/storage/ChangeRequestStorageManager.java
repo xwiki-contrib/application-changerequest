@@ -145,7 +145,7 @@ public interface ChangeRequestStorageManager
     }
 
     /**
-     * Retrieve the change requests.
+     * Retrieve all the change requests.
      *
      * @param onlyOpen {@code true} to only retrieve the open change requests, {@code false} to get all of them
      *                 (even the merged and closed)
@@ -156,6 +156,25 @@ public interface ChangeRequestStorageManager
      * @since 0.14
      */
     default List<ChangeRequest> getChangeRequests(boolean onlyOpen, int offset, int limit) throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve all the change requests references.
+     * Contrarily to {@link #getChangeRequests(boolean, int, int)} this method doesn't load the change request but only
+     * returns their document references.
+     *
+     * @param onlyOpen {@code true} to only retrieve the open change requests, {@code false} to get all of them
+     *                 (even the merged and closed)
+     * @param offset where to start getting them
+     * @param limit the limit number of results to return
+     * @return a list of change requests references
+     * @throws ChangeRequestException in case of problem to perform the query
+     * @since 0.14
+     */
+    default List<DocumentReference> getChangeRequestsReferences(boolean onlyOpen, int offset, int limit)
+        throws ChangeRequestException
     {
         return Collections.emptyList();
     }
