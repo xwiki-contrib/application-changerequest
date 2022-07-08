@@ -577,7 +577,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     {
         String statement;
         if (onlyOpen) {
-            statement = String.format(", BaseObject as obj , StringProperty as obj_status, "
+            statement = String.format(", BaseObject as obj , StringProperty as obj_status "
                     + "where obj_status.value in %s and "
                     + "doc.fullName=obj.name and obj.className='%s' "
                     + "and obj_status.id.id=obj.id and obj_status.id.name='%s' ",
