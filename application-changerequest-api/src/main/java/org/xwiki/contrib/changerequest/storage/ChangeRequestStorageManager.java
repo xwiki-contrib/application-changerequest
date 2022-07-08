@@ -129,6 +129,37 @@ public interface ChangeRequestStorageManager
         return Collections.emptyList();
     }
 
+    /***
+     * Count the total number of change requests: this method mainly aims at being used when getting the change requests
+     * with {@link #getChangeRequests(boolean, int, int)}.
+     *
+     * @param onlyOpen {@code true} to only consider the open ones (not merged or closed), {@code false} to consider
+     *                  all of them.
+     * @return the number of existing change requests
+     * @throws ChangeRequestException in case of problem to execute the query
+     * @since 0.14
+     */
+    default long countChangeRequests(boolean onlyOpen) throws ChangeRequestException
+    {
+        return -1;
+    }
+
+    /**
+     * Retrieve the change requests.
+     *
+     * @param onlyOpen {@code true} to only retrieve the open change requests, {@code false} to get all of them
+     *                 (even the merged and closed)
+     * @param offset where to start getting them
+     * @param limit the limit number of results to return
+     * @return a list of change requests
+     * @throws ChangeRequestException in case of problem to perform the query
+     * @since 0.14
+     */
+    default List<ChangeRequest> getChangeRequests(boolean onlyOpen, int offset, int limit) throws ChangeRequestException
+    {
+        return Collections.emptyList();
+    }
+
     /**
      * Find all change requests that are opened and that have been marked as staled before the given date.
      * @param limitDate the date before which the change request should have been flagged as staled.

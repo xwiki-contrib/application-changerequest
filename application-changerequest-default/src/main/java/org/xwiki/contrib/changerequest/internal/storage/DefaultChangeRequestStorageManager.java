@@ -69,6 +69,7 @@ import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.refactoring.job.EntityRequest;
 import org.xwiki.refactoring.job.RefactoringJobs;
@@ -164,6 +165,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
     @Inject
     private ApproversManager<FileChange> fileChangeApproversManager;
+
+    @Inject
+    @Named("count")
+    private QueryFilter countQueryFilter;
 
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
@@ -565,6 +570,61 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 this.approversManager.setGroupsApprovers(groupsApprovers, splittedChangeRequest);
                 this.approversManager.setUsersApprovers(usersApprovers, splittedChangeRequest);
             }
+        }
+    }
+
+    private String getAllChangeRequestQueryStatement(boolean onlyOpen)
+    {
+        String statement;
+        if (onlyOpen) {
+            statement = String.format(", BaseObject as obj , StringProperty as obj_status, "
+                    + "where obj_status.value in %s and "
+                    + "doc.fullName=obj.name and obj.className='%s' "
+                    + "and obj_status.id.id=obj.id and obj_status.id.name='%s' ",
+                getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
+                STATUS_FIELD);
+        } else {
+            statement = String.format(", BaseObject as obj , StringProperty as obj_status, "
+                    + "where doc.fullName=obj.name and obj.className='%s' ",
+                this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS));
+        }
+        return statement;
+    }
+
+    @Override
+    public long countChangeRequests(boolean onlyOpen) throws ChangeRequestException
+    {
+        String statement = getAllChangeRequestQueryStatement(onlyOpen);
+        try {
+            List<Long> result = this.queryManager.createQuery(statement, Query.HQL)
+                .addFilter(this.countQueryFilter)
+                .execute();
+            return result.get(0);
+        } catch (QueryException e) {
+            throw new ChangeRequestException("Error while counting the change request", e);
+        }
+    }
+
+    @Override
+    public List<ChangeRequest> getChangeRequests(boolean onlyOpen, int offset, int limit)
+        throws ChangeRequestException
+    {
+        String statement = getAllChangeRequestQueryStatement(onlyOpen);
+        try {
+            List<String> crDocuments = this.queryManager.createQuery(statement, Query.HQL)
+                .setOffset(offset)
+                .setLimit(limit)
+                .execute();
+            List<ChangeRequest> result = new ArrayList<>();
+            for (String crDocument : crDocuments) {
+                DocumentReference documentReference = this.documentReferenceResolver.resolve(crDocument);
+                this.load(documentReference.getLastSpaceReference().getName()).ifPresent(result::add);
+            }
+            return result;
+        } catch (QueryException e) {
+            throw new ChangeRequestException(
+                String.format("Error while getting change request [onlyOpen: %s] [offset: %s] [limit: %s]",
+                    onlyOpen, offset, limit), e);
         }
     }
 }
