@@ -207,6 +207,7 @@
           &lt;div id="missingChangeRequest" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.missingChangerequest')&lt;/div&gt;
           &lt;div id="minimumApprovers" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.minimumApprovers', ["$minimumApprovers"])&lt;/div&gt;
           &lt;div id="crSelectorIncompatibilityReason" class="hidden text-danger"&gt;&lt;/div&gt;
+          &lt;div id="otherError" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.otherError') &lt;span class="details"&gt;&lt;/span&gt;&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;&lt;!-- End modal body --&gt;
       &lt;div class="modal-footer"&gt;
@@ -422,6 +423,10 @@
         });
         $(document).trigger(beforeSaveEvent, data);
       }
+      $(document).on('xwiki:document:saveFailed', function (event, data) {
+        $('#otherError').removeClass('hidden');
+        $('#otherError').find('.details').text(data.response.responseJSON.error);
+      });
     };
     
     
@@ -429,6 +434,7 @@
     var validateForm = function (successCallback) {
       var crTitleField = $('#crTitle');
       var crSelectorField = $('#existingCRSelector');
+      $('#otherError').addClass('hidden');
       
       var isValid = crTitleField.val() || crSelectorField.val();
       if (!isValid) {

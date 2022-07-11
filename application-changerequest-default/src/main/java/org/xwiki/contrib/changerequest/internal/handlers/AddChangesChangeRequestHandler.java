@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.http.HttpStatus;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -37,13 +39,11 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
-import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -67,14 +67,10 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
+    private static final String ERROR_KEY = "error";
+
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
-
-    @Inject
-    private ReviewStorageManager reviewStorageManager;
-
-    @Inject
-    private ChangeRequestRightsManager changeRequestRightsManager;
 
     @Inject
     @Named("context")
@@ -140,7 +136,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 }
             }
             if (!canBeAdded) {
-                this.contextProvider.get().getResponse().sendError(412, incompatibilityReason);
+                this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
+                    Collections.singletonMap(ERROR_KEY, "Error when checking compatibility: " + incompatibilityReason));
             }
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "
@@ -208,7 +205,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
                         // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
                         // as a needed precondition for the request to be handled.
-                        context.getResponse().sendError(412, "Rights conflicts found in the changes.");
+                        this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
+                            Collections.singletonMap(ERROR_KEY, "Rights conflicts found in the changes."));
                         return null;
                     }
                     fileChangeVersion =
@@ -253,12 +251,14 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     .setModifiedDocument(mergeDocumentResult.getMergeResult());
                 result = true;
             } else {
-                this.contextProvider.get().getResponse().sendError(409, "Conflict found in the changes.");
+                this.answerJSON(HttpStatus.SC_CONFLICT,
+                    Collections.singletonMap(ERROR_KEY, "Conflict found in the changes."));
             }
         } else {
-            this.contextProvider.get().getResponse().sendError(404,
-                String.format("Could not find file changes for the given reference: [%s]",
-                    modifiedDocument.getDocumentReferenceWithLocale()));
+            this.answerJSON(HttpStatus.SC_NOT_FOUND,
+                Collections.singletonMap(ERROR_KEY,
+                    String.format("Could not find file changes for the given reference: [%s]",
+                    modifiedDocument.getDocumentReferenceWithLocale())));
         }
         return result;
     }

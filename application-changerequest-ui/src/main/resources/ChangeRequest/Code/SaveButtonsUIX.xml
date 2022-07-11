@@ -182,6 +182,18 @@
           saveChangeRequestModal.openModal();
         }
       });
+      $(document).on('xwiki:document:saveFailed', function(event, data) {
+        saveChangeRequestModal.openModal();
+        var errorMessage = data.response.responseJSON.error;
+        $(document).on('xwiki:dom:updated', function (event, data) {
+          console.log(data);
+          if (data.elements.length &gt; 0 &amp;&amp; $(data.elements)[0].id === 'changeRequestModal') {
+            $('#otherError').removeClass('hidden');
+            $('#otherError').find('.details').text(errorMessage);
+          }
+        });
+      });
+      
       var hasEditRight = saveConfig.hasEditRight;
       // hide minor edit and autosave capabilities
       if (!hasEditRight || editExistingCR) {
@@ -272,7 +284,7 @@
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
