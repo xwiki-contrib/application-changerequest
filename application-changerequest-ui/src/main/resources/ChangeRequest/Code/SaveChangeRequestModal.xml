@@ -449,7 +449,7 @@
         }
       }
       
-      if (crSelectorField.val()) {
+      if (crSelectorField.val() &amp;&amp; !crTitleField.val()) {
         var changeType = "EDITION";
         if (saveConfig.isDeletion) {
           changeType = "DELETION";
@@ -511,6 +511,12 @@
         $.get(modalUrl, data).done(function (data) {
           $('body').append(data);
           $('#changeRequestModal').modal('show');
+          $('#newChangeRequest').on('hidden.bs.collapse', function () {
+            $('#crTitle').val('');
+          });
+          $('#addToExistingChangeRequest').on('hidden.bs.collapse', function () {
+            $('#existingCRSelector')[0].selectize.clear();
+          });
           $('#saveChangeRequest').on('click', function (event) {
             validateForm(function() {
               self.saveChangeRequest(event);
