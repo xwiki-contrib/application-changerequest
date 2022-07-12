@@ -55,7 +55,10 @@
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
 #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
 #set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
-#set ($displayDocExtra = false)
+## We don't want to see comments and attachments tabs
+#set ($showcomments = false)
+#set ($showannotations = false)
+#set ($showattachments = false)
 #set ($changeRequestSheetJSXConfig = {
   'hasCommentRight': $services.changerequest.authorization.isAuthorizedToComment($changeRequest)
 })

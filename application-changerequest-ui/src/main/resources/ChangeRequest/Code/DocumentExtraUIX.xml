@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ChangeRequest.Code.DocumentExtraUIX" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.DocumentExtraUIX" locale="">
   <web>ChangeRequest.Code</web>
   <name>DocumentExtraUIX</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>ChangeRequest.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title/>
@@ -77,7 +78,7 @@
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -152,13 +153,16 @@
       </scope>
     </class>
     <property>
-      <async_cached>0</async_cached>
+      <async_cached>1</async_cached>
     </property>
     <property>
-      <async_context/>
+      <async_context>
+        <value>doc.reference</value>
+        <value>wiki</value>
+      </async_context>
     </property>
     <property>
-      <async_enabled>0</async_enabled>
+      <async_enabled>1</async_enabled>
     </property>
     <property>
       <content>{{velocity}}
@@ -194,12 +198,12 @@
       <name>org.xwiki.contrib.changerequest.docextra</name>
     </property>
     <property>
-      <parameters>show=true
-title=$services.localization.render('changerequest.docextra.title')
+      <parameters>title=$services.localization.render('changerequest.docextra.title')
 itemnumber=-1
 name=cr
 shortcut=alt+t
-order=1000</parameters>
+order=1000
+show=#if("$!showChangeRequestTab" != 'false')true#else{false}#end</parameters>
     </property>
     <property>
       <scope>wiki</scope>
