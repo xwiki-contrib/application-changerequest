@@ -26,6 +26,7 @@ import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -59,19 +60,21 @@ class ChangeRequestReferenceSerializerTest
     void serialize() throws SerializeResourceReferenceException, UnsupportedResourceReferenceException
     {
         ChangeRequestReference resource =
-            new ChangeRequestReference(ChangeRequestReference.ChangeRequestAction.ADDCHANGES, "someId");
+            new ChangeRequestReference(new WikiReference("foo"),
+                ChangeRequestReference.ChangeRequestAction.ADDCHANGES, "someId");
         resource.addParameter("key", "value");
 
         when(extendedURLNormalizer.normalize(any(ExtendedURL.class)))
             .then(invocationOnMock -> invocationOnMock.getArgument(0));
-        ExtendedURL expected = new ExtendedURL(Arrays.asList("changerequest", "addchanges", "someId"),
+        ExtendedURL expected = new ExtendedURL(Arrays.asList("changerequest", "foo", "addchanges", "someId"),
             Collections.singletonMap("key", Collections.singletonList("value")));
         assertEquals(expected, this.serializer.serialize(resource));
         verify(this.extendedURLNormalizer).normalize(expected);
 
         resource =
-            new ChangeRequestReference(ChangeRequestReference.ChangeRequestAction.CREATE, null);
-        expected = new ExtendedURL(Arrays.asList("changerequest", "create"), Collections.emptyMap());
+            new ChangeRequestReference(new WikiReference("bar"),
+                ChangeRequestReference.ChangeRequestAction.CREATE, null);
+        expected = new ExtendedURL(Arrays.asList("changerequest", "bar", "create"), Collections.emptyMap());
         assertEquals(expected, this.serializer.serialize(resource));
         verify(this.extendedURLNormalizer).normalize(expected);
     }

@@ -62,7 +62,7 @@
 {{html clean="false"}}
 &lt;div class="add-comment"&gt;
   #set ($reference = $services.discussions.serialize($discussionReference))
-  #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($reference)")
+  #set ($url = "${request.getContextPath()}/discussions/wiki/$services.wiki.getCurrentWikiId()/create/Message/$escapetool.url($reference)")
   &lt;form method="post" action="$url" class="message-form"&gt;
     &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequestId" /&gt;
     &lt;input type="hidden" name="async" value="1" /&gt;

@@ -66,6 +66,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
@@ -244,6 +245,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             changeRequest.setId(changeRequestId);
             DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
             XWikiContext context = this.contextProvider.get();
+            WikiReference currentWiki = context.getWikiReference();
             XWiki wiki = context.getWiki();
             try {
                 XWikiDocument document = wiki.getDocument(reference, context);
@@ -263,7 +265,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
                     for (String changedDocument : changedDocuments) {
                         DocumentReference changedDocumentReference =
-                            this.documentReferenceResolver.resolve(changedDocument);
+                            this.documentReferenceResolver.resolve(changedDocument, currentWiki);
                         List<FileChange> fileChanges =
                             this.fileChangeStorageManager.load(changeRequest, changedDocumentReference);
                         for (FileChange fileChange : fileChanges) {

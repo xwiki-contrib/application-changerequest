@@ -32,6 +32,8 @@
   <name>Application Change Request - Notifications</name>
   <packaging>jar</packaging>
   <properties>
+    <!-- The module should only be installed at farm level so it can handle the URLs -->
+    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <xwiki.jacoco.instructionRatio>0.39</xwiki.jacoco.instructionRatio>
   </properties>
   <dependencies>

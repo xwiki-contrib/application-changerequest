@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,7 @@ import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
@@ -58,6 +60,8 @@ import org.xwiki.script.service.ScriptServiceManager;
 import org.xwiki.stability.Unstable;
 import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.UserReference;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Script service for change request.
@@ -95,6 +99,9 @@ public class ChangeRequestScriptService implements ScriptService
     @Inject
     @Named("context")
     private ComponentManager componentManager;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -275,9 +282,10 @@ public class ChangeRequestScriptService implements ScriptService
     public String getChangeRequestURL(String action, String changeRequestId)
         throws SerializeResourceReferenceException, UnsupportedResourceReferenceException
     {
+        WikiReference wikiReference = this.contextProvider.get().getWikiReference();
         ChangeRequestReference.ChangeRequestAction requestAction =
             ChangeRequestReference.ChangeRequestAction.valueOf(action.toUpperCase(Locale.ROOT));
-        ChangeRequestReference reference = new ChangeRequestReference(requestAction, changeRequestId);
+        ChangeRequestReference reference = new ChangeRequestReference(wikiReference, requestAction, changeRequestId);
         ExtendedURL extendedURL = this.urlResourceReferenceSerializer.serialize(reference);
         return extendedURL.serialize();
     }

@@ -21,6 +21,9 @@ package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Collections;
 
+import javax.inject.Provider;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -28,6 +31,7 @@ import org.xwiki.contrib.changerequest.internal.handlers.ChangeRequestActionHand
 import org.xwiki.contrib.changerequest.internal.handlers.ChangeRequestResourceHandler;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.ResourceReferenceHandlerChain;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -35,6 +39,9 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+
+import com.xpn.xwiki.XWikiContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,10 +65,25 @@ class ChangeRequestResourceHandlerTest
     @MockComponent
     private AuthorizationManager authorizationManager;
 
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
+
+    private XWikiContext context;
+
     @BeforeComponent
     void beforeComponent(MockitoComponentManager componentManager) throws Exception
     {
         componentManager.registerComponent(ComponentManager.class, "context", componentManager);
+    }
+
+    @BeforeEach
+    void setup()
+    {
+        this.context = mock(XWikiContext.class);
+        when(this.contextProvider.get()).thenReturn(this.context);
     }
 
     @Test
@@ -96,14 +118,25 @@ class ChangeRequestResourceHandlerTest
         ChangeRequestReference reference = mock(ChangeRequestReference.class);
         ResourceReferenceHandlerChain chain = mock(ResourceReferenceHandlerChain.class);
 
+        WikiReference crWikiReference = new WikiReference("cr");
+        when(reference.getWikiReference()).thenReturn(crWikiReference);
         when(reference.getAction()).thenReturn(ChangeRequestReference.ChangeRequestAction.CREATE);
+
+        WikiReference contextReference = new WikiReference("context");
+        when(this.context.getWikiReference()).thenReturn(contextReference);
+        when(this.wikiDescriptorManager.exists(crWikiReference.getName())).thenReturn(true);
         this.resourceHandler.handle(reference, chain);
         verify(createActionHandler).handle(reference);
         verify(chain).handleNext(reference);
+        verify(this.context).setWikiReference(crWikiReference);
+        verify(this.context).setWikiReference(contextReference);
 
         when(reference.getAction()).thenReturn(ChangeRequestReference.ChangeRequestAction.MERGE);
         this.resourceHandler.handle(reference, chain);
         verify(mergeActionHandler).handle(reference);
         verify(chain, times(2)).handleNext(reference);
+
+        verify(this.context, times(2)).setWikiReference(crWikiReference);
+        verify(this.context, times(2)).setWikiReference(contextReference);
     }
 }

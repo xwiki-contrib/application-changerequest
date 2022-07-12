@@ -57,3 +57,7 @@ org.xwiki.contrib.changerequest.internal.listeners.ApproversUpdatedListener
 org.xwiki.contrib.changerequest.internal.DocumentReferenceChangeRequestIdSerializer
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestXObjectUpdatedListener
 org.xwiki.contrib.changerequest.internal.listeners.FileChangeXObjectUpdatedListener
+org.xwiki.contrib.changerequest.script.ChangeRequestScriptService
+org.xwiki.contrib.changerequest.script.ChangeRequestReviewScriptService
+org.xwiki.contrib.changerequest.script.ChangeRequestAuthorizationScriptService
+org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService

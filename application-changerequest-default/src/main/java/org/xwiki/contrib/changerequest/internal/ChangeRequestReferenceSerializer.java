@@ -57,6 +57,7 @@ public class ChangeRequestReferenceSerializer
     {
         List<String> segments = new ArrayList<>();
         segments.add("changerequest");
+        segments.add(resource.getWikiReference().getName());
         segments.add(resource.getAction().name().toLowerCase(Locale.ROOT));
         if (!StringUtils.isEmpty(resource.getId())) {
             segments.add(resource.getId());

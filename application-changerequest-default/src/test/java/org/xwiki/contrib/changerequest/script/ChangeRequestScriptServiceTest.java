@@ -24,7 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.inject.Provider;
+
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.manager.ComponentManager;
@@ -40,6 +43,7 @@ import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
@@ -51,10 +55,11 @@ import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.UserReference;
 
+import com.xpn.xwiki.XWikiContext;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,10 +90,22 @@ class ChangeRequestScriptServiceTest
     @MockComponent
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
+    private XWikiContext context;
+
     @BeforeComponent
     void setup(MockitoComponentManager componentManager) throws Exception
     {
         componentManager.registerComponent(ComponentManager.class, "context", componentManager);
+    }
+
+    @BeforeEach
+    void beforeEach()
+    {
+        this.context = mock(XWikiContext.class);
+        when(this.contextProvider.get()).thenReturn(this.context);
     }
 
     @Test
@@ -149,8 +166,10 @@ class ChangeRequestScriptServiceTest
     {
         String action = "merge";
         String id = "someId";
+        WikiReference wikiReference = new WikiReference("foo");
+        when(this.context.getWikiReference()).thenReturn(wikiReference);
         ChangeRequestReference expectedRef =
-            new ChangeRequestReference(ChangeRequestReference.ChangeRequestAction.MERGE, id);
+            new ChangeRequestReference(wikiReference, ChangeRequestReference.ChangeRequestAction.MERGE, id);
         ExtendedURL extendedURL = mock(ExtendedURL.class);
         when(this.urlResourceReferenceSerializer.serialize(expectedRef)).thenReturn(extendedURL);
         String expectedUrl = "serializedUrl";

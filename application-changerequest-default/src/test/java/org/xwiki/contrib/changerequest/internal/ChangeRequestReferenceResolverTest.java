@@ -24,6 +24,7 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.CreateResourceReferenceException;
 import org.xwiki.resource.UnsupportedResourceReferenceException;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -57,16 +58,16 @@ class ChangeRequestReferenceResolverTest
         CreateResourceReferenceException createResourceReferenceException =
             assertThrows(CreateResourceReferenceException.class,
                 () -> this.referenceResolver.resolve(extendedURL, null, null));
-        assertEquals("Invalid Change Request URL format: the format should contain an action and an ID. "
+        assertEquals("Invalid Change Request URL format: the format should contain a wiki name, an action and an ID. "
             + "Provided URL: [myURL]", createResourceReferenceException.getMessage());
 
-        when(extendedURL.getSegments()).thenReturn(Arrays.asList("foo", "bar", "baz"));
+        when(extendedURL.getSegments()).thenReturn(Arrays.asList("foo", "bar", "baz", "buz"));
         when(extendedURL.toString()).thenReturn("otherURL");
 
         createResourceReferenceException =
             assertThrows(CreateResourceReferenceException.class,
                 () -> this.referenceResolver.resolve(extendedURL, null, null));
-        assertEquals("Invalid Change Request URL format: the format should contain an action and an ID. "
+        assertEquals("Invalid Change Request URL format: the format should contain a wiki name, an action and an ID. "
             + "Provided URL: [otherURL]", createResourceReferenceException.getMessage());
     }
 
@@ -74,39 +75,47 @@ class ChangeRequestReferenceResolverTest
     void resolveWrongAction()
     {
         ExtendedURL extendedURL = mock(ExtendedURL.class);
-        when(extendedURL.getSegments()).thenReturn(Collections.singletonList("myaction"));
+        when(extendedURL.getSegments()).thenReturn(Arrays.asList("foo", "myaction"));
         UnsupportedResourceReferenceException unsupportedResourceReferenceException =
             assertThrows(UnsupportedResourceReferenceException.class,
                 () -> this.referenceResolver.resolve(extendedURL, null, null));
         assertEquals("The given action is invalid for Change Request: [myaction].",
             unsupportedResourceReferenceException.getMessage());
+    }
 
-        when(extendedURL.getSegments()).thenReturn(Collections.singletonList("merge"));
-        when(extendedURL.toString()).thenReturn("myURL");
+    @Test
+    void resolveMissingId()
+    {
+        ExtendedURL extendedURL = mock(ExtendedURL.class, "mywiki/merge");
+        when(extendedURL.getSegments()).thenReturn(Arrays.asList("mywiki", "merge"));
+        when(extendedURL.getParameters()).thenReturn(Collections.singletonMap("bar", Arrays.asList("42", "43")));
+
         CreateResourceReferenceException createResourceReferenceException =
             assertThrows(CreateResourceReferenceException.class,
                 () -> this.referenceResolver.resolve(extendedURL, null, null));
-        assertEquals("Invalid Change Request URL format: the format should contain an action and an ID. "
-            + "Provided URL: [myURL]", createResourceReferenceException.getMessage());
+        assertEquals("Invalid Change Request URL format: the format should contain a wiki name, an action and an ID. "
+            + "Provided URL: [mywiki/merge]", createResourceReferenceException.getMessage());
     }
 
     @Test
     void resolve() throws UnsupportedResourceReferenceException, CreateResourceReferenceException
     {
         ExtendedURL extendedURL = mock(ExtendedURL.class);
-        when(extendedURL.getSegments()).thenReturn(Collections.singletonList("create"));
+        when(extendedURL.getSegments()).thenReturn(Arrays.asList("mywiki", "create"));
         when(extendedURL.getParameters()).thenReturn(Collections.singletonMap("foo", Arrays.asList("bar", "baz")));
 
         ChangeRequestReference expected =
-            new ChangeRequestReference(ChangeRequestReference.ChangeRequestAction.CREATE, null);
+            new ChangeRequestReference(new WikiReference("mywiki"),
+                ChangeRequestReference.ChangeRequestAction.CREATE, null);
         expected.addParameter("foo", Arrays.asList("bar", "baz"));
         assertEquals(expected, this.referenceResolver.resolve(extendedURL, null, null));
 
-        when(extendedURL.getSegments()).thenReturn(Arrays.asList("merge", "myid42"));
+        when(extendedURL.getSegments()).thenReturn(Arrays.asList("foo", "merge", "myid42"));
         when(extendedURL.getParameters()).thenReturn(Collections.singletonMap("bar", Arrays.asList("42", "43")));
 
         expected =
-            new ChangeRequestReference(ChangeRequestReference.ChangeRequestAction.MERGE, "myid42");
+            new ChangeRequestReference(new WikiReference("foo"),
+                ChangeRequestReference.ChangeRequestAction.MERGE, "myid42");
         expected.addParameter("bar", Arrays.asList("42", "43"));
         assertEquals(expected, this.referenceResolver.resolve(extendedURL, null, null));
     }

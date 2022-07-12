@@ -26,6 +26,7 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -39,6 +40,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.AbstractResourceReferenceHandler;
 import org.xwiki.resource.ResourceReference;
 import org.xwiki.resource.ResourceReferenceHandlerChain;
@@ -48,6 +50,10 @@ import org.xwiki.resource.annotations.Authenticate;
 import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.UnableToRegisterRightException;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Default handler for all {@link ChangeRequestReference}.
@@ -68,6 +74,12 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
 
     @Inject
     private AuthorizationManager authorizationManager;
+
+    @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     @Override
     public void initialize() throws InitializationException
@@ -102,12 +114,28 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
         throws ResourceReferenceHandlerException
     {
         ChangeRequestReference changeRequestReference = (ChangeRequestReference) reference;
+
+        WikiReference wikiReference = changeRequestReference.getWikiReference();
+        try {
+            if (!this.wikiDescriptorManager.exists(wikiReference.getName())) {
+                throw new ResourceReferenceHandlerException(
+                    String.format("The wiki [%s] does not exist.", wikiReference));
+            }
+        } catch (WikiManagerException e) {
+            throw new ResourceReferenceHandlerException(
+                String.format("Error when checking if wiki [%s] exists.", wikiReference), e);
+        }
         String actionHint = changeRequestReference.getAction().name().toLowerCase(Locale.ROOT);
 
+        XWikiContext context = this.contextProvider.get();
+        WikiReference currentWiki = context.getWikiReference();
         try {
             if (this.componentManager.hasComponent(ChangeRequestActionHandler.class, actionHint)) {
                 ChangeRequestActionHandler actionHandler =
                     this.componentManager.getInstance(ChangeRequestActionHandler.class, actionHint);
+
+                // Be sure that the handler is executed in the context of the targeted wiki.
+                context.setWikiReference(wikiReference);
                 actionHandler.handle(changeRequestReference);
             } else {
                 throw new ResourceReferenceHandlerException(
@@ -121,6 +149,8 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
                 String.format("Error while initializing action handler for the reference [%s]", reference), e);
         } catch (IOException e) {
             throw new ResourceReferenceHandlerException("Error while writing response", e);
+        } finally {
+            context.setWikiReference(currentWiki);
         }
 
         chain.handleNext(reference);

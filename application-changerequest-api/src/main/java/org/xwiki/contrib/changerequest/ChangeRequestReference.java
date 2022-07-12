@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.AbstractResourceReference;
 import org.xwiki.resource.ResourceType;
 import org.xwiki.stability.Unstable;
@@ -75,18 +76,22 @@ public class ChangeRequestReference extends AbstractResourceReference
         SAVE
     }
 
-    private ChangeRequestAction action;
-    private String id;
+    private final ChangeRequestAction action;
+    private final String id;
+
+    private final WikiReference wikiReference;
 
     /**
      * Default constructor of the reference.
      *
+     * @param wikiReference the reference of the wiki where the action should take place.
      * @param action the action to perform.
      * @param id the identifier of the change request, or null if it's a {@link ChangeRequestAction#CREATE}.
      */
-    public ChangeRequestReference(ChangeRequestAction action, String id)
+    public ChangeRequestReference(WikiReference wikiReference, ChangeRequestAction action, String id)
     {
         setType(TYPE);
+        this.wikiReference = wikiReference;
         this.action = action;
         this.id = id;
     }
@@ -105,5 +110,13 @@ public class ChangeRequestReference extends AbstractResourceReference
     public String getId()
     {
         return id;
+    }
+
+    /**
+     * @return the wiki reference where the action should be done.
+     */
+    public WikiReference getWikiReference()
+    {
+        return wikiReference;
     }
 }

@@ -57,7 +57,7 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <discussions.version>2.0-rc-3</discussions.version>
+    <discussions.version>2.0-SNAPSHOT</discussions.version>
     <rights-api.version>2.0-rc-6</rights-api.version>
   </properties>
   <modules>
@@ -87,49 +87,35 @@
               <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.parameterTypeChanged</code>
-                  <old>parameter boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, ===org.xwiki.model.reference.DocumentReference===)</old>
-                  <new>parameter boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, ===org.xwiki.contrib.changerequest.FileChange===)</new>
-                  <parameterIndex>1</parameterIndex>
-                  <justification>Refactoring of the compatibility checker: we introduced the change type since it might impact the check.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.addedToInterface</code>
-                  <new>method boolean org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::canChangeOnDocumentBeAdded(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType)</new>
-                  <justification>Refactoring of the compatibility checker: we introduced the change type since it might impact the check.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.addedToInterface</code>
-                  <new>method java.lang.String org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker::getIncompatibilityReason(org.xwiki.contrib.changerequest.ChangeRequest, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType)</new>
-                  <justification>Refactoring of the compatibility checker</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::filterCompatibleChangeRequest(java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt;, org.xwiki.model.reference.DocumentReference) throws org.xwiki.component.manager.ComponentLookupException, org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <justification>Refactoring of the compatibility checker: this method has been removed as it's not needed anymore for the picker.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::findChangeRequestMatchingTitle(java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <justification>Refactoring of the compatibility checker: this has been renamed to findOpenChangeRequestMatchingTitle.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.removed</code>
-                  <old>method java.util.List&lt;org.xwiki.model.reference.DocumentReference&gt; org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager::getChangeRequestMatchingName(java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <justification>Refactoring of the compatibility checker: this has been renamed to getOpenChangeRequestMatchingName.</justification>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.ChangeRequestReference::&lt;init&gt;(org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction, java.lang.String)</old>
+                  <new>method void org.xwiki.contrib.changerequest.ChangeRequestReference::&lt;init&gt;(org.xwiki.model.reference.WikiReference, org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction, java.lang.String)</new>
+                  <justification>Change needed in order to allow supporting subwiki properly.</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
                   <code>java.class.removed</code>
-                  <old>class org.xwiki.contrib.changerequest.events.SplittedChangeRequestEvent</old>
-                  <justification>Renamed the class to SplitChangeRequestEvent to fix english mistake...</justification>
+                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestAuthorizationScriptService</old>
+                  <justification>Not removed but moved to application-changerequest-default module.</justification>
                 </item>
-
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.class.removed</code>
+                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService</old>
+                  <justification>Not removed but moved to application-changerequest-default module.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.class.removed</code>
+                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestReviewScriptService</old>
+                  <justification>Not removed but moved to application-changerequest-default module.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.class.removed</code>
+                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestScriptService</old>
+                  <justification>Not removed but moved to application-changerequest-default module.</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

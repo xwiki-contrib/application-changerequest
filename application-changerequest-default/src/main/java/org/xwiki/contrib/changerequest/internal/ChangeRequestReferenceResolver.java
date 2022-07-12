@@ -30,6 +30,7 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.CreateResourceReferenceException;
 import org.xwiki.resource.ResourceReference;
 import org.xwiki.resource.ResourceType;
@@ -39,6 +40,10 @@ import org.xwiki.url.internal.AbstractResourceReferenceResolver;
 
 /**
  * Default resolver to resolve {@link ExtendedURL} to {@link ChangeRequestReference}.
+ * The URL format handled is {@code https://server/context/changerequest/wiki/action/identifier} where {@code wiki}
+ * is the name of the wiki where the action should take place, the {@code action} is a
+ * {@link org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction} and {@code identifier} is
+ * optional for create and for other actions is the identifier of the change request.
  *
  * @version $Id$
  * @since 0.1
@@ -55,38 +60,50 @@ public class ChangeRequestReferenceResolver extends AbstractResourceReferenceRes
         Map<String, Object> parameters) throws CreateResourceReferenceException, UnsupportedResourceReferenceException
     {
         CreateResourceReferenceException urlFormatException = new CreateResourceReferenceException(
-            String.format("Invalid Change Request URL format: the format should contain an action and an ID. "
-                + "Provided URL: [%s]", extendedURL));
+            String.format("Invalid Change Request URL format: the format should contain a wiki name, an action and an "
+                + "ID. Provided URL: [%s]", extendedURL));
         List<String> segments = extendedURL.getSegments();
-        if (segments.size() < 1 || segments.size() > 2) {
+        if (segments.isEmpty() || segments.size() > 3) {
             throw urlFormatException;
         } else {
-            String actionString = segments.get(0);
-            ChangeRequestReference.ChangeRequestAction changeRequestAction = null;
-            try {
-                changeRequestAction = ChangeRequestReference.ChangeRequestAction.valueOf(actionString.toUpperCase());
-            } catch (IllegalArgumentException e)
-            {
-                throw new UnsupportedResourceReferenceException(
-                    String.format("The given action is invalid for Change Request: [%s].", actionString));
-            }
-            if (changeRequestAction != ChangeRequestReference.ChangeRequestAction.CREATE && segments.size() == 1) {
+            String wikiName = segments.get(0);
+            String actionString = segments.get(1);
+
+            ChangeRequestReference.ChangeRequestAction changeRequestAction = getChangeRequestAction(actionString);
+
+            // It's only possible to omit the identifier in case of create action
+            if (changeRequestAction != ChangeRequestReference.ChangeRequestAction.CREATE && segments.size() == 2) {
                 throw urlFormatException;
             }
+
             String changeRequestId = null;
-            if (segments.size() == 2) {
+            if (segments.size() == 3) {
+                String identifier = segments.get(2);
                 try {
-                    changeRequestId = URLDecoder.decode(segments.get(1), DEFAULT_LOCALE);
+                    changeRequestId = URLDecoder.decode(identifier, DEFAULT_LOCALE);
                 } catch (UnsupportedEncodingException e) {
                     throw new UnsupportedResourceReferenceException(
                         String.format("Error while decoding Change Request ID [%s]: [%s].",
-                            segments.get(1),
+                            identifier,
                             ExceptionUtils.getRootCauseMessage(e)));
                 }
             }
-            ChangeRequestReference result = new ChangeRequestReference(changeRequestAction, changeRequestId);
+            ChangeRequestReference result =
+                new ChangeRequestReference(new WikiReference(wikiName), changeRequestAction, changeRequestId);
             copyParameters(extendedURL, result);
             return result;
+        }
+    }
+
+    private ChangeRequestReference.ChangeRequestAction getChangeRequestAction(String actionString)
+        throws UnsupportedResourceReferenceException
+    {
+        try {
+            return ChangeRequestReference.ChangeRequestAction.valueOf(actionString.toUpperCase());
+        } catch (IllegalArgumentException e)
+        {
+            throw new UnsupportedResourceReferenceException(
+                String.format("The given action is invalid for Change Request: [%s].", actionString));
         }
     }
 }

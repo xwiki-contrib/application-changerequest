@@ -48,4 +48,6 @@
   <suppress checks="ClassFanOutComplexity" files="CreateChangeRequestHandler.java"/>
   <suppress checks="ClassFanOutComplexity" files="AbstractChangeRequestActionHandler.java"/>
   <suppress checks="ClassFanOutComplexity" files="XWikiDocumentDelegateApproverManager.java"/>
+  <suppress checks="ClassFanOutComplexity" files="ChangeRequestScriptService.java"/>
+  <suppress checks="ClassFanOutComplexity" files="ChangeRequestResourceHandler.java"/>
 </suppressions>
