@@ -213,6 +213,7 @@ changerequest.savemodal.approvers.groups=Gruppen, die genehmigen können
 changerequest.savemodal.approvers.minimumUsers.hint=Bitte beachten Sie, dass Sie mindestens {0} Genehmiger auswählen müssen.
 changerequest.savemodal.error.missingChangerequest=Bitte geben Sie einen neuen Titel für die Änderungsanforderung ein oder wählen Sie eine vorhandene Änderungsanforderung aus.
 changerequest.savemodal.error.minimumApprovers=Sie müssen mindestens {0} Genehmiger auswählen, um Ihre Änderungen zu speichern.
+changerequest.savemodal.error.otherError=Die Änderungsanforderung kann nicht gespeichert werden. Vielleicht können Sie versuchen, eine neue Änderungsanforderung zu erstellen oder die Änderungen zu einer anderen vorhandenen Änderungsanforderung hinzuzufügen. Hier sind die technischen Details zum aufgetretenen Fehler: 
 changerequest.sheet.message.reply.header=Antwort auf Nachricht von {0} an {1} gesendet.
 changerequest.sheet.message.reply.link.title=Klicken Sie hier, um zur vorherigen Nachricht zu navigieren.
 changerequest.livetable.approvers.reviews.performed=Überprüfung(en) durchgeführt
