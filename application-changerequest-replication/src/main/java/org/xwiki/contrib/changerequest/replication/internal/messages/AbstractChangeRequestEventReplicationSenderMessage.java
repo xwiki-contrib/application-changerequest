@@ -50,15 +50,12 @@ import com.xpn.xwiki.XWikiContext;
  * {@link #initialize(RecordableEvent, DocumentReference)} method also calls the abstract method
  * {@link #initializeCustomMetadata(RecordableEvent)} which aims at storing the custom metadata for each type of event.
  *
- * @param <T> the type of {@link RecordableEvent} the component should be used with.
- *
  * @version $Id$
  * @since 0.16
  */
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
-public abstract class AbstractChangeRequestEventReplicationSenderMessage<T extends RecordableEvent>
-    extends AbstractReplicationMessage
-    implements ChangeRequestReplicationSenderMessage<T>
+public abstract class AbstractChangeRequestEventReplicationSenderMessage extends AbstractReplicationMessage
+    implements ChangeRequestReplicationSenderMessage
 {
     /**
      * Key of the custom metadata for holding the reference of the document triggered along with the event.
@@ -130,10 +127,10 @@ public abstract class AbstractChangeRequestEventReplicationSenderMessage<T exten
     }
 
     @Override
-    public void initialize(T event, DocumentReference dataDocument)
+    public void initialize(RecordableEvent event, DocumentReference dataDocumentReference)
     {
         this.saveContextUser();
-        this.putCustomMetadata(DATA_DOCUMENT, this.entityReferenceSerializer.serialize(dataDocument));
+        this.putCustomMetadata(DATA_DOCUMENT, this.entityReferenceSerializer.serialize(dataDocumentReference));
         this.initializeCustomMetadata(event);
     }
 
@@ -142,5 +139,5 @@ public abstract class AbstractChangeRequestEventReplicationSenderMessage<T exten
      *
      * @param event the event from which to retrieve the custom data to be stored in the message.
      */
-    protected abstract void initializeCustomMetadata(T event);
+    protected abstract void initializeCustomMetadata(RecordableEvent event);
 }

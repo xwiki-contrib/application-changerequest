@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link ChangeRequestCreatedRecordableEvent}.
@@ -33,7 +34,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreated
 @Component
 @Named(ChangeRequestCreatedRecordableEvent.EVENT_NAME)
 public class ChangeRequestCreatedReplicationSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage<ChangeRequestCreatedRecordableEvent>
+    AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata to store the information if the creation results from a split or not.
@@ -50,8 +51,8 @@ public class ChangeRequestCreatedReplicationSenderMessage extends
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestCreatedRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent event)
     {
-        this.putCustomMetadata(FROM_SPLIT, event.isFromSplit());
+        this.putCustomMetadata(FROM_SPLIT, ((ChangeRequestCreatedRecordableEvent) event).isFromSplit());
     }
 }

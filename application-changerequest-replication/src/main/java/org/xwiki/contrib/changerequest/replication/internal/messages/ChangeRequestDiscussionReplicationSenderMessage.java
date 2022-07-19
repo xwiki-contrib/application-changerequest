@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link ChangeRequestDiscussionRecordableEvent}.
@@ -33,7 +34,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscuss
 @Component
 @Named(ChangeRequestDiscussionRecordableEvent.EVENT_NAME)
 public class ChangeRequestDiscussionReplicationSenderMessage
-    extends AbstractRecordableChangeRequestEventReplicationSenderMessage<ChangeRequestDiscussionRecordableEvent>
+    extends AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the discussion type information.
@@ -62,8 +63,9 @@ public class ChangeRequestDiscussionReplicationSenderMessage
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestDiscussionRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent recordableEvent)
     {
+        ChangeRequestDiscussionRecordableEvent event = (ChangeRequestDiscussionRecordableEvent) recordableEvent;
         this.putCustomMetadata(DISCUSSION_TYPE, event.getDiscussionType());
         this.putCustomMetadata(DISCUSSION_REFERENCE, event.getDiscussionReference());
         this.putCustomMetadata(MESSAGE_REFERENCE, event.getMessageReference());

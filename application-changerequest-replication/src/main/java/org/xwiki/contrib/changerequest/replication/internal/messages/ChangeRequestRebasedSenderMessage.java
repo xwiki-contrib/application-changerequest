@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link ChangeRequestRebasedRecordableEvent}.
@@ -32,8 +33,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebased
  */
 @Component
 @Named(ChangeRequestRebasedRecordableEvent.EVENT_NAME)
-public class ChangeRequestRebasedSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage<ChangeRequestRebasedRecordableEvent>
+public class ChangeRequestRebasedSenderMessage extends AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the information if the rebase is fixing a conflict or not.
@@ -56,8 +56,9 @@ public class ChangeRequestRebasedSenderMessage extends
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestRebasedRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent recordableEvent)
     {
+        ChangeRequestRebasedRecordableEvent event = (ChangeRequestRebasedRecordableEvent) recordableEvent;
         this.putCustomMetadata(IS_CONFLICT_FIXING, event.isConflictFixing());
         this.putCustomMetadata(FILECHANGE_ID, event.getConcernedFileChangeId());
     }

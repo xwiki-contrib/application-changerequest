@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link ChangeRequestFileChangeAddedRecordableEvent}.
@@ -33,7 +34,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileCha
 @Component
 @Named(ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME)
 public class FileChangeAddedReplicationSenderMessage
-    extends AbstractRecordableChangeRequestEventReplicationSenderMessage<ChangeRequestFileChangeAddedRecordableEvent>
+    extends AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the filechange identifier.
@@ -50,8 +51,8 @@ public class FileChangeAddedReplicationSenderMessage
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestFileChangeAddedRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent event)
     {
-        this.putCustomMetadata(FILE_CHANGE_ID, event.getFileChangeId());
+        this.putCustomMetadata(FILE_CHANGE_ID, ((ChangeRequestFileChangeAddedRecordableEvent) event).getFileChangeId());
     }
 }

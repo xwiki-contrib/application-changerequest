@@ -30,13 +30,11 @@ import org.xwiki.model.reference.DocumentReference;
  * Note that the component implementations should all use
  * {@link org.xwiki.component.descriptor.ComponentInstantiationStrategy#PER_LOOKUP}.
  *
- * @param <T> the type of the actual event from which to initialize the sender message.
- *
  * @version $Id$
  * @since 0.16
  */
 @Role
-public interface ChangeRequestReplicationSenderMessage<T extends RecordableEvent> extends ReplicationSenderMessage
+public interface ChangeRequestReplicationSenderMessage extends ReplicationSenderMessage
 {
     /**
      * Initialize the sender message with the different properties contained in the event.
@@ -46,5 +44,5 @@ public interface ChangeRequestReplicationSenderMessage<T extends RecordableEvent
      * @param event the event that might contain property to put in the sender message.
      * @param dataDocumentReference the document reference to save in the sender message.
      */
-    void initialize(T event, DocumentReference dataDocumentReference);
+    void initialize(RecordableEvent event, DocumentReference dataDocumentReference);
 }

@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
-import org.xwiki.contrib.changerequest.replication.internal.messages.StaleChangeRequestSenderMessage;
 
 /**
  * Default listener and message sender for {@link StaleChangeRequestRecordableEvent}.
@@ -35,8 +34,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.StaleChange
 @Component
 @Singleton
 @Named(StaleChangeRequestListener.NAME)
-public class StaleChangeRequestListener extends
-    AbstractChangeRequestEventListener<StaleChangeRequestRecordableEvent, StaleChangeRequestSenderMessage>
+public class StaleChangeRequestListener extends AbstractChangeRequestEventListener<StaleChangeRequestRecordableEvent>
 {
     /**
      * Listener name.

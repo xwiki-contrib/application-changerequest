@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link StaleChangeRequestRecordableEvent}.
@@ -32,8 +33,7 @@ import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRe
  */
 @Component
 @Named(StaleChangeRequestRecordableEvent.EVENT_NAME)
-public class StaleChangeRequestSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage<StaleChangeRequestRecordableEvent>
+public class StaleChangeRequestSenderMessage extends AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Default constructor.
@@ -44,7 +44,7 @@ public class StaleChangeRequestSenderMessage extends
     }
 
     @Override
-    protected void initializeCustomMetadata(StaleChangeRequestRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent event)
     {
         // No custom metadata.
     }

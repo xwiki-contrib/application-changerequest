@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link ChangeRequestStatusChangedRecordableEvent}.
@@ -32,8 +33,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusC
  */
 @Component
 @Named(ChangeRequestStatusChangedRecordableEvent.EVENT_NAME)
-public class StatusUpdatedReplicationSenderMessage
-    extends AbstractRecordableChangeRequestEventReplicationSenderMessage<ChangeRequestStatusChangedRecordableEvent>
+public class StatusUpdatedReplicationSenderMessage extends AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the new status before the event.
@@ -56,8 +56,9 @@ public class StatusUpdatedReplicationSenderMessage
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestStatusChangedRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent recordableEvent)
     {
+        ChangeRequestStatusChangedRecordableEvent event = (ChangeRequestStatusChangedRecordableEvent) recordableEvent;
         this.putCustomMetadata(NEW_STATUS, event.getNewStatus().name());
         this.putCustomMetadata(OLD_STATUS, event.getOldStatus().name());
     }

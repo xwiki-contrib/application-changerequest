@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
-import org.xwiki.contrib.changerequest.replication.internal.messages.FileChangeAddedReplicationSenderMessage;
 
 /**
  * Default listener and message sender for {@link ChangeRequestFileChangeAddedRecordableEvent}.
@@ -36,8 +35,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.FileChangeA
 @Singleton
 @Named(FileChangeAddedListener.NAME)
 public class FileChangeAddedListener extends
-    AbstractChangeRequestEventListener<ChangeRequestFileChangeAddedRecordableEvent,
-        FileChangeAddedReplicationSenderMessage>
+    AbstractChangeRequestEventListener<ChangeRequestFileChangeAddedRecordableEvent>
 {
     /**
      * Listener name.

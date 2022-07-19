@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
-import org.xwiki.contrib.changerequest.replication.internal.messages.ReadyForReviewSenderMessage;
 
 /**
  * Default listener and message sender for {@link ChangeRequestReadyForReviewTargetableEvent}.
@@ -36,7 +35,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.ReadyForRev
 @Singleton
 @Named(ReadyForReviewListener.NAME)
 public class ReadyForReviewListener extends
-    AbstractChangeRequestEventListener<ChangeRequestReadyForReviewTargetableEvent, ReadyForReviewSenderMessage>
+    AbstractChangeRequestEventListener<ChangeRequestReadyForReviewTargetableEvent>
 {
     /**
      * Listener name.

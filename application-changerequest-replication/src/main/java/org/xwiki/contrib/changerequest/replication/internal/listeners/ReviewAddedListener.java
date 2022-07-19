@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
-import org.xwiki.contrib.changerequest.replication.internal.messages.ReviewAddedSenderMessage;
 
 /**
  * Default listener and message sender for {@link ChangeRequestReviewAddedRecordableEvent}.
@@ -35,9 +34,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.ReviewAdded
 @Component
 @Singleton
 @Named(ReviewAddedListener.NAME)
-public class ReviewAddedListener extends
-    AbstractChangeRequestEventListener<ChangeRequestReviewAddedRecordableEvent,
-        ReviewAddedSenderMessage>
+public class ReviewAddedListener extends AbstractChangeRequestEventListener<ChangeRequestReviewAddedRecordableEvent>
 {
     /**
      * Listener name.

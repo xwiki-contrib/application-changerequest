@@ -24,6 +24,7 @@ import javax.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.eventstream.TargetableEvent;
 
 /**
@@ -34,8 +35,7 @@ import org.xwiki.eventstream.TargetableEvent;
  */
 @Component
 @Named(ChangeRequestReadyForReviewTargetableEvent.EVENT_NAME)
-public class ReadyForReviewSenderMessage extends
-    AbstractChangeRequestEventReplicationSenderMessage<ChangeRequestReadyForReviewTargetableEvent>
+public class ReadyForReviewSenderMessage extends AbstractChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the targets of the event.
@@ -52,8 +52,9 @@ public class ReadyForReviewSenderMessage extends
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestReadyForReviewTargetableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent event)
     {
-        this.putCustomMetadata(TARGETS, StringUtils.join(event.getTarget(), ","));
+        this.putCustomMetadata(TARGETS,
+            StringUtils.join(((ChangeRequestReadyForReviewTargetableEvent) event).getTarget(), ","));
     }
 }

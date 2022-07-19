@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.replication.internal.listeners;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -30,16 +31,21 @@ import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.contrib.changerequest.replication.internal.messages.AbstractChangeRequestEventReplicationSenderMessage;
+import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestReplicationSenderMessage;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationContext;
 import org.xwiki.contrib.replication.ReplicationException;
 import org.xwiki.contrib.replication.ReplicationInstance;
 import org.xwiki.contrib.replication.ReplicationSender;
+import org.xwiki.contrib.replication.ReplicationSenderMessage;
 import org.xwiki.contrib.replication.entity.DocumentReplicationController;
 import org.xwiki.contrib.replication.entity.DocumentReplicationControllerInstance;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
@@ -52,13 +58,11 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * @param <T> the type of {@link RecordableEvent} that needs to be sent (note: it's mainly used for
  *            {@link org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent} but we
  *            have few events not using that abstraction.)
- * @param <R> the type of message that should be created and sent.
  *
  * @version $Id$
  * @since 0.16
  */
-public abstract class AbstractChangeRequestEventListener<T extends RecordableEvent,
-    R extends AbstractChangeRequestEventReplicationSenderMessage<T>> extends AbstractEventListener
+public abstract class AbstractChangeRequestEventListener<T extends RecordableEvent> extends AbstractEventListener
 {
     @Inject
     @Named("context")
@@ -75,6 +79,12 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
 
     @Inject
     private ReplicationContext replicationContext;
+
+    @Inject
+    private Provider<ChangeRequestStorageManager> changeRequestStorageManagerProvider;
+
+    @Inject
+    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
     private Logger logger;
@@ -100,6 +110,25 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
         }
     }
 
+    private List<ReplicationInstance> getInstances(String changeRequestId)
+    {
+        List<ReplicationInstance> result = Collections.emptyList();
+        try {
+            Optional<ChangeRequest> optionalChangeRequest
+                = this.changeRequestStorageManagerProvider.get().load(changeRequestId);
+            if (optionalChangeRequest.isPresent()) {
+                DocumentReference documentReference =
+                    this.changeRequestDocumentReferenceResolver.resolve(optionalChangeRequest.get());
+                result = this.getInstances(documentReference);
+            } else {
+                this.logger.error("No change request found with identifier [{}]", changeRequestId);
+            }
+        } catch (ChangeRequestException e) {
+            this.logger.error("Cannot load change request [{}]", changeRequestId, e);
+        }
+        return result;
+    }
+
     private List<ReplicationInstance> getInstances(DocumentReference documentReference)
     {
         List<ReplicationInstance> result = Collections.emptyList();
@@ -122,9 +151,14 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
      * @param message the message to be sent.
      * @param dataDocumentReference the reference of the document from which to retrieve the replication instances.
      */
-    protected void sendMessage(R message, DocumentReference dataDocumentReference)
+    private void sendMessage(ReplicationSenderMessage message, DocumentReference dataDocumentReference, T event)
     {
-        List<ReplicationInstance> instances = this.getInstances(dataDocumentReference);
+        List<ReplicationInstance> instances;
+        if (event instanceof AbstractChangeRequestRecordableEvent) {
+            instances = this.getInstances(((AbstractChangeRequestRecordableEvent) event).getChangeRequestId());
+        } else {
+            instances = this.getInstances(dataDocumentReference);
+        }
         if (!instances.isEmpty()) {
             try {
                 this.replicationSenderProvider.get().send(message, instances);
@@ -148,9 +182,10 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     protected void processMessage(T event, String messageHint, DocumentReference dataDocumentReference)
     {
         try {
-            R message = this.componentManager.getInstance(ChangeRequestReplicationSenderMessage.class, messageHint);
+            ChangeRequestReplicationSenderMessage message =
+                this.componentManager.getInstance(ChangeRequestReplicationSenderMessage.class, messageHint);
             message.initialize(event, dataDocumentReference);
-            this.sendMessage(message, dataDocumentReference);
+            this.sendMessage(message, dataDocumentReference, event);
         } catch (ComponentLookupException e) {
             this.logger.error("Error when looking for replication component message", e);
         }

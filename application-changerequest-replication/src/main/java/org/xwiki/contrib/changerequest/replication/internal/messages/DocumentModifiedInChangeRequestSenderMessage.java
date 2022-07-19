@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link DocumentModifiedInChangeRequestEvent}.
@@ -33,7 +34,7 @@ import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInCh
 @Component
 @Named(DocumentModifiedInChangeRequestEvent.EVENT_NAME)
 public class DocumentModifiedInChangeRequestSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage<DocumentModifiedInChangeRequestEvent>
+    AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Default constructor.
@@ -44,7 +45,7 @@ public class DocumentModifiedInChangeRequestSenderMessage extends
     }
 
     @Override
-    protected void initializeCustomMetadata(DocumentModifiedInChangeRequestEvent event)
+    protected void initializeCustomMetadata(RecordableEvent event)
     {
         // No custom metadata.
     }

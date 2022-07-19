@@ -20,22 +20,21 @@
 package org.xwiki.contrib.changerequest.replication.internal.messages;
 
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
  * Abstract component for defining a sender message from an {@link AbstractChangeRequestRecordableEvent}.
  * On top of the metadata that are automatically stored thanks to
  * {@link AbstractChangeRequestEventReplicationSenderMessage} the
- * {@link #initialize(AbstractChangeRequestRecordableEvent, DocumentReference)} method of this class also stores the
+ * {@link #initialize(RecordableEvent, DocumentReference)} method of this class also stores the
  * change request identifier of the event.
- *
- * @param <T> the specific type of event to handle.
  *
  * @version $Id$
  * @since 0.16
  */
-public abstract class AbstractRecordableChangeRequestEventReplicationSenderMessage<T extends
-        AbstractChangeRequestRecordableEvent> extends AbstractChangeRequestEventReplicationSenderMessage<T>
+public abstract class AbstractRecordableChangeRequestEventReplicationSenderMessage extends
+    AbstractChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the change request identifier of the event.
@@ -53,9 +52,10 @@ public abstract class AbstractRecordableChangeRequestEventReplicationSenderMessa
     }
 
     @Override
-    public void initialize(T event, DocumentReference dataDocument)
+    public void initialize(RecordableEvent event, DocumentReference dataDocument)
     {
         super.initialize(event, dataDocument);
-        this.putCustomMetadata(CHANGE_REQUEST_ID_PARAMETER, event.getChangeRequestId());
+        this.putCustomMetadata(CHANGE_REQUEST_ID_PARAMETER,
+            ((AbstractChangeRequestRecordableEvent) event).getChangeRequestId());
     }
 }

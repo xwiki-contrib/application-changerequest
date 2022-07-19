@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
-import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestUpdatedSenderMessage;
 
 /**
  * Default listener and message sender for {@link ChangeRequestUpdatedRecordableEvent}.
@@ -36,7 +35,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeReque
 @Singleton
 @Named(ChangeRequestUpdatedListener.NAME)
 public class ChangeRequestUpdatedListener extends
-    AbstractChangeRequestEventListener<ChangeRequestUpdatedRecordableEvent, ChangeRequestUpdatedSenderMessage>
+    AbstractChangeRequestEventListener<ChangeRequestUpdatedRecordableEvent>
 {
     /**
      * Listener name.

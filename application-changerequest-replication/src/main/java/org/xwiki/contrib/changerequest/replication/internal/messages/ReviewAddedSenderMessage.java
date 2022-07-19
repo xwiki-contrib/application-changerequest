@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
  * Default sender message implementation for {@link ChangeRequestReviewAddedRecordableEvent}.
@@ -32,8 +33,7 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewA
  */
 @Component
 @Named(ChangeRequestReviewAddedRecordableEvent.EVENT_NAME)
-public class ReviewAddedSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage<ChangeRequestReviewAddedRecordableEvent>
+public class ReviewAddedSenderMessage extends AbstractRecordableChangeRequestEventReplicationSenderMessage
 {
     /**
      * Key of the custom metadata holding the review identifier.
@@ -57,8 +57,9 @@ public class ReviewAddedSenderMessage extends
     }
 
     @Override
-    protected void initializeCustomMetadata(ChangeRequestReviewAddedRecordableEvent event)
+    protected void initializeCustomMetadata(RecordableEvent recordableEvent)
     {
+        ChangeRequestReviewAddedRecordableEvent event = (ChangeRequestReviewAddedRecordableEvent) recordableEvent;
         this.putCustomMetadata(REVIEW_ID, event.getReviewId());
         this.putCustomMetadata(ORIGINAL_APPROVER, event.getOriginalApprover());
     }

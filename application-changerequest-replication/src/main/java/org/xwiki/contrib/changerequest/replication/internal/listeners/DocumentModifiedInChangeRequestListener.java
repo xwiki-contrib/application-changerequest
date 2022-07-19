@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
-import org.xwiki.contrib.changerequest.replication.internal.messages.DocumentModifiedInChangeRequestSenderMessage;
 
 /**
  * Default listener and message sender for {@link DocumentModifiedInChangeRequestEvent}.
@@ -36,8 +35,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.DocumentMod
 @Singleton
 @Named(DocumentModifiedInChangeRequestListener.NAME)
 public class DocumentModifiedInChangeRequestListener extends
-    AbstractChangeRequestEventListener<DocumentModifiedInChangeRequestEvent,
-        DocumentModifiedInChangeRequestSenderMessage>
+    AbstractChangeRequestEventListener<DocumentModifiedInChangeRequestEvent>
 {
     /**
      * Listener name.
