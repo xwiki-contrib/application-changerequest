@@ -131,13 +131,13 @@
   #set ($skip = false)
   #set ($reviewDiscussion = $NULL)
   ## we skip the document modified events, since they are basically redundant with the filechanges ones.
-  #if ($event.type == "changerequest.document.modified")
+  #if ($event.type == 'changerequest.document.modified')
     #set ($skip = true)
-  #elseif ($event.type == "changerequest.create")
+  #elseif ($event.type == 'changerequest.create')
     #set ($actualDoc = $xwiki.getDocument($event.document))
     #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
     #set ($icon = 'space')
-  #elseif ($event.type == "changerequest.filechange.added")
+  #elseif ($event.type == 'changerequest.filechange.added')
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
     #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
     #set ($icon = 'add')
@@ -148,7 +148,7 @@
     #else
       #set ($skip = true)
     #end
-  #elseif ($event.type == "changerequest.status.modified")
+  #elseif ($event.type == 'changerequest.status.modified')
     #set ($oldStatus = $event.parameters.get('changerequest.status.old'))
     #set ($newStatus = $event.parameters.get('changerequest.status.new'))
     #set ($localizationArguments = [$userArgument, "#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"])
@@ -160,10 +160,11 @@
       #set ($icon = 'world')
     #elseif ($newStatus == 'CLOSED' || $newStatus == 'STALE')
       #set ($icon = 'stop')
-    #elseif ($newStatus == 'READY_FOR_MERGE')
+    #elseif ($newStatus == 'READY_FOR_MERGING')
       #set ($icon = 'lightbulb')
+      #set ($iconClass = 'icon-success')
     #end
-  #elseif ($event.type == "changerequest.review.added")
+  #elseif ($event.type == 'changerequest.review.added')
     #set ($reviewId = $event.parameters.get('changerequest.review.id'))
     #set ($reviewOpt = $services.changerequest.review.getReview($changeRequest, $reviewId))
     #if ($reviewOpt.isPresent())
@@ -185,7 +186,7 @@
         #set ($localizationArguments = [$userArgument])
       #end
     #end
-  #elseif ($event.type == "changerequest.rebased")
+  #elseif ($event.type == 'changerequest.rebased')
     #set ($concernsAllCR = $event.parameters.get('changerequest.rebased.all'))
     #set ($isAboutConflictFixing = $event.parameters.get('changerequest.rebased.conflictRelated'))
     #set ($fileChangeId = $event.parameters.get('changerequest.rebased.filechange.id'))
@@ -209,7 +210,7 @@
         #set ($localizationKey = "${localizationKey}.filechange")
       #end
     #end
-  #elseif ($event.type == "changerequest.discussions")
+  #elseif ($event.type == 'changerequest.discussions')
     #set ($dataTab = "")
     #set ($discussionType = $event.parameters.get('changerequest.discussion.type'))
     #set ($messageReference = $event.parameters.get('changerequest.message.reference'))
@@ -228,6 +229,9 @@
     #end
     #set ($link = "&lt;a href=""$messageURL"" data-message-reference=""$messageReference"" $dataTab&gt;")
     #set ($localizationArguments = [$userArgument, $link, '&lt;/a&gt;'])
+  #elseif ($event.type == 'changerequest.updated')
+    #set($icon = 'pencil')
+    #set ($localizationArguments = [$userArgument])
   #else
     #set ($localizationArguments = [$userArgument])
   #end
