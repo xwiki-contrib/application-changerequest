@@ -172,7 +172,7 @@
   ## We call this method afterwards to avoid loading unnecessary stuff.
   #if (!$services.changerequest.isMinimumApproversConfigurationRespected($doc))
     {{warning}}
-      The minimum number of explicit approvers is not met in this document: this should be fixed by managing the approvers.
+      {{translation key="changerequest.minimumApprovers.warning" /}}
     {{/warning}}
   #end
 #end

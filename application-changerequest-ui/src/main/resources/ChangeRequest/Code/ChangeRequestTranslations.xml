@@ -190,6 +190,8 @@ changerequest.sheet.message.expand.button.title=Click to expand the message.
 changerequest.sheet.message.reply.button.title=Reply to this message
 changerequest.sheet.message.reply.button=Reply
 
+changerequest.minimumApprovers.warning=The minimum number of explicit approvers is not met in this document.
+
 ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
 ChangeRequest.Code.ChangeRequestClass_status_merged=Merged
 ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Ready for review
