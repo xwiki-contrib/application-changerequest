@@ -294,12 +294,6 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         usersCRApprovers.addAll(this.fileChangeApproversManager.getAllApprovers(fileChange, false));
         groupsCRApprovers.addAll(this.fileChangeApproversManager.getGroupsApprovers(fileChange));
 
-        if (configuration.getMinimumApprovers() > 0 && usersCRApprovers.size() < configuration.getMinimumApprovers()) {
-            throw new ChangeRequestException(
-                String.format("The minimum number of approvers [%s] has not been respected: "
-                    + "only [%s] approvers defined.", configuration.getMinimumApprovers(), usersCRApprovers.size()));
-        }
-
         // If the authored are prevented to review, we ensure to remove it from the list of users approvers.
         if (this.configuration.preventAuthorToReview()) {
             usersCRApprovers.remove(fileChange.getAuthor());

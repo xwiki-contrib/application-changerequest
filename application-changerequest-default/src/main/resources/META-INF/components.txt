@@ -62,3 +62,4 @@ org.xwiki.contrib.changerequest.script.ChangeRequestReviewScriptService
 org.xwiki.contrib.changerequest.script.ChangeRequestAuthorizationScriptService
 org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService
 org.xwiki.contrib.changerequest.internal.listeners.ReviewXObjectUpdatedListener
+org.xwiki.contrib.changerequest.internal.checkers.MinimumApproversCompatibilityChecker

@@ -37,7 +37,9 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * This implementation of {@link ApproversManager} is a read-only implementation dedicated to retrieve the approvers
  * information given a specific filechange. Specifically, if the filechange is of type
  * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#CREATION} this manager will read in the modified
- * document, the approvers information. Else it will rely on the existing published document.
+ * document, the approvers information. Else it will rely on the existing published document. We use that strategy
+ * on purpose because we don't want to rely on an edited list of approvers that would override the already existing list
+ * of approvers.
  * Note that calling the setters with this implementation will automatically trigger an exception.
  *
  * @version $Id$

@@ -103,6 +103,9 @@ public class ChangeRequestScriptService implements ScriptService
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    @Inject
+    private ApproversManager<DocumentReference> documentReferenceApproversManager;
+
     /**
      * @param <S> the type of the {@link ScriptService}
      * @param serviceName the name of the sub {@link ScriptService}
@@ -432,5 +435,25 @@ public class ChangeRequestScriptService implements ScriptService
     public int getMinimumApprovers()
     {
         return this.configuration.getMinimumApprovers();
+    }
+
+    /**
+     * Check that the minimum approvers configuration is respected.
+     *
+     * @param documentReference the document for which to check if the minimum number of approvers is respected.
+     * @return {@code true} if no minimum is set, or if the minimum is respected for the given document.
+     * @throws ChangeRequestException in case of problem to retrieve the approvers in the document.
+     * @since 0.16
+     */
+    public boolean isMinimumApproversConfigurationRespected(DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        boolean result = true;
+        int minimumApprovers = getMinimumApprovers();
+        if (minimumApprovers > 0) {
+            int docApprovers = this.documentReferenceApproversManager.getAllApprovers(documentReference, false).size();
+            result = minimumApprovers <= docApprovers;
+        }
+        return result;
     }
 }
