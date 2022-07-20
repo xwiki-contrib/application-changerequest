@@ -2139,7 +2139,6 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       if (lineResult.outdated) {
         discussion.addClass('discussion-outdated');
         discussion.find('.outdated-message').removeClass('hidden');
-        discussion.find('.message-content').collapse('hide');
       }
       incrementCounter(targetReference);
     }
@@ -2164,25 +2163,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     $(document).trigger('xwiki:dom:updated', {'elements': $('#discussions .discussion').toArray()});
   };
   
-  var toggleCollapseExpandButton = function (isExpanded, element) {
-    if (isExpanded) {
-      element.find('.collapse-button').removeClass('hidden');
-      element.find('.expand-button').addClass('hidden');
-    } else {
-      element.find('.expand-button').removeClass('hidden');
-      element.find('.collapse-button').addClass('hidden');
-    }
-  };
-  
   var initialize = function () {
     placeAllDiscussions();
     $(document).on('xwiki:changerequest:refreshComments', placeAllDiscussions);
-    $(document).on('hidden.bs.collapse', '.message-content', function (event) {
-      toggleCollapseExpandButton(false, $(this).parent());
-    });
-    $(document).on('shown.bs.collapse', '.message-content', function (event) {
-      toggleCollapseExpandButton(true, $(this).parent());
-    });
   };
   
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
@@ -2773,7 +2756,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <code>'use strict';
 require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEditor'], function ($, xm, DiscussionHandler, CommentEditor) {
   var initReply = function () {
-    $('.message .reply-button:visible').on('click', function (event) {
+    $('.message .reply-button:visible').one('click', function (event) {
       var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
       var message = $(this).parents('.message');
       var discussion = message.parents('.discussion');
@@ -2795,6 +2778,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEdito
   var initialize = function () {
     initReply();
     $(document).on('xwiki:dom:updated', initReply);
+    $('a[data-toggle="tab"][href="#reviews"]').on('shown.bs.tab', initReply);
     $('.diff-panel').on('shown.bs.collapse', initReply);
   };
   (XWiki.isInitialized &amp;&amp; initialize()) || $(document).on('xwiki:dom:loading', initialize);
@@ -3770,7 +3754,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -3930,7 +3914,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
