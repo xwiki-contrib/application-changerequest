@@ -2019,9 +2019,8 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var reviewId = discussion.attr('data-reference');
     var reviewElement = $('.review[data-reviewid=' + reviewId +']');
     if (reviewElement) {
-      reviewElement.empty();
-      reviewElement.append(discussion);
       discussion.wrap('&lt;div class="panel-body"&gt;&lt;/div&gt;');
+      reviewElement.append(discussion.parent());
     }
     discussion.clone().find('.message').each(function (index, message) {
       placeMessage('review', index, message);
