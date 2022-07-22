@@ -186,6 +186,7 @@ changerequest.sheet.message.collapse.button.title=Klicken Sie, um die Nachricht 
 changerequest.sheet.message.expand.button.title=Klicken Sie, um die Nachricht zu erweitern.
 changerequest.sheet.message.reply.button.title=Auf die Nachricht antworten
 changerequest.sheet.message.reply.button=Antworten
+changerequest.minimumApprovers.warning=Die Mindestanzahl explizit genehmigender Personen wird in diesem Dokument nicht erreicht.
 ChangeRequest.Code.ChangeRequestClass_status_draft=Entwurf
 ChangeRequest.Code.ChangeRequestClass_status_merged=Zusammengeführt
 ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Bereit zur Überprüfung
