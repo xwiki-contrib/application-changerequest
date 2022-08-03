@@ -230,4 +230,4 @@ changerequest.review.modal.warningConflict=Die Änderungsanforderung, die Sie ge
 changerequest.review.modal.warningReview=Sie haben bereits eine gültige Überprüfung zu dieser Änderungsanforderung. Diese neue Überprüfung macht die vorherige ungültig.
 changerequest.review.modal.warningReview.onBehalf=Es existiert bereits eine gültige Überprüfung bezüglich dieser Änderungsanforderung, die von oder im Auftrag von {0} durchgeführt wurde. Diese neue Überprüfung macht die vorherige ungültig.
 </content>
-  </xwikidoc>
+</xwikidoc>
