@@ -297,14 +297,16 @@
 #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
 #set ($hasEdit = $services.security.authorization.hasAccess('edit', $tdoc))
 #set ($hasCreateButton = ($hasCreateSpace || $hasCreatePage))
-#if (!$isReadOnly &amp;&amp; $hasCREdit &amp;&amp; !$hasEdit)
 #set ($editURL = $doc.getURL('editcr'))
 #set ($createURL = $doc.getURL('createcr'))
+#if (!$isReadOnly &amp;&amp; $hasCREdit)
+#if (!$hasEdit)
 &lt;div class="btn-group" id="crEdit"&gt;
   &lt;a href="$editURL" role="button" title="$services.localization.render('changerequest.edit.button.title')" class="btn btn-default"&gt;
     $services.icon.renderHTML('pencil') $services.localization.render('changerequest.edit.button.value')
   &lt;/a&gt;
 &lt;/div&gt;
+#end
 #if (!$hasCreateButton)
 &lt;div class="btn-group" id="crCreate"&gt;
   &lt;a href="$createURL" role="button" title="$services.localization.render('changerequest.create.button.title')" class="btn btn-default"&gt;
