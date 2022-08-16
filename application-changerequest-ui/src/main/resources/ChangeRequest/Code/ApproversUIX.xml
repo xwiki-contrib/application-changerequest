@@ -280,6 +280,8 @@
 #set ($crEditName = "changerequest")
 #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
 #if (!$isReadOnly &amp;&amp; ($hasCREdit || $hasEditRight))
+## Ensure to properly invalidate the cache whenever the doc is updated.
+#set ($discard = $services.async.useEntity($doc.getDocumentReference()))
 #if ($doc.getObject('ChangeRequest.Code.ApproversClass'))
   #set ($handlingURL = $doc.getURL('edit', 'editor=object&amp;classname=ChangeRequest.Code.ApproversClass&amp;object=0'))
 #else
