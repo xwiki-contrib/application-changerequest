@@ -85,7 +85,7 @@
     #elseif ("$!request.get('action')" == "getDiscussionPostUrl" &amp;&amp; "$!request.get('reviewid')")
       #set ($discussionReference = $services.changerequest.discussion.createChangeRequestReviewDiscussion($changeRequest.id, $request.get('reviewid')))
       #set ($discussionReviewReferenceString = $services.discussions.serialize($discussionReference))
-      #set ($url = "${request.getContextPath()}/discussions/create/Message/$escapetool.url($discussionReviewReferenceString)")
+      #set ($url = "${request.getContextPath()}/discussions/wiki/$services.wiki.getCurrentWikiId()/create/Message/$escapetool.url($discussionReviewReferenceString)")
       #jsonResponse({
         'discussionPostUrl': $url,
         'discussionReference': $discussionReviewReferenceString
