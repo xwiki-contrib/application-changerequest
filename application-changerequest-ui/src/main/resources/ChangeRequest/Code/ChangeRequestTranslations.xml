@@ -202,6 +202,7 @@ ChangeRequest.Code.ChangeRequestClass_status_stale=Closed (stale)
 changerequest.user.profile.menu=Change Requests
 changerequest.user.profile.authorcr.title=Authored Change Requests
 changerequest.user.profile.approverscr.title=Change Requests to review
+changerequest.user.profile.switchWiki=Display change requests for following wiki:
 
 changerequest.conflict.modal.title=Fix conflict
 changerequest.conflict.modal.description=This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.

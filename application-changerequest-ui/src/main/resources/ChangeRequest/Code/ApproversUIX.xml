@@ -186,7 +186,7 @@
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -280,7 +280,6 @@
 #set ($crEditName = "changerequest")
 #set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
 #if (!$isReadOnly &amp;&amp; ($hasCREdit || $hasEditRight))
-## Ensure to properly invalidate the cache whenever the doc is updated.
 #set ($discard = $services.async.useEntity($doc.getDocumentReference()))
 #if ($doc.getObject('ChangeRequest.Code.ApproversClass'))
   #set ($handlingURL = $doc.getURL('edit', 'editor=object&amp;classname=ChangeRequest.Code.ApproversClass&amp;object=0'))
