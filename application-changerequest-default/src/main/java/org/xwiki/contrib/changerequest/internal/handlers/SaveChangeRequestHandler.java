@@ -39,7 +39,13 @@ import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
 import org.xwiki.csrf.CSRFToken;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.wysiwyg.converter.HTMLConverter;
+
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.web.EditForm;
 
 /**
  * Component in charge of saving change request description or title.
@@ -145,6 +151,21 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             } else {
                 String content = getContent(request);
                 changeRequest.setDescription(content);
+
+                EditForm editForm = this.prepareForm(request);
+                DocumentReference documentReference =
+                    this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+                XWikiContext context = this.contextProvider.get();
+
+                XWikiDocument document = null;
+                try {
+                    document = context.getWiki().getDocument(documentReference, context);
+                    document.readTemporaryUploadedFiles(editForm);
+                } catch (XWikiException e) {
+                    throw new ChangeRequestException(
+                        "Error while loading the change request document for reading uploaded files", e);
+                }
+
                 this.storageManager.save(changeRequest);
                 this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
             }
