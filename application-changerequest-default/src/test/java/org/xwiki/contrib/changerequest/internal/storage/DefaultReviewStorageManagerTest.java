@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -115,6 +116,8 @@ class DefaultReviewStorageManagerTest
         DocumentReference authorReference = mock(DocumentReference.class);
         when(this.userReferenceConverter.convert(userReference)).thenReturn(authorReference);
 
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(xWikiDocument.getAuthors()).thenReturn(documentAuthors);
         this.storageManager.save(review);
         verify(review).setId("xobject_42");
         verify(review).setSaved(true);
@@ -124,6 +127,7 @@ class DefaultReviewStorageManagerTest
         verify(baseObject).set(ReviewXClassInitializer.DATE_PROPERTY, new Date(34), this.context);
         verify(xWiki).saveDocument(xWikiDocument, "Add new review", this.context);
         verify(xWikiDocument).createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context);
+        verify(documentAuthors).setOriginalMetadataAuthor(userReference);
 
         when(review.isValid()).thenReturn(false);
         when(review.getId()).thenReturn("xobject_42");

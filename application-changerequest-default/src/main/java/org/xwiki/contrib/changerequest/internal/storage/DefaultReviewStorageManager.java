@@ -103,8 +103,9 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                     saveComment = "Update existing review";
                 }
                 int approvedValue = (review.isApproved()) ? 1 : 0;
+                DocumentReference userDocReference = this.userReferenceConverter.convert(review.getAuthor());
                 xObject.set(APPROVED_PROPERTY, approvedValue, context);
-                xObject.set(AUTHOR_PROPERTY, this.userReferenceConverter.convert(review.getAuthor()), context);
+                xObject.set(AUTHOR_PROPERTY, userDocReference, context);
                 xObject.set(DATE_PROPERTY, review.getReviewDate(), context);
                 int validValue = (review.isValid()) ? 1 : 0;
                 xObject.set(VALID_PROPERTY, validValue, context);
@@ -112,6 +113,7 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                     xObject.set(ORIGINAL_APPROVER_PROPERTY, this.userReferenceConverter.convert(
                         review.getOriginalApprover()), context);
                 }
+                changeRequestDoc.getAuthors().setOriginalMetadataAuthor(review.getAuthor());
 
                 context.getWiki().saveDocument(changeRequestDoc, saveComment, context);
                 review.setSaved(true);
