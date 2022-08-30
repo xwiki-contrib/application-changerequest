@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -27,7 +29,10 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -48,6 +53,9 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
 {
     @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;
+
+    @Inject
+    private AuthorizationManager authorizationManager;
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
@@ -200,5 +208,24 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
         throws ChangeRequestException
     {
         return this.changeRequestRightsManager.isAuthorizedToReview(userReference, changeRequest);
+    }
+
+    /**
+     * Check if the list of users have view rights to the concerned document: this is a necessary condition for users
+     * to be approvers.
+     *
+     * @param concernedDoc the doc for which to assign approvers
+     * @param userReferenceList the proposed approvers for which to test rights
+     * @return {@code true} if all proposed users have view rights to the concerned doc
+     * @since 1.1
+     */
+    @Unstable
+    public boolean haveApproversViewRights(DocumentReference concernedDoc, List<DocumentReference> userReferenceList)
+    {
+        boolean result = true;
+        for (DocumentReference userDoc : userReferenceList) {
+            result &= this.authorizationManager.hasAccess(Right.VIEW, userDoc, concernedDoc);
+        }
+        return result;
     }
 }

@@ -7,7 +7,7 @@ Application allowing to request changes on a wiki without publishing directly th
 * [Issue Tracker](http://jira.xwiki.org/browse/CRAPP)
 * Communication: [Forum](<https://forum.xwiki.org/>), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
 * [Development Practices](http://dev.xwiki.org)
-* Minimal XWiki version supported: XWiki 12.10
+* Minimal XWiki version supported: XWiki 14.3.1
 * License: LGPL 2.1
 * Translations: 
   * https://l10n.xwiki.org/projects/xwiki-contrib/change-request-application-default/

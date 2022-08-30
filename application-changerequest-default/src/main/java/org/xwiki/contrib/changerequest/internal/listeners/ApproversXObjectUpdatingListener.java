@@ -43,6 +43,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
+import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.user.group.GroupException;
@@ -56,7 +57,8 @@ import com.xpn.xwiki.objects.BaseObject;
 /**
  * Listener in charge of checking the updates performed on approvers list to discard changes done on behalf of the
  * current user: basically the current user should not be able to add themselves from the list of approvers.
- * This listener also check if the configuration for minimum of approvers is respected.
+ * This listener also check if the configuration for minimum of approvers is respected. Finally this listener
+ * also ensure that all approvers have right on the modified document.
  *
  * @version $Id$
  * @since 0.8
@@ -85,6 +87,9 @@ public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
 
     @Inject
     private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    @Inject
+    private AuthorizationManager authorizationManager;
 
     @Inject
     private Provider<ChangeRequestConfiguration> changeRequestConfigurationProvider;
@@ -212,9 +217,20 @@ public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
             List<DocumentReference> addedGroups = this.getAddedGroups(originalApprover, newApprover);
             List<DocumentReference> addedUsers = this.getAddedUsers(originalApprover, newApprover);
             shouldCancel = this.isCurrentUserContainedInAddedApprovers(user, addedUsers, addedGroups)
-                || !this.isMinimumApproverConfigurationRespected(newApprover);
+                || !this.isMinimumApproverConfigurationRespected(newApprover)
+                || !this.allAddedUsersHaveViewRights(newApprover.getOwnerDocument().getDocumentReference(), addedUsers);
         }
         return shouldCancel;
+    }
+
+    private boolean allAddedUsersHaveViewRights(DocumentReference concernedDoc, List<DocumentReference> addedUsers)
+    {
+        boolean result = true;
+        for (DocumentReference addedUser : addedUsers) {
+            result &= this.authorizationManager.hasAccess(Right.VIEW, addedUser, concernedDoc);
+        }
+
+        return result;
     }
 
     private boolean isMinimumApproverConfigurationRespected(BaseObject newApprover)

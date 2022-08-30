@@ -30,6 +30,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
+import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -44,6 +45,7 @@ import com.xpn.xwiki.objects.BaseObject;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -72,6 +74,9 @@ class ApproversXobjectUpdatingListenerTest
 
     @MockComponent
     private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    @MockComponent
+    private AuthorizationManager authorizationManager;
 
     @MockComponent
     private ObservationContext observationContext;
@@ -195,6 +200,8 @@ class ApproversXobjectUpdatingListenerTest
             .thenReturn(Collections.singletonList(approverObject));
         when(approverObject.getLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY))
             .thenReturn("user2,user3");
+        when(approverObject.getOwnerDocument()).thenReturn(this.source);
+        when(this.authorizationManager.hasAccess(eq(Right.VIEW), any(), any())).thenReturn(true);
 
         this.listener.onEvent(this.event, this.source, null);
         verify(approverObject, never()).apply(any(), anyBoolean());

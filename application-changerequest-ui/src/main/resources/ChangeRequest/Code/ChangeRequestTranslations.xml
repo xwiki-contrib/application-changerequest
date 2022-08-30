@@ -223,6 +223,7 @@ changerequest.savemodal.approvers.groups=Groups who can approve
 changerequest.savemodal.approvers.minimumUsers.hint=Please note that you must select a minimum of {0} users approvers.
 changerequest.savemodal.error.missingChangerequest=Please type a new change request title, or select an existing change request.
 changerequest.savemodal.error.minimumApprovers=You must select a minimum of {0} approvers to save your changes.
+changerequest.savemodal.error.approversLackRight=Some or all of the selected approvers don't have view right to this page.
 changerequest.savemodal.error.otherError=The change request cannot be saved, maybe you can try creating a new change request or adding the changes to another existing change request. Here are the technical details about the encountered error: 
 
 changerequest.sheet.message.reply.header=Reply to message from {0} sent {1}.

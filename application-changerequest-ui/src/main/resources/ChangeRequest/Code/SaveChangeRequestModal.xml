@@ -206,6 +206,7 @@
         &lt;div id="form-validation-error"&gt;
           &lt;div id="missingChangeRequest" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.missingChangerequest')&lt;/div&gt;
           &lt;div id="minimumApprovers" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.minimumApprovers', ["$minimumApprovers"])&lt;/div&gt;
+          &lt;div id="approversLackRight" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.approversLackRight')&lt;/div&gt;
           &lt;div id="crSelectorIncompatibilityReason" class="hidden text-danger"&gt;&lt;/div&gt;
           &lt;div id="otherError" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.otherError') &lt;span class="details"&gt;&lt;/span&gt;&lt;/div&gt;
         &lt;/div&gt;
@@ -230,6 +231,11 @@
   #jsonResponse({
     'isCompatible': $isCompatibleResult.left,
     'incompatibilityReason': $isCompatibleResult.right
+  })
+#elseif ($request.get('action') == 'checkApproversRight')
+  #set ($allApproversHaveViewRight = $services.changerequest.authorization.haveApproversViewRights($request.get('docChange'), $request.getParameterValues('approvers[]')))
+  #jsonResponse({
+    'allApproversHaveViewRight': $allApproversHaveViewRight
   })
 #end
 {{/velocity}}</content>
@@ -454,40 +460,70 @@
           $('#minimumApprovers').addClass('hidden');
         }
       }
-      
-      if (crSelectorField.val() &amp;&amp; !crTitleField.val()) {
-        var changeType = "EDITION";
-        if (saveConfig.isDeletion) {
-          changeType = "DELETION";
-        } else if (saveConfig.isCreation) {
-          changeType = "CREATION";
-        }
 
-        var validateSelectedCRUrl = saveChangeRequestModalDoc.getURL('get');
-        var data = {
-          'action': 'checkCompatibility',
-          'changeType': changeType,
-          'changeRequestTarget': crSelectorField.val(),
-          'outputSyntax': 'plain',
-          'docChange': xm.documentReference.toString()
+      var finalCallback = function () {
+        if (crSelectorField.val() &amp;&amp; !crTitleField.val()) {
+          validateCRCompatibility(successCallback, isValid);
+        } else if (isValid) {
+          successCallback();
         }
-        $.get(validateSelectedCRUrl, data).done(function (data) {
-          if (!data.isCompatible) {
-            $('#crSelectorIncompatibilityReason').text(data.incompatibilityReason);
-            $('#crSelectorIncompatibilityReason').removeClass('hidden');
+      }
+
+      if ($('#approversSelection')) {
+        var checkApproversRightUrl = saveChangeRequestModalDoc.getURL('get');
+        var approversUsersFieldName = "ChangeRequest\\.Code\\.ApproversClass_0_usersApprovers";
+        var data = {
+          'action': 'checkApproversRight',
+          'outputSyntax': 'plain',
+          'docChange': xm.documentReference.toString(),
+          'approvers': $('#'+ approversUsersFieldName).val()
+        }
+        $.post(checkApproversRightUrl, data).done(function (data) {
+          if (!data.allApproversHaveViewRight) {
+            $('#approversLackRight').removeClass('hidden');
           } else {
-            $('#crSelectorIncompatibilityReason').addClass('hidden');
-            if (isValid) {
-              successCallback();
-            }
+            $('#approversLackRight').addClass('hidden');
+            finalCallback();
           }
         }).fail(function (data) {
           console.log(data);
-          new XWiki.widgets.Notification("Error while checking the compatibility of the selected change request:" + data, 'error');
+          new XWiki.widgets.Notification("Error while checking approvers rights:" + data, 'error');
         });
-      } else if (isValid) {
-        successCallback();
+      } else {
+        finalCallback();
       }
+    };
+
+    var validateCRCompatibility = function (successCallback, isValid) {
+      var changeType = "EDITION";
+      if (saveConfig.isDeletion) {
+        changeType = "DELETION";
+      } else if (saveConfig.isCreation) {
+        changeType = "CREATION";
+      }
+
+      var validateSelectedCRUrl = saveChangeRequestModalDoc.getURL('get');
+      var data = {
+        'action': 'checkCompatibility',
+        'changeType': changeType,
+        'changeRequestTarget': crSelectorField.val(),
+        'outputSyntax': 'plain',
+        'docChange': xm.documentReference.toString()
+      }
+      $.get(validateSelectedCRUrl, data).done(function (data) {
+        if (!data.isCompatible) {
+          $('#crSelectorIncompatibilityReason').text(data.incompatibilityReason);
+          $('#crSelectorIncompatibilityReason').removeClass('hidden');
+        } else {
+          $('#crSelectorIncompatibilityReason').addClass('hidden');
+          if (isValid) {
+            successCallback();
+          }
+        }
+      }).fail(function (data) {
+        console.log(data);
+        new XWiki.widgets.Notification("Error while checking the compatibility of the selected change request:" + data, 'error');
+      });
     };
 
     self.openModal = function () {

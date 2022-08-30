@@ -19,10 +19,15 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -50,6 +55,9 @@ class ChangeRequestAuthorizationScriptServiceTest
 
     @MockComponent
     private ChangeRequestRightsManager changeRequestRightsManager;
+
+    @MockComponent
+    private AuthorizationManager authorizationManager;
 
     @MockComponent
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
@@ -87,5 +95,22 @@ class ChangeRequestAuthorizationScriptServiceTest
         when(this.changeRequestRightsManager.isAuthorizedToReview(userReference, changeRequest)).thenReturn(true);
         assertTrue(this.scriptService.isAuthorizedToReview(changeRequest));
         verify(this.changeRequestRightsManager).isAuthorizedToReview(userReference, changeRequest);
+    }
+
+    @Test
+    void haveApproversViewRights()
+    {
+        DocumentReference changedDoc = mock(DocumentReference.class, "changedDoc");
+        DocumentReference userDoc1 = mock(DocumentReference.class, "userDoc1");
+        DocumentReference userDoc2 = mock(DocumentReference.class, "userDoc2");
+        DocumentReference userDoc3 = mock(DocumentReference.class, "userDoc3");
+
+        when(this.authorizationManager.hasAccess(Right.VIEW, userDoc1, changedDoc)).thenReturn(true);
+        when(this.authorizationManager.hasAccess(Right.VIEW, userDoc2, changedDoc)).thenReturn(false);
+        when(this.authorizationManager.hasAccess(Right.VIEW, userDoc3, changedDoc)).thenReturn(true);
+        assertFalse(this.scriptService.haveApproversViewRights(changedDoc, List.of(userDoc1, userDoc2, userDoc3)));
+
+        when(this.authorizationManager.hasAccess(Right.VIEW, userDoc2, changedDoc)).thenReturn(true);
+        assertTrue(this.scriptService.haveApproversViewRights(changedDoc, List.of(userDoc1, userDoc2, userDoc3)));
     }
 }
