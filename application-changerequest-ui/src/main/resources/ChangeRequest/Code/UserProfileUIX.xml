@@ -39,10 +39,34 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 #if ($doc.getObject('XWiki.XWikiUsers'))
+#set ($discard = $xwiki.jsx.use('ChangeRequest.Code.UserProfileUIX'))
 
 = $services.localization.render('changerequest.user.profile.menu') =
 
 #set ($currentUserDocSerialization = $services.model.serialize($doc.documentReference, "default"))
+
+#if ($request.get('crWiki'))
+  #set ($currentWiki = $request.get('crWiki'))
+#else
+  #set ($currentWiki = $services.wiki.currentWikiId)
+#end
+
+{{html}}
+&lt;form id="userProfileChangeRequests" method="post" class="xformInline"&gt;
+&lt;div&gt;
+&lt;label for="crWiki"&gt;$services.localization.render('changerequest.user.profile.switchWiki')&lt;/label&gt;
+&lt;select name="crWiki"&gt;
+  #foreach($wikiDescriptor in $services.wiki.all)
+    #set ($wikiId = $wikiDescriptor.id)
+    ## We should not need to have to test for the second part of the OR but it's needed because of XWIKI-20072
+    #if ($services.wiki.user.isMember($currentUserDocSerialization, $wikiId) || $wikiId == $doc.documentReference.wikiReference.name)
+    &lt;option value="$wikiId" #if ($currentWiki == $wikiId)selected="selected"#end&gt;$wikiDescriptor.prettyName&lt;/option&gt;
+    #end
+  #end
+&lt;/select&gt;
+&lt;/div&gt;
+&lt;/form&gt;
+{{/html}}
 
 == $services.localization.render('changerequest.user.profile.authorcr.title') ==
 
@@ -50,7 +74,7 @@
   id="authored-changerequest-livetable"
   properties="doc.date,doc.title,authors,status,changedDocuments"
   source="liveTable"
-  sourceParameters="className=ChangeRequest.Code.ChangeRequestClass&amp;translationPrefix=changerequest.livetable."
+  sourceParameters="resultPage=$currentWiki:XWiki.LiveTableResults&amp;className=ChangeRequest.Code.ChangeRequestClass&amp;translationPrefix=changerequest.livetable."
   sort="doc.date:desc"
   limit="10"}}{
   "query": {
@@ -79,7 +103,7 @@
   id="approvers-changerequest-livetable"
   properties="doc.date,doc.title,authors,status,changedDocuments,reviews"
   source="liveTable"
-  sourceParameters="resultPage=ChangeRequest.Code.ApproversChangeRequestResults&amp;className=ChangeRequest.Code.ChangeRequestClass&amp;userDoc=$currentUserDocSerialization&amp;translationPrefix=changerequest.livetable."
+  sourceParameters="resultPage=$currentWiki:ChangeRequest.Code.ApproversChangeRequestResults&amp;className=ChangeRequest.Code.ChangeRequestClass&amp;userDoc=$currentUserDocSerialization&amp;translationPrefix=changerequest.livetable."
   filters="status=ready_for_review"
   sort="doc.date:desc"
   limit="10"}}{
@@ -103,6 +127,116 @@
 Technical page to inject user profile change request.
 #end
 {{/velocity}}</content>
+  <object>
+    <name>ChangeRequest.Code.UserProfileUIX</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>66e1e345-a9b4-48af-827f-2cb2946ee093</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+require(['jquery'], function ($) {
+  var wikiSelectorInitialization = function () {
+    var form = $('#userProfileChangeRequests');
+    var select = form.find('select[name=crWiki]');
+    select.on('change', function () {
+      form.submit();
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; wikiSelectorInitialization()) || $(document).on('xwiki:dom:loaded', wikiSelectorInitialization);
+});</code>
+    </property>
+    <property>
+      <name>wiki selector</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
   <object>
     <name>ChangeRequest.Code.UserProfileUIX</name>
     <number>0</number>
@@ -143,7 +277,7 @@ Technical page to inject user profile change request.
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
