@@ -469,7 +469,7 @@
         }
       }
 
-      if ($('#approversSelection')) {
+      if ($('#approversSelection') &amp;&amp; $('#approversSelection').is(':visible')) {
         var checkApproversRightUrl = saveChangeRequestModalDoc.getURL('get');
         var approversUsersFieldName = "ChangeRequest\\.Code\\.ApproversClass_0_usersApprovers";
         var data = {

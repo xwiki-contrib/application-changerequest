@@ -223,8 +223,10 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
     public boolean haveApproversViewRights(DocumentReference concernedDoc, List<DocumentReference> userReferenceList)
     {
         boolean result = true;
-        for (DocumentReference userDoc : userReferenceList) {
-            result &= this.authorizationManager.hasAccess(Right.VIEW, userDoc, concernedDoc);
+        if (userReferenceList != null) {
+            for (DocumentReference userDoc : userReferenceList) {
+                result &= this.authorizationManager.hasAccess(Right.VIEW, userDoc, concernedDoc);
+            }
         }
         return result;
     }
