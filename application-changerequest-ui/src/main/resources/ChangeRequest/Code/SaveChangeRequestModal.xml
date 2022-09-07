@@ -461,6 +461,38 @@
         }
       }
 
+      var validateCRCompatibility = function (successCallback, isValid) {
+        var changeType = "EDITION";
+        if (saveConfig.isDeletion) {
+          changeType = "DELETION";
+        } else if (saveConfig.isCreation) {
+          changeType = "CREATION";
+        }
+
+        var validateSelectedCRUrl = saveChangeRequestModalDoc.getURL('get');
+        var data = {
+          'action': 'checkCompatibility',
+          'changeType': changeType,
+          'changeRequestTarget': crSelectorField.val(),
+          'outputSyntax': 'plain',
+          'docChange': xm.documentReference.toString()
+        }
+        $.get(validateSelectedCRUrl, data).done(function (data) {
+          if (!data.isCompatible) {
+            $('#crSelectorIncompatibilityReason').text(data.incompatibilityReason);
+            $('#crSelectorIncompatibilityReason').removeClass('hidden');
+          } else {
+            $('#crSelectorIncompatibilityReason').addClass('hidden');
+            if (isValid) {
+              successCallback();
+            }
+          }
+        }).fail(function (data) {
+          console.log(data);
+          new XWiki.widgets.Notification("Error while checking the compatibility of the selected change request:" + data, 'error');
+        });
+      };
+
       var finalCallback = function () {
         if (crSelectorField.val() &amp;&amp; !crTitleField.val()) {
           validateCRCompatibility(successCallback, isValid);
@@ -492,38 +524,6 @@
       } else {
         finalCallback();
       }
-    };
-
-    var validateCRCompatibility = function (successCallback, isValid) {
-      var changeType = "EDITION";
-      if (saveConfig.isDeletion) {
-        changeType = "DELETION";
-      } else if (saveConfig.isCreation) {
-        changeType = "CREATION";
-      }
-
-      var validateSelectedCRUrl = saveChangeRequestModalDoc.getURL('get');
-      var data = {
-        'action': 'checkCompatibility',
-        'changeType': changeType,
-        'changeRequestTarget': crSelectorField.val(),
-        'outputSyntax': 'plain',
-        'docChange': xm.documentReference.toString()
-      }
-      $.get(validateSelectedCRUrl, data).done(function (data) {
-        if (!data.isCompatible) {
-          $('#crSelectorIncompatibilityReason').text(data.incompatibilityReason);
-          $('#crSelectorIncompatibilityReason').removeClass('hidden');
-        } else {
-          $('#crSelectorIncompatibilityReason').addClass('hidden');
-          if (isValid) {
-            successCallback();
-          }
-        }
-      }).fail(function (data) {
-        console.log(data);
-        new XWiki.widgets.Notification("Error while checking the compatibility of the selected change request:" + data, 'error');
-      });
     };
 
     self.openModal = function () {
