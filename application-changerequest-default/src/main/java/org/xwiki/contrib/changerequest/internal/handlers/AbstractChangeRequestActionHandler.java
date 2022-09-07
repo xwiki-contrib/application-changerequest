@@ -21,7 +21,7 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -287,9 +287,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
         // Existing approvers of the change request.
         Set<UserReference> usersCRApprovers =
-            new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, false));
+            new LinkedHashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, false));
         Set<DocumentReference> groupsCRApprovers =
-            new HashSet<>(this.changeRequestApproversManager.getGroupsApprovers(changeRequest));
+            new LinkedHashSet<>(this.changeRequestApproversManager.getGroupsApprovers(changeRequest));
 
         usersCRApprovers.addAll(this.fileChangeApproversManager.getAllApprovers(fileChange, false));
         groupsCRApprovers.addAll(this.fileChangeApproversManager.getGroupsApprovers(fileChange));

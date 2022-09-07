@@ -36,6 +36,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.SuggestInputElement;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -134,7 +135,8 @@ class SplitChangeRequestIT
         editPage.getEditor().setContent("Some other changes");
         saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.openAddChangesToExistingChangeRequestCollapse();
-        saveModal.selectExistingChangeRequest("SplitTest");
+        SuggestInputElement.SuggestionElement selectedCR = saveModal.selectExistingChangeRequest("SplitTest");
+        assertEquals("SplitTest", selectedCR.getLabel());
         changeRequestPage = saveModal.clickSave();
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
@@ -144,7 +146,7 @@ class SplitChangeRequestIT
 
         ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
         List<String> listOfApprovers = reviewsPane.getListOfApprovers();
-        assertEquals(List.of(BAR_USER, BAZ_USER, BUZ_USER, FOO_USER), listOfApprovers);
+        assertEquals(List.of(FOO_USER, BAR_USER, BUZ_USER, BAZ_USER), listOfApprovers);
 
         setup.login(FOO_USER, FOO_USER);
         setup.gotoPage(changeRequestURL);
@@ -204,7 +206,7 @@ class SplitChangeRequestIT
 
         reviewsPane = changeRequestPage.openReviewsPane();
         listOfApprovers = reviewsPane.getListOfApprovers();
-        assertEquals(List.of(BAR_USER, FOO_USER), listOfApprovers);
+        assertEquals(List.of(FOO_USER, BAR_USER), listOfApprovers);
 
         reviews = reviewsPane.getReviews();
         assertEquals(2, reviews.size());
@@ -234,7 +236,7 @@ class SplitChangeRequestIT
 
         reviewsPane = changeRequestPage.openReviewsPane();
         listOfApprovers = reviewsPane.getListOfApprovers();
-        assertEquals(List.of(BAZ_USER, BUZ_USER), listOfApprovers);
+        assertEquals(List.of(BUZ_USER, BAZ_USER), listOfApprovers);
         reviews = reviewsPane.getReviews();
         assertEquals(2, reviews.size());
 

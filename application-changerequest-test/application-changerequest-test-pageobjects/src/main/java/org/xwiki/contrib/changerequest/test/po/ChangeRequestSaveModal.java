@@ -19,7 +19,10 @@
  */
 package org.xwiki.contrib.changerequest.test.po;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.BaseModal;
 import org.xwiki.test.ui.po.SuggestInputElement;
@@ -122,14 +125,19 @@ public class ChangeRequestSaveModal extends BaseModal
     /**
      * Select a change request based on its name to add changes to an existing change request.
      * @param changeRequestName the name of the change request to add changes to.
+     * @return the selected element
      */
-    public void selectExistingChangeRequest(String changeRequestName)
+    public SuggestInputElement.SuggestionElement selectExistingChangeRequest(String changeRequestName)
     {
         SuggestInputElement suggestInputElement =
             new SuggestInputElement(this.getDriver().findElement(By.id("existingCRSelector")));
-        suggestInputElement.sendKeys(changeRequestName);
-        suggestInputElement.waitForSuggestions();
-        suggestInputElement.selectByVisibleText(changeRequestName);
+        List<SuggestInputElement.SuggestionElement> selectedSuggestions = suggestInputElement
+            .sendKeys(changeRequestName)
+            .waitForSuggestions()
+            .sendKeys(Keys.ENTER)
+            .getSelectedSuggestions();
+        assert selectedSuggestions.size() == 1;
+        return selectedSuggestions.get(0);
     }
 
     /**

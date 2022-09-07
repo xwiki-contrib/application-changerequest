@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.approvers;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -193,7 +194,7 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
         throws ChangeRequestException
     {
         Optional<BaseObject> approversObjectOpt = this.getApproversObject(entity, false);
-        Set<UserReference> result = new HashSet<>();
+        Set<UserReference> result = new LinkedHashSet<>();
         if (approversObjectOpt.isPresent()) {
             BaseObject baseObject = approversObjectOpt.get();
             String[] stringUsersApprovers = getValues(baseObject, USERS_APPROVERS_PROPERTY);
@@ -203,7 +204,7 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
 
             if (recursive) {
                 String[] stringGroupsApprovers = getValues(baseObject, GROUPS_APPROVERS_PROPERTY);
-                Set<DocumentReference> members = new HashSet<>();
+                Set<DocumentReference> members = new LinkedHashSet<>();
                 for (String stringGroupsApprover : stringGroupsApprovers) {
                     DocumentReference groupReference = this.documentReferenceResolver.resolve(stringGroupsApprover);
                     try {
