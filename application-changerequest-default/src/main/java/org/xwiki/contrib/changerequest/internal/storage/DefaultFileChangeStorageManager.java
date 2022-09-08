@@ -39,6 +39,8 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent;
+import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -48,6 +50,7 @@ import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
 import org.xwiki.user.CurrentUserReference;
@@ -135,6 +138,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private ContextualLocalizationManager contextualLocalizationManager;
 
     @Inject
+    private ObservationManager observationManager;
+
+    @Inject
     private Logger logger;
 
     private enum DocumentVersion
@@ -188,9 +194,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 String filename = this.getFileChangeFileName(fileChangeId);
                 XWikiDocument fileChangeDocument = this.getFileChangeStorageDocument(fileChange.getChangeRequest(),
                     fileChange.getTargetEntity());
+                fileChangeDocument.setHidden(true);
+
+                // Notify about the filechange about to be saved, before the modified document is attached and the
+                // xobject is created to allow listeners to modify them.
+                this.observationManager.notify(new FileChangeDocumentSavingEvent(), fileChange, fileChangeDocument);
                 this.createFileChangeObject(fileChange, fileChangeDocument);
 
-                fileChangeDocument.setHidden(true);
                 DocumentAuthors authors = fileChangeDocument.getAuthors();
                 if (fileChangeDocument.isNew()) {
                     authors.setCreator(fileChange.getAuthor());
@@ -203,6 +213,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 fileChangeDocument.setContentDirty(true);
                 wiki.saveDocument(fileChangeDocument, context);
                 fileChange.setSaved(true);
+                this.observationManager.notify(new FileChangeDocumentSavedEvent(), fileChange, fileChangeDocument);
             } catch (XWikiException | IOException e) {
                 throw new ChangeRequestException(
                     String.format("Error while storing filechange [%s]", fileChange), e);

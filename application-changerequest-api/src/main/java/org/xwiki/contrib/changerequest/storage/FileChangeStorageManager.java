@@ -42,6 +42,10 @@ public interface FileChangeStorageManager
 {
     /**
      * Save the given file change associated to the given change request.
+     * Note that this method should trigger the
+     * {@link org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent} and
+     * {@link org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent}.
+     *
      * @param fileChange the file change to save.
      * @throws ChangeRequestException in case of problem to convert the file change.
      */
