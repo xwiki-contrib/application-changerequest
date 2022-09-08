@@ -167,8 +167,9 @@
     </property>
     <property>
       <content>{{velocity wiki="true"}}
-#set ($isCREnabled = $services.security.authorization.hasAccess('changerequest'))
-#if ($isCREnabled)
+#set ($isCREnabled = $services.security.authorization.hasAccess('changerequest', $tdoc))
+#set ($hasEdit = $services.security.authorization.hasAccess('edit', $tdoc))
+#if ($isCREnabled &amp;&amp; !$hasEdit)
   ## We call this method afterwards to avoid loading unnecessary stuff.
   #if (!$services.changerequest.isMinimumApproversConfigurationRespected($doc))
     {{warning}}
