@@ -51,7 +51,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Named(ReviewXObjectUpdatedListener.NAME)
 public class ReviewXObjectUpdatedListener extends AbstractLocalEventListener
 {
-    static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestXObjectUpdatedListener";
+    static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.ReviewXObjectUpdatedListener";
 
     static final RegexEntityReference REFERENCE =
         BaseObjectReference.any(ReviewXClassInitializer.REVIEW_XCLASS.toString());
