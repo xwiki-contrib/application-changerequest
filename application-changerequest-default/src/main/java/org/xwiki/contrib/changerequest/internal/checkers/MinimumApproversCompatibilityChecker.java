@@ -19,12 +19,15 @@
  */
 package org.xwiki.contrib.changerequest.internal.checkers;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -34,6 +37,8 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
+
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Checkers ensuring that it's not possible to add changes to a change request that does not respect the minimum of
@@ -52,6 +57,9 @@ public class MinimumApproversCompatibilityChecker implements FileChangeCompatibi
 
     @Inject
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
+
+    @Inject
+    private ApproversManager<XWikiDocument> documentApproversManager;
 
     @Inject
     private ContextualLocalizationManager contextualLocalizationManager;
@@ -73,6 +81,40 @@ public class MinimumApproversCompatibilityChecker implements FileChangeCompatibi
                 this.logger.warn("Error while trying to retrieve the approvers of change request [{}]: [{}]",
                     changeRequest,
                     ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, FileChange fileChange)
+    {
+        boolean result =
+            this.canChangeOnDocumentBeAdded(changeRequest, fileChange.getTargetEntity(), fileChange.getType());
+        // If the result is false, we're checking if the change is not an update of an existing filechange to add new
+        // approvers. If the change increase the number of approvers then we should accept it, even if the total number
+        // is not reached.
+        if (!result) {
+            Optional<FileChange> previousFileChangeOpt =
+                changeRequest.getLatestFileChangeFor(fileChange.getTargetEntity());
+            if (previousFileChangeOpt.isPresent()) {
+                FileChange previousFileChange = previousFileChangeOpt.get();
+                DocumentModelBridge modifiedDocument = fileChange.getModifiedDocument();
+                DocumentModelBridge previousModifiedDocument = previousFileChange.getModifiedDocument();
+                if (modifiedDocument != null && previousModifiedDocument != null) {
+                    try {
+                        int minimumApprovers = configuration.getMinimumApprovers();
+                        int previousNumberApprovers = this.documentApproversManager
+                            .getAllApprovers((XWikiDocument) previousModifiedDocument, false).size();
+                        int numberApprovers = this.documentApproversManager
+                            .getAllApprovers((XWikiDocument) modifiedDocument, false).size();
+                        result = numberApprovers >= minimumApprovers || previousNumberApprovers <= numberApprovers;
+                    } catch (ChangeRequestException e) {
+                        this.logger.warn("Error while trying to retrieve the approvers of filechange [{}]: [{}]",
+                            fileChange,
+                            ExceptionUtils.getRootCauseMessage(e));
+                    }
+                }
             }
         }
         return result;

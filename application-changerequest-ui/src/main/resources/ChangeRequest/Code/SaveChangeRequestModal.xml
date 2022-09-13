@@ -58,8 +58,34 @@
 #set ($setApprovers = $request.get('setApprovers') == 1)
 #set ($isApproversEdition = $request.get('manageApprovers') == 1)
 #set ($minimumApprovers = $services.changerequest.minimumApprovers)
-#set ($approversPageReference = $services.model.resolveDocument($request.get('docChange')))
+#set ($approversPageReferenceWithoutLocale = $services.model.resolveDocument($request.get('docChange')))
+#set ($approversPageReference = $services.model.createDocumentReference($approversPageReferenceWithoutLocale, $services.localization.toLocale("")))
 #set ($approversDoc = $xwiki.getDocument($approversPageReference))
+#if ($isEditingChangeRequest)
+  #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
+  #if ($changeRequestOpt.isPresent())
+    #set ($changeRequest = $changeRequestOpt.get())
+    #set ($fileChangeOpt = $changeRequest.getLatestFileChangeFor($approversPageReference))
+    #if ($fileChangeOpt.isPresent())
+      #set ($approversXWikiDoc = $fileChangeOpt.get().modifiedDocument)
+      ## We need to get the doc wrapped because remaining of the script expect a Document
+      #set ($approversDoc = $xwiki.wrapDocs([$approversXWikiDoc]).get(0))
+      #if ($request.get('explicitDocInfo') == 1)
+        #define ($fileChangeDocInfo)
+          &lt;div id="fileChangeDocInfo" class="hidden"&gt;
+            &lt;input type="text" class="hidden" id="previousVersion" name="previousVersion" value="$approversXWikiDoc.version" /&gt;
+            &lt;input type="text" class="hidden" id="editingVersionDate" name="editingVersionDate" value="$datetool.date.getTime()" /&gt;
+            &lt;input type="text" class="hidden" id="docReference" name="docReference" value="$escapetool.xml($request.get('docChange'))" /&gt;
+          &lt;/div&gt;
+        #end
+      #end
+    #else
+      #set ($discard = $logtool.warn("APPROVERS DOC NOT FOUND"))
+    #end
+  #else
+    #set ($discard = $logtool.warn("CR NOT FOUND"))
+  #end
+#end
 #set ($approversXObject = $approversDoc.getObject('ChangeRequest.Code.ApproversClass'))
 #set ($definedUsersApprovers = $approversXObject.getValue('usersApprovers'))
 #set ($splittedApprovers = $stringtool.split($definedUsersApprovers, ','))
@@ -93,6 +119,9 @@
         &lt;/div&gt;
         #if ($shouldAddXObject)
           &lt;input type="hidden" name="addedObjects" value="ChangeRequest.Code.ApproversClass_$approversXObject.number" /&gt;
+        #end
+        #if ($request.get('explicitDocInfo') == 1)
+          $fileChangeDocInfo
         #end
       &lt;/div&gt;&lt;!-- End panel body --&gt;
     &lt;/div&gt;&lt;!-- End panel --&gt;
@@ -143,7 +172,7 @@
 &lt;div class="modal text-left" id="changeRequestModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
     &lt;div class="modal-content"&gt;
-      &lt;form id="saveChangeRequestForm"&gt;
+      &lt;form id="saveChangeRequestForm" method="post"&gt;
       &lt;div class="modal-header"&gt;
         &lt;button type="button" class="close" data-dismiss="modal" aria-hidden="true"&gt;&amp;times;&lt;/button&gt;
         &lt;div class="modal-title" id="changeRequestModalTitle"&gt;
@@ -341,6 +370,9 @@
       var form;
       if (saveConfig.isApproversEdition) {
         form = $('#saveChangeRequestForm');
+        if (fromChangeRequest) {
+          asyncQuery = false;
+        }
       } else if (saveConfig.isDeletion) {
         form = $('#delete_changerequest').parents('form');
         asyncQuery = false;
@@ -380,14 +412,19 @@
       if (fromChangeRequest) {
         actionURLParams.append("fromchangerequest", "1")
       }
-      var docField = $("&lt;input&gt;", {
-        'type': 'hidden',
-        'name': 'docReference',
-        'value': xm.documentReference
-      });
-      form.append(docField);
       
-      if (saveConfig.isCreate) {
+      if ($('#fileChangeDocInfo').length &gt; 0) {
+        form.append($('#fileChangeDocInfo').find('input'));
+      } else {
+        var docField = $("&lt;input&gt;", {
+          'type': 'hidden',
+          'name': 'docReference',
+          'value': xm.documentReference
+        });
+        form.append(docField);
+      }
+      
+      if ($('#approversSelection').is(':visible')) {
         form.append($('#approversSelection').find('select'));
         form.append($('#approversSelection').find('input[name=addedObjects]'));
       }
@@ -437,7 +474,8 @@
     
     
 
-    var validateForm = function (successCallback) {
+    var validateForm = function (successCallback, isEditingChangeRequest) {
+      console.log("Validation: is editing change request: " + isEditingChangeRequest);
       var crTitleField = $('#crTitle');
       var crSelectorField = $('#existingCRSelector');
       $('#otherError').addClass('hidden');
@@ -494,7 +532,7 @@
       };
 
       var finalCallback = function () {
-        if (crSelectorField.val() &amp;&amp; !crTitleField.val()) {
+        if (!isEditingChangeRequest &amp;&amp; crSelectorField.val() &amp;&amp; !crTitleField.val()) {
           validateCRCompatibility(successCallback, isValid);
         } else if (isValid) {
           successCallback();
@@ -526,7 +564,7 @@
       }
     };
 
-    self.openModal = function () {
+    self.openModal = function (overridingData) {
       // FIXME: be checked, we should probably destroy the modal actually.
       if ($('#changeRequestModal').length &gt; 0) {
         $('#changeRequestModal').modal('show');
@@ -535,22 +573,23 @@
         var modalUrl = saveChangeRequestModalDoc.getURL('get');
 
         // FIXME: we're missing the doc locale no?
-        var data = {
+        var requestData = {
           'getmodal': 1,
           'outputSyntax': 'plain',
           'docChange': xm.documentReference.toString()
         }
 
         if (urlParams.has('changerequest')) {
-          data['changerequest'] = urlParams.get('changerequest');
+          requestData['changerequest'] = urlParams.get('changerequest');
         }
         if (saveConfig.isApproversEdition) {
-          data['manageApprovers'] = 1;
+          requestData['manageApprovers'] = 1;
         }
         if (saveConfig.isCreate) {
-          data['setApprovers'] = 1;
+          requestData['setApprovers'] = 1;
         }
-        $.get(modalUrl, data).done(function (data) {
+        $.extend(requestData, overridingData);
+        $.get(modalUrl, requestData).done(function (data) {
           $('body').append(data);
           $('#changeRequestModal').modal('show');
           $('#newChangeRequest').on('hidden.bs.collapse', function () {
@@ -561,8 +600,8 @@
           });
           $('#saveChangeRequest').on('click', function (event) {
             validateForm(function() {
-              self.saveChangeRequest(event);
-            });
+              self.saveChangeRequest(event, requestData['changerequest']);
+            }, (requestData['changerequest'] !== undefined));
           });
           $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestModal').toArray()});
         }).fail(function (data) {

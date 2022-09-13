@@ -116,6 +116,10 @@ Technical page for getting livetable data for change request file changes.
           #set ($discard = $row.put('doc_hasfixconflict', false))
           #set ($discard = $row.put('doc_hasrebase', false))
         #end
+        #if ($hasCREdit &amp;&amp; $services.changerequest.minimumApprovers &gt; 0)
+          #set ($discard = $row.put('doc_editapprovers_url', $xwiki.getURL($docReference, 'editcr', "changerequest=$changeRequest.id&amp;editor=object")))
+          #set ($discard = $row.put('doc_haseditapprovers', true))
+        #end
         #set ($discard = $rows.add($row))
       #end
     #end

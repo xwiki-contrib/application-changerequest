@@ -59,6 +59,7 @@ changerequest.sheet.merge.button=Merge
 changerequest.sheet.merge.button.title=Merge this change request
 changerequest.sheet.rebase.button=Refresh content
 changerequest.sheet.rebase.button.title=Refresh the content of the changes in this change request with latest published content (all proposed changes will be kept).
+changerequest.sheet.editapprovers.button=Edit approvers
 changerequest.sheet.pagechanges=Changes requested in pages:
 changerequest.sheet.alldifftitle=All changes
 changerequest.sheet.difftitle=Changes of {0}
