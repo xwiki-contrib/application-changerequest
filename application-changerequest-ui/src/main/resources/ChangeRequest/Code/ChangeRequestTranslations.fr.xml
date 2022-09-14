@@ -58,6 +58,7 @@ changerequest.sheet.merge.button=Fusionner
 changerequest.sheet.merge.button.title=Fusionner cette demande de modification
 changerequest.sheet.rebase.button=Actualiser le contenu
 changerequest.sheet.rebase.button.title=Actualiser le contenu de la demande de modification avec les derniers éléments publiés (toutes les modifications proposées seront conservées).
+changerequest.sheet.editapprovers.button=Modifier les approbateurs
 changerequest.sheet.pagechanges=Demandes de modification dans les pages :
 changerequest.sheet.alldifftitle=Toutes les modifications
 changerequest.sheet.difftitle=Modifications de {0}
@@ -148,7 +149,7 @@ ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Groupes d'utilisateurs du
 ChangeRequest.Code.ApproversClass_manualEdition=Modifié manuellement
 ChangeRequest.Code.ApproversClass_manualEdition_hint=Cochez la case si vous ne souhaitez pas que les approbateurs soient automatiquement synchronisés lorsque de nouvelles modifications sont publiées.
 changerequest.timeline.changerequest.create={0} a créé la demande de modification pour &lt;a href="{1}"&gt;{2}&lt;/a&gt;
-changerequest.timeline.changerequest.create.fromSplit={0} a créé la demande de modification à partir d''une ancienne demande de modification concernant &lt;a href="{1}"&gt;{2}&lt;/a&gt;.
+changerequest.timeline.changerequest.create.fromSplit={0} a créé la demande de changement à partir d''une ancienne demande de changement concernant &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.filechange.added={0} a ajouté une modification de fichier pour &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.status.modified={0} a modifié le statut de la demande de modification de {1} à {2}
 changerequest.timeline.changerequest.review.added.approval={0} a ajouté une demande de vérification
