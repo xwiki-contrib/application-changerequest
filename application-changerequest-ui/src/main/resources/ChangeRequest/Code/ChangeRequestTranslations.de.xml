@@ -59,6 +59,7 @@ changerequest.sheet.merge.button=Zusammenfügen
 changerequest.sheet.merge.button.title=Diese Änderungsanforderung zusammenfügen
 changerequest.sheet.rebase.button=Inhalt aktualisieren
 changerequest.sheet.rebase.button.title=Aktualisieren Sie den Inhalt der Änderungen in dieser Änderungsanforderung mit den neuesten veröffentlichten Inhalten (alle vorgeschlagenen Änderungen werden beibehalten).
+changerequest.sheet.editapprovers.button=Genehmiger bearbeiten
 changerequest.sheet.pagechanges=Gewünschte Änderungen auf Seiten:
 changerequest.sheet.alldifftitle=Alle Änderungen
 changerequest.sheet.difftitle=Änderungen von {0}
