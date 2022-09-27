@@ -46,6 +46,8 @@ public class FileChangesPane extends BaseElement
     private static final String REBASE_ACTION_CLASS = "action_rebase";
 
     private static final String EDIT_ACTION_CLASS = "action_edit";
+
+    private static final String EDIT_APPROVERS_ACTION_CLASS = "action_editapprovers";
     private static final String LOCATION_COLUMN_NAME = "Location";
 
     private final WebElement container;
@@ -280,6 +282,18 @@ public class FileChangesPane extends BaseElement
     }
 
     /**
+     * Check if the edit approvers link is displayed.
+     *
+     * @param serializedReference the reference of the page for which to check if the link is there
+     * @return {@code true} if there is a link to edit approvers.
+     * @since 1.2
+     */
+    public boolean isEditApproversActionAvailable(String serializedReference)
+    {
+        return this.getActionLink(serializedReference, EDIT_APPROVERS_ACTION_CLASS).isPresent();
+    }
+
+    /**
      * Click on the refresh content link of the given reference, and wait for the reload of the page.
      *
      * @param serializedReference a compact serialization of a page reference.
@@ -297,6 +311,29 @@ public class FileChangesPane extends BaseElement
         } else {
             throw new NoSuchElementException(
                 String.format("The edit link is not available for [%s]", serializedReference));
+        }
+    }
+
+    /**
+     * Click on the edit approvers link of a page, and wait for the save modal to open which will allow to manipulate
+     * the list of approvers.
+     *
+     * @param serializedReference the concerned page for which  to click of edit approvers link
+     * @return a save modal allowing to edit the approvers
+     * @since 1.2
+     */
+    public ChangeRequestSaveModal clickEditApprovers(String serializedReference)
+    {
+        Optional<WebElement> optionalActionLink = this.getActionLink(serializedReference, EDIT_APPROVERS_ACTION_CLASS);
+        if (optionalActionLink.isPresent()) {
+            WebElement actionLink = optionalActionLink.get();
+            // We need to ensure that the action link has been augmented to use the modal.
+            getDriver().waitUntilCondition(driver -> actionLink.getAttribute("class").contains("js-augmented"));
+            actionLink.click();
+            return new ChangeRequestSaveModal();
+        } else {
+            throw new NoSuchElementException(
+                String.format("The edit approvers link is not available for [%s]", serializedReference));
         }
     }
 

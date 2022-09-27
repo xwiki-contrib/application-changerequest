@@ -61,4 +61,10 @@ public class AllITs
     class NestedSplitChangeRequestIT extends SplitChangeRequestIT
     {
     }
+
+    @Nested
+    @DisplayName("Minimum Approvers mechanism")
+    class NestedMinimumApproversIT extends MinimumApproversIT
+    {
+    }
 }

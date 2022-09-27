@@ -69,7 +69,7 @@
 &lt;div class="edit-title"&gt;
 #set ($saveTitleUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
 #set ($saveTitleUrl = "${saveTitleUrl}?form_token=$services.csrf.token")
-  &lt;form id="crTitleForm" method="post" action="$saveTitleUrl"&gt;
+  &lt;form id="crTitleForm" method="post" action="$escapetool.xml($saveTitleUrl)"&gt;
     &lt;input type="hidden" name="changeType" value="settitle" /&gt;
     &lt;h1 class="editable"&gt;
       &lt;span class="edit-title-icon"&gt;$services.icon.renderHTML('pencil')&lt;/span&gt;
@@ -83,7 +83,7 @@
   &lt;/form&gt;
 &lt;/div&gt;
 #end
-&lt;div class="cr-main-div" data-changerequest-id="$changeRequestId"&gt;
+&lt;div class="cr-main-div" data-changerequest-id="$escapetool.xml($changeRequestId)"&gt;
   &lt;div id="discussions" class="hidden"&gt;
   #foreach ($changeRequestDiscussion in $allDiscussions)
     #set ($reference = $changeRequestDiscussion.reference)
@@ -3154,10 +3154,14 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     editApproversLinks.addClass('js-augmented');
   };
   
-  // The new livedata entriesUpdated event has been introduced in XWiki 14.8, we still keep the old event listener for backward compatibility.
-  initializeEditApprovers() || ($(document).on('xwiki:livedata:entriesUpdated', initializeEditApprovers) &amp;&amp; $(document).on('xwiki:livedata:afterEntryFetch', function() {
-    setTimeout(initializeEditApprovers, 2000);
-  }));
+  // We use a timeout because this is initialized after the afterEntryFetch is sent and before the LD is displayed
+  setTimeout(initializeEditApprovers, 500);
+  $(document).on('xwiki:livedata:entriesUpdated', initializeEditApprovers);
+  // The new livedata entriesUpdated event has been introduced in XWiki 14.8,
+  // we still keep the old event listener for backward compatibility.
+  $(document).on('xwiki:livedata:afterEntryFetch', function() {
+    setTimeout(initializeEditApprovers, 500);
+  });
 });</code>
     </property>
     <property>
