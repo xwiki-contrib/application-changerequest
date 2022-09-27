@@ -202,9 +202,6 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 this.createFileChangeObject(fileChange, fileChangeDocument);
 
                 DocumentAuthors authors = fileChangeDocument.getAuthors();
-                if (fileChangeDocument.isNew()) {
-                    authors.setCreator(fileChange.getAuthor());
-                }
                 authors.setOriginalMetadataAuthor(fileChange.getAuthor());
 
                 if (fileChange.getModifiedDocument() != null) {

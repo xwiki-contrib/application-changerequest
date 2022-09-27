@@ -332,7 +332,6 @@ class DefaultFileChangeStorageManagerTest
         verify(modifiedDoc).toXML(any(OutputStream.class), eq(true), eq(true), eq(true), eq(false), eq(this.context));
         verify(fileChangeDoc).setAttachment(any());
         verify(fileChangeDoc).setHidden(true);
-        verify(fileChangeAuthors).setCreator(author);
         verify(fileChangeAuthors).setOriginalMetadataAuthor(author);
         verify(fileChange).setId(expectedId);
         verify(fileChangeObj).set(FileChangeXClassInitializer.FILENAME_PROPERTY, expectedId + ".xml", this.context);

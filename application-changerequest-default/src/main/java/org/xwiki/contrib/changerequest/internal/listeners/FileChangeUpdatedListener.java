@@ -100,8 +100,9 @@ public class FileChangeUpdatedListener extends AbstractEventListener
         }
         // This only needs to be perform for local events.
         if (changeRequest != null && !this.remoteObservationManagerContext.isRemoteState()) {
-            this.computeStatus(changeRequest);
+            // Be careful of the order: approvals needs to be invalidated before the status is computed back.
             this.invalidateApprovals(changeRequest);
+            this.computeStatus(changeRequest);
         }
     }
 

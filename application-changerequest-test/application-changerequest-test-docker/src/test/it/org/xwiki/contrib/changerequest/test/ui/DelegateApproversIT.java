@@ -29,6 +29,7 @@ import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
+import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
@@ -68,13 +69,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 class DelegateApproversIT
 {
+    static final String TEST_PREFIX = "DelegateApproversIT_";
+    static final String FOO_USER = TEST_PREFIX + "Foo";
+    static final String BAR_USER = TEST_PREFIX + "Bar";
+    static final String BUZ_USER = TEST_PREFIX + "Buz";
+    static final String EDITOR = TEST_PREFIX + "Editor";
+
     @Test
     void delegateApprovalAndReview(TestUtils setup, TestReference testReference)
     {
         // Test fixture:
         // XWikiUser augmented with a Manager field -> will be the field for computing approvers
         // Change request configured with merge strategy allApproversNoFallback
-        // 3 Users:
+        // 4 Users:
+        //   * Editor
         //   * Foo (manager: Bar)
         //   * Bar (manager: Buz)
         //   * Buz (No manager)
@@ -88,26 +96,31 @@ class DelegateApproversIT
         //     * Bar approves it on behalf of Foo
         //     * Bar approves it for himself -> should invalidate its own private review
         //    -> page should be mergeable only then
+        //     * New edition added on the page
+        //    -> all approvals outdated and status back to "ready for review"
 
+        String serializedReference = testReference.getLocalDocumentReference().toString();
         setup.loginAsSuperAdmin();
-        setup.createUser("Foo", "FooPassword", null);
-        setup.createUser("Bar", "BarPassword", null);
-        setup.createUser("Buz", "BuzPassword", null);
+        setup.createUser(EDITOR, EDITOR, null);
+        setup.createUser(FOO_USER, FOO_USER, null);
+        setup.createUser(BAR_USER, BAR_USER, null);
+        setup.createUser(BUZ_USER, BUZ_USER, null);
 
         setup.addClassProperty("XWiki", "XWikiUsers", "manager", "String");
         // We also force the approvers to use WYSIWYG editor, to avoid any problem to display the review modal.
         // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
-        setup.updateObject("XWiki", "Bar", "XWiki.XWikiUsers", 0,
-            "manager", "XWiki.Buz",
+        setup.updateObject("XWiki", BAR_USER, "XWiki.XWikiUsers", 0,
+            "manager", "XWiki." + BUZ_USER,
             "editor", "Wysiwyg");
-        setup.updateObject("XWiki", "Foo", "XWiki.XWikiUsers", 0,
-            "manager", "XWiki.Bar",
+        setup.updateObject("XWiki", FOO_USER, "XWiki.XWikiUsers", 0,
+            "manager", "XWiki." + BAR_USER,
             "editor", "Wysiwyg");
-        setup.updateObject("XWiki", "Buz", "XWiki.XWikiUsers", 0,
+        setup.updateObject("XWiki", BUZ_USER, "XWiki.XWikiUsers", 0,
             "editor", "Wysiwyg");
 
         setup.createPage(testReference, "Some content");
-        setup.addObject(testReference, "ChangeRequest.Code.ApproversClass", "usersApprovers", "XWiki.Foo,XWiki.Bar");
+        setup.addObject(testReference, "ChangeRequest.Code.ApproversClass", "usersApprovers",
+            String.format("XWiki.%s,XWiki.%s", FOO_USER, BAR_USER));
 
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
@@ -117,7 +130,7 @@ class DelegateApproversIT
 
         setup.getDriver().waitUntilCondition(driver -> {
             try {
-                DocumentReference barRef = new DocumentReference("xwiki", "XWiki", "Bar");
+                DocumentReference barRef = new DocumentReference("xwiki", "XWiki", BAR_USER);
                 ObjectReference objectReference =
                     new ObjectReference("ChangeRequest.Code.DelegateApproversClass[0]", barRef);
                 return setup.rest().get(objectReference, false) != null;
@@ -126,7 +139,7 @@ class DelegateApproversIT
             }
         });
 
-        setup.forceGuestUser();
+        setup.login(EDITOR, EDITOR);
         setup.gotoPage(testReference);
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
         assertTrue(extendedViewPage.hasStandardEditButton());
@@ -141,7 +154,7 @@ class DelegateApproversIT
 
         String changeRequestUrl = setup.getDriver().getCurrentUrl();
 
-        setup.login("Buz", "BuzPassword");
+        setup.login(BUZ_USER, BUZ_USER);
         setup.gotoPage(changeRequestUrl);
         changeRequestPage = new ChangeRequestPage();
 
@@ -152,7 +165,7 @@ class DelegateApproversIT
         assertTrue(reviewModal.isSelectOnBehalfDisplayed());
 
         Select originalApproverSelector = reviewModal.getOriginalApproverSelector();
-        originalApproverSelector.selectByVisibleText("Bar");
+        originalApproverSelector.selectByVisibleText(BAR_USER);
         reviewModal.selectApprove();
         reviewModal.save();
 
@@ -164,10 +177,10 @@ class DelegateApproversIT
         ReviewElement reviewElement = reviews.get(0);
         assertTrue(reviewElement.isApproval());
         assertFalse(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Buz", reviewElement.getAuthor());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getOriginalApprover());
+        assertEquals("xwiki:XWiki." + BUZ_USER, reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getOriginalApprover());
 
-        setup.login("Bar", "BarPassword");
+        setup.login(BAR_USER, BAR_USER);
         setup.gotoPage(changeRequestUrl);
         changeRequestPage = new ChangeRequestPage();
 
@@ -182,7 +195,7 @@ class DelegateApproversIT
         //  - the option to review on behalf of Foo
         assertEquals(2, originalApproverSelector.getOptions().size());
         WebElement selectedOption = originalApproverSelector.getFirstSelectedOption();
-        assertEquals("xwiki:XWiki.Bar", selectedOption.getAttribute("value"));
+        assertEquals("xwiki:XWiki." + BAR_USER, selectedOption.getAttribute("value"));
 
         reviewModal.selectRequestChanges();
         reviewModal.save();
@@ -195,22 +208,22 @@ class DelegateApproversIT
         reviewElement = reviews.get(0);
         assertFalse(reviewElement.isApproval());
         assertFalse(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
         assertNull(reviewElement.getOriginalApprover());
 
         // previous review performed for Bar is outdated
         reviewElement = reviews.get(1);
         assertTrue(reviewElement.isApproval());
         assertTrue(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Buz", reviewElement.getAuthor());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getOriginalApprover());
+        assertEquals("xwiki:XWiki." + BUZ_USER, reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getOriginalApprover());
 
         reviewModal = changeRequestPage.clickReviewButton();
         assertTrue(reviewModal.isSelectOnBehalfDisplayed());
         originalApproverSelector = reviewModal.getOriginalApproverSelector();
 
         // Now review for Foo
-        originalApproverSelector.selectByVisibleText("Foo");
+        originalApproverSelector.selectByVisibleText(FOO_USER);
         reviewModal.selectApprove();
         reviewModal.save();
 
@@ -222,14 +235,14 @@ class DelegateApproversIT
         reviewElement = reviews.get(0);
         assertTrue(reviewElement.isApproval());
         assertFalse(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getAuthor());
-        assertEquals("xwiki:XWiki.Foo", reviewElement.getOriginalApprover());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + FOO_USER, reviewElement.getOriginalApprover());
 
         // previous review should not be outdated since it doesn't concern same approver
         reviewElement = reviews.get(1);
         assertFalse(reviewElement.isApproval());
         assertFalse(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
         assertNull(reviewElement.getOriginalApprover());
 
         reviewModal = changeRequestPage.clickReviewButton();
@@ -239,7 +252,7 @@ class DelegateApproversIT
         // Bar should still be selected by default
         assertEquals(2, originalApproverSelector.getOptions().size());
         selectedOption = originalApproverSelector.getFirstSelectedOption();
-        assertEquals("xwiki:XWiki.Bar", selectedOption.getAttribute("value"));
+        assertEquals("xwiki:XWiki." + BAR_USER, selectedOption.getAttribute("value"));
 
         reviewModal.selectApprove();
         reviewModal.save();
@@ -252,23 +265,62 @@ class DelegateApproversIT
         reviewElement = reviews.get(0);
         assertTrue(reviewElement.isApproval());
         assertFalse(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
         assertNull(reviewElement.getOriginalApprover());
 
         reviewElement = reviews.get(1);
         assertTrue(reviewElement.isApproval());
         assertFalse(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getAuthor());
-        assertEquals("xwiki:XWiki.Foo", reviewElement.getOriginalApprover());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + FOO_USER, reviewElement.getOriginalApprover());
 
         reviewElement = reviews.get(2);
         assertFalse(reviewElement.isApproval());
         assertTrue(reviewElement.isOutdated());
-        assertEquals("xwiki:XWiki.Bar", reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
         assertNull(reviewElement.getOriginalApprover());
 
         // At this point the review button should not displayed anymore, but the merge button should
         assertFalse(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
+        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+
+        // Perform new changes: all reviews should now be outdated
+        // Status should be back to "ready for review"
+        setup.login(EDITOR, EDITOR);
+        setup.gotoPage(changeRequestUrl);
+        changeRequestPage = new ChangeRequestPage();
+        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
+        assertTrue(fileChangesPane.isEditActionAvailable(serializedReference));
+
+        editPage = fileChangesPane.clickEdit(serializedReference);
+        editPage.getEditor().setContent("Some new content with some new change");
+        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR();
+
+        reviewsPane = changeRequestPage.openReviewsPane();
+        reviews = reviewsPane.getReviews();
+        assertEquals(4, reviews.size());
+
+        reviewElement = reviews.get(0);
+        assertTrue(reviewElement.isApproval());
+        assertTrue(reviewElement.isOutdated());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
+        assertNull(reviewElement.getOriginalApprover());
+
+        reviewElement = reviews.get(1);
+        assertTrue(reviewElement.isApproval());
+        assertTrue(reviewElement.isOutdated());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
+        assertEquals("xwiki:XWiki." + FOO_USER, reviewElement.getOriginalApprover());
+
+        reviewElement = reviews.get(2);
+        assertFalse(reviewElement.isApproval());
+        assertTrue(reviewElement.isOutdated());
+        assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
+        assertNull(reviewElement.getOriginalApprover());
+
+        assertTrue(changeRequestPage.isReviewButtonDisplayed());
+        assertFalse(changeRequestPage.isMergeButtonDisplayed());
+        assertEquals("Ready for review", changeRequestPage.getStatusLabel());
     }
 }
