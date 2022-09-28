@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -106,6 +107,12 @@ class SplitChangeRequestIT
         setup.updateObject("XWiki", BAR_USER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
         setup.updateObject("XWiki", BAZ_USER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
         setup.updateObject("XWiki", BUZ_USER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
+
+        // Ensure to use right strategy
+        setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "minimumApprovers", 0,
+            "approvalStrategy", "onlyapproved");
 
         setup.createPage(testReference, "Holder for test pages of Split CR");
 

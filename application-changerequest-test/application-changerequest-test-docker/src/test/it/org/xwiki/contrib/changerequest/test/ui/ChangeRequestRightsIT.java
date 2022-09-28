@@ -54,6 +54,7 @@ class ChangeRequestRightsIT
         testUtils.loginAsSuperAdmin();
         testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
+            "minimumApprovers", 0,
             "approvalStrategy","acceptall");
     }
 

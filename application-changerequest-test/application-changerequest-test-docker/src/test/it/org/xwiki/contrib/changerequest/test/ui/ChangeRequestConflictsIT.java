@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.test.ui;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -88,6 +89,12 @@ class ChangeRequestConflictsIT
 
         setup.setGlobalRights("", CR_APPROVER, "edit", false);
         setup.setGlobalRights("", CR_APPROVER, "crapprove", true);
+
+        // Ensure to use right strategy
+        setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "minimumApprovers", 0,
+            "approvalStrategy", "onlyapproved");
     }
 
     @Test

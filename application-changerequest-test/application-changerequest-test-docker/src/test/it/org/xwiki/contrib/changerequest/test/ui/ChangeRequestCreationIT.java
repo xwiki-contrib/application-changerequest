@@ -100,6 +100,7 @@ class ChangeRequestCreationIT
         // Ensure to use right strategy
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
+            "minimumApprovers", 0,
             "approvalStrategy", "onlyapproved");
     }
 

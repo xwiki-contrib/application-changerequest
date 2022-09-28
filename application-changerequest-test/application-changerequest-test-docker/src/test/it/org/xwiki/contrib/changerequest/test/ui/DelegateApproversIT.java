@@ -124,6 +124,7 @@ class DelegateApproversIT
 
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
+            "minimumApprovers", 0,
             "delegateEnabled", 1,
             "delegateClassPropertyList", "manager",
             "approvalStrategy", "allApproversNoFallback");
