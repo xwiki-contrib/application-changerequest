@@ -23,7 +23,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.ViewPage;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 /**
  * Represents a view page on a wiki where Change Request is installed.
@@ -67,10 +67,10 @@ public class ExtendedViewPage extends ViewPage
      *
      * @return a new instance of extended edit page.
      */
-    public ExtendedEditPage<WYSIWYGEditPage> clickStandardEdit()
+    public ExtendedEditPage<WikiEditPage> clickStandardEdit()
     {
         super.edit();
-        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
+        ExtendedEditPage<WikiEditPage> extendedEditPage = new ExtendedEditPage<>(new WikiEditPage());
         extendedEditPage.getEditor().waitUntilPageIsReady();
         return extendedEditPage;
     }
@@ -80,10 +80,10 @@ public class ExtendedViewPage extends ViewPage
      *
      * @return a new instance of extended edit page.
      */
-    public ExtendedEditPage<WYSIWYGEditPage> clickChangeRequestEdit()
+    public ExtendedEditPage<WikiEditPage> clickChangeRequestEdit()
     {
         getDriver().findElement(By.id(CR_EDIT_ID)).findElement(By.className("btn-default")).click();
-        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
+        ExtendedEditPage<WikiEditPage> extendedEditPage = new ExtendedEditPage<>(new WikiEditPage());
         extendedEditPage.getEditor().waitUntilPageIsReady();
         return extendedEditPage;
     }
@@ -205,5 +205,16 @@ public class ExtendedViewPage extends ViewPage
         WebElement tab = getDriver().findElementWithoutWaiting(By.id(CR_TAB_ID));
         tab.click();
         return new ChangeRequestLiveDataElement("changerequest-livetable");
+    }
+
+    /**
+     * Click on the manage approvers link and expect to have the save modal opened.
+     *
+     * @return an instance of the save modal to edit the approvers and save it as a change request change.
+     */
+    public ChangeRequestSaveModal clickManageApproversWithoutEditRight()
+    {
+        this.clickMoreActionsSubMenuEntry("manageapprovers");
+        return new ChangeRequestSaveModal();
     }
 }

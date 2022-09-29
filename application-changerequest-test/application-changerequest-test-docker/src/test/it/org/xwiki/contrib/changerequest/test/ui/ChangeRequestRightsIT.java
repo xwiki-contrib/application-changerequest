@@ -30,6 +30,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import liquibase.pro.packaged.D;
 
@@ -55,6 +56,7 @@ class ChangeRequestRightsIT
         testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
             "minimumApprovers", 0,
+            "mergeUser", "",
             "approvalStrategy","acceptall");
     }
 
@@ -84,7 +86,7 @@ class ChangeRequestRightsIT
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
         assertTrue(extendedViewPage.hasChangeRequestEditButton());
         assertFalse(extendedViewPage.hasStandardEditButton());
-        ExtendedEditPage<WYSIWYGEditPage> editPage = extendedViewPage.clickChangeRequestEdit();
+        ExtendedEditPage<WikiEditPage> editPage = extendedViewPage.clickChangeRequestEdit();
         assertTrue(editPage.hasSaveAsChangeRequestButton());
         assertFalse(editPage.hasStandardSaveButton());
 

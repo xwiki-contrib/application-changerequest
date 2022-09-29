@@ -47,6 +47,7 @@ import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.diff.DocumentDiffSummary;
 import org.xwiki.test.ui.po.diff.EntityDiff;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -101,6 +102,7 @@ class ChangeRequestCreationIT
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
             "minimumApprovers", 0,
+            "mergeUser", "",
             "approvalStrategy", "onlyapproved");
     }
 
@@ -131,7 +133,7 @@ class ChangeRequestCreationIT
 
         // Save the date for checking the events
         Date dateBeforeCR = new Date();
-        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
+        ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
         extendedEditPage.getEditor().setContent("Some new content.");
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
 
@@ -530,7 +532,7 @@ class ChangeRequestCreationIT
         setup.login(CR_CREATOR, CR_CREATOR);
         setup.gotoPage(testReference);
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
-        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
+        ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
         extendedEditPage.getEditor().setContent("Some new content.");
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
 

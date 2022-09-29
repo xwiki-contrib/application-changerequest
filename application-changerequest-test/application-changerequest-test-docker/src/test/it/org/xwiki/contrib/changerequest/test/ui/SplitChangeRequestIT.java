@@ -39,6 +39,7 @@ import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.SuggestInputElement;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -112,6 +113,7 @@ class SplitChangeRequestIT
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
             "minimumApprovers", 0,
+            "mergeUser", "",
             "approvalStrategy", "onlyapproved");
 
         setup.createPage(testReference, "Holder for test pages of Split CR");
@@ -129,7 +131,7 @@ class SplitChangeRequestIT
 
         setup.gotoPage(fooBarPageRef);
         ExtendedViewPage viewPage = new ExtendedViewPage();
-        ExtendedEditPage<WYSIWYGEditPage> editPage = viewPage.clickStandardEdit();
+        ExtendedEditPage<WikiEditPage> editPage = viewPage.clickStandardEdit();
         editPage.getEditor().setContent("Some changes");
         ChangeRequestSaveModal saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("SplitTest");

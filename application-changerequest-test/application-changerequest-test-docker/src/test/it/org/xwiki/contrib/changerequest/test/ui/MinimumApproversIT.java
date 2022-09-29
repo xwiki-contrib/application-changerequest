@@ -104,6 +104,7 @@ public class MinimumApproversIT
         testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
             "minimumApprovers", 2,
+            "mergeUser", "",
             "approvalStrategy", "allApproversNoFallback");
 
         testUtils.login(EDITOR, EDITOR);

@@ -39,6 +39,7 @@ import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -126,6 +127,7 @@ class DelegateApproversIT
             "ChangeRequest.Code.ConfigurationClass", 0,
             "minimumApprovers", 0,
             "delegateEnabled", 1,
+            "mergeUser", "",
             "delegateClassPropertyList", "manager",
             "approvalStrategy", "allApproversNoFallback");
 
@@ -145,7 +147,7 @@ class DelegateApproversIT
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
         assertTrue(extendedViewPage.hasStandardEditButton());
 
-        ExtendedEditPage<WYSIWYGEditPage> editPage = extendedViewPage.clickStandardEdit();
+        ExtendedEditPage<WikiEditPage> editPage = extendedViewPage.clickStandardEdit();
         editPage.getEditor().setContent("Some new content");
         ChangeRequestSaveModal saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("Delegate test");

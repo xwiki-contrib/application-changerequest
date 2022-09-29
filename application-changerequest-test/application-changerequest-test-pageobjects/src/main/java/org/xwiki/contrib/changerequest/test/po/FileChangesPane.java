@@ -32,7 +32,7 @@ import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.test.ui.po.BaseElement;
 import org.xwiki.test.ui.po.diff.DocumentDiffSummary;
 import org.xwiki.test.ui.po.diff.EntityDiff;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 /**
  * Represents the pane displaying the file changes in a change request.
@@ -300,12 +300,12 @@ public class FileChangesPane extends BaseElement
      * @return a new instance of the {@link ChangeRequestPage} since this action reload the page.
      * @see #isRefreshActionAvailable(String)
      */
-    public ExtendedEditPage<WYSIWYGEditPage> clickEdit(String serializedReference)
+    public ExtendedEditPage<WikiEditPage> clickEdit(String serializedReference)
     {
         Optional<WebElement> optionalActionLink = this.getActionLink(serializedReference, EDIT_ACTION_CLASS);
         if (optionalActionLink.isPresent()) {
             optionalActionLink.get().click();
-            ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
+            ExtendedEditPage<WikiEditPage> extendedEditPage = new ExtendedEditPage<>(new WikiEditPage());
             extendedEditPage.getEditor().waitUntilPageIsReady();
             return extendedEditPage;
         } else {

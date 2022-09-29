@@ -420,4 +420,17 @@ public class ChangeRequestPage extends ViewPage
             return isElementEnabled(mergeButton);
         }
     }
+
+    /**
+     * Click on the merge button and wait for the change request page to be reloaded.
+     *
+     * @return a new instance of the change request page after reload.
+     */
+    public ChangeRequestPage clickMergeButton()
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        getMergeButton().click();
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
 }
