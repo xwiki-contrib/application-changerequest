@@ -370,9 +370,7 @@
       var form;
       if (saveConfig.isApproversEdition) {
         form = $('#saveChangeRequestForm');
-        if (fromChangeRequest) {
-          asyncQuery = false;
-        }
+        asyncQuery = false;
       } else if (saveConfig.isDeletion) {
         form = $('#delete_changerequest').parents('form');
         asyncQuery = false;
