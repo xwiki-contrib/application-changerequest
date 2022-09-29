@@ -40,6 +40,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
@@ -97,6 +98,9 @@ public class ApproversUpdatedListener extends AbstractLocalEventListener
     private UserReferenceResolver<String> userReferenceResolver;
 
     @Inject
+    private Provider<ChangeRequestManager> changeRequestManagerProvider;
+
+    @Inject
     private UserManager userManager;
 
     @Inject
@@ -145,6 +149,16 @@ public class ApproversUpdatedListener extends AbstractLocalEventListener
             }
 
             this.synchronizeApprovers(changeRequest, approversSet.getRight());
+            this.computeStatus(changeRequest);
+        }
+    }
+
+    private void computeStatus(ChangeRequest changeRequest)
+    {
+        try {
+            this.changeRequestManagerProvider.get().computeReadyForMergingStatus(changeRequest);
+        } catch (ChangeRequestException e) {
+            this.logger.error("Error while computing ready for merging status of [{}]", changeRequest, e);
         }
     }
 
