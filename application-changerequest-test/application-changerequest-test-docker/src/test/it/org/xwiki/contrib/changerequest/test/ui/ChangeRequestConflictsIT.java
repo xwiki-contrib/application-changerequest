@@ -391,13 +391,13 @@ class ChangeRequestConflictsIT
     @Order(3)
     void refreshContent(TestUtils testUtils, TestReference testReference) throws Exception
     {
+        testUtils.loginAsSuperAdmin();
         // We use the allapprovers strategy here.
         testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
             "approvalStrategy", "allapprovers");
         String serializedReference = testReference.getLocalDocumentReference().toString();
-
-        testUtils.loginAsSuperAdmin();
+        
         testUtils.createPage(testReference, "Some content");
         testUtils.addObject(testReference, "ChangeRequest.Code.ApproversClass", "usersApprovers",
             String.format("XWiki.%s,XWiki.%s", FOO, BAR));
