@@ -204,10 +204,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             xObject.set(AUTHORS_FIELD, serializedAuthors, context);
             xObject.set(STALE_DATE_FIELD, null, context);
 
-            wiki.saveDocument(document, context);
             for (FileChange fileChange : changeRequest.getAllFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);
             }
+            wiki.saveDocument(document, context);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while saving the change request [%s]", changeRequest), e);

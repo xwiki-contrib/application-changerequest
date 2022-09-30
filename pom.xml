@@ -89,34 +89,11 @@
               <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.numberOfParametersChanged</code>
-                  <old>method void org.xwiki.contrib.changerequest.ChangeRequestReference::&lt;init&gt;(org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction, java.lang.String)</old>
-                  <new>method void org.xwiki.contrib.changerequest.ChangeRequestReference::&lt;init&gt;(org.xwiki.model.reference.WikiReference, org.xwiki.contrib.changerequest.ChangeRequestReference.ChangeRequestAction, java.lang.String)</new>
-                  <justification>Change needed in order to allow supporting subwiki properly.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.removed</code>
-                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestAuthorizationScriptService</old>
-                  <justification>Not removed but moved to application-changerequest-default module.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.removed</code>
-                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService</old>
-                  <justification>Not removed but moved to application-changerequest-default module.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.removed</code>
-                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestReviewScriptService</old>
-                  <justification>Not removed but moved to application-changerequest-default module.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.removed</code>
-                  <old>class org.xwiki.contrib.changerequest.script.ChangeRequestScriptService</old>
-                  <justification>Not removed but moved to application-changerequest-default module.</justification>
+                  <code>java.class.nonFinalClassInheritsFromNewClass</code>
+                  <old>class org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent</old>
+                  <new>class org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent</new>
+                  <superClass>org.xwiki.observation.event.AbstractCancelableEvent</superClass>
+                  <justification>Unstable API: needed to make the event cancelable.</justification>
                 </item>
               </differences>
             </revapi.differences>

@@ -198,7 +198,15 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
                 // Notify about the filechange about to be saved, before the modified document is attached and the
                 // xobject is created to allow listeners to modify them.
-                this.observationManager.notify(new FileChangeDocumentSavingEvent(), fileChange, fileChangeDocument);
+                FileChangeDocumentSavingEvent fileChangeDocumentSavingEvent = new FileChangeDocumentSavingEvent();
+                this.observationManager.notify(fileChangeDocumentSavingEvent, fileChange, fileChangeDocument);
+
+                if (fileChangeDocumentSavingEvent.isCanceled()) {
+                    throw new ChangeRequestException(
+                        String.format("Saving of the filechange [%s] has been cancelled with following reason: [%s]",
+                            fileChange, fileChangeDocumentSavingEvent.getReason()));
+                }
+
                 this.createFileChangeObject(fileChange, fileChangeDocument);
 
                 DocumentAuthors authors = fileChangeDocument.getAuthors();

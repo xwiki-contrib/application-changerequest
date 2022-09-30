@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import org.xwiki.observation.event.AbstractCancelableEvent;
 import org.xwiki.observation.event.BeginEvent;
 import org.xwiki.stability.Unstable;
 
@@ -27,6 +28,8 @@ import org.xwiki.stability.Unstable;
  * The corresponding end event is {@link FileChangeDocumentSavedEvent}.
  * This event should be listened to if the document subject to changes should be modified before being stored in the
  * change request. It can also allow to perform modification in the filechange itself.
+ * Also note that this event is cancelable: it means it's possible to call {@link #cancel()} in which case the
+ * {@link org.xwiki.contrib.changerequest.storage.FileChangeStorageManager} should throw an exception before saving it.
  *
  * The event also send the following parameters:
  * <ul>
@@ -39,7 +42,7 @@ import org.xwiki.stability.Unstable;
  * @since 1.2
  */
 @Unstable
-public class FileChangeDocumentSavingEvent implements BeginEvent
+public class FileChangeDocumentSavingEvent extends AbstractCancelableEvent implements BeginEvent
 {
     @Override
     public boolean matches(Object otherEvent)
