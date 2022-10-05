@@ -40,10 +40,11 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -75,6 +76,9 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     @Inject
     @Named("context")
     private ComponentManager componentManager;
+
+    @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
 
     @Inject
     private ChangeRequestMergeManager changeRequestMergeManager;
@@ -122,28 +126,26 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     private boolean checkDocumentCompatibility(ChangeRequest changeRequest, FileChange fileChange)
         throws ChangeRequestException, IOException
     {
-        boolean canBeAdded = true;
+        FileChangeSavingChecker.SavingCheckerResult result = new FileChangeSavingChecker.SavingCheckerResult();
         try {
-            List<FileChangeCompatibilityChecker> checkers =
-                this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
-            String incompatibilityReason = "";
-            for (FileChangeCompatibilityChecker checker : checkers) {
-                canBeAdded = checker.canChangeOnDocumentBeAdded(changeRequest, fileChange);
-                if (!canBeAdded) {
-                    incompatibilityReason =
-                        checker.getIncompatibilityReason(changeRequest, fileChange);
+            List<FileChangeSavingChecker> checkers =
+                this.componentManager.getInstanceList(FileChangeSavingChecker.class);
+            for (FileChangeSavingChecker checker : checkers) {
+                result = checker.canChangeOnDocumentBeAdded(changeRequest, fileChange);
+                if (!result.canBeSaved()) {
                     break;
                 }
             }
-            if (!canBeAdded) {
+            if (!result.canBeSaved()) {
                 this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
-                    Collections.singletonMap(ERROR_KEY, "Error when checking compatibility: " + incompatibilityReason));
+                    Collections.singletonMap(ERROR_KEY,
+                        this.contextualLocalizationManager.getTranslationPlain(result.getReason())));
             }
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "
                 + "adding new changes from [%s] in [%s].", fileChange, changeRequest.getId()), e);
         }
-        return canBeAdded;
+        return result.canBeSaved();
     }
 
     private FileChange createFileChange(FileChange.FileChangeType fileChangeType, ChangeRequest changeRequest,

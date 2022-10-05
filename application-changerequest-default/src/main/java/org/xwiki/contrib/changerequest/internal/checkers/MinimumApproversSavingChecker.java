@@ -34,8 +34,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
-import org.xwiki.localization.ContextualLocalizationManager;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -48,10 +47,12 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * @since 0.16
  */
 @Component
-@Named("MinimumApproversCompatibilityChecker")
+@Named("org.xwiki.contrib.changerequest.internal.checkers.MinimumApproversSavingChecker")
 @Singleton
-public class MinimumApproversCompatibilityChecker implements FileChangeCompatibilityChecker
+public class MinimumApproversSavingChecker implements FileChangeSavingChecker
 {
+    private static final String FAILURE_REASON = "changerequest.checkers.minimumApprovers.incompatibilityReason";
+
     @Inject
     private ChangeRequestConfiguration configuration;
 
@@ -62,14 +63,11 @@ public class MinimumApproversCompatibilityChecker implements FileChangeCompatibi
     private ApproversManager<XWikiDocument> documentApproversManager;
 
     @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
-
-    @Inject
     private Logger logger;
 
     @Override
-    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType changeType)
+    public SavingCheckerResult canChangeOnDocumentBeAdded(ChangeRequest changeRequest,
+        DocumentReference documentReference, FileChange.FileChangeType changeType)
     {
         boolean result = true;
         int minimumApprovers = configuration.getMinimumApprovers();
@@ -83,47 +81,78 @@ public class MinimumApproversCompatibilityChecker implements FileChangeCompatibi
                     ExceptionUtils.getRootCauseMessage(e));
             }
         }
-        return result;
+        if (result) {
+            return new SavingCheckerResult();
+        } else {
+            return new SavingCheckerResult(FAILURE_REASON);
+        }
     }
 
     @Override
-    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, FileChange fileChange)
+    public SavingCheckerResult canChangeOnDocumentBeAdded(ChangeRequest changeRequest, FileChange fileChange)
     {
-        boolean result =
+        SavingCheckerResult result =
             this.canChangeOnDocumentBeAdded(changeRequest, fileChange.getTargetEntity(), fileChange.getType());
         // If the result is false, we're checking if the change is not an update of an existing filechange to add new
         // approvers. If the change increase the number of approvers then we should accept it, even if the total number
         // is not reached.
-        if (!result) {
+        if (!result.canBeSaved()) {
             Optional<FileChange> previousFileChangeOpt =
                 changeRequest.getLatestFileChangeFor(fileChange.getTargetEntity());
             if (previousFileChangeOpt.isPresent()) {
-                FileChange previousFileChange = previousFileChangeOpt.get();
-                DocumentModelBridge modifiedDocument = fileChange.getModifiedDocument();
-                DocumentModelBridge previousModifiedDocument = previousFileChange.getModifiedDocument();
-                if (modifiedDocument != null && previousModifiedDocument != null) {
-                    try {
-                        int minimumApprovers = configuration.getMinimumApprovers();
-                        int previousNumberApprovers = this.documentApproversManager
-                            .getAllApprovers((XWikiDocument) previousModifiedDocument, false).size();
-                        int numberApprovers = this.documentApproversManager
-                            .getAllApprovers((XWikiDocument) modifiedDocument, false).size();
-                        result = numberApprovers >= minimumApprovers || previousNumberApprovers <= numberApprovers;
-                    } catch (ChangeRequestException e) {
-                        this.logger.warn("Error while trying to retrieve the approvers of filechange [{}]: [{}]",
-                            fileChange,
-                            ExceptionUtils.getRootCauseMessage(e));
-                    }
-                }
+                result = this.canChangeOnDocumentBeAdded(fileChange, previousFileChangeOpt.get());
             }
         }
         return result;
     }
 
-    @Override public String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType changeType)
+    private SavingCheckerResult canChangeOnDocumentBeAdded(FileChange fileChange, FileChange previousFileChange)
     {
-        return contextualLocalizationManager
-            .getTranslationPlain("changerequest.checkers.minimumApprovers.incompatibilityReason");
+        SavingCheckerResult result = new SavingCheckerResult(FAILURE_REASON);
+        DocumentModelBridge modifiedDocument = fileChange.getModifiedDocument();
+        DocumentModelBridge previousModifiedDocument = previousFileChange.getModifiedDocument();
+        if (modifiedDocument != null && previousModifiedDocument != null) {
+            try {
+                int minimumApprovers = configuration.getMinimumApprovers();
+                int previousNumberApprovers = this.documentApproversManager
+                    .getAllApprovers((XWikiDocument) previousModifiedDocument, false).size();
+                int numberApprovers = this.documentApproversManager
+                    .getAllApprovers((XWikiDocument) modifiedDocument, false).size();
+                if (numberApprovers >= minimumApprovers || previousNumberApprovers <= numberApprovers) {
+                    result = new SavingCheckerResult();
+                } else {
+                    result = new SavingCheckerResult(FAILURE_REASON);
+                }
+            } catch (ChangeRequestException e) {
+                this.logger.warn("Error while trying to retrieve the approvers of filechange [{}]: [{}]",
+                    fileChange,
+                    ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public SavingCheckerResult canChangeRequestBeCreatedWith(FileChange fileChange)
+    {
+        boolean result = true;
+        int minimumApprovers = configuration.getMinimumApprovers();
+        if (minimumApprovers > 0 && fileChange.getModifiedDocument() != null) {
+            try {
+                int numberApprovers = this.documentApproversManager
+                    .getAllApprovers((XWikiDocument) fileChange.getModifiedDocument(), false).size();
+                result = numberApprovers >= minimumApprovers;
+            } catch (ChangeRequestException e) {
+                this.logger.warn("Error while trying to retrieve the approvers of filechange [{}] for creation check: "
+                        + "[{}]",
+                    fileChange,
+                    ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+        if (result) {
+            return new SavingCheckerResult();
+        } else {
+            return new SavingCheckerResult(FAILURE_REASON);
+        }
     }
 }

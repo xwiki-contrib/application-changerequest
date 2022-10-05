@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -49,7 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link MinimumApproversCompatibilityChecker}.
+ * Tests for {@link MinimumApproversSavingChecker}.
  *
  * @version $Id$
  * @since 1.2
@@ -58,7 +56,7 @@ import static org.mockito.Mockito.when;
 class MinimumApproversCompatibilityCheckerTest
 {
     @InjectMockComponents
-    private MinimumApproversCompatibilityChecker checker;
+    private MinimumApproversSavingChecker checker;
 
     @MockComponent
     private ChangeRequestConfiguration configuration;
@@ -76,7 +74,7 @@ class MinimumApproversCompatibilityCheckerTest
     void canChangeOnDocumentBeAddedWithDocReference() throws ChangeRequestException
     {
         when(this.configuration.getMinimumApprovers()).thenReturn(0);
-        assertTrue(this.checker.canChangeOnDocumentBeAdded(null, null, null));
+        assertTrue(this.checker.canChangeOnDocumentBeAdded(null, null, null).canBeSaved());
         verify(this.changeRequestApproversManager, never()).getAllApprovers(any(), anyBoolean());
 
         ChangeRequest changeRequest = mock(ChangeRequest.class);
@@ -85,10 +83,10 @@ class MinimumApproversCompatibilityCheckerTest
         when(this.configuration.getMinimumApprovers()).thenReturn(2);
         when(this.changeRequestApproversManager.getAllApprovers(changeRequest, false))
             .thenReturn(Set.of(mock(UserReference.class), mock(UserReference.class), mock(UserReference.class)));
-        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, documentReference, null));
+        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, documentReference, null).canBeSaved());
 
         when(this.configuration.getMinimumApprovers()).thenReturn(4);
-        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, documentReference, null));
+        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, documentReference, null).canBeSaved());
     }
 
     @Test
@@ -97,24 +95,24 @@ class MinimumApproversCompatibilityCheckerTest
         when(this.configuration.getMinimumApprovers()).thenReturn(0);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         FileChange fileChange = mock(FileChange.class);
-        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
         verify(this.changeRequestApproversManager, never()).getAllApprovers(any(), anyBoolean());
 
         when(this.configuration.getMinimumApprovers()).thenReturn(2);
         when(this.changeRequestApproversManager.getAllApprovers(changeRequest, false))
             .thenReturn(Set.of(mock(UserReference.class), mock(UserReference.class), mock(UserReference.class)));
-        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
 
         when(this.configuration.getMinimumApprovers()).thenReturn(4);
 
         DocumentReference documentReference = mock(DocumentReference.class);
         when(fileChange.getTargetEntity()).thenReturn(documentReference);
         when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.empty());
-        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
 
         FileChange previousFileChange = mock(FileChange.class, "previous");
         when(changeRequest.getLatestFileChangeFor(documentReference)).thenReturn(Optional.of(previousFileChange));
-        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
 
         XWikiDocument previousDoc = mock(XWikiDocument.class, "previous");
         XWikiDocument currentDoc = mock(XWikiDocument.class, "current");
@@ -124,7 +122,7 @@ class MinimumApproversCompatibilityCheckerTest
         when(this.documentApproversManager.getAllApprovers(previousDoc, false)).thenReturn(Collections.emptySet());
         when(this.documentApproversManager.getAllApprovers(currentDoc, false))
             .thenReturn(Collections.singleton(mock(UserReference.class)));
-        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
 
         when(this.documentApproversManager.getAllApprovers(previousDoc, false)).thenReturn(Set.of(
             mock(UserReference.class),
@@ -137,7 +135,7 @@ class MinimumApproversCompatibilityCheckerTest
             mock(UserReference.class),
             mock(UserReference.class)
         ));
-        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertFalse(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
 
         when(this.documentApproversManager.getAllApprovers(currentDoc, false)).thenReturn(Set.of(
             mock(UserReference.class),
@@ -145,7 +143,7 @@ class MinimumApproversCompatibilityCheckerTest
             mock(UserReference.class),
             mock(UserReference.class)
         ));
-        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange));
+        assertTrue(this.checker.canChangeOnDocumentBeAdded(changeRequest, fileChange).canBeSaved());
 
     }
 }

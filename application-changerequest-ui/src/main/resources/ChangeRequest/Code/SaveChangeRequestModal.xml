@@ -258,8 +258,8 @@
 #elseif ($request.get('action') == 'checkCompatibility')
   #set ($isCompatibleResult = $services.changerequest.checkDocumentChangeCompatibility($request.get('changeRequestTarget'), $request.get('docChange'), $request.get('changeType')))
   #jsonResponse({
-    'isCompatible': $isCompatibleResult.left,
-    'incompatibilityReason': $isCompatibleResult.right
+    'isCompatible': $isCompatibleResult.canBeSaved(),
+    'incompatibilityReason': "$escapetool.json($services.localization.render($isCompatibleResult.reason))"
   })
 #elseif ($request.get('action') == 'checkApproversRight')
   #set ($allApproversHaveViewRight = $services.changerequest.authorization.haveApproversViewRights($request.get('docChange'), $request.getParameterValues('approvers[]')))

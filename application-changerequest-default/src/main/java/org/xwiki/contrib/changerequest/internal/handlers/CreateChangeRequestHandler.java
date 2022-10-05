@@ -20,7 +20,9 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -30,18 +32,23 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -64,6 +71,8 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
+    private static final String ERROR_KEY = "error";
+
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
@@ -72,6 +81,13 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 
     @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;
+
+    @Inject
+    @Named("context")
+    private ComponentManager componentManager;
+
+    @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
 
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
@@ -83,16 +99,25 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     {
         HttpServletRequest request = this.prepareRequest();
         FileChange fileChange = getFileChange(request);
-        ChangeRequest changeRequest = fileChange.getChangeRequest();
-        this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), "", null);
-        this.storageManager.save(changeRequest);
-        this.changeRequestRightsManager.copyViewRights(changeRequest,
-            changeRequest.getModifiedDocuments().iterator().next());
-        this.copyApprovers(fileChange);
-        this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
-        this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
-        this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(), fileChange);
-        this.responseSuccess(changeRequest);
+
+        FileChangeSavingChecker.SavingCheckerResult savingCheckerResult = this.canChangeRequestBeCreated(fileChange);
+        if (savingCheckerResult.canBeSaved()) {
+            ChangeRequest changeRequest = fileChange.getChangeRequest();
+            this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), "", null);
+            this.storageManager.save(changeRequest);
+            this.changeRequestRightsManager.copyViewRights(changeRequest,
+                changeRequest.getModifiedDocuments().iterator().next());
+            this.copyApprovers(fileChange);
+            this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+            this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
+            this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+                fileChange);
+            this.responseSuccess(changeRequest);
+        } else {
+            this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
+                Collections.singletonMap(ERROR_KEY,
+                    this.contextualLocalizationManager.getTranslationPlain(savingCheckerResult.getReason())));
+        }
     }
 
     private XWikiDocument getModifiedDocument(HttpServletRequest request, boolean isDeletion, XWikiContext context)
@@ -121,6 +146,25 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             }
         }
         return modifiedDocument;
+    }
+
+    private FileChangeSavingChecker.SavingCheckerResult canChangeRequestBeCreated(FileChange fileChange)
+        throws ChangeRequestException
+    {
+        FileChangeSavingChecker.SavingCheckerResult result = new FileChangeSavingChecker.SavingCheckerResult();
+        try {
+            List<FileChangeSavingChecker> checkers =
+                this.componentManager.getInstanceList(FileChangeSavingChecker.class);
+            for (FileChangeSavingChecker checker : checkers) {
+                result = checker.canChangeRequestBeCreatedWith(fileChange);
+                if (!result.canBeSaved()) {
+                    break;
+                }
+            }
+        } catch (ComponentLookupException e) {
+            throw new ChangeRequestException("Error when trying to retrieve the list of FileChangeSavingChecker", e);
+        }
+        return result;
     }
 
     private FileChange getFileChange(HttpServletRequest request) throws ChangeRequestException

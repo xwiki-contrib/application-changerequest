@@ -30,8 +30,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
-import org.xwiki.localization.ContextualLocalizationManager;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -41,37 +40,38 @@ import org.xwiki.model.reference.DocumentReference;
  * @since 0.9
  */
 @Component
-@Named("org.xwiki.contrib.changerequest.internal.checkers.RightCompatibilityChecker")
+@Named("org.xwiki.contrib.changerequest.internal.checkers.RightSavingChecker")
 @Singleton
-public class RightCompatibilityChecker implements FileChangeCompatibilityChecker
+public class RightSavingChecker implements FileChangeSavingChecker
 {
     @Inject
     private ChangeRequestRightsManager changeRequestRightsManager;
 
     @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
-
-    @Inject
     private Logger logger;
 
     @Override
-    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType changeType)
+    public SavingCheckerResult canChangeOnDocumentBeAdded(ChangeRequest changeRequest,
+        DocumentReference documentReference, FileChange.FileChangeType changeType)
     {
+        boolean result = false;
         try {
-            return this.changeRequestRightsManager.isViewAccessConsistent(changeRequest, documentReference);
+            result = this.changeRequestRightsManager.isViewAccessConsistent(changeRequest, documentReference);
         } catch (ChangeRequestException e) {
             logger.warn("Error while checking right consistency of change request [{}] with adding [{}]: [{}]",
                 changeRequest.getId(), documentReference, ExceptionUtils.getRootCauseMessage(e));
-            return false;
+        }
+
+        if (result) {
+            return new SavingCheckerResult();
+        } else {
+            return new SavingCheckerResult("changerequest.checkers.right.incompatibilityReason");
         }
     }
 
     @Override
-    public String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType changeType)
+    public SavingCheckerResult canChangeRequestBeCreatedWith(FileChange fileChange)
     {
-        return this.contextualLocalizationManager
-            .getTranslationPlain("changerequest.checkers.right.incompatibilityReason");
+        return new SavingCheckerResult();
     }
 }

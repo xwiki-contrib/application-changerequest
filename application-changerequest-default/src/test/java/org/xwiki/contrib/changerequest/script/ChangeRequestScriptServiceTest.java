@@ -26,7 +26,6 @@ import java.util.Set;
 
 import javax.inject.Provider;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentModelBridge;
@@ -38,7 +37,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -273,35 +272,40 @@ class ChangeRequestScriptServiceTest
         FileChange.FileChangeType changeType = FileChange.FileChangeType.EDITION;
 
         when(this.changeRequestStorageManager.load(crId)).thenReturn(Optional.empty());
-        String expectedIncompatibilityReason = "Cannot find the given change request: " + crId;
-        assertEquals(Pair.of(false, expectedIncompatibilityReason),
+        String expectedIncompatibilityReason = "changerequest.script.compatibility.changeRequestNotFound";
+        assertEquals(new FileChangeSavingChecker.SavingCheckerResult(expectedIncompatibilityReason),
             this.scriptService.checkDocumentChangeCompatibility(crId, changedDoc, changeType));
 
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.changeRequestStorageManager.load(crId)).thenReturn(Optional.of(changeRequest));
 
-        FileChangeCompatibilityChecker checker1 =
-            componentManager.registerMockComponent(FileChangeCompatibilityChecker.class, "checker1");
-        FileChangeCompatibilityChecker checker2 =
-            componentManager.registerMockComponent(FileChangeCompatibilityChecker.class, "checker2");
-        FileChangeCompatibilityChecker checker3 =
-            componentManager.registerMockComponent(FileChangeCompatibilityChecker.class, "checker3");
-
-        when(checker1.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType)).thenReturn(true);
-        when(checker2.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType)).thenReturn(false);
-        when(checker3.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType)).thenReturn(true);
+        FileChangeSavingChecker checker1 =
+            componentManager.registerMockComponent(FileChangeSavingChecker.class, "checker1");
+        FileChangeSavingChecker checker2 =
+            componentManager.registerMockComponent(FileChangeSavingChecker.class, "checker2");
+        FileChangeSavingChecker checker3 =
+            componentManager.registerMockComponent(FileChangeSavingChecker.class, "checker3");
 
         expectedIncompatibilityReason = "Problem with checker 2";
-        when(checker2.getIncompatibilityReason(changeRequest, changedDoc, changeType))
-            .thenReturn(expectedIncompatibilityReason);
-        assertEquals(Pair.of(false, expectedIncompatibilityReason),
+
+        when(checker1.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType))
+            .thenReturn(new FileChangeSavingChecker.SavingCheckerResult());
+        when(checker2.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType))
+            .thenReturn(new FileChangeSavingChecker.SavingCheckerResult(expectedIncompatibilityReason));
+        when(checker3.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType))
+            .thenReturn(new FileChangeSavingChecker.SavingCheckerResult());
+
+        assertEquals(new FileChangeSavingChecker.SavingCheckerResult(expectedIncompatibilityReason),
             this.scriptService.checkDocumentChangeCompatibility(crId, changedDoc, changeType));
 
-        when(checker1.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType)).thenReturn(true);
-        when(checker2.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType)).thenReturn(true);
-        when(checker3.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType)).thenReturn(true);
+        when(checker1.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType))
+            .thenReturn(new FileChangeSavingChecker.SavingCheckerResult());
+        when(checker2.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType))
+            .thenReturn(new FileChangeSavingChecker.SavingCheckerResult());
+        when(checker3.canChangeOnDocumentBeAdded(changeRequest, changedDoc, changeType))
+            .thenReturn(new FileChangeSavingChecker.SavingCheckerResult());
 
-        assertEquals(Pair.of(true, ""),
+        assertEquals(new FileChangeSavingChecker.SavingCheckerResult(),
             this.scriptService.checkDocumentChangeCompatibility(crId, changedDoc, changeType));
     }
 }

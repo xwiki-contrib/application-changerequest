@@ -35,7 +35,7 @@ org.xwiki.contrib.changerequest.internal.DefaultChangeRequestRightsManager
 org.xwiki.contrib.changerequest.internal.strategies.AllApproversNoFallbackMergeApprovalStrategy
 org.xwiki.contrib.changerequest.internal.listeners.ApproversXObjectUpdatingListener
 org.xwiki.contrib.changerequest.internal.listeners.ApproversXObjectUpdatedListener
-org.xwiki.contrib.changerequest.internal.checkers.RightCompatibilityChecker
+org.xwiki.contrib.changerequest.internal.checkers.RightSavingChecker
 org.xwiki.contrib.changerequest.internal.checkers.ChangeRequestStatusChecker
 org.xwiki.contrib.changerequest.internal.handlers.CreateInChangeRequestResourceHandler
 org.xwiki.contrib.changerequest.internal.TemplateProviderSupportChecker
@@ -62,4 +62,4 @@ org.xwiki.contrib.changerequest.script.ChangeRequestReviewScriptService
 org.xwiki.contrib.changerequest.script.ChangeRequestAuthorizationScriptService
 org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService
 org.xwiki.contrib.changerequest.internal.listeners.ReviewXObjectUpdatedListener
-org.xwiki.contrib.changerequest.internal.checkers.MinimumApproversCompatibilityChecker
+org.xwiki.contrib.changerequest.internal.checkers.MinimumApproversSavingChecker

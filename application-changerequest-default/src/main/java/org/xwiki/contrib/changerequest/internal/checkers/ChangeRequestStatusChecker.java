@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal.checkers;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -27,8 +26,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
-import org.xwiki.localization.ContextualLocalizationManager;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -40,23 +38,23 @@ import org.xwiki.model.reference.DocumentReference;
 @Component
 @Named("org.xwiki.contrib.changerequest.internal.checkers.ChangeRequestStatusChecker")
 @Singleton
-public class ChangeRequestStatusChecker implements FileChangeCompatibilityChecker
+public class ChangeRequestStatusChecker implements FileChangeSavingChecker
 {
-    @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
-
     @Override
-    public boolean canChangeOnDocumentBeAdded(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType fileChangeType)
+    public SavingCheckerResult canChangeOnDocumentBeAdded(ChangeRequest changeRequest,
+        DocumentReference documentReference, FileChange.FileChangeType fileChangeType)
     {
         ChangeRequestStatus status = changeRequest.getStatus();
-        return status != ChangeRequestStatus.CLOSED && status != ChangeRequestStatus.MERGED;
+        if (status != ChangeRequestStatus.CLOSED && status != ChangeRequestStatus.MERGED) {
+            return new SavingCheckerResult();
+        } else {
+            return new SavingCheckerResult("changerequest.checkers.status.incompatibilityReason");
+        }
     }
 
     @Override
-    public String getIncompatibilityReason(ChangeRequest changeRequest, DocumentReference documentReference,
-        FileChange.FileChangeType changeType)
+    public SavingCheckerResult canChangeRequestBeCreatedWith(FileChange fileChange)
     {
-        return contextualLocalizationManager.getTranslationPlain("changerequest.checkers.status.incompatibilityReason");
+        return new SavingCheckerResult();
     }
 }

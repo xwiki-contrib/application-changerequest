@@ -46,7 +46,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -242,34 +242,31 @@ public class ChangeRequestScriptService implements ScriptService
      * @throws ChangeRequestException in case of problem to load the change request
      * @since 0.14
      */
-    public Pair<Boolean, String> checkDocumentChangeCompatibility(String changeRequestId,
+    public FileChangeSavingChecker.SavingCheckerResult checkDocumentChangeCompatibility(String changeRequestId,
         DocumentReference newDocumentChange, FileChange.FileChangeType changeType)
         throws ComponentLookupException, ChangeRequestException
     {
-        boolean isCompatible = true;
-        String incompatibilityReason = "";
+        FileChangeSavingChecker.SavingCheckerResult result = new FileChangeSavingChecker.SavingCheckerResult();
 
         Optional<ChangeRequest> changeRequestOptional =
             this.changeRequestStorageManager.load(changeRequestId);
         if (changeRequestOptional.isEmpty()) {
-            isCompatible = false;
-            incompatibilityReason = String.format("Cannot find the given change request: %s", changeRequestId);
+            result = new FileChangeSavingChecker.SavingCheckerResult(
+                "changerequest.script.compatibility.changeRequestNotFound");
         } else {
             ChangeRequest changeRequest = changeRequestOptional.get();
-            List<FileChangeCompatibilityChecker> checkerList =
-                this.componentManager.getInstanceList(FileChangeCompatibilityChecker.class);
-            for (FileChangeCompatibilityChecker fileChangeCompatibilityChecker : checkerList) {
-                if (!fileChangeCompatibilityChecker.canChangeOnDocumentBeAdded(changeRequest, newDocumentChange,
-                    changeType))
-                {
-                    isCompatible = false;
-                    incompatibilityReason = fileChangeCompatibilityChecker.getIncompatibilityReason(changeRequest,
-                        newDocumentChange, changeType);
+            List<FileChangeSavingChecker> checkerList =
+                this.componentManager.getInstanceList(FileChangeSavingChecker.class);
+
+            for (FileChangeSavingChecker fileChangeSavingChecker : checkerList) {
+                result = fileChangeSavingChecker.canChangeOnDocumentBeAdded(changeRequest, newDocumentChange,
+                    changeType);
+                if (!result.canBeSaved()) {
                     break;
                 }
             }
         }
-        return Pair.of(isCompatible, incompatibilityReason);
+        return result;
     }
 
     /**
