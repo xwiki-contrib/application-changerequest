@@ -41,6 +41,7 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
+import org.xwiki.contrib.changerequest.ChangeRequestDiffManager;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -105,6 +106,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ApproversManager<DocumentReference> documentReferenceApproversManager;
+
+    @Inject
+    private ChangeRequestDiffManager diffManager;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -452,5 +456,35 @@ public class ChangeRequestScriptService implements ScriptService
             result = minimumApprovers <= docApprovers;
         }
         return result;
+    }
+
+    /**
+     * Get the html diff for the given file change.
+     * Note that this throws an exception if the configuration doesn't enable it.
+     *
+     * @param fileChange the file change for which to get an html diff.
+     * @return the html diff ready to be displayed.
+     * @throws ChangeRequestException in case of problem to compute the diff.
+     * @see ChangeRequestDiffManager#getHtmlDiff(FileChange)
+     * @since 1.3
+     */
+    @Unstable
+    public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
+    {
+        if (this.configuration.isRenderedDiffEnabled()) {
+            return this.diffManager.getHtmlDiff(fileChange);
+        } else {
+            throw new ChangeRequestException("The rendered diff view is not enabled.");
+        }
+    }
+
+    /**
+     * @return {@code true} if the rendered diff feature is enabled.
+     * @since 1.3
+     */
+    @Unstable
+    public boolean isRenderedDiffEnabled()
+    {
+        return this.configuration.isRenderedDiffEnabled();
     }
 }

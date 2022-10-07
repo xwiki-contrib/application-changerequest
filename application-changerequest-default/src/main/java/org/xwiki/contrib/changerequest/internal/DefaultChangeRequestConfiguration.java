@@ -207,4 +207,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty("minimumApprovers", 0);
     }
+
+    @Override
+    public boolean isRenderedDiffEnabled()
+    {
+        return this.configurationSource.getProperty("renderedDiffEnabled", false);
+    }
 }

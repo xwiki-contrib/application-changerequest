@@ -101,6 +101,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Needed for computation of the rendered diff -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-diff-xml</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

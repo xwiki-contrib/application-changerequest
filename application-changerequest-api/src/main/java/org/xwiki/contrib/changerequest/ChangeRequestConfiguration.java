@@ -173,4 +173,17 @@ public interface ChangeRequestConfiguration
     {
         return 0;
     }
+
+    /**
+     * Define whether the rendered diff is enabled or not.
+     * By default it's disabled to avoid any possible security issue.
+     *
+     * @return {@code true} if it's enabled.
+     * @since 1.3
+     */
+    @Unstable
+    default boolean isRenderedDiffEnabled()
+    {
+        return false;
+    }
 }

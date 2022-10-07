@@ -142,7 +142,8 @@ ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=Prevent authors to 
 ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=If checked authors won't be allowed to review their own change requests. 
 ChangeRequest.Code.ConfigurationClass_minimumApprovers=Minimum number of explicit approvers
 ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Define a required minimum numbers of explicit users approvers when managing change request approvers. Note that 0 means no minimum.
-
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=Enable the rendered diff view
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=When enabled allow to see a diff with the actual rendering of the page changes. 
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion

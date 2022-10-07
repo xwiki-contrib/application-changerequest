@@ -251,6 +251,7 @@
     #set ($isFileChangeOutdated = $services.changerequest.isFileChangeOutdated($crMergeDocumentResult.fileChange))
     #set ($renderedTitle = $crMergeDocumentResult.documentTitle)
     #set ($diffKey = $crMergeDocumentResult.identifier)
+    #set ($filechangeId = $crMergeDocumentResult.fileChange.id)
     #set ($mergeDocumentResult = $crMergeDocumentResult.wrappedResult)
     #if ($crMergeDocumentResult.type == 'NO_CHANGE')
       #set ($diffContent = $services.localization.render('changerequest.sheet.diff.nochange'))
@@ -300,7 +301,52 @@
       &lt;/h4&gt;
     &lt;/div&gt;
     &lt;div id="diff-$diffKey" class="panel-collapse collapse diff-panel" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
-      &lt;div class="panel-body diff-body" data-diffId="$escapetool.xml($diffKey)" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;$diffContent&lt;/div&gt;
+      &lt;div class="panel-body diff-body" data-diffId="$escapetool.xml($diffKey)" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;
+        #set ($renderedDiffEnabled = $services.changerequest.isRenderedDiffEnabled())
+        &lt;div class="changes-body" data-filechangeid="$escapetool.xml($filechangeId)"&gt;
+          &lt;div class="changes-body-header"&gt;
+            &lt;div class="row"&gt;
+              &lt;div class="col-xs-12 col-sm-6"&gt;
+                &lt;ul class="nav nav-pills" role="tablist"&gt;
+                  &lt;li role="presentation" class="active"&gt;
+                    &lt;a href="#rawChanges-$diffKey" aria-controls="rawChanges-$diffKey" role="tab" data-toggle="pill" data-hint="raw"&gt;
+                      $escapetool.xml($services.localization.render('web.history.changes.raw'))
+                    &lt;/a&gt;
+                  &lt;/li&gt;
+                  &lt;li role="presentation" #if (!$renderedDiffEnabled)class="hidden"#end&gt;
+                    &lt;a href="#renderedChanges-$diffKey" aria-controls="renderedChanges-$diffKey" role="tab" data-toggle="pill" data-hint="rendered"&gt;
+                      $escapetool.xml($services.localization.render('web.history.changes.rendered'))
+                    &lt;/a&gt;
+                  &lt;/li&gt;
+                &lt;/ul&gt;
+              &lt;/div&gt;
+              &lt;div class="col-xs-12 col-md-6"&gt;
+                &lt;div class="changes-actions raw active"&gt;&lt;/div&gt;
+                &lt;div class="changes-actions rendered"&gt;
+                  &lt;a href="#toggleRenderedDiffContext" class="html-diff-context-toggle html-diff-context-toggle-show hidden"&gt;
+                    &lt;span class="html-diff-context-show"&gt;
+                      $services.icon.renderHTML('plus-square')
+                      $escapetool.xml($services.localization.render('web.history.changes.showContext'))
+                    &lt;/span&gt;
+                    &lt;span class="html-diff-context-hide"&gt;
+                      $services.icon.renderHTML('minus-square')
+                      $escapetool.xml($services.localization.render('web.history.changes.hideContext'))
+                    &lt;/span&gt;
+                  &lt;/a&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="tab-content"&gt;
+            &lt;div role="tabpanel" class="tab-pane active" id="rawChanges-$diffKey"&gt;
+                $diffContent
+            &lt;/div&gt;
+            &lt;div role="tabpanel" class="tab-pane html-diff" id="renderedChanges-$diffKey"&gt;
+            &lt;!-- This is filled with an ajax request to avoid expensive rendering --&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   #end
@@ -3166,6 +3212,137 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <name>Edit approvers</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>18</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c0ff9796-7c57-418a-a3ad-bbcbd9d3b045</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var currentReference = xm.documentReference;
+  var renderedDiffPageRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestRenderedDiff");
+  var renderedDiffPageUrl = new XWiki.Document(renderedDiffPageRef).getURL('get');
+  var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
+  
+  var loadRenderedDiff = function (container) {
+    var filechangeId = container.attr('data-filechangeid');
+    var data = {
+      form_token: xm.form_token,
+      changerequest: changeRequestId,
+      outputSyntax: 'plain',
+      filechangeId: filechangeId,
+      action: 'htmlDiff'
+    };
+    var tabPanel = container.find('.tab-pane.html-diff');
+    tabPanel.addClass('loading').load(renderedDiffPageUrl, data, function() {
+      tabPanel.removeClass('loading');
+      $(document).trigger('xwiki:dom:updated', {'elements': tabPanel.toArray()});
+    });
+  };
+  
+  var initializeRenderedDiff = function () {
+    $('.changes-body a[data-hint="rendered"]').on('click', function (event) {
+      var container = $(event.target).parents('.changes-body');
+      if (!container.hasClass('rendered-loaded')) {
+        loadRenderedDiff(container);
+      }
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initializeRenderedDiff()) || $(document).on('xwiki:dom:loading', initializeRenderedDiff);
+});</code>
+    </property>
+    <property>
+      <name>Load rendered diff</name>
     </property>
     <property>
       <parse>0</parse>

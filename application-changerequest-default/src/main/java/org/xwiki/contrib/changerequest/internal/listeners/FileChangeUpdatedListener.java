@@ -31,6 +31,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.observation.AbstractEventListener;
@@ -44,6 +45,7 @@ import org.xwiki.observation.remote.RemoteObservationManagerContext;
  *     <ul>it invalidates the merge cache manager</ul>
  *     <ul>it invalidates the approvals reviews</ul>
  *     <ul>it compute back the ready for merging status</ul>
+ *     <ul>it invalidates the diff cache manager</ul>
  * </li>
  *
  * Component dedicated to invalidate the merge cache manager entries whenever a filechange is updated.
@@ -66,6 +68,9 @@ public class FileChangeUpdatedListener extends AbstractEventListener
 
     @Inject
     private Provider<ChangeRequestManager> changeRequestManagerProvider;
+
+    @Inject
+    private Provider<DiffCacheManager> diffCacheManagerProvider;
 
     @Inject
     private RemoteObservationManagerContext remoteObservationManagerContext;
@@ -91,12 +96,14 @@ public class FileChangeUpdatedListener extends AbstractEventListener
             FileChange fileChange = (FileChange) data;
             this.mergeCacheManager.get().invalidate(fileChange);
             this.changeRequestCacheManager.get().invalidate(changeRequestId);
+            this.diffCacheManagerProvider.get().invalidate(fileChange);
             changeRequest = fileChange.getChangeRequest();
         } else if (data instanceof ChangeRequest) {
             changeRequest = (ChangeRequest) data;
             changeRequest.getLastFileChanges()
                 .forEach(fileChange -> this.mergeCacheManager.get().invalidate(fileChange));
             this.changeRequestCacheManager.get().invalidate(changeRequestId);
+            this.diffCacheManagerProvider.get().invalidate(changeRequest);
         }
         // This only needs to be perform for local events.
         if (changeRequest != null && !this.remoteObservationManagerContext.isRemoteState()) {
