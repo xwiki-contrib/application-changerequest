@@ -141,6 +141,8 @@ ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=Verhindern, dass Au
 ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=Wenn diese Option aktiviert ist, dürfen Autoren ihre eigenen Änderungsanforderungen nicht überprüfen. 
 ChangeRequest.Code.ConfigurationClass_minimumApprovers=Mindestanzahl genehmigender Personen
 ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Definieren Sie eine Mindestanzahl von Benutzern, die Genehmigungen erteilen, wenn Sie Genehmigungen für Änderungsanträge verwalten. 0 bedeutet es gibt kein Minimum.
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=Aktivieren Sie die gerenderte Diff-Ansicht
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=Wenn aktiviert, erlauben Sie, ein Diff mit der tatsächlichen Darstellung der Seitenänderungen zu sehen. 
 
 
 changerequest.moreactions.manageapprovers=Genehmiger verwalten
