@@ -30,6 +30,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
@@ -39,7 +40,7 @@ import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 
 /**
- * Listener called whenever a filechange has been updated in a change request.
+ * Listener called whenever a filechange has been updated in a change request or when a CR is merged.
  * This listener performs different actions:
  * <li>
  *     <ul>it invalidates the merge cache manager</ul>
@@ -83,7 +84,7 @@ public class FileChangeUpdatedListener extends AbstractEventListener
      */
     public FileChangeUpdatedListener()
     {
-        super(NAME, new ChangeRequestUpdatedFileChangeEvent());
+        super(NAME, new ChangeRequestUpdatedFileChangeEvent(), new ChangeRequestMergedEvent());
     }
 
     @Override
@@ -106,7 +107,8 @@ public class FileChangeUpdatedListener extends AbstractEventListener
             this.diffCacheManagerProvider.get().invalidate(changeRequest);
         }
         // This only needs to be perform for local events.
-        if (changeRequest != null && !this.remoteObservationManagerContext.isRemoteState()) {
+        if (event instanceof ChangeRequestUpdatedFileChangeEvent && changeRequest != null
+            && !this.remoteObservationManagerContext.isRemoteState()) {
             // Be careful of the order: approvals needs to be invalidated before the status is computed back.
             this.invalidateApprovals(changeRequest);
             this.computeStatus(changeRequest);

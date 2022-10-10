@@ -116,7 +116,9 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
                     result = "";
                     break;
             }
-            this.diffCacheManager.setRenderedDiff(fileChange, result);
+            if (result != null) {
+                this.diffCacheManager.setRenderedDiff(fileChange, result);
+            }
         }
         return result;
     }

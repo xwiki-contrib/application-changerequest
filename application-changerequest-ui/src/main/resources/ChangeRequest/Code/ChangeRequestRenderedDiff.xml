@@ -46,7 +46,17 @@
       #if ($fileChangeOpt.isPresent())
         #set ($fileChange = $fileChangeOpt.get())
         #set ($htmlDiff = $services.changerequest.getHtmlDiff($fileChange))
-        $htmlDiff
+        #if ($htmlDiff == '')
+          &lt;div class="infomessage"&gt;
+            $escapetool.xml($services.localization.render('web.history.changes.noChanges'))
+          &lt;/div&gt;
+        #elseif ("$!htmlDiff" == '')
+          &lt;div class="errormessage"&gt;
+            $escapetool.xml($services.localization.render('web.history.changes.failedToCompute'))
+          &lt;/div&gt;
+        #else
+          $htmlDiff
+        #end
       #else
         #set ($discard = $response.sendError(404, "Cannot find file change"))
       #end

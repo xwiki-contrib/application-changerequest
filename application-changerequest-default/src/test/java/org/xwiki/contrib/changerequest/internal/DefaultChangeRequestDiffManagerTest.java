@@ -44,6 +44,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -108,7 +109,7 @@ class DefaultChangeRequestDiffManagerTest
         when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange)).thenReturn(Optional.empty());
 
         assertNull(this.diffManager.getHtmlDiff(fileChange));
-        verify(this.diffCacheManager).setRenderedDiff(fileChange, null);
+        verify(this.diffCacheManager, never()).setRenderedDiff(fileChange, null);
         verifyNoInteractions(xmlDiffManager);
 
         XWikiDocument previousDoc = mock(XWikiDocument.class, "previousDoc");
@@ -170,7 +171,7 @@ class DefaultChangeRequestDiffManagerTest
         when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange)).thenReturn(Optional.empty());
 
         assertNull(this.diffManager.getHtmlDiff(fileChange));
-        verify(this.diffCacheManager).setRenderedDiff(fileChange, null);
+        verify(this.diffCacheManager, never()).setRenderedDiff(fileChange, null);
         verifyNoInteractions(xmlDiffManager);
 
         XWikiDocument previousDoc = mock(XWikiDocument.class, "previousDoc");

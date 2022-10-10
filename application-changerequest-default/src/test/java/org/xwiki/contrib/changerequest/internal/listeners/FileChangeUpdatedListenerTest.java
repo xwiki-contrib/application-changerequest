@@ -26,6 +26,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
@@ -79,7 +80,7 @@ class FileChangeUpdatedListenerTest
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(data.getChangeRequest()).thenReturn(changeRequest);
-        this.fileChangeUpdatedListener.onEvent(null, crId, data);
+        this.fileChangeUpdatedListener.onEvent(new ChangeRequestUpdatedFileChangeEvent(), crId, data);
 
         verify(this.mergeCacheManager, times(2)).invalidate(data);
         verify(this.changeRequestCacheManager, times(2)).invalidate(crId);
@@ -105,7 +106,7 @@ class FileChangeUpdatedListenerTest
         verifyNoInteractions(this.changeRequestManager);
 
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
-        this.fileChangeUpdatedListener.onEvent(null, crId, data);
+        this.fileChangeUpdatedListener.onEvent(new ChangeRequestUpdatedFileChangeEvent(), crId, data);
 
         verify(this.mergeCacheManager, times(2)).invalidate(fileChange1);
         verify(this.mergeCacheManager, times(2)).invalidate(fileChange2);
