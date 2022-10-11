@@ -383,7 +383,7 @@
     'createURL': $createURL,
     'addChangesURL': $addChangesURL,
     'saveButtonTranslation': $services.localization.render('changerequest.editor.button.save'),
-    'isCreate': $doc.isNew(),
+    'isCreation': $doc.isNew(),
     'isInplaceEditing': $isInplaceEditing
   })
   #if ($request.get('changerequest'))

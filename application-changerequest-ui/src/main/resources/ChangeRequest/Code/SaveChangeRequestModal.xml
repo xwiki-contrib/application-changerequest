@@ -583,7 +583,7 @@
         if (saveConfig.isApproversEdition) {
           requestData['manageApprovers'] = 1;
         }
-        if (saveConfig.isCreate) {
+        if (saveConfig.isCreation) {
           requestData['setApprovers'] = 1;
         }
         $.extend(requestData, overridingData);
