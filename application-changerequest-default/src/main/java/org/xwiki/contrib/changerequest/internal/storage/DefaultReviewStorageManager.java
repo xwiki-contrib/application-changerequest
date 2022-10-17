@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -72,6 +73,7 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
     private Provider<XWikiContext> contextProvider;
 
     @Inject
+    @Named("current")
     private UserReferenceResolver<String> userReferenceResolver;
 
     @Inject

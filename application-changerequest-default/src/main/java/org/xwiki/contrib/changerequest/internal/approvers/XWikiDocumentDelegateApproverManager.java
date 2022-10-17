@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -77,6 +78,7 @@ public class XWikiDocumentDelegateApproverManager implements DelegateApproverMan
     private UserReferenceConverter userReferenceConverter;
 
     @Inject
+    @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
     @Inject

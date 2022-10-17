@@ -39,9 +39,11 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
@@ -53,13 +55,26 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceSerializer;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.user.MembershipType;
+import org.xwiki.wiki.user.UserScope;
+import org.xwiki.wiki.user.WikiUserManager;
+import org.xwiki.wiki.user.WikiUserManagerException;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+
+import liquibase.pro.packaged.W;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -71,6 +86,9 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class ChangeRequestScriptServiceTest
 {
+    private static final LocalDocumentReference APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE =
+        new LocalDocumentReference(List.of("ChangeRequest", "Code"), "ApproversChangeRequestResults");
+
     @InjectMockComponents
     private ChangeRequestScriptService scriptService;
 
@@ -91,6 +109,18 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private Provider<XWikiContext> contextProvider;
+
+    @MockComponent
+    private WikiUserManager wikiUserManager;
+
+    @MockComponent
+    private UserReferenceSerializer<String> userReferenceSerializer;
+
+    @MockComponent
+    private UserReferenceConverter userReferenceConverter;
+
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
 
     private XWikiContext context;
 
@@ -307,5 +337,84 @@ class ChangeRequestScriptServiceTest
 
         assertEquals(new FileChangeSavingChecker.SavingCheckerResult(),
             this.scriptService.checkDocumentChangeCompatibility(crId, changedDoc, changeType));
+    }
+
+    @Test
+    void isWikiAvailableInProfile() throws WikiUserManagerException, XWikiException
+    {
+        UserReference userReference = mock(UserReference.class);
+        String wikiId = "foo";
+        String mainWikiId = "bar";
+        when(this.wikiDescriptorManager.getMainWikiId()).thenReturn("bar");
+
+        DocumentReference approversResultsRef =
+            new DocumentReference(APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE, new WikiReference(wikiId));
+        XWikiDocument xWikiDocument = mock(XWikiDocument.class);
+        XWiki xwiki = mock(XWiki.class);
+        when(this.context.getWiki()).thenReturn(xwiki);
+        when(xwiki.getDocument(approversResultsRef, this.context)).thenReturn(xWikiDocument);
+        when(xWikiDocument.isNew()).thenReturn(true);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        verifyNoInteractions(this.wikiUserManager);
+
+        when(xWikiDocument.isNew()).thenReturn(false);
+        DocumentReference userDocReference = mock(DocumentReference.class);
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+
+        when(userDocReference.getWikiReference()).thenReturn(new WikiReference("xwiki"));
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(userDocReference.getWikiReference()).thenReturn(new WikiReference("foo"));
+        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        verifyNoInteractions(this.wikiUserManager);
+
+        String userId = "XWiki.Bar";
+        when(this.userReferenceSerializer.serialize(userReference)).thenReturn(userId);
+        when(userDocReference.getWikiReference()).thenReturn(new WikiReference(mainWikiId));
+        when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(true);
+        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(false);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.GLOBAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.OPEN);
+        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.OPEN);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.OPEN);
+        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.GLOBAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.INVITE);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.GLOBAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.REQUEST);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.REQUEST);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.INVITE);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.REQUEST);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
+        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.INVITE);
+        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+
+        when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(true);
+        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
     }
 }

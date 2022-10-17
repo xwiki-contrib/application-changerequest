@@ -70,6 +70,7 @@ class XWikiDocumentApproversManagerTest
     private XWikiDocumentApproversManager manager;
 
     @MockComponent
+    @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
     @MockComponent

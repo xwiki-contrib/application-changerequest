@@ -49,9 +49,11 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
@@ -61,8 +63,15 @@ import org.xwiki.script.service.ScriptServiceManager;
 import org.xwiki.stability.Unstable;
 import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.UserReference;
+import org.xwiki.user.UserReferenceSerializer;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.user.MembershipType;
+import org.xwiki.wiki.user.UserScope;
+import org.xwiki.wiki.user.WikiUserManager;
+import org.xwiki.wiki.user.WikiUserManagerException;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 
 /**
  * Script service for change request.
@@ -76,6 +85,9 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class ChangeRequestScriptService implements ScriptService
 {
+    private static final LocalDocumentReference APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE =
+        new LocalDocumentReference(List.of("ChangeRequest", "Code"), "ApproversChangeRequestResults");
+
     @Inject
     private ChangeRequestManager changeRequestManager;
 
@@ -109,6 +121,18 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ChangeRequestDiffManager diffManager;
+
+    @Inject
+    private WikiUserManager wikiUserManager;
+
+    @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
+
+    @Inject
+    private UserReferenceSerializer<String> userReferenceSerializer;
+
+    @Inject
+    private UserReferenceConverter userReferenceConverter;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -486,5 +510,44 @@ public class ChangeRequestScriptService implements ScriptService
     public boolean isRenderedDiffEnabled()
     {
         return this.configuration.isRenderedDiffEnabled();
+    }
+
+    /**
+     * Define if a wiki should be selectable in a user profile. This method currently check if the result page is
+     * available in the given wiki (if it's not the case it means CR it not installed on the subwiki), and then
+     * check the membership of the user in the given wiki.
+     *
+     * @param userReference the user profile for which to check if the wiki should be selectable
+     * @param wikiId the wiki that might or not be selected for the user
+     * @return {@code true} if it should be possible to display change requests for the given user on the given wiki
+     * @throws WikiUserManagerException in case of problem for getting information from the wiki
+     * @throws XWikiException in case of problem when checking if the approvers results page exists
+     * @since 1.3
+     */
+    @Unstable
+    public boolean isWikiAvailableInProfile(UserReference userReference, String wikiId)
+        throws WikiUserManagerException, XWikiException
+    {
+        DocumentReference reference = this.userReferenceConverter.convert(userReference);
+        DocumentReference approversCRResultsReference =
+            new DocumentReference(APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE, new WikiReference(wikiId));
+        XWikiContext context = this.contextProvider.get();
+        String mainWikiId = this.wikiDescriptorManager.getMainWikiId();
+        boolean result = false;
+
+        if (!context.getWiki().getDocument(approversCRResultsReference, context).isNew()) {
+            String userWiki = reference.getWikiReference().getName();
+            if (StringUtils.equals(userWiki, wikiId)) {
+                result = true;
+            } else if (StringUtils.equals(userWiki, mainWikiId)) {
+                String userId = this.userReferenceSerializer.serialize(userReference);
+                // Note that we don't only rely on #isMember because of XWIKI-20072
+                boolean isMember = this.wikiUserManager.isMember(userId, wikiId);
+                MembershipType membershipType = this.wikiUserManager.getMembershipType(wikiId);
+                UserScope userScope = this.wikiUserManager.getUserScope(wikiId);
+                result = isMember || membershipType == MembershipType.OPEN && userScope != UserScope.LOCAL_ONLY;
+            }
+        }
+        return result;
     }
 }

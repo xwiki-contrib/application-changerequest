@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.inject.Named;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ApproversManager;
@@ -88,6 +90,7 @@ class ApproversUpdatedListenerTest
     private UserManager userManager;
 
     @MockComponent
+    @Named("current")
     private UserReferenceResolver<String> userReferenceResolver;
 
     @Test

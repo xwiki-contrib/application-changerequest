@@ -71,6 +71,7 @@ import static org.xwiki.contrib.changerequest.internal.approvers.ApproversXClass
 public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocument>
 {
     @Inject
+    @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
     @Inject

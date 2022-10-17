@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -85,6 +86,7 @@ class XWikiDocumentDelegateApproverManagerTest
     private UserReferenceConverter userReferenceConverter;
 
     @MockComponent
+    @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
     @MockComponent

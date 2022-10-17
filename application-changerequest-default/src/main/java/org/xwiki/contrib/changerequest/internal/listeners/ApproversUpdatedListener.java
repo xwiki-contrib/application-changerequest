@@ -95,6 +95,7 @@ public class ApproversUpdatedListener extends AbstractLocalEventListener
     private Provider<ReviewStorageManager> reviewStorageManagerProvider;
 
     @Inject
+    @Named("current")
     private UserReferenceResolver<String> userReferenceResolver;
 
     @Inject

@@ -107,6 +107,12 @@
       <artifactId>xwiki-commons-diff-xml</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <!-- Needed for script service to check if a wiki should be displayed for a user -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-wiki-user-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

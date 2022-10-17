@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,7 @@ class DefaultReviewStorageManagerTest
     private Provider<XWikiContext> contextProvider;
 
     @MockComponent
+    @Named("current")
     private UserReferenceResolver<String> userReferenceResolver;
 
     @MockComponent

@@ -107,6 +107,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private DocumentRevisionProvider documentRevisionProvider;
 
     @Inject
+    @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
     @Inject

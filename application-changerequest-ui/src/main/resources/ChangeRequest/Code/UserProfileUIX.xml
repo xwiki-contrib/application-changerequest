@@ -59,7 +59,7 @@
   #foreach($wikiDescriptor in $services.wiki.all)
     #set ($wikiId = $wikiDescriptor.id)
     ## We should not need to have to test for the second part of the OR but it's needed because of XWIKI-20072
-    #if ($services.wiki.user.isMember($currentUserDocSerialization, $wikiId) || $wikiId == $doc.documentReference.wikiReference.name)
+    #if ($services.changerequest.isWikiAvailableInProfile($doc, $wikiId))
     &lt;option value="$wikiId" #if ($currentWiki == $wikiId)selected="selected"#end&gt;$wikiDescriptor.prettyName&lt;/option&gt;
     #end
   #end

@@ -192,6 +192,7 @@ class DefaultFileChangeStorageManagerTest
     private FileChangeVersionManager fileChangeVersionManager;
 
     @MockComponent
+    @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
 
     @MockComponent
