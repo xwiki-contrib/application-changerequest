@@ -118,5 +118,12 @@
       <version>${ckeditor.version}</version>
       <type>xar</type>
     </dependency>
+    <!-- We depend on wiki-user-default for the user profile tab -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-wiki-user-default</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>
