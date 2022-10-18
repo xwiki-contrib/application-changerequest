@@ -296,7 +296,8 @@
               &lt;/span&gt;
             #end
           &lt;/span&gt;
-          $services.localization.render('changerequest.sheet.difftitle', [$renderedTitle])
+          #set ($diffTitleTranslationKey = "changerequest.sheet.difftitle.$crMergeDocumentResult.type")
+          $services.localization.render($diffTitleTranslationKey, ["$escapetool.xml($renderedTitle)"])
         &lt;/a&gt;
       &lt;/h4&gt;
     &lt;/div&gt;
