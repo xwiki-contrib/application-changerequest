@@ -55,7 +55,7 @@
             $escapetool.xml($services.localization.render('web.history.changes.failedToCompute'))
           &lt;/div&gt;
         #else
-          $htmlDiff
+          ${services.rendering.escape($htmlDiff, 'xwiki/2.1')}
         #end
       #else
         #set ($discard = $response.sendError(404, "Cannot find file change"))

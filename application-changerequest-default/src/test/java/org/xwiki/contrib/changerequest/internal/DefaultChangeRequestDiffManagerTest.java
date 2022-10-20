@@ -45,6 +45,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -80,6 +81,7 @@ class DefaultChangeRequestDiffManagerTest
 
     private XWikiContext context;
     private XMLDiffConfiguration xmlDiffConfiguration;
+    private XWikiDocument contextDoc;
 
     @BeforeEach
     void setup()
@@ -89,6 +91,8 @@ class DefaultChangeRequestDiffManagerTest
 
         this.xmlDiffConfiguration = mock(XMLDiffConfiguration.class);
         when(this.xmlDiffConfigurationProvider.get()).thenReturn(this.xmlDiffConfiguration);
+        this.contextDoc = mock(XWikiDocument.class, "contextDoc");
+        when(this.context.getDoc()).thenReturn(contextDoc);
     }
 
     @Test
@@ -127,6 +131,9 @@ class DefaultChangeRequestDiffManagerTest
             .thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(this.context).setDoc(modifiedDoc);
+        verify(this.context).setDoc(previousDoc);
+        verify(this.context, times(2)).setDoc(contextDoc);
     }
 
     @Test
@@ -153,6 +160,8 @@ class DefaultChangeRequestDiffManagerTest
             .thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(this.context).setDoc(modifiedDoc);
+        verify(this.context).setDoc(contextDoc);
     }
 
     @Test
@@ -186,6 +195,8 @@ class DefaultChangeRequestDiffManagerTest
             .thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(this.context).setDoc(previousDoc);
+        verify(this.context).setDoc(contextDoc);
     }
 
     @Test

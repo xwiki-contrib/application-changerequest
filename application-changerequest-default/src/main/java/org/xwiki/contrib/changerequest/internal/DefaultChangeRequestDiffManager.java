@@ -125,9 +125,20 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
 
     private String getRenderedContent(XWikiDocument document) throws XWikiException
     {
-        // Note that we render the content in restricted mode to avoid any security issue:
-        // we cannot guarantee here that the provided changes are safe
-        return (document == null) ? "" : document.displayDocument(Syntax.HTML_5_0, true, contextProvider.get());
+        XWikiContext context = contextProvider.get();
+        XWikiDocument currentDoc = context.getDoc();
+        String result = "";
+        if (document != null) {
+            context.setDoc(document);
+            try {
+                // Note that we render the content in restricted mode to avoid any security issue:
+                // we cannot guarantee here that the provided changes are safe
+                result = document.displayDocument(Syntax.HTML_5_0, true, contextProvider.get());
+            } finally {
+                context.setDoc(currentDoc);
+            }
+        }
+        return result;
     }
 
     private String getHtmlDiff(XWikiDocument previousDoc, XWikiDocument modifiedDoc) throws ChangeRequestException
