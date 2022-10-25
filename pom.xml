@@ -60,6 +60,10 @@
     <discussions.version>2.0</discussions.version>
     <rights-api.version>2.0</rights-api.version>
     <replication.version>0.13</replication.version>
+    <platform.version>14.10-SNAPSHOT</platform.version>
+    <commons.version>14.10-SNAPSHOT</commons.version>
+    <!-- FIXME: To be removed before the release -->
+    <xwiki.enforcer.skip>true</xwiki.enforcer.skip>
   </properties>
   <modules>
     <module>application-changerequest-api</module>

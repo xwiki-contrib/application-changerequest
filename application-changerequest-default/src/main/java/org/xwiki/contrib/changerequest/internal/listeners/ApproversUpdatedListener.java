@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.event.Event;
+import org.xwiki.user.UserException;
 import org.xwiki.user.UserManager;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
@@ -168,14 +169,20 @@ public class ApproversUpdatedListener extends AbstractLocalEventListener
         Set<UserReference> usersApprovers = new HashSet<>();
         Set<DocumentReference> groupsApprovers = new HashSet<>();
 
+
         for (String newApprover : newApprovers) {
             UserReference userReference = this.userReferenceResolver.resolve(newApprover);
-            if (this.userManager.exists(userReference)) {
-                usersApprovers.add(userReference);
-            } else {
-                groupsApprovers.add(this.documentReferenceResolver.resolve(newApprover));
+            try {
+                if (this.userManager.exists(userReference)) {
+                    usersApprovers.add(userReference);
+                } else {
+                    groupsApprovers.add(this.documentReferenceResolver.resolve(newApprover));
+                }
+            } catch (UserException e) {
+                this.logger.error("Error when checking if user [{}] exists: [{}]", userReference, e);
             }
         }
+
 
         try {
             this.changeRequestApproversManager.setUsersApprovers(usersApprovers, changeRequest);
