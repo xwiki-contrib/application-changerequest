@@ -26,6 +26,8 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestDiffManager;
@@ -36,10 +38,14 @@ import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.DiffException;
 import org.xwiki.diff.xml.XMLDiffConfiguration;
 import org.xwiki.diff.xml.XMLDiffManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.store.TemporaryAttachmentException;
+import org.xwiki.store.TemporaryAttachmentSessionsManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
@@ -67,7 +73,13 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
     private Provider<XMLDiffConfiguration> xmlDiffConfigurationProvider;
 
     @Inject
+    private Provider<TemporaryAttachmentSessionsManager> temporaryAttachmentSessionsManagerProvider;
+
+    @Inject
     private DiffCacheManager diffCacheManager;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
@@ -90,7 +102,10 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
                         result = null;
                     } else {
                         previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
+                        this.handleAttachments(modifiedDoc);
                         result = this.getHtmlDiff(previousDoc, modifiedDoc);
+                        this.temporaryAttachmentSessionsManagerProvider.get()
+                            .removeUploadedAttachments(modifiedDoc.getDocumentReference());
                     }
                     break;
 
@@ -123,6 +138,26 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
         return result;
     }
 
+    private void handleAttachments(XWikiDocument modifiedDoc)
+    {
+        TemporaryAttachmentSessionsManager temporaryAttachmentSessionsManager =
+            this.temporaryAttachmentSessionsManagerProvider.get();
+        DocumentReference reference = modifiedDoc.getDocumentReference();
+        for (XWikiAttachment attachment : modifiedDoc.getAttachmentList()) {
+            XWikiAttachment clonedAttachment = attachment.clone();
+            // Ensure to not delete the file related to the attachment when it's removed from temporary attachments
+            clonedAttachment.getAttachment_content().setContentDirty(false);
+            try {
+                temporaryAttachmentSessionsManager.temporarilyAttach(clonedAttachment, reference);
+            } catch (TemporaryAttachmentException e) {
+                this.logger.error("Error while temporary attaching attachment [{}] to document [{}]: [{}]",
+                    clonedAttachment.getFilename(),
+                    reference,
+                    ExceptionUtils.getRootCauseMessage(e));
+            }
+        }
+    }
+
     private String getRenderedContent(XWikiDocument document) throws XWikiException
     {
         XWikiContext context = contextProvider.get();
@@ -141,13 +176,13 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
         return result;
     }
 
-    private String getHtmlDiff(XWikiDocument previousDoc, XWikiDocument modifiedDoc) throws ChangeRequestException
+    private String getHtmlDiff(XWikiDocument previousDoc, XWikiDocument nextDoc) throws ChangeRequestException
     {
         try {
             // Note that it's important here to keep on the same line the calls of both rendering content:
             // in case of stacktraces because of missing script rights we don't want to have different line numbers for
-            // previousDoc and for modifiedDoc as it would produce an insertion in the diff.
-            return this.xmlDiffManager.diff(getRenderedContent(previousDoc), getRenderedContent(modifiedDoc),
+            // previousDoc and for nextDoc as it would produce an insertion in the diff.
+            return this.xmlDiffManager.diff(getRenderedContent(previousDoc), getRenderedContent(nextDoc),
                 this.xmlDiffConfigurationProvider.get());
         } catch (XWikiException e) {
             throw new ChangeRequestException("Error while computing the rendered content for diff.", e);
