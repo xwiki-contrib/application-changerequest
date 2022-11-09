@@ -46,6 +46,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
@@ -62,6 +63,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.script.service.ScriptServiceManager;
 import org.xwiki.stability.Unstable;
 import org.xwiki.url.ExtendedURL;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceSerializer;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
@@ -118,6 +120,12 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private ApproversManager<DocumentReference> documentReferenceApproversManager;
+
+    @Inject
+    private ApproversManager<FileChange> fileChangeApproversManager;
+
+    @Inject
+    private DelegateApproverManager<FileChange> delegateApproverManager;
 
     @Inject
     private ChangeRequestDiffManager diffManager;
@@ -404,6 +412,32 @@ public class ChangeRequestScriptService implements ScriptService
     public Set<UserReference> getApprovers(ChangeRequest changeRequest) throws ChangeRequestException
     {
         return this.changeRequestApproversManager.getAllApprovers(changeRequest, true);
+    }
+
+    /**
+     * Check if the current user is an approver of the given file change.
+     * @param fileChange the file change for which to check if the user is an approver of.
+     * @return {@code true} if the current user is approver of the document, {@code false} otherwise
+     * @throws ChangeRequestException in case of problem when checking approvers or delegate approvers
+     * @since 1.4
+     */
+    @Unstable
+    public boolean isApproverOf(FileChange fileChange) throws ChangeRequestException
+    {
+        return this.fileChangeApproversManager.isApprover(CurrentUserReference.INSTANCE, fileChange, true);
+    }
+
+    /**
+     * Check if the current user is a delegate approver of the given file change.
+     * @param fileChange the file change for which to check if the user is a delegate approver of.
+     * @return {@code true} if the current user is delegate approver of the document, {@code false} otherwise
+     * @throws ChangeRequestException in case of problem when checking approvers or delegate approvers
+     * @since 1.4
+     */
+    @Unstable
+    public boolean isDelegateApproverOf(FileChange fileChange) throws ChangeRequestException
+    {
+        return this.delegateApproverManager.isDelegateApproverOf(CurrentUserReference.INSTANCE, fileChange);
     }
 
     /**

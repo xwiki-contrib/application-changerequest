@@ -38,6 +38,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
@@ -97,6 +98,9 @@ class XWikiDocumentApproversManagerTest
 
     @MockComponent
     private AuthorizationManager authorizationManager;
+
+    @MockComponent
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceUserReferenceResolver;
 
     private XWikiContext context;
     private XWiki wiki;
@@ -211,6 +215,10 @@ class XWikiDocumentApproversManagerTest
             .thenReturn(true);
         assertTrue(this.manager.isApprover(user3, xWikiDocument, false));
         assertFalse(this.manager.isApprover(user3, xWikiDocument, true));
+
+        when(this.currentUserReferenceUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(user3);
+        assertTrue(this.manager.isApprover(CurrentUserReference.INSTANCE, xWikiDocument, false));
+        assertFalse(this.manager.isApprover(CurrentUserReference.INSTANCE, xWikiDocument, true));
     }
 
     @Test

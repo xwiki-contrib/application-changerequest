@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
+import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
@@ -54,6 +55,7 @@ import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.url.ExtendedURL;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceSerializer;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
@@ -66,8 +68,6 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
-
-import liquibase.pro.packaged.W;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -121,6 +121,12 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private WikiDescriptorManager wikiDescriptorManager;
+
+    @MockComponent
+    private ApproversManager<FileChange> fileChangeApproversManager;
+
+    @MockComponent
+    private DelegateApproverManager<FileChange> delegateApproverManager;
 
     private XWikiContext context;
 
@@ -416,5 +422,29 @@ class ChangeRequestScriptServiceTest
 
         when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(true);
         assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+    }
+
+    @Test
+    void isApproverOf() throws ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+
+        when(this.fileChangeApproversManager.isApprover(CurrentUserReference.INSTANCE, fileChange, true))
+            .thenReturn(true);
+        assertTrue(this.scriptService.isApproverOf(fileChange));
+
+        verify(this.fileChangeApproversManager).isApprover(CurrentUserReference.INSTANCE, fileChange, true);
+    }
+
+    @Test
+    void isDelegateApproverOf() throws ChangeRequestException
+    {
+        FileChange fileChange = mock(FileChange.class);
+
+        when(this.delegateApproverManager.isDelegateApproverOf(CurrentUserReference.INSTANCE, fileChange))
+            .thenReturn(true);
+        assertTrue(this.scriptService.isDelegateApproverOf(fileChange));
+
+        verify(this.delegateApproverManager).isDelegateApproverOf(CurrentUserReference.INSTANCE, fileChange);
     }
 }

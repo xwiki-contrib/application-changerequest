@@ -294,6 +294,18 @@
                 $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.diff.outdated')
               &lt;/span&gt;
             #end
+            ## We only display approvers badges for CR with more than a single document change.
+            #if ($modifiedFiles.size() &gt; 1)
+              #if ($services.changerequest.isApproverOf($crMergeDocumentResult.fileChange))
+              &lt;span class="label label-success label-approver" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.approverLabel.title'))"&gt;
+                $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.approverLabel')
+              &lt;/span&gt;
+              #elseif ($services.changerequest.isDelegateApproverOf($crMergeDocumentResult.fileChange))
+              &lt;span class="label label-success label-delegate-approver" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.approverLabel.title'))"&gt;
+                $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.approverLabel')
+              &lt;/span&gt;
+              #end
+            #end
           &lt;/span&gt;
           #set ($diffTitleTranslationKey = "changerequest.sheet.difftitle.$crMergeDocumentResult.type")
           $services.localization.render($diffTitleTranslationKey, ["$escapetool.xml($renderedTitle)"])

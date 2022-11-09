@@ -43,6 +43,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
@@ -80,6 +81,9 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
     @Inject
     @Named("document")
     private UserReferenceResolver<DocumentReference> documentReferenceUserReferenceResolver;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceUserReferenceResolver;
 
     @Inject
     private UserReferenceSerializer<String> userReferenceSerializer;
@@ -138,10 +142,16 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
     {
         Set<UserReference> allApprovers = getAllApprovers(entity, true);
         boolean result = false;
-        if (allApprovers.contains(user)) {
+        UserReference userReference;
+        if (user == CurrentUserReference.INSTANCE) {
+            userReference = this.currentUserReferenceUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        } else {
+            userReference = user;
+        }
+        if (allApprovers.contains(userReference)) {
             result = true;
         } else if (!explicitOnly && allApprovers.isEmpty()) {
-            result = this.hasApprovalAccess(user, entity);
+            result = this.hasApprovalAccess(userReference, entity);
         }
         return result;
     }

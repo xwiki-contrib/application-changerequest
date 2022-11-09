@@ -47,6 +47,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
@@ -80,6 +81,9 @@ public class XWikiDocumentDelegateApproverManager implements DelegateApproverMan
     @Inject
     @Named("current")
     private UserReferenceResolver<String> stringUserReferenceResolver;
+
+    @Inject
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceUserReferenceResolver;
 
     @Inject
     private UserReferenceSerializer<String> userReferenceSerializer;
@@ -229,8 +233,14 @@ public class XWikiDocumentDelegateApproverManager implements DelegateApproverMan
         if (this.configuration.isDelegateEnabled()) {
             Set<UserReference> allApprovers = this.approversManagerProvider.get().getAllApprovers(entity, false);
 
+            UserReference user;
+            if (userReference == CurrentUserReference.INSTANCE) {
+                user = this.currentUserReferenceUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+            } else {
+                user = userReference;
+            }
             for (UserReference approver : allApprovers) {
-                if (this.getDelegates(approver).contains(userReference)) {
+                if (this.getDelegates(approver).contains(user)) {
                     return true;
                 }
             }
