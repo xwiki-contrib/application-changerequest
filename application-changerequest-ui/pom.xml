@@ -113,9 +113,9 @@
     </dependency>
     <!-- We depend on CKEditor until XWIKI-19281 is fixed -->
     <dependency>
-      <groupId>org.xwiki.contrib</groupId>
-      <artifactId>application-ckeditor-ui</artifactId>
-      <version>${ckeditor.version}</version>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-ckeditor-ui</artifactId>
+      <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
     <!-- We depend on wiki-user-default for the user profile tab -->

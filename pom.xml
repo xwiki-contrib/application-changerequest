@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-platform</artifactId>
-    <version>14.3.1</version>
+    <version>14.10-SNAPSHOT</version>
   </parent>
   <groupId>org.xwiki.contrib.changerequest</groupId>
   <artifactId>application-changerequest</artifactId>
@@ -59,11 +59,7 @@
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
     <discussions.version>2.0</discussions.version>
     <rights-api.version>2.0</rights-api.version>
-    <replication.version>0.13</replication.version>
-    <platform.version>14.10-SNAPSHOT</platform.version>
-    <commons.version>14.10-SNAPSHOT</commons.version>
-    <!-- FIXME: To be removed before the release -->
-    <xwiki.enforcer.skip>true</xwiki.enforcer.skip>
+    <replication.version>1.0.0</replication.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
@@ -210,6 +206,46 @@
       <dependency>
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-index-tree-macro</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-oldcore</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-crypto-pkix</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-filter-api</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-properties</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-job-api</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-component-observation</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-observation-api</artifactId>
+        <version>${commons.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-model-api</artifactId>
         <version>${platform.version}</version>
       </dependency>
     </dependencies>

@@ -679,7 +679,7 @@ class ChangeRequestConflictsIT
         assertEquals("xwiki:XWiki." + FOO, reviewElement.getAuthor());
 
         // Check the list of approvers is updated
-        assertEquals(List.of(BUZ, FOO), reviewsPane.getListOfApprovers());
+        assertEquals(List.of(FOO, BUZ), reviewsPane.getListOfApprovers());
 
         // Check that the diff is outdated
         fileChangesPane = changeRequestPage.openFileChanges();

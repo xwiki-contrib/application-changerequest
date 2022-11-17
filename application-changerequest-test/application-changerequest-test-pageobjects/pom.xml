@@ -43,9 +43,9 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.contrib</groupId>
-      <artifactId>application-ckeditor-test-pageobjects</artifactId>
-      <version>1.61</version>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-ckeditor-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
     </dependency>
   </dependencies>
 </project>
