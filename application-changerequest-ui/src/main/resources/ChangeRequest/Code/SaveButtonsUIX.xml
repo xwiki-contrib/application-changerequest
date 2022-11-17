@@ -182,15 +182,16 @@
         }
       });
       $(document).on('xwiki:document:saveFailed', function(event, data) {
-        saveChangeRequestModal.openModal();
-        var errorMessage = data.response.responseJSON.error;
-        $(document).on('xwiki:dom:updated', function (event, data) {
-          console.log(data);
-          if (data.elements.length &gt; 0 &amp;&amp; $(data.elements)[0].id === 'changeRequestModal') {
-            $('#otherError').removeClass('hidden');
-            $('#otherError').find('.details').text(errorMessage);
-          }
-        });
+        var errorMessage = data.response.responseJSON.changeRequestError;
+        if (errorMessage) {
+          saveChangeRequestModal.openModal();
+          $(document).on('xwiki:dom:updated', function (event, data) {
+            if (data.elements.length &gt; 0 &amp;&amp; $(data.elements)[0].id === 'changeRequestModal') {
+              $('#otherError').removeClass('hidden');
+              $('#otherError').find('.details').text(errorMessage);
+            }
+          });
+        }
       });
       
       var hasEditRight = saveConfig.hasEditRight;

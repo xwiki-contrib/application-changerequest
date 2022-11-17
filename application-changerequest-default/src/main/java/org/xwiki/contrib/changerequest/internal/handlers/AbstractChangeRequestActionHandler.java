@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,6 +46,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
@@ -122,6 +124,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private ChangeRequestConfiguration configuration;
+
+    @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
 
     protected HttpServletRequest prepareRequest() throws ChangeRequestException
     {
@@ -305,5 +310,11 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         if (!usersCRApprovers.isEmpty()) {
             this.changeRequestApproversManager.setUsersApprovers(usersCRApprovers, changeRequest);
         }
+    }
+
+    protected void reportError(int statusCode, String localizationKey, Object... parameters) throws IOException
+    {
+        this.answerJSON(statusCode, Collections.singletonMap("changeRequestError",
+            this.contextualLocalizationManager.getTranslationPlain(localizationKey, parameters)));
     }
 }

@@ -20,7 +20,6 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -68,8 +67,6 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
-    private static final String ERROR_KEY = "error";
-
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
@@ -137,9 +134,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 }
             }
             if (!result.canBeSaved()) {
-                this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
-                    Collections.singletonMap(ERROR_KEY,
-                        this.contextualLocalizationManager.getTranslationPlain(result.getReason())));
+                this.reportError(HttpStatus.SC_PRECONDITION_FAILED, result.getReason());
             }
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "
@@ -207,8 +202,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
                         // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
                         // as a needed precondition for the request to be handled.
-                        this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
-                            Collections.singletonMap(ERROR_KEY, "Rights conflicts found in the changes."));
+                        this.reportError(HttpStatus.SC_PRECONDITION_FAILED, "changerequest.save.error.rightsconflict");
                         return null;
                     }
                     fileChangeVersion =
@@ -253,14 +247,11 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     .setModifiedDocument(mergeDocumentResult.getMergeResult());
                 result = true;
             } else {
-                this.answerJSON(HttpStatus.SC_CONFLICT,
-                    Collections.singletonMap(ERROR_KEY, "Conflict found in the changes."));
+                this.reportError(HttpStatus.SC_CONFLICT, "changerequest.save.error.conflict");
             }
         } else {
-            this.answerJSON(HttpStatus.SC_NOT_FOUND,
-                Collections.singletonMap(ERROR_KEY,
-                    String.format("Could not find file changes for the given reference: [%s]",
-                    modifiedDocument.getDocumentReferenceWithLocale())));
+            this.reportError(HttpStatus.SC_NOT_FOUND, "changerequest.save.error.notfound",
+                modifiedDocument.getDocumentReferenceWithLocale().toString());
         }
         return result;
     }

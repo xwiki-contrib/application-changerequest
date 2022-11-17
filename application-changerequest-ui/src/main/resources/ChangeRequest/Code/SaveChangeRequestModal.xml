@@ -465,7 +465,7 @@
       }
       $(document).on('xwiki:document:saveFailed', function (event, data) {
         $('#otherError').removeClass('hidden');
-        $('#otherError').find('.details').text(data.response.responseJSON.error);
+        $('#otherError').find('.details').text(data.response.responseJSON.changeRequestError);
       });
     };
     

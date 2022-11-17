@@ -20,7 +20,6 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +47,6 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
-import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -71,8 +69,6 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
-    private static final String ERROR_KEY = "error";
-
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
@@ -85,9 +81,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     @Inject
     @Named("context")
     private ComponentManager componentManager;
-
-    @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
 
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
@@ -114,9 +107,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
                 fileChange);
             this.responseSuccess(changeRequest);
         } else {
-            this.answerJSON(HttpStatus.SC_PRECONDITION_FAILED,
-                Collections.singletonMap(ERROR_KEY,
-                    this.contextualLocalizationManager.getTranslationPlain(savingCheckerResult.getReason())));
+            this.reportError(HttpStatus.SC_PRECONDITION_FAILED, savingCheckerResult.getReason());
         }
     }
 
