@@ -150,9 +150,7 @@ public class ChangeRequestSaveModal extends BaseModal
         getDriver().addPageNotYetReloadedMarker();
         getDriver().findElement(By.id(SAVE_BUTTON_ID)).click();
         getDriver().waitUntilPageIsReloaded();
-        ChangeRequestPage changeRequestPage = new ChangeRequestPage();
-        changeRequestPage.waitUntilPageIsReady();
-        return changeRequestPage;
+        return new ChangeRequestPage();
     }
 
     /**
