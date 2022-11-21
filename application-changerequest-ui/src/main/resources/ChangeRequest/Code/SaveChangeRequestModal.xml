@@ -109,11 +109,11 @@
         &lt;/div&gt;
         #end
         &lt;div class="form-group"&gt;
-          &lt;label for="approverUsers"&gt;$services.localization.render('changerequest.savemodal.approvers.users')&lt;/label&gt;
+          &lt;label for="ChangeRequest.Code.ApproversClass_${approversXObject.number}_usersApprovers"&gt;$services.localization.render('changerequest.savemodal.approvers.users')&lt;/label&gt;
           #stripHTMLMacro($usersApproversInput)
         &lt;/div&gt;
         &lt;div class="form-group"&gt;
-          &lt;label for="approverUsers"&gt;$services.localization.render('changerequest.savemodal.approvers.groups')&lt;/label&gt;
+          &lt;label for="ChangeRequest.Code.ApproversClass_${approversXObject.number}_groupsApprovers"&gt;$services.localization.render('changerequest.savemodal.approvers.groups')&lt;/label&gt;
           #stripHTMLMacro($groupsApproversInput)
         &lt;/div&gt;
         #if ($shouldAddXObject)
