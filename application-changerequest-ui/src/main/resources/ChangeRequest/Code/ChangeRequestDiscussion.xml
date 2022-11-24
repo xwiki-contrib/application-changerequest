@@ -36,7 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference='Discussions.Code.DisplayMessage' /}}
+  <content>{{include reference='Discussions.Code.MessageEditor' /}}
 
 {{include reference='ChangeRequest.Code.ChangeRequestMacros' /}}
 
@@ -70,7 +70,10 @@
     #if ($request.get('type') == 'replyTo')
       &lt;input type="hidden" name="replyTo" value="$escapetool.xml($request.get('originalMessage'))" /&gt;
     #end
-    #displayMessageContentField()
+    #set ($storeConfiguration = {
+      'changeRequestId': $changeRequestId
+    })
+    #displayMessageEditor($reference $storeConfiguration)
     &lt;input type="button" class="btn btn-primary comment-button" value="$services.localization.render('save')" /&gt;
     &lt;input type="button" class="btn btn-default cancel-button" value="$services.localization.render('cancel')" /&gt;
   &lt;/form&gt;

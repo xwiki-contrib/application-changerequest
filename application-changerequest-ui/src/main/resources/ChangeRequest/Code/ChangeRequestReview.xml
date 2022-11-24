@@ -36,7 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference='Discussions.Code.DisplayMessage' /}}
+  <content>{{include reference='Discussions.Code.MessageEditor' /}}
 
 {{include reference='ChangeRequest.Code.ChangeRequestMacros' /}}
 {{velocity}}
@@ -165,8 +165,12 @@
                &lt;input type="hidden" name="async" value="1" /&gt;
                &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
                &lt;input type="hidden" name="discussionReference" value="" /&gt;
+               #set ($storeConfigurationParameters = {
+                 'changeRequestId': $changeRequest.id
+               })
+              ## FIXME: Discussion reference should be set
                &lt;div class="comment-editor"&gt;
-                 #displayMessageContentField()
+                 #displayMessageEditor("" $storeConfigurationParameters)
                &lt;/div&gt;
                &lt;/form&gt;
              &lt;/div&gt;&lt;!-- end form-group --&gt;
