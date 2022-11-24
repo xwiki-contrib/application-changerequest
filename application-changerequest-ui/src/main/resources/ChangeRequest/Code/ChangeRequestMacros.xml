@@ -47,6 +47,10 @@
   #end
   #displayUser($realUser $options)
 #end
+## Hack inspired by Michael Hamann and Marius Florea from https://github.com/xwiki/xwiki-platform/pull/1733#discussion_r774453667
+#macro (stripHTMLMacro $displayOutput)
+  $stringtool.removeEnd($stringtool.removeStart($displayOutput, '{{html clean="false" wiki="false"}}'), '{{/html}}')
+#end
 #macro (displayReplyToHeader $replyReference)
   #set ($originalMessage = $services.discussions.getMessage($replyReference))
   #if ($originalMessage)
@@ -93,7 +97,7 @@
     #displayReplyToHeader($message.replyTo)
   #end
   &lt;div class="message-content collapse in"&gt;
-    $services.discussions.renderMessageContent($messageReference)
+    #stripHTMLMacro($services.discussions.renderMessageContent($messageReference))
   &lt;/div&gt;
 &lt;/div&gt;
 #end

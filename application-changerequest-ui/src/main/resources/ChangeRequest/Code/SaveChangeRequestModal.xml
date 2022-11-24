@@ -37,11 +37,8 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{include reference='ChangeRequest.Code.ChangeRequestPicker'/}}
+{{include reference='ChangeRequest.Code.ChangeRequestMacros'/}}
 {{velocity}}
-## Hack inspired by Michael Hamann and Marius Florea from https://github.com/xwiki/xwiki-platform/pull/1733#discussion_r774453667
-#macro (stripHTMLMacro $displayOutput)
-  $stringtool.removeEnd($stringtool.removeStart($displayOutput, '{{html clean="false" wiki="false"}}'), '{{/html}}')
-#end
 #if ($request.get('getmodal') == 1)
 #initRequiredSkinExtensions()
 #set ($crPickerParameters = {

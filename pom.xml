@@ -57,7 +57,7 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <discussions.version>2.0</discussions.version>
+    <discussions.version>2.1-SNAPSHOT</discussions.version>
     <rights-api.version>2.0</rights-api.version>
     <replication.version>1.0.0</replication.version>
   </properties>
@@ -82,36 +82,6 @@
       <plugin>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-maven-plugin</artifactId>
-        <configuration>
-          <analysisConfiguration>
-            <revapi.differences>
-              <criticality>allowed</criticality>
-              <differences>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.nonFinalClassInheritsFromNewClass</code>
-                  <old>class org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent</old>
-                  <new>class org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent</new>
-                  <superClass>org.xwiki.observation.event.AbstractCancelableEvent</superClass>
-                  <justification>Unstable API: needed to make the event cancelable.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.class.removed</code>
-                  <old>interface org.xwiki.contrib.changerequest.FileChangeCompatibilityChecker</old>
-                  <justification>Unstable API: this has been renamed FileChangeSavingChecker since it's not anymore only about compatibility.</justification>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.returnTypeChanged</code>
-                  <old>method org.apache.commons.lang3.tuple.Pair&lt;java.lang.Boolean, java.lang.String&gt; org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::checkDocumentChangeCompatibility(java.lang.String, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType) throws org.xwiki.component.manager.ComponentLookupException, org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <new>method org.xwiki.contrib.changerequest.FileChangeSavingChecker.SavingCheckerResult org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::checkDocumentChangeCompatibility(java.lang.String, org.xwiki.model.reference.DocumentReference, org.xwiki.contrib.changerequest.FileChange.FileChangeType) throws org.xwiki.component.manager.ComponentLookupException, org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>Unstable API: Simplification of the API return type to be aligned with the actual checker result type.</justification>
-                </item>
-              </differences>
-            </revapi.differences>
-          </analysisConfiguration>
-        </configuration>
       </plugin>
     </plugins>
   </build>
