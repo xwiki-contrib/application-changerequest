@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.xwiki.container.Container;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
@@ -93,6 +94,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     protected FileChangeStorageManager fileChangeStorageManager;
+
+    @Inject
+    protected Container container;
 
     @Inject
     protected FileChangeVersionManager fileChangeVersionManager;

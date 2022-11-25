@@ -64,37 +64,13 @@
           'success': $success
         })
       #end
-    #elseif ("$!request.get('action')" == 'create' &amp;&amp; "$!request.get('approved')" != '')
-      #set ($isApproved = $request.get('approved') == 'true')
-      #if ($request.get('originalApprover'))
-        #set ($review = $services.changerequest.review.addReview($changeRequest, $isApproved, $request.get('originalApprover')))
-      #else
-        #set ($review = $services.changerequest.review.addReview($changeRequest, $isApproved))
-      #end
-      #if ($review)
-        #jsonResponse({
-          'success': true, 
-          'reviewId': $review.id
-        })
-      #else
-        #jsonResponse({
-          'success': false
-        })
-      #end
-    #elseif ("$!request.get('action')" == "getDiscussionPostUrl" &amp;&amp; "$!request.get('reviewid')")
-      #set ($discussionReference = $services.changerequest.discussion.createChangeRequestReviewDiscussion($changeRequest.id, $request.get('reviewid')))
-      #set ($discussionReviewReferenceString = $services.discussions.serialize($discussionReference))
-      #set ($url = "${request.getContextPath()}/discussions/wiki/$services.wiki.getCurrentWikiId()/create/Message/$escapetool.url($discussionReviewReferenceString)")
-      #jsonResponse({
-        'discussionPostUrl': $url,
-        'discussionReference': $discussionReviewReferenceString
-      })
     #elseif ("$!request.get('action')" == 'create')
       #set ($hasConflict = $services.changerequest.merge.hasConflict($changeRequest))
       {{html clean="false"}}
       &lt;div class="modal fade" tabindex="-1" role="dialog" id="reviewModal"&gt;
         &lt;div class="modal-dialog" role="document"&gt;
           &lt;div class="modal-content"&gt;
+          &lt;form id="reviewForm" method="post" action="$services.changerequest.getChangeRequestURL('review', $changeRequest.id)"/&gt;
             &lt;div class="modal-header"&gt;
               &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;&lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
               &lt;h4 class="modal-title"&gt;$services.localization.render('changerequest.review.modal.title')&lt;/h4&gt;
@@ -160,25 +136,26 @@
              &lt;/div&gt;&lt;!-- end panel-group --&gt;
              &lt;div class="form-group"&gt;
                &lt;label for="reviewComment"&gt;$services.localization.render('changerequest.review.modal.comment.label')&lt;/label&gt;
-               &lt;form name="discussion-review"&gt;
+               #set ($discussionReference = $services.changerequest.discussion.createChangeRequestReviewsDiscussion($changeRequest.id))
+               #set ($discussionReviewReferenceString = $services.discussions.serialize($discussionReference))
                &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequest.id" /&gt;
                &lt;input type="hidden" name="async" value="1" /&gt;
                &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
-               &lt;input type="hidden" name="discussionReference" value="" /&gt;
+               &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($discussionReviewReferenceString)" /&gt;
+               &lt;input type="hidden" name="withComment" value="0" /&gt;
                #set ($storeConfigurationParameters = {
                  'changeRequestId': $changeRequest.id
                })
-              ## FIXME: Discussion reference should be set
                &lt;div class="comment-editor"&gt;
-                 #displayMessageEditor("" $storeConfigurationParameters)
+                 #displayMessageEditor($discussionReviewReferenceString $storeConfigurationParameters)
                &lt;/div&gt;
-               &lt;/form&gt;
              &lt;/div&gt;&lt;!-- end form-group --&gt;
             &lt;/div&gt;&lt;!-- end panel body --&gt;
             &lt;div class="modal-footer"&gt;
               &lt;button type="button" class="btn btn-primary" id="submitReview" disabled="disabled"&gt;$services.localization.render('save')&lt;/button&gt;
               &lt;button type="button" class="btn btn-default review-cancel" data-dismiss="modal"&gt;$services.localization.render('cancel')&lt;/button&gt;
             &lt;/div&gt;
+            &lt;/form&gt;
           &lt;/div&gt;&lt;!-- /.modal-content --&gt;
         &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;
       &lt;/div&gt;&lt;!-- /.modal --&gt;

@@ -1248,65 +1248,25 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       }
       return textareaContent.length === 0;
     };
-
-    self.postComment = function (reviewId) {
-      // We need to call beforeSave first to put the data in the actual content field.
-      $(document).trigger('xwiki:actions:beforeSave');
-
-      if (!isEditorEmpty()) {
-        $(document).trigger('xwiki:actions:cancel');
-        var params = {
-          'form_token': xm.form_token,
-          'action': 'getDiscussionPostUrl',
-          'changerequest': self.changeRequestId,
-          'reviewid': reviewId
-        };
-
-        $.post(self.postUrl, params).done(function (data) {
-          $('#reviewModal input[name=discussionReference]').val(data.discussionReference);
-          var commentData =  $('#reviewModal form[name=discussion-review]').serialize();
-          $.post(data.discussionPostUrl, commentData).done(function (data) {
-            self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
-            window.location.reload();
-          }).fail(function (data) {
-            self.notification.replace(new XWiki.widgets.Notification('Request error while posting comment associated to the review.','error'));
-            console.error(data);
-          })
-        }).fail(function (data) {
-          self.notification.replace(new XWiki.widgets.Notification('Request error while preparing posting comment associated to the review.','error'));
-          console.error(data);
-        });
-      } else {
-        self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
-        window.location.reload();
-      }
-    };
     
     self.submitAction = function () {
-      var selectedValue = $('#reviewModal input[name=reviewChoice]:checked');
-      if (selectedValue.length &gt; 0) {
-        var isApproved = selectedValue.val() === 'approve';
-        var params = {
-          'form_token': xm.form_token,
-          'action': 'create',
-          'changerequest': self.changeRequestId,
-          'approved': isApproved
-        };
-        if ($('#reviewModal select[name=originalApprover]')) {
-          params['originalApprover'] = $('#reviewModal select[name=originalApprover]').val();
-        }
-        self.notification = new XWiki.widgets.Notification('Posting review...','inprogress');
-        $.post(self.postUrl, params).done(function (data) {
-          if (data.success) {
-            self.postComment(data.reviewId);
-          } else {
-            self.notification.replace(new XWiki.widgets.Notification('Error while posting review.','error'));
-          }
-        }).fail(function (data) {
-          self.notification.replace(new XWiki.widgets.Notification('Request error while posting review.','error'));
-          console.error(data);
-        });
+      var reviewForm = $('#reviewForm');
+      var reviewActionUrl = reviewForm.attr('action');
+
+      // We need to call beforeSave first to put the data in the actual content field.
+      $(document).trigger('xwiki:actions:beforeSave');
+      if (!isEditorEmpty()) {
+        reviewForm.find('input[name="withComment"]').val('1');
       }
+      var reviewData =  reviewForm.serialize();
+      self.notification = new XWiki.widgets.Notification('Posting review...','inprogress');
+      $.post(reviewActionUrl, reviewData).done(function (data) {
+        self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
+        window.location.reload();
+      }).fail(function (data) {
+        self.notification.replace(new XWiki.widgets.Notification('Request error while posting review.','error'));
+        console.error(data);
+      });
     };
     
     self.initModal = function () {

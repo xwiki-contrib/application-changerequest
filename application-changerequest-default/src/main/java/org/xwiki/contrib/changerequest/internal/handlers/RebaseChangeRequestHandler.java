@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 import java.io.IOException;
 import java.util.Optional;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.container.Container;
 import org.xwiki.container.servlet.ServletRequest;
 import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -55,9 +53,6 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
 {
     private static final String REFERENCE_PARAMETER = "referenceParameter";
     private static final String LOCALE_PARAMETER = "locale";
-
-    @Inject
-    private Container container;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)

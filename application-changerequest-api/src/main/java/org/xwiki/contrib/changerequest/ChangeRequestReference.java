@@ -73,7 +73,13 @@ public class ChangeRequestReference extends AbstractResourceReference
          * Save description changes.
          * @since 0.6
          */
-        SAVE
+        SAVE,
+
+        /**
+         * Perform a review.
+         * @since 1.4
+         */
+        REVIEW
     }
 
     private final ChangeRequestAction action;

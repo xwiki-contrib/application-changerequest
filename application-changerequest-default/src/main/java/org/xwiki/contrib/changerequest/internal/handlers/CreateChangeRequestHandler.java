@@ -39,14 +39,12 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
-import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
-import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -71,12 +69,6 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 {
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
-
-    @Inject
-    private FileChangeVersionManager fileChangeVersionManager;
-
-    @Inject
-    private ChangeRequestRightsManager changeRequestRightsManager;
 
     @Inject
     @Named("context")
