@@ -20,7 +20,6 @@
 package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.container.Container;
 import org.xwiki.container.servlet.ServletRequest;
 import org.xwiki.container.servlet.ServletResponse;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -40,7 +38,8 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
 import org.xwiki.csrf.CSRFToken;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.wysiwyg.converter.HTMLConverter;
+import org.xwiki.wysiwyg.converter.RequestParameterConversionResult;
+import org.xwiki.wysiwyg.converter.RequestParameterConverter;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -60,10 +59,6 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
     private static final String CONTENT_PARAMETER = "content";
 
-    private static final String REQUIRES_HTML_CONVERSION_PARAMETER = "RequiresHTMLConversion";
-
-    private static final String CONTENT_SYNTAX_PARAMETER = "content_syntax";
-
     private static final String STATUS_PARAMETER = "status";
 
     private static final String AUTHORIZATION_ERROR = "You don't have right to edit this change request";
@@ -73,13 +68,10 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     private static final String CHANGE_TYPE_PARAMETER = "changeType";
 
     @Inject
-    private HTMLConverter htmlConverter;
-
-    @Inject
     private CSRFToken csrfToken;
 
     @Inject
-    private Container container;
+    private RequestParameterConverter requestParameterConverter;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
@@ -178,18 +170,14 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     }
 
     // Code inspired from DiscussionsResourceReferenceHandler
-    private String getContent(HttpServletRequest request)
+    private String getContent(HttpServletRequest request) throws ChangeRequestException
     {
-        String content = request.getParameter(CONTENT_PARAMETER);
-        String requiresHTMLConversion = request.getParameter(REQUIRES_HTML_CONVERSION_PARAMETER);
-        String syntax = request.getParameter(CONTENT_SYNTAX_PARAMETER);
+        RequestParameterConversionResult conversionResult = this.requestParameterConverter.convert(request);
+        if (conversionResult.getErrors().containsKey(CONTENT_PARAMETER)) {
 
-        String contentClean;
-        if (Objects.equals(requiresHTMLConversion, CONTENT_PARAMETER)) {
-            contentClean = this.htmlConverter.fromHTML(content, syntax);
-        } else {
-            contentClean = content;
+            throw new ChangeRequestException("Error while performing content conversion.",
+                conversionResult.getErrors().get(CONTENT_PARAMETER));
         }
-        return contentClean;
+        return conversionResult.getRequest().getParameter(CONTENT_PARAMETER);
     }
 }

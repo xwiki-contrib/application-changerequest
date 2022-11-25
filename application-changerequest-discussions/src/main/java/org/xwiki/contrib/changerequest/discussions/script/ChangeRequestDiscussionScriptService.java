@@ -188,6 +188,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
         throws ChangeRequestDiscussionException
     {
         ChangeRequestReviewsReference reference = new ChangeRequestReviewsReference(changeRequestId);
+        // FIXME: this should be really a creation, not a get or create
         return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
     }
 
