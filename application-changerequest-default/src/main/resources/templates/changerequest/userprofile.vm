@@ -1,0 +1,113 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+## We have to force the syntax to xwiki/2.1 because of LiveData
+##!source.syntax=xwiki/2.1
+{{velocity}}
+#if ($doc.getObject('XWiki.XWikiUsers'))
+    #set ($discard = $xwiki.jsrx.use('changerequest/userprofile.js'))
+
+= $services.localization.render('changerequest.user.profile.menu') =
+
+    #set ($currentUserDocSerialization = $services.model.serialize($doc.documentReference, "default"))
+
+    ## FIXME: if the current wiki doesn't have CR installed, we should automatically switch to the first one with CR
+    ## installed.
+    #if ($request.get('crWiki'))
+        #set ($currentWiki = $request.get('crWiki'))
+    #else
+        #set ($currentWiki = $services.wiki.currentWikiId)
+    #end
+
+{{html}}
+<form id="userProfileChangeRequests" method="post" class="xformInline">
+<div>
+<label for="crWiki">$services.localization.render('changerequest.user.profile.switchWiki')</label>
+<select name="crWiki">
+    #foreach($wikiDescriptor in $services.wiki.all)
+        #set ($wikiId = $wikiDescriptor.id)
+        ## We should not need to have to test for the second part of the OR but it's needed because of XWIKI-20072
+        #if ($services.changerequest.isWikiAvailableInProfile($doc, $wikiId))
+        <option value="$wikiId" #if ($currentWiki == $wikiId)selected="selected"#end>$wikiDescriptor.prettyName</option>
+        #end
+    #end
+</select>
+</div>
+</form>
+{{/html}}
+
+== $services.localization.render('changerequest.user.profile.authorcr.title') ==
+
+{{liveData
+id="authored-changerequest-livetable"
+properties="doc.date,doc.title,authors,status,changedDocuments"
+source="liveTable"
+sourceParameters="resultPage=$currentWiki:XWiki.LiveTableResults&className=ChangeRequest.Code.ChangeRequestClass&translationPrefix=changerequest.livetable."
+sort="doc.date:desc"
+limit="10"}}{
+"query": {
+"filters": [
+{
+"property": "authors",
+"matchAll": true,
+"constraints": [
+{"operator": "contains", "value": "$escapetool.json($currentUserDocSerialization)"}
+]
+}
+]
+},
+"meta": {
+"actions": [{
+"id": "edit",
+"allowProperty": "unexisting property"
+}]
+}
+}
+{{/liveData}}
+
+== $services.localization.render('changerequest.user.profile.approverscr.title') ==
+
+{{liveData
+id="approvers-changerequest-livetable"
+properties="doc.date,doc.title,authors,status,changedDocuments,reviews"
+source="liveTable"
+sourceParameters="resultPage=$currentWiki:ChangeRequest.Code.ApproversChangeRequestResults&className=ChangeRequest.Code.ChangeRequestClass&userDoc=$currentUserDocSerialization&translationPrefix=changerequest.livetable."
+filters="status=ready_for_review"
+sort="doc.date:desc"
+limit="10"}}{
+"meta": {
+"propertyDescriptors": [
+{
+"id": "reviews",
+"displayer": "html",
+"editable": false
+}
+],
+"actions": [{
+"id": "edit",
+"allowProperty": "unexisting property"
+}]
+}
+}
+{{/liveData}}
+
+#else
+Technical page to inject user profile change request.
+#end
+{{/velocity}}
