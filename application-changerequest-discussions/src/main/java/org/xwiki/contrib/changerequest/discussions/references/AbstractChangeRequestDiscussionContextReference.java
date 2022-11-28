@@ -43,6 +43,8 @@ public abstract class AbstractChangeRequestDiscussionContextReference
     private final ChangeRequestDiscussionReferenceType type;
     private final String reference;
 
+    private final boolean uniqueDiscussion;
+
     /**
      * Default constructor.
      *
@@ -52,11 +54,12 @@ public abstract class AbstractChangeRequestDiscussionContextReference
      *                  reference
      */
     protected AbstractChangeRequestDiscussionContextReference(String changeRequestId,
-        ChangeRequestDiscussionReferenceType type, String reference)
+        ChangeRequestDiscussionReferenceType type, String reference, boolean uniqueDiscussion)
     {
         this.changeRequestId = changeRequestId;
         this.type = type;
         this.reference = reference;
+        this.uniqueDiscussion = uniqueDiscussion;
     }
 
     /**
@@ -83,6 +86,16 @@ public abstract class AbstractChangeRequestDiscussionContextReference
         return reference;
     }
 
+    /**
+     * @return {@code true} if a single discussion should be attached to this reference.
+     * @since 1.4
+     */
+    @Unstable
+    public boolean isUniqueDiscussion()
+    {
+        return uniqueDiscussion;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -96,8 +109,11 @@ public abstract class AbstractChangeRequestDiscussionContextReference
 
         AbstractChangeRequestDiscussionContextReference that = (AbstractChangeRequestDiscussionContextReference) o;
 
-        return new EqualsBuilder().append(changeRequestId, that.changeRequestId)
-            .append(type, that.type).append(reference, that.reference).isEquals();
+        return new EqualsBuilder()
+            .append(changeRequestId, that.changeRequestId)
+            .append(type, that.type)
+            .append(reference, that.reference)
+            .isEquals();
     }
 
     @Override

@@ -50,7 +50,7 @@ import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
 /**
- * TODO.
+ * Handler in charge of creating reviews and attached review comments on a change request.
  *
  * @version $Id$
  * @since 1.4

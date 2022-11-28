@@ -57,6 +57,27 @@ public interface ChangeRequestDiscussionService
         throws ChangeRequestDiscussionException;
 
     /**
+     * Create a new discussion based on the given reference.
+     * This method should get or create the underlying contexts corresponding to the reference and associate them to the
+     * created discussion.
+     * Contrarily to {@link #getOrCreateDiscussionFor(AbstractChangeRequestDiscussionContextReference)} this method
+     * will always force the creation of a new discussion for the given context, instead of trying first to retrieve
+     * an existing one.
+     * Note that it may throw a {@link ChangeRequestDiscussionException} if only one discussion should be attached to
+     * the given reference and it already exists.
+     *
+     * @param reference the reference for which to create a new discussion
+     * @return a newly created discussion
+     * @param <T> the concrete type of the reference
+     * @throws ChangeRequestDiscussionException in case of problem for creating the discussion, or if there's already
+     *         an existing one while the reference specifies that the discussion should be unique for it
+     * @since 1.4
+     */
+    @Unstable
+    <T extends AbstractChangeRequestDiscussionContextReference> Discussion createDiscussionFor(T reference)
+        throws ChangeRequestDiscussionException;
+
+    /**
      * Retrieve discussions related to the given reference, without creating any.
      *
      * @param reference the reference for which to retrieve the discussions

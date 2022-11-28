@@ -42,7 +42,7 @@ public class ChangeRequestReviewReference extends AbstractChangeRequestDiscussio
      */
     public ChangeRequestReviewReference(String reviewId, String changeRequestId)
     {
-        super(changeRequestId, ChangeRequestDiscussionReferenceType.REVIEW, reviewId);
+        super(changeRequestId, ChangeRequestDiscussionReferenceType.REVIEW, reviewId, true);
         this.reviewId = reviewId;
     }
 

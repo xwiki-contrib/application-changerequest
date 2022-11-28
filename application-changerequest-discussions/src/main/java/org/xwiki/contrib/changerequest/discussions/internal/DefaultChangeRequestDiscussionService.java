@@ -80,9 +80,8 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     @Inject
     private Logger logger;
 
-    @Override
-    public <T extends AbstractChangeRequestDiscussionContextReference> Discussion getOrCreateDiscussionFor(T reference)
-        throws ChangeRequestDiscussionException
+    private <T extends AbstractChangeRequestDiscussionContextReference> List<DiscussionContext> getContextListFor(
+        T reference) throws ChangeRequestDiscussionException
     {
         List<DiscussionContext> contextList = new ArrayList<>();
 
@@ -113,6 +112,14 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
             default:
                 break;
         }
+        return contextList;
+    }
+
+    @Override
+    public <T extends AbstractChangeRequestDiscussionContextReference> Discussion getOrCreateDiscussionFor(T reference)
+        throws ChangeRequestDiscussionException
+    {
+        List<DiscussionContext> contextList = this.getContextListFor(reference);
 
         Optional<Discussion> discussionOptional = this.discussionService.getOrCreate(
             ChangeRequestDiscussionService.APPLICATION_HINT,
@@ -131,7 +138,40 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         }
     }
 
-
+    @Override
+    public <T extends AbstractChangeRequestDiscussionContextReference> Discussion createDiscussionFor(T reference)
+        throws ChangeRequestDiscussionException
+    {
+        List<DiscussionContext> contextList = this.getContextListFor(reference);
+        if (reference.isUniqueDiscussion()) {
+            List<Discussion> discussions = this.discussionService.findByDiscussionContexts(
+                contextList.stream()
+                    .map(DiscussionContext::getReference)
+                    .collect(Collectors.toList()));
+            if (!discussions.isEmpty()) {
+                throw new ChangeRequestDiscussionException(
+                    String.format("Discussion already exists for reference [%s].", reference));
+            }
+        }
+        Optional<Discussion> discussionOptional = this.discussionService.create(
+            ChangeRequestDiscussionService.APPLICATION_HINT,
+            this.discussionReferenceUtils.getTitleTranslation(
+                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+            this.discussionReferenceUtils.getDescriptionTranslation(
+                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+            null,
+            this.changeRequestDiscussionFactory.createDiscussionStoreConfigurationParametersFor(reference));
+        if (discussionOptional.isPresent()) {
+            Discussion discussion = discussionOptional.get();
+            for (DiscussionContext discussionContext : contextList) {
+                this.discussionContextService.link(discussionContext, discussion);
+            }
+            return discussion;
+        } else {
+            throw new ChangeRequestDiscussionException(
+                String.format("Error while creating discussion for reference [%s]", reference));
+        }
+    }
 
     @Override
     public <T extends AbstractChangeRequestDiscussionContextReference> List<Discussion> getDiscussionsFrom(T reference)
