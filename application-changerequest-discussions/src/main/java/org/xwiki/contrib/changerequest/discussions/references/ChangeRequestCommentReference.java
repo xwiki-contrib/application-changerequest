@@ -38,6 +38,6 @@ public class ChangeRequestCommentReference extends AbstractChangeRequestDiscussi
      */
     public ChangeRequestCommentReference(String changeRequestId)
     {
-        super(changeRequestId, ChangeRequestDiscussionReferenceType.CHANGE_REQUEST_COMMENT, "");
+        super(changeRequestId, ChangeRequestDiscussionReferenceType.CHANGE_REQUEST_COMMENT, "", true);
     }
 }

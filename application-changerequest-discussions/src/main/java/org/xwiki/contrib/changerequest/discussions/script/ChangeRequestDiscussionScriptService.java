@@ -78,7 +78,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
      * @return a reference that can be used to create discussion.
      * @since 0.7
      */
-    public ChangeRequestFileDiffReference createFileDiffReference(String changeRequestId,
+    public ChangeRequestFileDiffReference getOrCreateFileDiffReference(String changeRequestId,
         String targetReference, String diffId)
     {
         FileDiffLocation fileDiffLocation = new FileDiffLocation(diffId, targetReference);
@@ -99,7 +99,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
      * @return the reference of the attached discussion
      * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
      */
-    public DiscussionReference createDiffDiscussion(ChangeRequestFileDiffReference fileDiffReference,
+    public DiscussionReference getOrCreateDiffDiscussion(ChangeRequestFileDiffReference fileDiffReference,
         EntityReference entityReference, String diffBlockId, long lineNumber,
         LineDiffLocation.LineChange lineChange)
         throws ChangeRequestDiscussionException
@@ -151,7 +151,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
      * @return the reference of the attached discussion
      * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
      */
-    public DiscussionReference createChangeRequestCommentDiscussion(String changeRequestId)
+    public DiscussionReference getOrCreateChangeRequestCommentDiscussion(String changeRequestId)
         throws ChangeRequestDiscussionException
     {
         ChangeRequestCommentReference reference = new ChangeRequestCommentReference(changeRequestId);
@@ -168,7 +168,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
      * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
      * @since 0.8
      */
-    public DiscussionReference createChangeRequestReviewDiscussion(String changeRequestId, String reviewId)
+    public DiscussionReference getOrCreateChangeRequestReviewDiscussion(String changeRequestId, String reviewId)
         throws ChangeRequestDiscussionException
     {
         ChangeRequestReviewReference reference = new ChangeRequestReviewReference(reviewId, changeRequestId);
@@ -188,8 +188,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
         throws ChangeRequestDiscussionException
     {
         ChangeRequestReviewsReference reference = new ChangeRequestReviewsReference(changeRequestId);
-        // FIXME: this should be really a creation, not a get or create
-        return this.changeRequestDiscussionService.getOrCreateDiscussionFor(reference).getReference();
+        return this.changeRequestDiscussionService.createDiscussionFor(reference).getReference();
     }
 
     /**
@@ -205,7 +204,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
      * @throws ChangeRequestDiscussionException in case of problem when creating or getting the discussion
      * @since 0.8
      */
-    public DiscussionContextReference createChangeRequestReviewDiscussionContext(String changeRequestId,
+    public DiscussionContextReference getOrCreateChangeRequestReviewDiscussionContext(String changeRequestId,
         String reviewId) throws ChangeRequestDiscussionException
     {
         ChangeRequestReviewReference reference = new ChangeRequestReviewReference(reviewId, changeRequestId);

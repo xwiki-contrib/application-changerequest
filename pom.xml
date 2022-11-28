@@ -82,6 +82,71 @@
       <plugin>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-maven-plugin</artifactId>
+        <configuration>
+          <analysisConfiguration>
+            <revapi.differences>
+              <justification>Unstable API</justification>
+              <criticality>documented</criticality>
+              <differences>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.addedToInterface</code>
+                  <new>method &lt;T extends org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference&gt; org.xwiki.contrib.discussions.domain.Discussion org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::createDiscussionFor(T) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</new>
+                  <justification>Unstable API: new API needed to allow creating new discussions when needed.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference::&lt;init&gt;(java.lang.String, org.xwiki.contrib.changerequest.discussions.references.ChangeRequestDiscussionReferenceType, java.lang.String)</old>
+                  <new>method void org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference::&lt;init&gt;(java.lang.String, org.xwiki.contrib.changerequest.discussions.references.ChangeRequestDiscussionReferenceType, java.lang.String, boolean)</new>
+                  <justification>Unstable API: new constructor to distinguish between references that are allowed to have multiple discussions vs. those that should only have a unique discussion.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createChangeRequestCommentDiscussion(java.lang.String) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
+                  <justification>Unstable API: renamed the method getOrCreateChangeRequestCommentDiscussion</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createChangeRequestReviewDiscussion(java.lang.String, java.lang.String) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
+                  <justification>Unstable API: renamed the method getOrCreateChangeRequestReviewDiscussion</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.discussions.domain.references.DiscussionContextReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createChangeRequestReviewDiscussionContext(java.lang.String, java.lang.String) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
+                  <justification>Unstable API: renamed the method getOrCreateChangeRequestReviewDiscussionContext</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createDiffDiscussion(org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference, org.xwiki.model.reference.EntityReference, java.lang.String, long, org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation.LineChange) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
+                  <justification>Unstable API: renamed the method getOrCreateDiffDiscussion</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createFileDiffReference(java.lang.String, java.lang.String, java.lang.String)</old>
+                  <justification>Unstable API: renamed the method getOrCreateFileDiffReference</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createChangeRequestCommentDiscussion(java.lang.String) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
+                  <justification>Unstable API: renamed the method getOrCreateChangeRequestCommentDiscussion</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createChangeRequestReviewDiscussion(java.lang.String, java.lang.String) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
+                  <justification>Unstable API: renamed the method getOrCreateChangeRequestReviewDiscussion</justification>
+                </item>
+              </differences>
+            </revapi.differences>
+          </analysisConfiguration>
+        </configuration>
       </plugin>
     </plugins>
   </build>

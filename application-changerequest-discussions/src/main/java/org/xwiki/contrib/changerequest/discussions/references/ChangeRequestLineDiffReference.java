@@ -53,7 +53,7 @@ public class ChangeRequestLineDiffReference extends AbstractChangeRequestDiscuss
     public ChangeRequestLineDiffReference(String changeRequestId, LineDiffLocation lineDiffLocation)
     {
         super(changeRequestId, ChangeRequestDiscussionReferenceType.LINE_DIFF,
-            lineDiffLocation.getSerializedReference());
+            lineDiffLocation.getSerializedReference(), true);
         this.lineDiffLocation = lineDiffLocation;
     }
 

@@ -44,7 +44,7 @@ public class ChangeRequestFileDiffReference extends AbstractChangeRequestDiscuss
     public ChangeRequestFileDiffReference(String changeRequestId, FileDiffLocation fileDiffLocation)
     {
         super(changeRequestId, ChangeRequestDiscussionReferenceType.FILE_DIFF,
-            fileDiffLocation.getSerializedReference());
+            fileDiffLocation.getSerializedReference(), false);
         this.fileDiffLocation = fileDiffLocation;
     }
 
