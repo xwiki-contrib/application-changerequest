@@ -106,6 +106,12 @@
       <artifactId>xwiki-platform-wiki-user-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- Needed for the user profile UI Extension -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-uiextension-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

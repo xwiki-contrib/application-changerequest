@@ -67,3 +67,4 @@ org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestDiffManager
 org.xwiki.contrib.changerequest.internal.approvers.FileChangeDelegateApproversManager
 org.xwiki.contrib.changerequest.internal.handlers.ReviewChangeRequestHandler
+org.xwiki.contrib.changerequest.internal.ui.ChangeRequestUserProfileUIExtension

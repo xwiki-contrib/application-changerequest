@@ -208,11 +208,6 @@ ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=Ready for merging
 ChangeRequest.Code.ChangeRequestClass_status_closed=Closed
 ChangeRequest.Code.ChangeRequestClass_status_stale=Closed (stale)
 
-changerequest.user.profile.menu=Change Requests
-changerequest.user.profile.authorcr.title=Authored Change Requests
-changerequest.user.profile.approverscr.title=Change Requests to review
-changerequest.user.profile.switchWiki=Display change requests for following wiki:
-
 changerequest.conflict.modal.title=Fix conflict
 changerequest.conflict.modal.description=This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.
 changerequest.conflict.modal.description.EDITION=Conflicts occurred because the original document for which you proposed changes has been edited since you opened the change request. You can keep your changes as they are, or keep the changes of the published version, or try to resolve the conflict manually with a custom resolution.
