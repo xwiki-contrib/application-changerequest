@@ -197,4 +197,34 @@ class FileChangeTest
 
         assertEquals(otherChangeRequest, fileChange1.getChangeRequest());
     }
+
+    @Test
+    void cloneWithType()
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        UserReference user1 = mock(UserReference.class);
+        DocumentReference targetEntity = mock(DocumentReference.class);
+        FileChange fileChange = new FileChange(changeRequest, FileChange.FileChangeType.EDITION)
+            .setVersion("2.1-filechange")
+            .setAuthor(user1)
+            .setId("someId")
+            .setPreviousVersion("1.1-filechange")
+            .setTargetEntity(targetEntity)
+            .setPreviousPublishedVersion("1.1", new Date(42))
+            .setCreationDate(new Date(21));
+
+        FileChange fileChange1 = fileChange.cloneWithType(FileChange.FileChangeType.CREATION);
+        assertNotEquals(fileChange, fileChange1);
+        assertEquals(FileChange.FileChangeType.CREATION, fileChange1.getType());
+
+        assertEquals(user1, fileChange1.getAuthor());
+        assertEquals("2.1-filechange", fileChange1.getVersion());
+        assertEquals("1.1-filechange", fileChange1.getPreviousVersion());
+        assertEquals("1.1", fileChange1.getPreviousPublishedVersion());
+        assertEquals(new Date(42), fileChange1.getPreviousPublishedVersionDate());
+        assertEquals(new Date(21), fileChange1.getCreationDate());
+        assertEquals(targetEntity, fileChange1.getTargetEntity());
+        assertEquals("someId", fileChange1.getId());
+        assertEquals(changeRequest, fileChange1.getChangeRequest());
+    }
 }
