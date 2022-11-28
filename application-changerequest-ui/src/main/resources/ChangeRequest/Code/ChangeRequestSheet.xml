@@ -1262,6 +1262,8 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       self.notification = new XWiki.widgets.Notification('Posting review...','inprogress');
       $.post(reviewActionUrl, reviewData).done(function (data) {
         self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
+        // Needed to avoid getting a prompt about leaving the window.
+        $(document).trigger('xwiki:actions:cancel');
         window.location.reload();
       }).fail(function (data) {
         self.notification.replace(new XWiki.widgets.Notification('Request error while posting review.','error'));
