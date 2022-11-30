@@ -144,6 +144,12 @@
                   <old>method org.xwiki.contrib.discussions.domain.references.DiscussionReference org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService::createChangeRequestReviewDiscussion(java.lang.String, java.lang.String) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</old>
                   <justification>Unstable API: renamed the method getOrCreateChangeRequestReviewDiscussion</justification>
                 </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.removed</code>
+                  <old>method boolean org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::isWikiAvailableInProfile(org.xwiki.user.UserReference, java.lang.String) throws org.xwiki.wiki.user.WikiUserManagerException, com.xpn.xwiki.XWikiException</old>
+                  <justification>Unstable API: this has been removed in favor of the new ChangeRequestScriptService#getWikisWithChangeRequest(UserReference)</justification>
+                </item>
               </differences>
             </revapi.differences>
           </analysisConfiguration>

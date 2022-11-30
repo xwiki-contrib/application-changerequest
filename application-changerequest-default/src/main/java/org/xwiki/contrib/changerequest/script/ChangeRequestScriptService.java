@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -52,9 +53,10 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.resource.ResourceReferenceSerializer;
 import org.xwiki.resource.SerializeResourceReferenceException;
@@ -66,14 +68,15 @@ import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceSerializer;
+import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 import org.xwiki.wiki.user.MembershipType;
 import org.xwiki.wiki.user.UserScope;
 import org.xwiki.wiki.user.WikiUserManager;
 import org.xwiki.wiki.user.WikiUserManagerException;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
 
 /**
  * Script service for change request.
@@ -87,8 +90,8 @@ import com.xpn.xwiki.XWikiException;
 @Singleton
 public class ChangeRequestScriptService implements ScriptService
 {
-    private static final LocalDocumentReference APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE =
-        new LocalDocumentReference(List.of("ChangeRequest", "Code"), "ApproversChangeRequestResults");
+    private static final String CHANGE_REQUEST_UI_MODULE_ID =
+        "org.xwiki.contrib.changerequest:application-changerequest-ui";
 
     @Inject
     private ChangeRequestManager changeRequestManager;
@@ -141,6 +144,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private UserReferenceConverter userReferenceConverter;
+
+    @Inject
+    private InstalledExtensionRepository installedExtensionRepository;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -547,41 +553,78 @@ public class ChangeRequestScriptService implements ScriptService
     }
 
     /**
-     * Define if a wiki should be selectable in a user profile. This method currently check if the result page is
-     * available in the given wiki (if it's not the case it means CR it not installed on the subwiki), and then
-     * check the membership of the user in the given wiki.
+     * Compute the list of wikis where change request is installed and that the user should be able to see in their
+     * user profile tab. If the current wiki can be displayed, then it's always returned as first element of the list.
      *
-     * @param userReference the user profile for which to check if the wiki should be selectable
-     * @param wikiId the wiki that might or not be selected for the user
-     * @return {@code true} if it should be possible to display change requests for the given user on the given wiki
-     * @throws WikiUserManagerException in case of problem for getting information from the wiki
-     * @throws XWikiException in case of problem when checking if the approvers results page exists
-     * @since 1.3
+     * @param userReference the user for which to retrieve the list of wikis
+     * @return a list of descriptors with the current wiki being first element if it satisfies the condition to be
+     *          returned
+     * @throws WikiManagerException in case of problem to list the wikis
+     * @throws WikiUserManagerException in case of problem to check if a user belongs to a wiki
+     * @since 1.4
      */
     @Unstable
-    public boolean isWikiAvailableInProfile(UserReference userReference, String wikiId)
-        throws WikiUserManagerException, XWikiException
+    public List<WikiDescriptor> getWikisWithChangeRequest(UserReference userReference)
+        throws WikiManagerException, WikiUserManagerException
     {
+        List<WikiDescriptor> result = new ArrayList<>();
         DocumentReference reference = this.userReferenceConverter.convert(userReference);
-        DocumentReference approversCRResultsReference =
-            new DocumentReference(APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE, new WikiReference(wikiId));
-        XWikiContext context = this.contextProvider.get();
-        String mainWikiId = this.wikiDescriptorManager.getMainWikiId();
-        boolean result = false;
+        String userWiki = reference.getWikiReference().getName();
+        String mainWikiId = wikiDescriptorManager.getMainWikiId();
+        WikiDescriptor currentWikiDescriptor = wikiDescriptorManager.getCurrentWikiDescriptor();
+        String currentWikiId = currentWikiDescriptor.getId();
 
-        if (!context.getWiki().getDocument(approversCRResultsReference, context).isNew()) {
-            String userWiki = reference.getWikiReference().getName();
-            if (StringUtils.equals(userWiki, wikiId)) {
-                result = true;
-            } else if (StringUtils.equals(userWiki, mainWikiId)) {
-                String userId = this.userReferenceSerializer.serialize(userReference);
-                // Note that we don't only rely on #isMember because of XWIKI-20072
-                boolean isMember = this.wikiUserManager.isMember(userId, wikiId);
-                MembershipType membershipType = this.wikiUserManager.getMembershipType(wikiId);
-                UserScope userScope = this.wikiUserManager.getUserScope(wikiId);
-                result = isMember || membershipType == MembershipType.OPEN && userScope != UserScope.LOCAL_ONLY;
+        // We check immediately current wiki as we want it to be the first one displayed.
+        if (this.isChangeRequestInstalledOnWiki(currentWikiId)
+            && this.doesUserBelongToWiki(userReference, userWiki, currentWikiId, mainWikiId)) {
+            result.add(currentWikiDescriptor);
+        }
+        for (WikiDescriptor wikiDescriptor : wikiDescriptorManager.getAll()) {
+            String wikiId = wikiDescriptor.getId();
+            if (!StringUtils.equals(currentWikiId, wikiId) && this.isChangeRequestInstalledOnWiki(wikiId)
+                && this.doesUserBelongToWiki(userReference, userWiki, wikiId, mainWikiId)) {
+                result.add(wikiDescriptor);
             }
         }
+
         return result;
+    }
+
+    private boolean doesUserBelongToWiki(UserReference userReference, String userWiki, String wikiId, String mainWikiId)
+        throws WikiUserManagerException
+    {
+        boolean result = false;
+        if (StringUtils.equals(userWiki, wikiId)) {
+            result = true;
+        } else if (StringUtils.equals(userWiki, mainWikiId)) {
+            String userId = this.userReferenceSerializer.serialize(userReference);
+            // Note that we don't only rely on #isMember because of XWIKI-20072
+            boolean isMember = this.wikiUserManager.isMember(userId, wikiId);
+            MembershipType membershipType = this.wikiUserManager.getMembershipType(wikiId);
+            UserScope userScope = this.wikiUserManager.getUserScope(wikiId);
+            result = isMember || membershipType == MembershipType.OPEN && userScope != UserScope.LOCAL_ONLY;
+        }
+        return result;
+    }
+
+    /**
+     * Check if the change request UI extension is installed on the given wiki.
+     * This method specifically check if the extension is installed on the wiki: it returns {@code false} if it's
+     * installed on the farm, but not on the wiki.
+     *
+     * @param wikiId the identifier of the wiki
+     * @return {@code true} if the extension is installed on the wiki
+     */
+    private boolean isChangeRequestInstalledOnWiki(String wikiId)
+    {
+        String wikiNamespace = String.format("wiki:%s", wikiId);
+        InstalledExtension installedExtension = this.installedExtensionRepository
+            .getInstalledExtension(CHANGE_REQUEST_UI_MODULE_ID, wikiNamespace);
+
+        boolean isInstalled = false;
+        if (installedExtension != null) {
+            isInstalled = installedExtension.getNamespaces().contains(wikiNamespace);
+        }
+        return isInstalled;
     }
 }

@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.script;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,8 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
@@ -58,7 +61,9 @@ import org.xwiki.url.ExtendedURL;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceSerializer;
+import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 import org.xwiki.wiki.user.MembershipType;
 import org.xwiki.wiki.user.UserScope;
 import org.xwiki.wiki.user.WikiUserManager;
@@ -127,6 +132,9 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private DelegateApproverManager<FileChange> delegateApproverManager;
+
+    @MockComponent
+    private InstalledExtensionRepository installedExtensionRepository;
 
     private XWikiContext context;
 
@@ -346,82 +354,102 @@ class ChangeRequestScriptServiceTest
     }
 
     @Test
-    void isWikiAvailableInProfile() throws WikiUserManagerException, XWikiException
+    void getWikisWithChangeRequest() throws WikiManagerException, WikiUserManagerException
     {
+        String changeRequestUiModule = "org.xwiki.contrib.changerequest:application-changerequest-ui";
         UserReference userReference = mock(UserReference.class);
-        String wikiId = "foo";
-        String mainWikiId = "bar";
-        when(this.wikiDescriptorManager.getMainWikiId()).thenReturn("bar");
-
-        DocumentReference approversResultsRef =
-            new DocumentReference(APPROVERS_CHANGE_REQUEST_RESULTS_REFERENCE, new WikiReference(wikiId));
-        XWikiDocument xWikiDocument = mock(XWikiDocument.class);
-        XWiki xwiki = mock(XWiki.class);
-        when(this.context.getWiki()).thenReturn(xwiki);
-        when(xwiki.getDocument(approversResultsRef, this.context)).thenReturn(xWikiDocument);
-        when(xWikiDocument.isNew()).thenReturn(true);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
-        verifyNoInteractions(this.wikiUserManager);
-
-        when(xWikiDocument.isNew()).thenReturn(false);
         DocumentReference userDocReference = mock(DocumentReference.class);
         when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
 
-        when(userDocReference.getWikiReference()).thenReturn(new WikiReference("xwiki"));
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
-
-        when(userDocReference.getWikiReference()).thenReturn(new WikiReference("foo"));
-        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
-
-        verifyNoInteractions(this.wikiUserManager);
-
         String userId = "XWiki.Bar";
         when(this.userReferenceSerializer.serialize(userReference)).thenReturn(userId);
+
+        String userWikiId = "userWiki";
+        when(userDocReference.getWikiReference()).thenReturn(new WikiReference(userWikiId));
+        WikiDescriptor userWikiDescriptor = mock(WikiDescriptor.class, "userWiki");
+        when(userWikiDescriptor.getId()).thenReturn(userWikiId);
+
+        WikiDescriptor currentWikiDescriptor = mock(WikiDescriptor.class, "current");
+        String currentWikiId = "foo";
+        when(this.wikiDescriptorManager.getCurrentWikiDescriptor()).thenReturn(currentWikiDescriptor);
+        when(currentWikiDescriptor.getId()).thenReturn(currentWikiId);
+
+        WikiDescriptor mainWikiDescriptor = mock(WikiDescriptor.class, "main");
+        String mainWikiId = "bar";
+        when(this.wikiDescriptorManager.getMainWikiId()).thenReturn("bar");
+        when(mainWikiDescriptor.getId()).thenReturn(mainWikiId);
+
+        WikiDescriptor otherWikiDescriptor = mock(WikiDescriptor.class, "other");
+        String otherWikiId = "other";
+        when(otherWikiDescriptor.getId()).thenReturn(otherWikiId);
+
+        // Note that we return on purpose the current wiki as last one in the list, to check that it's properly
+        // added first in the returned list.
+        when(wikiDescriptorManager.getAll()).thenReturn(List.of(
+            otherWikiDescriptor,
+            mainWikiDescriptor,
+            userWikiDescriptor,
+            currentWikiDescriptor
+        ));
+
+        // No mock set yet for installed extension repository, so it returns null, so it's considered not installed
+        assertEquals(Collections.emptyList(), this.scriptService.getWikisWithChangeRequest(userReference));
+
+        // only installed in current and user wiki
+        // main wiki should be ignored as it's installed "on farm" (null namespace)
+        InstalledExtension currentWikiInstalledExtension = mock(InstalledExtension.class, "current");
+        when(this.installedExtensionRepository.getInstalledExtension(changeRequestUiModule, "wiki:" + currentWikiId))
+            .thenReturn(currentWikiInstalledExtension);
+        when(currentWikiInstalledExtension.getNamespaces()).thenReturn(Collections.singleton("wiki:" + currentWikiId));
+
+        InstalledExtension userWikiInstalledExtension = mock(InstalledExtension.class, "user");
+        when(this.installedExtensionRepository.getInstalledExtension(changeRequestUiModule,
+            "wiki:" + userWikiDescriptor))
+            .thenReturn(userWikiInstalledExtension);
+        when(userWikiInstalledExtension.getNamespaces()).thenReturn(Collections.singleton("wiki:" + userWikiId));
+
+        InstalledExtension mainWikiInstalledExtension = mock(InstalledExtension.class, "main");
+        when(this.installedExtensionRepository.getInstalledExtension(changeRequestUiModule,
+            "wiki:" + mainWikiId))
+            .thenReturn(mainWikiInstalledExtension);
+        when(mainWikiInstalledExtension.getNamespaces()).thenReturn(Collections.singleton(null));
+
+        when(this.installedExtensionRepository.getInstalledExtension(changeRequestUiModule,
+            "wiki:" + otherWikiId))
+            .thenReturn(null);
+
+        // The user does not belong to main wiki, so he should only see the user wiki
+        assertEquals(List.of(userWikiDescriptor), this.scriptService.getWikisWithChangeRequest(userReference));
+        verifyNoInteractions(this.wikiUserManager);
+
+        // Change so that the user is considered as a main wiki user
         when(userDocReference.getWikiReference()).thenReturn(new WikiReference(mainWikiId));
-        when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(true);
-        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        when(this.wikiUserManager.isMember(userId, userWikiId)).thenReturn(true);
+        when(this.wikiUserManager.isMember(userId, currentWikiId)).thenReturn(true);
 
-        when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(false);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        assertEquals(List.of(currentWikiDescriptor, userWikiDescriptor),
+            this.scriptService.getWikisWithChangeRequest(userReference));
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.GLOBAL_ONLY);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.OPEN);
-        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        when(this.wikiUserManager.isMember(userId, userWikiId)).thenReturn(false);
+        when(this.wikiUserManager.isMember(userId, currentWikiId)).thenReturn(false);
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_ONLY);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.OPEN);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        when(this.wikiUserManager.getMembershipType(userWikiId)).thenReturn(MembershipType.OPEN);
+        when(this.wikiUserManager.getUserScope(userWikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.OPEN);
-        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        when(this.wikiUserManager.getMembershipType(currentWikiId)).thenReturn(MembershipType.REQUEST);
+        when(this.wikiUserManager.getUserScope(currentWikiId)).thenReturn(UserScope.GLOBAL_ONLY);
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.GLOBAL_ONLY);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.INVITE);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        assertEquals(List.of(userWikiDescriptor), this.scriptService.getWikisWithChangeRequest(userReference));
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.GLOBAL_ONLY);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.REQUEST);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        when(this.wikiUserManager.getUserScope(userWikiId)).thenReturn(UserScope.GLOBAL_ONLY);
+        when(this.wikiUserManager.getMembershipType(currentWikiId)).thenReturn(MembershipType.OPEN);
+        assertEquals(List.of(currentWikiDescriptor, userWikiDescriptor),
+            this.scriptService.getWikisWithChangeRequest(userReference));
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_ONLY);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.REQUEST);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        when(this.wikiUserManager.getMembershipType(userWikiId)).thenReturn(MembershipType.INVITE);
+        when(this.wikiUserManager.getUserScope(currentWikiId)).thenReturn(UserScope.LOCAL_ONLY);
 
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_ONLY);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.INVITE);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
-
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.REQUEST);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
-
-        when(this.wikiUserManager.getUserScope(wikiId)).thenReturn(UserScope.LOCAL_AND_GLOBAL);
-        when(this.wikiUserManager.getMembershipType(wikiId)).thenReturn(MembershipType.INVITE);
-        assertFalse(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
-
-        when(this.wikiUserManager.isMember(userId, wikiId)).thenReturn(true);
-        assertTrue(this.scriptService.isWikiAvailableInProfile(userReference, wikiId));
+        assertEquals(Collections.emptyList(), this.scriptService.getWikisWithChangeRequest(userReference));
     }
 
     @Test
