@@ -136,8 +136,7 @@ public class ReviewChangeRequestHandler extends AbstractChangeRequestActionHandl
         HttpServletResponse response) throws ChangeRequestException, IOException
     {
         boolean isAuthorized;
-        // FIXME: Check delegate authorization?
-        if (originalApprover == null) {
+        if (originalApprover == null || currentUser.equals(originalApprover)) {
             isAuthorized = this.changeRequestRightsManager.isAuthorizedToReview(currentUser, changeRequest);
         } else {
             isAuthorized = this.changeRequestRightsManager
