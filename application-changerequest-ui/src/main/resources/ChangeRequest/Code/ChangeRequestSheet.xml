@@ -364,19 +364,12 @@
 &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End file changes --&gt;
     &lt;div role="tabpanel" class="tab-pane" id="reviews"&gt;
-    &lt;div class="approvers"&gt;
-    #set ($approversList = $services.changerequest.getApprovers($changeRequest))
-    #if ($approversList.isEmpty())
-      &lt;span class="empty-approvers"&gt;No approvers explicitely defined for this change request. The approvers will be based entirely on approval right.&lt;/span&gt;
-    #else
-      Approvers of this change request:
-      &lt;ul class="approvers-list"&gt;
-      #foreach ($userReference in $approversList)
-        #set ($userDocReference = $userReference.reference)
-        &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
-      #end
-      &lt;/ul&gt;
-    #end
+    &lt;div id="addReviewContainer" class="panel panel-primary hidden"&gt;
+      &lt;div class="panel-heading"&gt;
+        &lt;h3 class="panel-title"&gt;$escapetool.xml($services.localization.render('changerequest.review.modal.title'))&lt;/h3&gt;
+      &lt;/div&gt;
+      &lt;div class="panel-body"&gt;
+      &lt;/div&gt;
     &lt;/div&gt;
     &lt;div id="reviewsContainer"&gt;
     #foreach ($review in $changeRequest.reviews)
@@ -425,6 +418,25 @@
         &lt;/div&gt;
       &lt;/div&gt;
     #end
+    &lt;/div&gt;
+    &lt;div class="approvers panel panel-default"&gt;
+      &lt;div class="panel-heading"&gt;
+        &lt;h3 class="panel-title"&gt;$escapetool.xml($services.localization.render('changerequest.sheet.tab.review.approvers.title'))&lt;/h3&gt;
+      &lt;/div&gt;
+      &lt;div class="panel-body"&gt;
+    #set ($approversList = $services.changerequest.getApprovers($changeRequest))
+    #if ($approversList.isEmpty())
+      &lt;span class="empty-approvers"&gt;$escapetool.xml($services.localization.render('changerequest.sheet.tab.review.approvers.noapprover'))&lt;/span&gt;
+    #else
+      $escapetool.xml($services.localization.render('changerequest.sheet.tab.review.approvers.approverslist'))
+      &lt;ul class="approvers-list"&gt;
+      #foreach ($userReference in $approversList)
+        #set ($userDocReference = $userReference.reference)
+        &lt;li&gt;&lt;a href='$xwiki.getURL($userDocReference)'&gt;$xwiki.getPlainUserName($userDocReference)&lt;/a&gt;&lt;/li&gt;
+      #end
+      &lt;/ul&gt;
+    #end
+      &lt;/div&gt;
     &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End reviews --&gt;
     #if ($isNotMerged)
@@ -604,6 +616,7 @@
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -711,6 +724,7 @@ require(['jquery'], function ($) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -820,6 +834,7 @@ require(['jquery', 'bootstrap'], function ($) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1036,6 +1051,7 @@ require(['jquery', 'bootstrap'], function ($) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1163,6 +1179,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1212,7 +1229,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestConflictModal'], function ($, xm,
     <property>
       <code>'use strict';
 require(['jquery', 'xwiki-meta'], function ($, xm) {
-  var reviewModal = function (changeRequestId) {
+  var reviewContainer = function (changeRequestId) {
     var self = this;
     self.changeRequestId = changeRequestId;
     var currentReference = xm.documentReference;
@@ -1220,24 +1237,31 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     self.postUrl = new XWiki.Document(changeRequestReviewRef).getURL('get');
     
     self.requestModal = function () {
-      var params = {
-        'form_token': xm.form_token,
-        'action': 'create',
-        'changerequest': self.changeRequestId
-      };
-      self.notification = new XWiki.widgets.Notification('Requesting review modal...','inprogress');
-      $.post(self.postUrl, params).done(function (data) {
-        self.notification.hide();
-        $('body').append(data);
-        $(document).trigger('xwiki:dom:updated', {'elements': $('#reviewModal').toArray()});
+      var reviewContainer = $('#addReviewContainer');
+      if (reviewContainer.hasClass('hidden')) {
+        var params = {
+          'form_token': xm.form_token,
+          'action': 'create',
+          'changerequest': self.changeRequestId
+        };
+        self.notification = new XWiki.widgets.Notification('Requesting review modal...','inprogress');
+
+        $.post(self.postUrl, params).done(function (data) {
+          self.notification.hide();
+          reviewContainer.find('.panel-body').append(data);
+          reviewContainer.removeClass('hidden');
+          $(document).trigger('xwiki:dom:updated', {'elements': reviewContainer.find('.panel-body').toArray()});
+          self.initModal();
+        }).fail(function (data) {
+          self.notification.replace(new XWiki.widgets.Notification('Error while getting review information.','error'));
+        });
+      } else {
         self.initModal();
-      }).fail(function (data) {
-        self.notification.replace(new XWiki.widgets.Notification('Error while getting review information.','error'));
-      });
+      }
     };
 
     var isEditorEmpty = function () {
-      var textarea = $('#reviewModal textarea').first();
+      var textarea = $('#addReviewContainer textarea').first();
       var textareaContent = textarea.val();
       // regex and logic taken
       // from https://github.com/ckeditor/ckeditor4/blob/master/plugins/editorplaceholder/plugin.js#L67
@@ -1264,6 +1288,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         self.notification.replace(new XWiki.widgets.Notification('Review posted','done'));
         // Needed to avoid getting a prompt about leaving the window.
         $(document).trigger('xwiki:actions:cancel');
+        // TODO: this could be improve to only reload reviews
         window.location.reload();
       }).fail(function (data) {
         self.notification.replace(new XWiki.widgets.Notification('Request error while posting review.','error'));
@@ -1271,23 +1296,23 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       });
     };
     
+    self.cancel = function () {
+      var modal = $('#addReviewContainer');
+      modal.addClass('hidden');
+      $(document).trigger('xwiki:actions:cancel');
+      modal.find('.panel-body').empty();
+    };
+    
     self.initModal = function () {
-      var modal = $('#reviewModal');
+      var modal = $('#addReviewContainer');
 
-      if (modal) {
-        modal.on('hidden.bs.modal', function (e) {
-          modal.off('hidden.bs.modal');
-          $('#submitReview').off('click');
-          modal.remove();
-          $('div.modal-backdrop').remove();
-          $(document).trigger('xwiki:actions:cancel');
-        });
-
-        $('#submitReview').on('click', self.submitAction);
+      if (!modal.hasClass('hidden')) {
+        modal.find('.submit-review').on('click', self.submitAction);
+        modal.find('.cancel-review').on('click', self.cancel);
         modal.find('input[name="reviewChoice"]').on('click', function () {
           var originalApprover = modal.find('select[name=originalApprover]');
           if (originalApprover.length == 0 || originalApprover.val() != '-') {
-            $('#submitReview').prop('disabled', false);
+            modal.find('.submit-review').prop('disabled', false);
           }
         });
         modal.find('select[name=originalApprover]').on('change', function () {
@@ -1295,13 +1320,13 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           $('.warning-review').addClass('hidden');
           $('.warning-review[data-user="'+$(this).val()+'"]').removeClass('hidden');
           if ($(this).val() != '-' &amp;&amp; reviewChoice.length &gt; 0) {
-            $('#submitReview').prop('disabled', false);
+            modal.find('.submit-review').prop('disabled', false);
           } else {
-            $('#submitReview').prop('disabled', true);
+            modal.find('.submit-review').prop('disabled', true);
           }
         });
-        modal.modal('show');
       }
+      $('#changeRequestTabs a[aria-controls="reviews"]').tab('show');
     };
   }
   
@@ -1309,7 +1334,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     $("#addReview:not(.disabled)").on('click', function () {
       var currentReference = xm.documentReference;
       var changeRequestId = currentReference.extractReference(XWiki.EntityType.SPACE).getName();
-      var modal = new reviewModal(changeRequestId);
+      var modal = new reviewContainer(changeRequestId);
       modal.requestModal();
     });
   };
@@ -1367,6 +1392,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1506,6 +1532,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1631,6 +1658,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1817,6 +1845,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1987,6 +2016,7 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2256,6 +2286,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2373,6 +2404,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEdito
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2496,6 +2528,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2616,6 +2649,7 @@ require(['jquery'], function ($) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2741,6 +2775,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2869,6 +2904,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEdito
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -2979,6 +3015,7 @@ require(['jquery', 'bootstrap'], function ($) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -3106,6 +3143,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -3232,6 +3270,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -3363,6 +3402,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -3545,6 +3585,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -3756,6 +3797,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -3892,6 +3934,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -4046,7 +4089,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -4066,6 +4109,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>content</name>
         <number>1</number>
         <prettyName>Executed Content</prettyName>
+        <restricted>0</restricted>
         <rows>25</rows>
         <size>120</size>
         <unmodifiable>0</unmodifiable>
@@ -4096,6 +4140,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>parameters</name>
         <number>7</number>
         <prettyName>Extension Parameters</prettyName>
+        <restricted>0</restricted>
         <rows>10</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -4206,7 +4251,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -4226,6 +4271,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>content</name>
         <number>1</number>
         <prettyName>Executed Content</prettyName>
+        <restricted>0</restricted>
         <rows>25</rows>
         <size>120</size>
         <unmodifiable>0</unmodifiable>
@@ -4256,6 +4302,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <name>parameters</name>
         <number>7</number>
         <prettyName>Extension Parameters</prettyName>
+        <restricted>0</restricted>
         <rows>10</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>

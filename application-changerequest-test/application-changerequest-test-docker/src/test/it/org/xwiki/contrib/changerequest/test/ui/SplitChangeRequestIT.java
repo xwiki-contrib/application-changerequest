@@ -30,15 +30,14 @@ import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
-import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.SuggestInputElement;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -160,10 +159,10 @@ class SplitChangeRequestIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectRequestChanges();
-        reviewModal.setComment("Not good enough yet.");
-        reviewModal.save();
+        ReviewContainer reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectRequestChanges();
+        reviewContainer.setComment("Not good enough yet.");
+        reviewContainer.save();
 
         setup.login(BUZ_USER, BUZ_USER);
         setup.gotoPage(changeRequestURL);
@@ -171,10 +170,10 @@ class SplitChangeRequestIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.setComment("LGTM");
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.setComment("LGTM");
+        reviewContainer.save();
 
         // TODO: Improve the test for adding comments
         setup.loginAsSuperAdmin();

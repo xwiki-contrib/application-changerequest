@@ -30,15 +30,14 @@ import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
-import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -161,13 +160,13 @@ class DelegateApproversIT
         // Review button should be enabled for buz by Delegation
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
-        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
-        assertTrue(reviewModal.isSelectOnBehalfDisplayed());
+        ReviewContainer reviewContainer = changeRequestPage.clickReviewButton();
+        assertTrue(reviewContainer.isSelectOnBehalfDisplayed());
 
-        Select originalApproverSelector = reviewModal.getOriginalApproverSelector();
+        Select originalApproverSelector = reviewContainer.getOriginalApproverSelector();
         originalApproverSelector.selectByVisibleText(BAR_USER);
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
         ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
@@ -186,9 +185,9 @@ class DelegateApproversIT
 
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
-        reviewModal = changeRequestPage.clickReviewButton();
-        assertTrue(reviewModal.isSelectOnBehalfDisplayed());
-        originalApproverSelector = reviewModal.getOriginalApproverSelector();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        assertTrue(reviewContainer.isSelectOnBehalfDisplayed());
+        originalApproverSelector = reviewContainer.getOriginalApproverSelector();
 
         // There should be 2 options:
         //  - the current user selected (since Bar is also an approver)
@@ -197,8 +196,8 @@ class DelegateApproversIT
         WebElement selectedOption = originalApproverSelector.getFirstSelectedOption();
         assertEquals("xwiki:XWiki." + BAR_USER, selectedOption.getAttribute("value"));
 
-        reviewModal.selectRequestChanges();
-        reviewModal.save();
+        reviewContainer.selectRequestChanges();
+        reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
         reviewsPane = changeRequestPage.openReviewsPane();
@@ -218,14 +217,14 @@ class DelegateApproversIT
         assertEquals("xwiki:XWiki." + BUZ_USER, reviewElement.getAuthor());
         assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getOriginalApprover());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        assertTrue(reviewModal.isSelectOnBehalfDisplayed());
-        originalApproverSelector = reviewModal.getOriginalApproverSelector();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        assertTrue(reviewContainer.isSelectOnBehalfDisplayed());
+        originalApproverSelector = reviewContainer.getOriginalApproverSelector();
 
         // Now review for Foo
         originalApproverSelector.selectByVisibleText(FOO_USER);
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
         reviewsPane = changeRequestPage.openReviewsPane();
@@ -245,17 +244,17 @@ class DelegateApproversIT
         assertEquals("xwiki:XWiki." + BAR_USER, reviewElement.getAuthor());
         assertNull(reviewElement.getOriginalApprover());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        assertTrue(reviewModal.isSelectOnBehalfDisplayed());
-        originalApproverSelector = reviewModal.getOriginalApproverSelector();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        assertTrue(reviewContainer.isSelectOnBehalfDisplayed());
+        originalApproverSelector = reviewContainer.getOriginalApproverSelector();
 
         // Bar should still be selected by default
         assertEquals(2, originalApproverSelector.getOptions().size());
         selectedOption = originalApproverSelector.getFirstSelectedOption();
         assertEquals("xwiki:XWiki." + BAR_USER, selectedOption.getAttribute("value"));
 
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
         reviewsPane = changeRequestPage.openReviewsPane();

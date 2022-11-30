@@ -34,8 +34,8 @@ import org.xwiki.contrib.changerequest.test.po.ExtendedDeleteConfirmationPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
-import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.SpaceReference;
@@ -237,9 +237,9 @@ class ChangeRequestConflictsIT
         changeRequestPage = new ChangeRequestPage();
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
-        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        ReviewContainer reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
         changeRequestPage = new ChangeRequestPage();
         ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
         List<ReviewElement> reviews = reviewsPane.getReviews();
@@ -468,27 +468,27 @@ class ChangeRequestConflictsIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        ReviewContainer reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         testUtils.gotoPage(cr2Url);
         changeRequestPage = new ChangeRequestPage();
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         testUtils.gotoPage(cr3Url);
         changeRequestPage = new ChangeRequestPage();
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         // Review of CR1, CR2 and CR3 by Bar
         testUtils.login(BAR, BAR);
@@ -498,27 +498,27 @@ class ChangeRequestConflictsIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         testUtils.gotoPage(cr2Url);
         changeRequestPage = new ChangeRequestPage();
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         testUtils.gotoPage(cr3Url);
         changeRequestPage = new ChangeRequestPage();
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         // Check status with CR_USER
         testUtils.login(CR_USER, CR_USER);
@@ -616,9 +616,9 @@ class ChangeRequestConflictsIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         testUtils.login(BAR, BAR);
 
@@ -627,9 +627,9 @@ class ChangeRequestConflictsIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
 
@@ -693,9 +693,9 @@ class ChangeRequestConflictsIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        reviewModal.selectApprove();
-        reviewModal.save();
+        reviewContainer = changeRequestPage.clickReviewButton();
+        reviewContainer.selectApprove();
+        reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
         assertEquals("Ready for merging", changeRequestPage.getStatusLabel());

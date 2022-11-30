@@ -35,7 +35,7 @@ import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
 import org.xwiki.contrib.changerequest.test.po.description.TimelineEvent;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
-import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.contrib.changerequest.test.po.checks.CheckPanelElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
@@ -370,12 +370,12 @@ class ChangeRequestCreationIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        ReviewModal reviewModal = changeRequestPage.clickReviewButton();
-        assertFalse(reviewModal.isSaveEnabled());
-        reviewModal.selectApprove();
-        assertTrue(reviewModal.isSaveEnabled());
+        ReviewContainer reviewContainer = changeRequestPage.clickReviewButton();
+        assertFalse(reviewContainer.isSaveEnabled());
+        reviewContainer.selectApprove();
+        assertTrue(reviewContainer.isSaveEnabled());
         //reviewModal.setComment("This change request looks ok.");
-        reviewModal.save();
+        reviewContainer.save();
         Date dateAfterReview = new Date();
         // There is a reload after the save
         changeRequestPage = new ChangeRequestPage();
@@ -457,12 +457,12 @@ class ChangeRequestCreationIT
         assertTrue(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isReviewButtonEnabled());
 
-        reviewModal = changeRequestPage.clickReviewButton();
-        assertFalse(reviewModal.isSaveEnabled());
-        reviewModal.selectRequestChanges();
-        assertTrue(reviewModal.isSaveEnabled());
+        reviewContainer = changeRequestPage.clickReviewButton();
+        assertFalse(reviewContainer.isSaveEnabled());
+        reviewContainer.selectRequestChanges();
+        assertTrue(reviewContainer.isSaveEnabled());
         //reviewModal.setComment("On second thought I'm not so sure anymore it's good.");
-        reviewModal.save();
+        reviewContainer.save();
 
         Date dateAfterReview2 = new Date();
 

@@ -25,27 +25,29 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.xwiki.ckeditor.test.po.CKEditor;
 import org.xwiki.stability.Unstable;
-import org.xwiki.test.ui.po.BaseModal;
+import org.xwiki.test.ui.po.BaseElement;
 
 /**
- * Represents the modal that opens to post a review.
+ * Represents the container that opens to post a review.
  *
  * @version $Id$
  * @since 0.8
  */
 @Unstable
-public class ReviewModal extends BaseModal
+public class ReviewContainer extends BaseElement
 {
     private static final String SELECT_ORIGINAL_APPROVER_ID = "originalApprover";
+
+    private final WebElement container;
 
     private final CKEditor commentEditor;
 
     /**
      * Default constructor.
      */
-    public ReviewModal()
+    public ReviewContainer()
     {
-        super(By.id("reviewModal"));
+        this.container = getDriver().findElementWithoutWaiting(By.id("addReviewContainer"));
         this.commentEditor = new CKEditor("content").waitToLoad();
     }
 
@@ -81,13 +83,13 @@ public class ReviewModal extends BaseModal
      */
     public void cancel()
     {
-        this.container.findElement(By.className("review-cancel")).click();
-        this.waitForClosed();
+        this.container.findElement(By.className("cancel-review")).click();
+        getDriver().waitUntilCondition(driver -> !this.isDisplayed());
     }
 
     private WebElement getSaveButton()
     {
-        return this.container.findElement(By.id("submitReview"));
+        return this.container.findElement(By.className("submit-review"));
     }
 
     /**
@@ -134,5 +136,13 @@ public class ReviewModal extends BaseModal
         WebElement selectElement =
             getDriver().findElementWithoutWaiting(By.id(SELECT_ORIGINAL_APPROVER_ID));
         return new Select(selectElement);
+    }
+
+    /**
+     * @return {@code true} if the container is displayed.
+     */
+    public boolean isDisplayed()
+    {
+        return this.container.isDisplayed();
     }
 }

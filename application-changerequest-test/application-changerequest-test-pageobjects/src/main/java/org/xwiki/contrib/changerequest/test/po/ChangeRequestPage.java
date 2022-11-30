@@ -25,7 +25,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
-import org.xwiki.contrib.changerequest.test.po.reviews.ReviewModal;
+import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.test.ui.po.ViewPage;
 
@@ -144,12 +144,12 @@ public class ChangeRequestPage extends ViewPage
      *
      * @return a review modal.
      */
-    public ReviewModal clickReviewButton()
+    public ReviewContainer clickReviewButton()
     {
         getReviewButton().click();
-        ReviewModal reviewModal = new ReviewModal();
-        getDriver().waitUntilCondition(driver -> reviewModal.isDisplayed());
-        return reviewModal;
+        ReviewContainer reviewContainer = new ReviewContainer();
+        getDriver().waitUntilCondition(driver -> reviewContainer.isDisplayed());
+        return reviewContainer;
     }
 
     private WebElement getReadyForReviewButton()
