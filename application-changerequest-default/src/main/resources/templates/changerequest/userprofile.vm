@@ -20,94 +20,96 @@
 ## We have to force the syntax to xwiki/2.1 because of LiveData
 ##!source.syntax=xwiki/2.1
 {{velocity}}
-#if ($doc.getObject('XWiki.XWikiUsers'))
-    #set ($discard = $xwiki.jsrx.use('changerequest/userprofile.js'))
+#set ($discard = $xwiki.jsrx.use('templates/changerequest/userprofile.js'))
+#set ($currentUserDocSerialization = $services.model.serialize($doc.documentReference, "default"))
+#set ($wikisList = $services.changerequest.getWikisWithChangeRequest($doc))
+#if ($wikisList.isEmpty())
 
-= $services.localization.render('changerequest.user.profile.menu') =
+{{info}}
+$services.localization.render('changerequest.user.profile.nowiki')
+{{/info}}
 
-    #set ($currentUserDocSerialization = $services.model.serialize($doc.documentReference, "default"))
-
-    ## FIXME: if the current wiki doesn't have CR installed, we should automatically switch to the first one with CR
-    ## installed.
-    #if ($request.get('crWiki'))
-        #set ($currentWiki = $request.get('crWiki'))
-    #else
-        #set ($currentWiki = $services.wiki.currentWikiId)
-    #end
+#else
+#if ($request.get('crWiki'))
+  #set ($currentWiki = $request.get('crWiki'))
+#else
+  #set ($currentWiki = $wikisList.get(0).id)
+#end
 
 {{html}}
+<h1>$escapetool.xml($services.localization.render('changerequest.user.profile.menu'))</h1>
 <form id="userProfileChangeRequests" method="post" class="xformInline">
 <div>
 <label for="crWiki">$services.localization.render('changerequest.user.profile.switchWiki')</label>
-<select name="crWiki">
-    #foreach($wikiDescriptor in $services.wiki.all)
-        #set ($wikiId = $wikiDescriptor.id)
-        ## We should not need to have to test for the second part of the OR but it's needed because of XWIKI-20072
-        #if ($services.changerequest.isWikiAvailableInProfile($doc, $wikiId))
-        <option value="$wikiId" #if ($currentWiki == $wikiId)selected="selected"#end>$wikiDescriptor.prettyName</option>
-        #end
+
+<select name="crWiki" #if($wikisList.size() == 1)disabled="disabled"#end>
+    #foreach($wikiDescriptor in $wikisList)
+      #set ($wikiId = $wikiDescriptor.id)
+      <option value="$wikiId" #if ($currentWiki == $wikiId)selected="selected"#end>$wikiDescriptor.prettyName</option>
     #end
 </select>
 </div>
 </form>
+
+<h2>$escapetool.xml($services.localization.render('changerequest.user.profile.authorcr.title'))</h2>
 {{/html}}
 
-== $services.localization.render('changerequest.user.profile.authorcr.title') ==
-
 {{liveData
-id="authored-changerequest-livetable"
-properties="doc.date,doc.title,authors,status,changedDocuments"
-source="liveTable"
-sourceParameters="resultPage=$currentWiki:XWiki.LiveTableResults&className=ChangeRequest.Code.ChangeRequestClass&translationPrefix=changerequest.livetable."
-sort="doc.date:desc"
-limit="10"}}{
-"query": {
-"filters": [
-{
-"property": "authors",
-"matchAll": true,
-"constraints": [
-{"operator": "contains", "value": "$escapetool.json($currentUserDocSerialization)"}
-]
-}
-]
-},
-"meta": {
-"actions": [{
-"id": "edit",
-"allowProperty": "unexisting property"
-}]
-}
+  id="authored-changerequest-livetable"
+  properties="doc.date,doc.title,authors,status,changedDocuments"
+  source="liveTable"
+  sourceParameters="resultPage=$currentWiki:XWiki.LiveTableResults&className=ChangeRequest.Code.ChangeRequestClass&translationPrefix=changerequest.livetable."
+  sort="doc.date:desc"
+  limit="10"
+}}{
+  "query": {
+    "filters": [
+    {
+      "property": "authors",
+      "matchAll": true,
+      "constraints": [
+        {"operator": "contains", "value": "$escapetool.json($currentUserDocSerialization)"}
+      ]
+    }
+    ]
+  },
+  "meta": {
+    "actions": [{
+      "id": "edit",
+       "allowProperty": "unexisting property"
+    }]
+  }
 }
 {{/liveData}}
 
-== $services.localization.render('changerequest.user.profile.approverscr.title') ==
+{{html}}
+<h2>$escapetool.xml()$services.localization.render('changerequest.user.profile.approverscr.title'))</h2>
+{{/html}}
 
 {{liveData
-id="approvers-changerequest-livetable"
-properties="doc.date,doc.title,authors,status,changedDocuments,reviews"
-source="liveTable"
-sourceParameters="resultPage=$currentWiki:ChangeRequest.Code.ApproversChangeRequestResults&className=ChangeRequest.Code.ChangeRequestClass&userDoc=$currentUserDocSerialization&translationPrefix=changerequest.livetable."
-filters="status=ready_for_review"
-sort="doc.date:desc"
-limit="10"}}{
-"meta": {
-"propertyDescriptors": [
-{
-"id": "reviews",
-"displayer": "html",
-"editable": false
-}
-],
-"actions": [{
-"id": "edit",
-"allowProperty": "unexisting property"
-}]
-}
+  id="approvers-changerequest-livetable"
+  properties="doc.date,doc.title,authors,status,changedDocuments,reviews"
+  source="liveTable"
+  sourceParameters="resultPage=$currentWiki:ChangeRequest.Code.ApproversChangeRequestResults&className=ChangeRequest.Code.ChangeRequestClass&userDoc=$currentUserDocSerialization&translationPrefix=changerequest.livetable."
+  filters="status=ready_for_review"
+  sort="doc.date:desc"
+  limit="10"
+}}{
+  "meta": {
+    "propertyDescriptors": [
+    {
+      "id": "reviews",
+      "displayer": "html",
+      "editable": false
+    }
+    ],
+  "actions": [{
+    "id": "edit",
+    "allowProperty": "unexisting property"
+  }]
+  }
 }
 {{/liveData}}
 
-#else
-Technical page to inject user profile change request.
 #end
 {{/velocity}}

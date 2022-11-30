@@ -55,6 +55,8 @@ public class ChangeRequestUserProfileUIExtension implements UIExtension
     @Inject
     private TemplateManager templates;
 
+    private Map<String, String> parameters;
+
     @Override
     public String getId()
     {
@@ -70,11 +72,13 @@ public class ChangeRequestUserProfileUIExtension implements UIExtension
     @Override
     public Map<String, String> getParameters()
     {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("icon", "branch");
-        parameters.put("name", this.localizationManager.getTranslationPlain("changerequest.user.profile.menu"));
-        parameters.put("priority", "1100");
-        return parameters;
+        if (this.parameters == null) {
+            parameters = new HashMap<>();
+            parameters.put("icon", "branch");
+            parameters.put("name", this.localizationManager.getTranslationPlain("changerequest.user.profile.menu"));
+            parameters.put("priority", "1100");
+        }
+        return this.parameters;
     }
 
     @Override

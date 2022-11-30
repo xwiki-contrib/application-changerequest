@@ -27,5 +27,5 @@
      });
    };
 
-   (XWiki.isInitialized &amp;&amp; wikiSelectorInitialization()) || $(document).on('xwiki:dom:loaded', wikiSelectorInitialization);
+   (XWiki.isInitialized && wikiSelectorInitialization()) || $(document).on('xwiki:dom:loaded', wikiSelectorInitialization);
  });
