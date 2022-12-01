@@ -17,49 +17,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.replication.internal.messages;
+package org.xwiki.contrib.changerequest.replication.internal.recovery;
 
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
-import org.xwiki.eventstream.Event;
-import org.xwiki.eventstream.RecordableEvent;
 
 /**
- * Default sender message implementation for {@link ChangeRequestCreatedRecordableEvent}.
+ * Default component for recovery of replicated events related to change request creation.
  *
  * @version $Id$
- * @since 0.16
+ * @since 1.4
  */
 @Component
 @Named(ChangeRequestCreatedRecordableEvent.EVENT_NAME)
-public class ChangeRequestCreatedReplicationSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage
+@Singleton
+public class ChangeRequestCreatedReplicationRecoverHandler extends AbstractChangeRequestReplicationRecoverHandler
 {
-    /**
-     * Key of the custom metadata to store the information if the creation results from a split or not.
-     * @see ChangeRequestCreatedRecordableEvent#isFromSplit()
-     */
-    public static final String FROM_SPLIT = "FROM_SPLIT";
-
-    /**
-     * Default constructor.
-     */
-    public ChangeRequestCreatedReplicationSenderMessage()
-    {
-        super(ChangeRequestCreatedRecordableEvent.EVENT_NAME);
-    }
-
     @Override
-    protected void initializeCustomMetadata(RecordableEvent event)
+    protected String getHint()
     {
-        this.putCustomMetadata(FROM_SPLIT, ((ChangeRequestCreatedRecordableEvent) event).isFromSplit());
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        this.putCustomMetadata(FROM_SPLIT, event.getCustom().get(FROM_SPLIT));
+        return ChangeRequestCreatedRecordableEvent.EVENT_NAME;
     }
 }

@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.replication.internal.messages;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.contrib.replication.AbstractReplicationMessage;
+import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -134,10 +136,25 @@ public abstract class AbstractChangeRequestEventReplicationSenderMessage extends
         this.initializeCustomMetadata(event);
     }
 
+    @Override
+    public void initializeFromEventStream(Event event)
+    {
+        Map<String, Object> customMap = event.getCustom();
+        this.putCustomMetadata(CONTEXT_USER, customMap.get(CONTEXT_USER));
+        this.putCustomMetadata(DATA_DOCUMENT, customMap.get(DATA_DOCUMENT));
+    }
+
     /**
      * Initialize the message with the custom data provided by the event.
      *
      * @param event the event from which to retrieve the custom data to be stored in the message.
      */
     protected abstract void initializeCustomMetadata(RecordableEvent event);
+
+    /**
+     * Initialize the message with the custom data provided by the event.
+     *
+     * @param event the event from which to retrieve the custom data to be stored in the message.
+     */
+    protected abstract void initializeCustomMetadata(Event event);
 }

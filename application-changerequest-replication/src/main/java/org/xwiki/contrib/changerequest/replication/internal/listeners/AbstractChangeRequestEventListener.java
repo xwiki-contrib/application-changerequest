@@ -19,33 +19,16 @@
  */
 package org.xwiki.contrib.changerequest.replication.internal.listeners;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestReplicationSenderMessage;
-import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationContext;
-import org.xwiki.contrib.replication.ReplicationException;
-import org.xwiki.contrib.replication.ReplicationInstance;
-import org.xwiki.contrib.replication.ReplicationSender;
-import org.xwiki.contrib.replication.ReplicationSenderMessage;
-import org.xwiki.contrib.replication.entity.DocumentReplicationController;
-import org.xwiki.contrib.replication.entity.DocumentReplicationControllerInstance;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
@@ -69,22 +52,13 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     private ComponentManager componentManager;
 
     @Inject
-    private Provider<ReplicationSender> replicationSenderProvider;
-
-    @Inject
-    private Provider<DocumentReplicationController> replicationControllerProvider;
-
-    @Inject
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
     private ReplicationContext replicationContext;
 
     @Inject
-    private Provider<ChangeRequestStorageManager> changeRequestStorageManagerProvider;
-
-    @Inject
-    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
+    private ChangeRequestReplicationMessageSender changeRequestReplicationMessageSender;
 
     @Inject
     private Logger logger;
@@ -110,65 +84,6 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
         }
     }
 
-    private List<ReplicationInstance> getInstances(String changeRequestId)
-    {
-        List<ReplicationInstance> result = Collections.emptyList();
-        try {
-            Optional<ChangeRequest> optionalChangeRequest
-                = this.changeRequestStorageManagerProvider.get().load(changeRequestId);
-            if (optionalChangeRequest.isPresent()) {
-                DocumentReference documentReference =
-                    this.changeRequestDocumentReferenceResolver.resolve(optionalChangeRequest.get());
-                result = this.getInstances(documentReference);
-            } else {
-                this.logger.error("No change request found with identifier [{}]", changeRequestId);
-            }
-        } catch (ChangeRequestException e) {
-            this.logger.error("Cannot load change request [{}]", changeRequestId, e);
-        }
-        return result;
-    }
-
-    private List<ReplicationInstance> getInstances(DocumentReference documentReference)
-    {
-        List<ReplicationInstance> result = Collections.emptyList();
-        try {
-            List<DocumentReplicationControllerInstance> instances =
-                this.replicationControllerProvider.get().getReplicationConfiguration(documentReference);
-            result = instances.stream()
-                .map(DocumentReplicationControllerInstance::getInstance)
-                .collect(Collectors.toList());
-        } catch (ReplicationException e) {
-            this.logger.error("Error while getting replication instances for document reference [{}]",
-                documentReference, e);
-        }
-        return result;
-    }
-
-    /**
-     * Retrieve the replication instances related to the given document reference, and send the message to them.
-     *
-     * @param message the message to be sent.
-     * @param dataDocumentReference the reference of the document from which to retrieve the replication instances.
-     */
-    private void sendMessage(ReplicationSenderMessage message, DocumentReference dataDocumentReference, T event)
-    {
-        List<ReplicationInstance> instances;
-        if (event instanceof AbstractChangeRequestRecordableEvent) {
-            instances = this.getInstances(((AbstractChangeRequestRecordableEvent) event).getChangeRequestId());
-        } else {
-            instances = this.getInstances(dataDocumentReference);
-        }
-        if (!instances.isEmpty()) {
-            try {
-                this.replicationSenderProvider.get().send(message, instances);
-            } catch (ReplicationException e) {
-                this.logger.error("Error while sending the replication message [{}] for document [{}]", message,
-                    dataDocumentReference, e);
-            }
-        }
-    }
-
     /**
      * Create a new instance of a message associated to the event, initialize it with event information and finally
      * sent it to the replicated instances.
@@ -185,7 +100,7 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
             ChangeRequestReplicationSenderMessage message =
                 this.componentManager.getInstance(ChangeRequestReplicationSenderMessage.class, messageHint);
             message.initialize(event, dataDocumentReference);
-            this.sendMessage(message, dataDocumentReference, event);
+            this.changeRequestReplicationMessageSender.sendMessage(message, dataDocumentReference, event);
         } catch (ComponentLookupException e) {
             this.logger.error("Error when looking for replication component message", e);
         }

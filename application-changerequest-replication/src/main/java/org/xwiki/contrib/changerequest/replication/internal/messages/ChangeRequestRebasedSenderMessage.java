@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
+import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -61,5 +62,12 @@ public class ChangeRequestRebasedSenderMessage extends AbstractRecordableChangeR
         ChangeRequestRebasedRecordableEvent event = (ChangeRequestRebasedRecordableEvent) recordableEvent;
         this.putCustomMetadata(IS_CONFLICT_FIXING, event.isConflictFixing());
         this.putCustomMetadata(FILECHANGE_ID, event.getConcernedFileChangeId());
+    }
+
+    @Override
+    public void initializeCustomMetadata(Event event)
+    {
+        this.putCustomMetadata(IS_CONFLICT_FIXING, event.getCustom().get(IS_CONFLICT_FIXING));
+        this.putCustomMetadata(FILECHANGE_ID, event.getCustom().get(FILECHANGE_ID));
     }
 }

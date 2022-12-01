@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
+import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -61,5 +62,12 @@ public class StatusUpdatedReplicationSenderMessage extends AbstractRecordableCha
         ChangeRequestStatusChangedRecordableEvent event = (ChangeRequestStatusChangedRecordableEvent) recordableEvent;
         this.putCustomMetadata(NEW_STATUS, event.getNewStatus().name());
         this.putCustomMetadata(OLD_STATUS, event.getOldStatus().name());
+    }
+
+    @Override
+    public void initializeCustomMetadata(Event event)
+    {
+        this.putCustomMetadata(NEW_STATUS, event.getCustom().get(NEW_STATUS));
+        this.putCustomMetadata(OLD_STATUS, event.getCustom().get(OLD_STATUS));
     }
 }

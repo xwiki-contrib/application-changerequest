@@ -60,7 +60,7 @@
     <!-- FIXME: Change version before release -->
     <discussions.version>2.1-SNAPSHOT</discussions.version>
     <rights-api.version>2.0</rights-api.version>
-    <replication.version>1.0.0</replication.version>
+    <replication.version>1.2.0</replication.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
@@ -288,6 +288,11 @@
       <dependency>
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-model-api</artifactId>
+        <version>${platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xwiki.platform</groupId>
+        <artifactId>xwiki-platform-eventstream-api</artifactId>
         <version>${platform.version}</version>
       </dependency>
     </dependencies>

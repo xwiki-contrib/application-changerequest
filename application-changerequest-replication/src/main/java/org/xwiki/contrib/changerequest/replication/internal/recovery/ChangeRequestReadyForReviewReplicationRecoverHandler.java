@@ -17,43 +17,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.replication.internal.messages;
+package org.xwiki.contrib.changerequest.replication.internal.recovery;
 
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
-import org.xwiki.eventstream.Event;
-import org.xwiki.eventstream.RecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
 
 /**
- * Default sender message implementation for {@link DocumentModifiedInChangeRequestEvent}.
+ * Default component for recovery of replicated events related to target events when change request is ready for review.
  *
  * @version $Id$
- * @since 0.16
+ * @since 1.4
  */
 @Component
-@Named(DocumentModifiedInChangeRequestEvent.EVENT_NAME)
-public class DocumentModifiedInChangeRequestSenderMessage extends
-    AbstractRecordableChangeRequestEventReplicationSenderMessage
+@Named(ChangeRequestReadyForReviewTargetableEvent.EVENT_NAME)
+@Singleton
+public class ChangeRequestReadyForReviewReplicationRecoverHandler extends AbstractChangeRequestReplicationRecoverHandler
 {
-    /**
-     * Default constructor.
-     */
-    public DocumentModifiedInChangeRequestSenderMessage()
-    {
-        super(DocumentModifiedInChangeRequestEvent.EVENT_NAME);
-    }
-
     @Override
-    protected void initializeCustomMetadata(RecordableEvent event)
+    protected String getHint()
     {
-        // No custom metadata.
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        // No custom metadata.
+        return ChangeRequestReadyForReviewTargetableEvent.EVENT_NAME;
     }
 }

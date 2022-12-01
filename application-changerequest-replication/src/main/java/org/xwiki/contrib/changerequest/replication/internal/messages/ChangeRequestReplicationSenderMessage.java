@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.replication.internal.messages;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.replication.ReplicationSenderMessage;
+import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 
@@ -45,4 +46,11 @@ public interface ChangeRequestReplicationSenderMessage extends ReplicationSender
      * @param dataDocumentReference the document reference to save in the sender message.
      */
     void initialize(RecordableEvent event, DocumentReference dataDocumentReference);
+
+    /**
+     * Initialize the sender message with the different properties contained in the event.
+     *
+     * @param event the event already stored that needs to be replicated
+     */
+    void initializeFromEventStream(Event event);
 }

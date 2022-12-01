@@ -37,6 +37,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -56,6 +57,9 @@ import static org.mockito.Mockito.when;
  *
  * @version $Id$
  */
+@ComponentList({
+    ChangeRequestReplicationMessageSender.class
+})
 @ComponentTest
 class ChangeRequestUpdatedListenerTest
 {
