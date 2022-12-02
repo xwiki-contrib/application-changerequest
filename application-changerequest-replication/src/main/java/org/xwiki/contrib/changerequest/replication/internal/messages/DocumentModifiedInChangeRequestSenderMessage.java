@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -47,12 +46,6 @@ public class DocumentModifiedInChangeRequestSenderMessage extends
 
     @Override
     protected void initializeCustomMetadata(RecordableEvent event)
-    {
-        // No custom metadata.
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
     {
         // No custom metadata.
     }

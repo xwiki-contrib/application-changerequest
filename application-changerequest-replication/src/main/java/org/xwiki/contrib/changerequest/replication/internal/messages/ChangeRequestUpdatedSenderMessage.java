@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -46,12 +45,6 @@ public class ChangeRequestUpdatedSenderMessage extends AbstractRecordableChangeR
 
     @Override
     protected void initializeCustomMetadata(RecordableEvent event)
-    {
-        // No custom metadata.
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
     {
         // No custom metadata.
     }

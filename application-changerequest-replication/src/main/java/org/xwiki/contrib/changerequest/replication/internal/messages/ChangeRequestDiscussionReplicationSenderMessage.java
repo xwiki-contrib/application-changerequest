@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -70,13 +69,5 @@ public class ChangeRequestDiscussionReplicationSenderMessage
         this.putCustomMetadata(DISCUSSION_TYPE, event.getDiscussionType());
         this.putCustomMetadata(DISCUSSION_REFERENCE, event.getDiscussionReference());
         this.putCustomMetadata(MESSAGE_REFERENCE, event.getMessageReference());
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        this.putCustomMetadata(DISCUSSION_TYPE, event.getCustom().get(DISCUSSION_TYPE));
-        this.putCustomMetadata(DISCUSSION_REFERENCE, event.getCustom().get(DISCUSSION_REFERENCE));
-        this.putCustomMetadata(MESSAGE_REFERENCE, event.getCustom().get(MESSAGE_REFERENCE));
     }
 }

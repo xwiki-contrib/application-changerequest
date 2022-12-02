@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -55,11 +54,5 @@ public class FileChangeAddedReplicationSenderMessage
     protected void initializeCustomMetadata(RecordableEvent event)
     {
         this.putCustomMetadata(FILE_CHANGE_ID, ((ChangeRequestFileChangeAddedRecordableEvent) event).getFileChangeId());
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        this.putCustomMetadata(FILE_CHANGE_ID, event.getCustom().get(FILE_CHANGE_ID));
     }
 }

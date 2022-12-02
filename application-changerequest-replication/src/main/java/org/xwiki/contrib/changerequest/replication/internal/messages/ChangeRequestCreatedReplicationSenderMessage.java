@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -55,11 +54,5 @@ public class ChangeRequestCreatedReplicationSenderMessage extends
     protected void initializeCustomMetadata(RecordableEvent event)
     {
         this.putCustomMetadata(FROM_SPLIT, ((ChangeRequestCreatedRecordableEvent) event).isFromSplit());
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        this.putCustomMetadata(FROM_SPLIT, event.getCustom().get(FROM_SPLIT));
     }
 }

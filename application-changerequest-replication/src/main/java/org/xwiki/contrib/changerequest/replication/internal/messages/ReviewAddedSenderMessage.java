@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
@@ -63,12 +62,5 @@ public class ReviewAddedSenderMessage extends AbstractRecordableChangeRequestEve
         ChangeRequestReviewAddedRecordableEvent event = (ChangeRequestReviewAddedRecordableEvent) recordableEvent;
         this.putCustomMetadata(REVIEW_ID, event.getReviewId());
         this.putCustomMetadata(ORIGINAL_APPROVER, event.getOriginalApprover());
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        this.putCustomMetadata(REVIEW_ID, event.getCustom().get(REVIEW_ID));
-        this.putCustomMetadata(ORIGINAL_APPROVER, event.getCustom().get(ORIGINAL_APPROVER));
     }
 }

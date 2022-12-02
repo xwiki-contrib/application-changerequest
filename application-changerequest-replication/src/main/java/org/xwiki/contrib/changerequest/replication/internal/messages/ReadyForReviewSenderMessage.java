@@ -24,7 +24,6 @@ import javax.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReadyForReviewTargetableEvent;
-import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.eventstream.TargetableEvent;
 
@@ -57,11 +56,5 @@ public class ReadyForReviewSenderMessage extends AbstractChangeRequestEventRepli
     {
         this.putCustomMetadata(TARGETS,
             StringUtils.join(((ChangeRequestReadyForReviewTargetableEvent) event).getTarget(), ","));
-    }
-
-    @Override
-    public void initializeCustomMetadata(Event event)
-    {
-        this.putCustomMetadata(TARGETS, event.getCustom().get(TARGETS));
     }
 }
