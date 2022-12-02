@@ -19,7 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.replication.internal.listeners;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -29,15 +29,13 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscuss
 import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestReplicationSenderMessage;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationContext;
-import org.xwiki.contrib.replication.ReplicationInstance;
-import org.xwiki.contrib.replication.ReplicationSender;
-import org.xwiki.contrib.replication.entity.DocumentReplicationController;
-import org.xwiki.contrib.replication.entity.DocumentReplicationControllerInstance;
+import org.xwiki.contrib.replication.entity.DocumentReplicationLevel;
+import org.xwiki.contrib.replication.entity.DocumentReplicationSender;
+import org.xwiki.contrib.replication.entity.ReplicationSenderMessageProducer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.test.annotation.BeforeComponent;
-import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -47,6 +45,10 @@ import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -57,9 +59,6 @@ import static org.mockito.Mockito.when;
  *
  * @version $Id$
  */
-@ComponentList({
-    ChangeRequestReplicationMessageSender.class
-})
 @ComponentTest
 class ChangeRequestDiscussionListenerTest
 {
@@ -67,10 +66,7 @@ class ChangeRequestDiscussionListenerTest
     private ChangeRequestDiscussionListener listener;
 
     @MockComponent
-    private ReplicationSender replicationSender;
-
-    @MockComponent
-    private DocumentReplicationController replicationController;
+    private DocumentReplicationSender documentReplicationSender;
 
     @MockComponent
     private RemoteObservationManagerContext remoteObservationManagerContext;
@@ -110,12 +106,12 @@ class ChangeRequestDiscussionListenerTest
 
         when(this.replicationContext.isReplicationMessage()).thenReturn(true);
         this.listener.onEvent(event, null, data);
-        verifyNoInteractions(this.replicationSender);
+        verifyNoInteractions(this.documentReplicationSender);
 
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(true);
         when(this.replicationContext.isReplicationMessage()).thenReturn(false);
         this.listener.onEvent(event, null, data);
-        verifyNoInteractions(this.replicationSender);
+        verifyNoInteractions(this.documentReplicationSender);
 
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
 
@@ -128,24 +124,16 @@ class ChangeRequestDiscussionListenerTest
         DocumentReference crDocReference = mock(DocumentReference.class, "crDoc");
 
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(crDocReference);
-        DocumentReplicationControllerInstance controllerInstance1 =
-            mock(DocumentReplicationControllerInstance.class, "controllerInstance1");
-        DocumentReplicationControllerInstance controllerInstance2 =
-            mock(DocumentReplicationControllerInstance.class, "controllerInstance2");
-
-        ReplicationInstance replicationInstance1 = mock(ReplicationInstance.class, "replicationInstance1");
-        ReplicationInstance replicationInstance2 = mock(ReplicationInstance.class, "replicationInstance2");
-
-        when(controllerInstance1.getInstance()).thenReturn(replicationInstance1);
-        when(controllerInstance2.getInstance()).thenReturn(replicationInstance2);
-
-        when(this.replicationController.getReplicationConfiguration(crDocReference)).thenReturn(List.of(
-            controllerInstance1,
-            controllerInstance2
-        ));
+        doAnswer(invocationOnMock -> {
+            ReplicationSenderMessageProducer producer = invocationOnMock.getArgument(0);
+            assertEquals(senderMessage, producer.produce(null));
+            return null;
+        }).when(this.documentReplicationSender)
+            .send(any(), eq(crDocReference), eq(DocumentReplicationLevel.ALL), eq(Collections.emptyMap()), isNull());
 
         this.listener.onEvent(event, null, data);
         verify(senderMessage).initialize(event, dataDocRef);
-        verify(this.replicationSender).send(senderMessage, List.of(replicationInstance1, replicationInstance2));
+        verify(this.documentReplicationSender).send(any(), eq(crDocReference), eq(DocumentReplicationLevel.ALL),
+            eq(Collections.emptyMap()), isNull());
     }
 }

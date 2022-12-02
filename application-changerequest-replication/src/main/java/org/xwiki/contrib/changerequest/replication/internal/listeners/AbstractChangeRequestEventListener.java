@@ -19,16 +19,28 @@
  */
 package org.xwiki.contrib.changerequest.replication.internal.listeners;
 
+import java.util.Collections;
+import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestReplicationSenderMessage;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationContext;
+import org.xwiki.contrib.replication.ReplicationException;
+import org.xwiki.contrib.replication.entity.DocumentReplicationLevel;
+import org.xwiki.contrib.replication.entity.DocumentReplicationSender;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
@@ -58,7 +70,13 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     private ReplicationContext replicationContext;
 
     @Inject
-    private ChangeRequestReplicationMessageSender changeRequestReplicationMessageSender;
+    private Provider<DocumentReplicationSender> documentReplicationSenderProvider;
+
+    @Inject
+    private Provider<ChangeRequestStorageManager> changeRequestStorageManagerProvider;
+
+    @Inject
+    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
     private Logger logger;
@@ -84,6 +102,26 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
         }
     }
 
+    private DocumentReference getDocumentReference(T event, DocumentReference dataDocumentReference)
+    {
+        DocumentReference result = dataDocumentReference;
+        if (event instanceof AbstractChangeRequestRecordableEvent) {
+            String changeRequestId = ((AbstractChangeRequestRecordableEvent) event).getChangeRequestId();
+            try {
+                Optional<ChangeRequest> optionalChangeRequest = this.changeRequestStorageManagerProvider.get()
+                    .load(changeRequestId);
+                if (optionalChangeRequest.isPresent()) {
+                    result = this.changeRequestDocumentReferenceResolver.resolve(optionalChangeRequest.get());
+                } else {
+                    this.logger.error("No change request found with identifier [{}]", changeRequestId);
+                }
+            } catch (ChangeRequestException e) {
+                this.logger.error("Cannot load change request [{}]", changeRequestId, e);
+            }
+        }
+        return result;
+    }
+
     /**
      * Create a new instance of a message associated to the event, initialize it with event information and finally
      * sent it to the replicated instances.
@@ -97,12 +135,17 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     protected void processMessage(T event, String messageHint, DocumentReference dataDocumentReference)
     {
         try {
+            DocumentReference originalReference = getDocumentReference(event, dataDocumentReference);
             ChangeRequestReplicationSenderMessage message =
                 this.componentManager.getInstance(ChangeRequestReplicationSenderMessage.class, messageHint);
             message.initialize(event, dataDocumentReference);
-            this.changeRequestReplicationMessageSender.sendMessage(message, dataDocumentReference, event);
+            this.documentReplicationSenderProvider.get().send(metadata -> message,
+                originalReference, DocumentReplicationLevel.ALL, Collections.emptyMap(), null);
         } catch (ComponentLookupException e) {
             this.logger.error("Error when looking for replication component message", e);
+        } catch (ReplicationException e) {
+            this.logger.error("Error while sending the replication message for document [{}]",
+                dataDocumentReference, e);
         }
     }
 

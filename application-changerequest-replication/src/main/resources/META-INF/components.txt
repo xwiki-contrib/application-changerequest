@@ -28,4 +28,4 @@ org.xwiki.contrib.changerequest.replication.internal.receivers.DocumentModifiedI
 org.xwiki.contrib.changerequest.replication.internal.messages.ReadyForReviewSenderMessage
 org.xwiki.contrib.changerequest.replication.internal.listeners.ReadyForReviewListener
 org.xwiki.contrib.changerequest.replication.internal.receivers.ReadyForReviewEventReceiver
-org.xwiki.contrib.changerequest.replication.internal.listeners.ChangeRequestReplicationMessageSender
+org.xwiki.contrib.changerequest.replication.internal.ChangeRequestReplicationRecoveryHandler
