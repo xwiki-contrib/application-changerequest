@@ -223,7 +223,7 @@
     #if ($discussionType == 'LINE_DIFF')
       #set ($dataTab = "data-tab='filechanges'")
       #set ($discussionClass = "diff")
-    #elseif ($discussionType == 'REVIEW')
+    #elseif ($discussionType == 'REVIEW' || $discussionType == 'REVIEWS')
       #set ($dataTab = "data-tab='reviews'")
       #set ($discussionClass = "review")
       #set ($skip = true)
