@@ -35,6 +35,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -103,16 +104,19 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         String changerequestId = context.getRequest().getParameter("changerequest");
 
         try {
+            XWikiDocument modifiedDocument = null;
             if (!StringUtils.isEmpty(changerequestId)) {
                 Optional<ChangeRequest> changeRequestOptional = this.changeRequestStorageManager.load(changerequestId);
-                changeRequestOptional.ifPresent(changeRequest -> {
+                if (changeRequestOptional.isPresent()) {
                     DocumentReference currentReference = context.getDoc().getDocumentReferenceWithLocale();
-                    changeRequest.getLatestFileChangeFor(currentReference).ifPresent(fileChange -> {
-                        context.setDoc((XWikiDocument) fileChange.getModifiedDocument());
-                    });
-                });
+                    Optional<FileChange> optionalFileChange =
+                            changeRequestOptional.get().getLatestFileChangeFor(currentReference);
+                    if (optionalFileChange.isPresent()) {
+                        modifiedDocument = (XWikiDocument) optionalFileChange.get().getModifiedDocument();
+                    }
+                }
             }
-            this.prepareEditedDocument(context);
+            this.prepareEditedDocument(context, modifiedDocument);
             // We pretend to be in edit action to avoid getting redirection in templates that checks the action
             // we need to call that only after the documents are prepared though to avoid getting blocked by the
             // security checks.
@@ -137,10 +141,12 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
      * any additional request parameters that overwrite the default values from the template.
      *
      * @param context the XWiki context
+     * @param modifiedDocument if provided, the actual document being modified, coming from the change request
      * @return the edited document
      * @throws XWikiException if something goes wrong
      */
-    protected XWikiDocument prepareEditedDocument(XWikiContext context) throws XWikiException
+    protected XWikiDocument prepareEditedDocument(XWikiContext context, XWikiDocument modifiedDocument)
+            throws XWikiException
     {
         EditForm editForm = new EditForm();
         XWikiRequest request = context.getRequest();
@@ -148,8 +154,13 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         editForm.readRequest();
 
         context.setForm(editForm);
-        // Determine the edited document (translation).
-        XWikiDocument editedDocument = getEditedDocument(context);
+        XWikiDocument editedDocument;
+        if (modifiedDocument == null) {
+            // Determine the edited document (translation).
+            editedDocument = getEditedDocument(context);
+        } else {
+            editedDocument = modifiedDocument.clone();
+        }
 
         // We always force the lock in change request edition, since the goal is to create a change request:
         // we don't want to get warnings about another edition session already existing.

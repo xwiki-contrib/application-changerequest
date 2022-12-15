@@ -29,7 +29,7 @@ import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
-import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;

@@ -33,7 +33,9 @@ import org.xwiki.contrib.changerequest.test.po.ExtendedCreatePage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedDeleteConfirmationPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
-import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.ChangeType;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FilechangesLiveDataElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
@@ -75,11 +77,15 @@ class ChangeRequestConflictsIT
     private static final String TEST_USER_PREFIX = "CRConflictTest";
 
     private static final String CR_USER = TEST_USER_PREFIX + "CRUser";
+
     private static final String CR_APPROVER = TEST_USER_PREFIX + "Approver";
 
     private static final String FOO = TEST_USER_PREFIX + "Foo";
+
     private static final String BAR = TEST_USER_PREFIX + "Bar";
+
     private static final String BUZ = TEST_USER_PREFIX + "Buz";
+
     private static final String MERGE_USER = TEST_USER_PREFIX + "MergeUser";
 
     @BeforeAll
@@ -139,11 +145,13 @@ class ChangeRequestConflictsIT
         String pageURL = changeRequestPage.getPageURL();
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.DELETION, fileChangesPane.getChangeType(serializedReference));
+        FilechangesLiveDataElement.FilechangesRowElement fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.DELETION, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
         testUtils.loginAsSuperAdmin();
         testUtils.gotoPage(testReference);
@@ -153,19 +161,23 @@ class ChangeRequestConflictsIT
 
         changeRequestPage = new ChangeRequestPage();
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.DELETION, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.DELETION, fileChangeWithReference.getChangeType());
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertTrue(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertTrue(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
-        changeRequestPage = fileChangesPane.clickRefresh(serializedReference);
+        changeRequestPage = fileChangeWithReference.clickRefresh();
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.DELETION, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.DELETION, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
         testUtils.loginAsSuperAdmin();
         testUtils.gotoPage(testReference);
@@ -175,19 +187,23 @@ class ChangeRequestConflictsIT
         testUtils.gotoPage(pageURL);
         changeRequestPage = new ChangeRequestPage();
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.DELETION, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.DELETION, fileChangeWithReference.getChangeType());
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertTrue(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertTrue(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
-        changeRequestPage = fileChangesPane.clickRefresh(serializedReference);
+        changeRequestPage = fileChangeWithReference.clickRefresh();
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.NO_CHANGE, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.NO_CHANGE, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
     }
 
     @Test
@@ -225,11 +241,13 @@ class ChangeRequestConflictsIT
         String crUrl = changeRequestPage.getPageURL();
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        FilechangesLiveDataElement.FilechangesRowElement fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.CREATION, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
         // Create an approval review to checks it's invalidated after the conflict is fixed
         testUtils.login(CR_APPROVER, CR_APPROVER);
@@ -256,13 +274,15 @@ class ChangeRequestConflictsIT
         changeRequestPage = new ChangeRequestPage();
 
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.CREATION, fileChangeWithReference.getChangeType());
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
         assertTrue(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertTrue(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertTrue(fileChangeWithReference.isFixConflictActionAvailable());
 
-        ChangeRequestConflictModal changeRequestConflictModal = fileChangesPane.clickFixConflict(serializedReference);
+        ChangeRequestConflictModal changeRequestConflictModal = fileChangeWithReference.clickFixConflict();
         assertTrue(changeRequestConflictModal
             .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.KEEP_CHANGE_REQUEST));
         assertTrue(changeRequestConflictModal
@@ -275,11 +295,13 @@ class ChangeRequestConflictsIT
         changeRequestPage = changeRequestConflictModal.submitCurrentChoice();
 
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.NO_CHANGE, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.NO_CHANGE, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
         // check that the review is now outdated
         reviewsPane = changeRequestPage.openReviewsPane();
@@ -325,11 +347,13 @@ class ChangeRequestConflictsIT
         String crUrl = changeRequestPage.getPageURL();
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        FilechangesLiveDataElement.FilechangesRowElement fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.CREATION, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
         testUtils.loginAsSuperAdmin();
         testUtils.createPage(nestedTestReference, "Some new content");
@@ -339,13 +363,15 @@ class ChangeRequestConflictsIT
         changeRequestPage = new ChangeRequestPage();
 
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.CREATION, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.CREATION, fileChangeWithReference.getChangeType());
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
         assertTrue(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertTrue(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertTrue(fileChangeWithReference.isFixConflictActionAvailable());
 
-        ChangeRequestConflictModal changeRequestConflictModal = fileChangesPane.clickFixConflict(serializedReference);
+        ChangeRequestConflictModal changeRequestConflictModal = fileChangeWithReference.clickFixConflict();
         assertTrue(changeRequestConflictModal
             .isOptionAvailable(ChangeRequestConflictModal.ResolutionChoice.KEEP_CHANGE_REQUEST));
         assertTrue(changeRequestConflictModal
@@ -358,31 +384,26 @@ class ChangeRequestConflictsIT
         changeRequestPage = changeRequestConflictModal.submitCurrentChoice();
 
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(FileChangesPane.ChangeType.EDITION, fileChangesPane.getChangeType(serializedReference));
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertEquals(ChangeType.EDITION, fileChangeWithReference.getChangeType());
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
         assertFalse(fileChangesPane.isConflictLabelDisplayed(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        assertFalse(fileChangesPane.isFixConflictActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
+        assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
     }
 
     /**
      * Purpose of this test is not to create a conflict, but to test the refresh content feature, especially with the
      * impact on approvers.
-     *
-     * Fixture:
-     *   - Page created with approvers Foo and Bar
-     *   - CR_USER creates CR1 with changes on title
-     *   - CR_USER creates CR2 with changes on content
-     *   - CR_USER creates CR3 with changes of approvers to replace Bar by Buz
-     *
-     * Scenario:
-     *   - Foo and Bar approves all 3 CRs
-     *   - CR_USER merge CR1 first: CR2 and CR3 are still mergeable, CR_USER is able to refresh the content
-     *   - CR_USER refreshes content on CR3 -> approvals are now invalidated on CR3
-     *   - Foo and Bar approves again CR3
-     *   - CR_USER merges CR3: CR2 is only ready for review, approver list has been updated review from Bar
-     *     is invalidated, review from Foo is kept
-     *   - Buz approves and merge CR2
+     * <p>
+     * Fixture: - Page created with approvers Foo and Bar - CR_USER creates CR1 with changes on title - CR_USER creates
+     * CR2 with changes on content - CR_USER creates CR3 with changes of approvers to replace Bar by Buz
+     * <p>
+     * Scenario: - Foo and Bar approves all 3 CRs - CR_USER merge CR1 first: CR2 and CR3 are still mergeable, CR_USER is
+     * able to refresh the content - CR_USER refreshes content on CR3 -> approvals are now invalidated on CR3 - Foo and
+     * Bar approves again CR3 - CR_USER merges CR3: CR2 is only ready for review, approver list has been updated review
+     * from Bar is invalidated, review from Foo is kept - Buz approves and merge CR2
      */
     @Test
     @Order(3)
@@ -571,16 +592,20 @@ class ChangeRequestConflictsIT
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
 
+        FilechangesLiveDataElement.FilechangesRowElement fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
         // only author is able to refresh
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
 
         testUtils.login(CR_USER, CR_USER);
 
         testUtils.gotoPage(cr3Url);
         changeRequestPage = new ChangeRequestPage();
         fileChangesPane = changeRequestPage.openFileChanges();
-        assertTrue(fileChangesPane.isRefreshActionAvailable(serializedReference));
-        changeRequestPage = fileChangesPane.clickRefresh(serializedReference);
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertTrue(fileChangeWithReference.isRefreshActionAvailable());
+        changeRequestPage = fileChangeWithReference.clickRefresh();
 
         // check that now the reviews are invalidated
         reviewsPane = changeRequestPage.openReviewsPane();
@@ -605,8 +630,10 @@ class ChangeRequestConflictsIT
 
         // Check that the diff is not outdated anymore
         fileChangesPane = changeRequestPage.openFileChanges();
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
         assertFalse(fileChangesPane.isDiffOutdated(serializedReference));
-        assertFalse(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertFalse(fileChangeWithReference.isRefreshActionAvailable());
 
         // Approve back with Foo and Bar
         testUtils.login(FOO, FOO);
@@ -683,8 +710,10 @@ class ChangeRequestConflictsIT
 
         // Check that the diff is outdated
         fileChangesPane = changeRequestPage.openFileChanges();
+        fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
-        assertTrue(fileChangesPane.isRefreshActionAvailable(serializedReference));
+        assertTrue(fileChangeWithReference.isRefreshActionAvailable());
 
         testUtils.login(BUZ, BUZ);
 

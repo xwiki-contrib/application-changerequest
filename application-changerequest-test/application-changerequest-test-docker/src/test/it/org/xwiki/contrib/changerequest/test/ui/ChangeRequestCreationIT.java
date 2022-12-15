@@ -31,7 +31,7 @@ import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
-import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
 import org.xwiki.contrib.changerequest.test.po.description.TimelineEvent;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
@@ -177,7 +177,7 @@ class ChangeRequestCreationIT
 
         // Check the diff
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(1, fileChangesPane.getFileChangesListLiveData().getTableLayout().countRows());
+        assertEquals(1, fileChangesPane.getFileChangesListLiveData().countRows());
         DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(serializedReference);
         assertEquals("(2 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
 
@@ -508,62 +508,5 @@ class ChangeRequestCreationIT
         assertTrue(timelineEvent.getDate().before(dateAfterReview2));
         assertEquals("Approver changed the status of the change request from ready for merging to ready for review",
             timelineEvent.getContent().getText());
-    }
-
-    @Test
-    @Order(2)
-    void editExistingChangeRequest(TestUtils setup, TestReference testReference)
-    {
-        String serializedReference = testReference.getLocalDocumentReference().toString();
-        setup.loginAsSuperAdmin();
-        setup.createPage(testReference, "Some content to the test page.");
-
-        setup.setRights(testReference, "", CR_CREATOR, "edit", false);
-        setup.setRights(testReference, "", CR_CREATOR, "changerequest", true);
-
-        setup.gotoPage(testReference);
-
-        setup.login(CR_CREATOR, CR_CREATOR);
-        setup.gotoPage(testReference);
-        ExtendedViewPage extendedViewPage = new ExtendedViewPage();
-        ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
-        extendedEditPage.getEditor().setContent("Some new content.");
-        assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
-
-        ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
-        changeRequestSaveModal.setChangeRequestTitle("CR2");
-        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
-
-        Date afterSave = new Date();
-
-        // try editing the created change request
-        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertTrue(fileChangesPane.isEditActionAvailable(serializedReference));
-
-        extendedEditPage = fileChangesPane.clickEdit(serializedReference);
-        extendedEditPage.getEditor().setContent("Some new content after edition.");
-        changeRequestPage = extendedEditPage.clickSaveAsChangeRequestInExistingCR();
-        DescriptionPane descriptionPane = changeRequestPage.openDescription();
-        descriptionPane.waitUntilEventsSize(2);
-
-        // Check event
-        Date dateAfterNewChange = new Date();
-        List<TimelineEvent> events = descriptionPane.getEvents();
-        assertEquals(2, events.size());
-
-        TimelineEvent timelineEvent = events.get(1);
-        assertTrue(timelineEvent.getDate().after(afterSave));
-        assertTrue(timelineEvent.getDate().before(dateAfterNewChange));
-        assertEquals("CRCreator added a new file change concerning "
-                + "xwiki:" + serializedReference,
-            timelineEvent.getContent().getText());
-
-        fileChangesPane = changeRequestPage.openFileChanges();
-        EntityDiff contentDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
-        List<String> content = contentDiff.getDiff("Content");
-        assertEquals(3, content.size());
-        assertEquals("-Some content t<del>o th</del>e <del>t</del>e<del>s</del>t<del> page</del>.", content.get(1));
-        assertEquals("+Some <ins>new </ins>content <ins>af</ins>te<ins>r</ins> e<ins>di</ins>t<ins>ion</ins>.",
-            content.get(2));
     }
 }

@@ -25,6 +25,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.xwiki.contrib.changerequest.test.po.checks.ChecksPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.test.ui.po.ViewPage;

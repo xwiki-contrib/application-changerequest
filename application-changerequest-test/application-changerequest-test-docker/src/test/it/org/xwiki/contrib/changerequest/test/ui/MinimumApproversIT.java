@@ -30,7 +30,8 @@ import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedCreatePage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
 import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
-import org.xwiki.contrib.changerequest.test.po.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FilechangesLiveDataElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
@@ -144,8 +145,10 @@ public class MinimumApproversIT
             String.format("+XWiki.%s,XWiki.%s", APPROVER_A, APPROVER_B)),
             usersApproversDiff);
 
-        assertTrue(fileChangesPane.isEditApproversActionAvailable(serializedReference));
-        changeRequestSaveModal = fileChangesPane.clickEditApprovers(serializedReference);
+        FilechangesLiveDataElement.FilechangesRowElement fileChangeWithReference =
+            fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
+        assertTrue(fileChangeWithReference.isEditApproversActionAvailable());
+        changeRequestSaveModal = fileChangeWithReference.clickEditApprovers();
 
         assertTrue(changeRequestSaveModal.isApproversSelectionDisplayed());
         assertFalse(changeRequestSaveModal.isCreateChangeRequestDisplayed());

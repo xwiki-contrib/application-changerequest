@@ -67,4 +67,10 @@ public class AllITs
     class NestedMinimumApproversIT extends MinimumApproversIT
     {
     }
+
+    @Nested
+    @DisplayName("Edition of existing change request")
+    class NestedChangeRequestEditionIT extends ChangeRequestEditionIT
+    {
+    }
 }
