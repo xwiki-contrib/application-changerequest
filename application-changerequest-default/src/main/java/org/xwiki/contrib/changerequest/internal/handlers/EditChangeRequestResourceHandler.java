@@ -49,9 +49,12 @@ import org.xwiki.resource.entity.EntityResourceAction;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.store.TemporaryAttachmentException;
+import org.xwiki.store.TemporaryAttachmentSessionsManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.EditForm;
 import com.xpn.xwiki.web.Utils;
@@ -89,6 +92,9 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
 
     @Inject
     private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @Inject
+    private TemporaryAttachmentSessionsManager temporaryAttachmentSessionsManager;
 
     @Override
     public List<EntityResourceAction> getSupportedResourceReferences()
@@ -133,6 +139,23 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         chain.handleNext(reference);
     }
 
+    private void handleAttachments(XWikiDocument modifiedDoc) throws ResourceReferenceHandlerException
+    {
+        DocumentReference reference = modifiedDoc.getDocumentReference();
+        for (XWikiAttachment attachment : modifiedDoc.getAttachmentList()) {
+            XWikiAttachment clonedAttachment = attachment.clone();
+            // Ensure to not delete the file related to the attachment when it's removed from temporary attachments
+            clonedAttachment.getAttachment_content().setContentDirty(false);
+            try {
+                this.temporaryAttachmentSessionsManager.temporarilyAttach(clonedAttachment, reference);
+            } catch (TemporaryAttachmentException e) {
+                throw new ResourceReferenceHandlerException(String.format("Error while temporary attaching attachment "
+                    + "[%s] to document [%s]", clonedAttachment.getFilename(), reference),
+                    e);
+            }
+        }
+    }
+
     // FIXME: All methods below have been taken from EditAction and XWikiAction in XWiki platform.
     // It would be nicer to create an EditResourceReferenceHandler in platform and to make that one inherits from it.
 
@@ -146,7 +169,7 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
      * @throws XWikiException if something goes wrong
      */
     protected XWikiDocument prepareEditedDocument(XWikiContext context, XWikiDocument modifiedDocument)
-            throws XWikiException
+        throws XWikiException, ResourceReferenceHandlerException
     {
         EditForm editForm = new EditForm();
         XWikiRequest request = context.getRequest();
@@ -160,6 +183,9 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
             editedDocument = getEditedDocument(context);
         } else {
             editedDocument = modifiedDocument.clone();
+            // Ensure to have the modified attachment in the temporary session manager so that they can be retrieved.
+            // FIXME: It's not very clean as we never clean up the temporary attachments...
+            this.handleAttachments(editedDocument);
         }
 
         // We always force the lock in change request edition, since the goal is to create a change request:
