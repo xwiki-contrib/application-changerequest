@@ -137,32 +137,32 @@ ChangeRequest.Code.ConfigurationClass_changeRequestLocation.hint=変更リクエ
 ### Missing: ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations.hint=Selecting Yes means that the creation date is only used to detect a stale change request. Selecting No means that the last activity of the change request will be used.
 ### Missing: ChangeRequest.Code.ConfigurationClass_schedulerContextUser=Scheduler user
 ### Missing: ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=The user selected here will be the author of the notifications and updates when detecting a stale change request. This user should have appropriate rights for this. By default the author of the scheduler documents is used.
-### Missing: ChangeRequest.Code.ConfigurationClass_mergeUser=Merge user
+ChangeRequest.Code.ConfigurationClass_mergeUser=ユーザーをマージ
 ### Missing: ChangeRequest.Code.ConfigurationClass_mergeUser.hint=If a user is specified here, this user will always be used when merging change requests to save the actual changes. So this user should have appropriate rights to do so. If nothing is specified here, then the user clicking on the merge button is used to save the changes.
 ### Missing: ChangeRequest.Code.ConfigurationClass_delegateEnabled=Enable delegate approvers
 ### Missing: ChangeRequest.Code.ConfigurationClass_delegateEnabled.hint=If enabled, allow to use delegate approval mechanism: the delegates are users allowed to perform reviews on behalf of the official explicit approvers of a page. 
 ### Missing: ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=User properties to use for computing delegates
 ### Missing: ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=This configuration specifies the list of XWikiUsers properties that should be used for automatically compute the delegate approvers. If the list is empty then the delegates should be set manually.
 ### Missing: ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=Prevent authors to review their own change requests
-### Missing: ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=If checked authors won't be allowed to review their own change requests. 
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=チェックすると、作者は自分自身の変更リクエストをレビューできなくなります。 
 ### Missing: ChangeRequest.Code.ConfigurationClass_minimumApprovers=Minimum number of explicit approvers
 ### Missing: ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Define a required minimum numbers of explicit users approvers when managing change request approvers. Note that 0 means no minimum.
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=レンダリングした差分表示を有効にする
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=有効にすると、ページの変更の実際の表示で差分を確認できます。 
 changerequest.moreactions.manageapprovers=承認者を管理
-### Missing: changerequest.moreactions.deletionrequest=Request for deletion
-### Missing: ChangeRequest.Code.ApproversClass_usersApprovers=Users who can approve
-### Missing: ChangeRequest.Code.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
+changerequest.moreactions.deletionrequest=削除のリクエスト
+ChangeRequest.Code.ApproversClass_usersApprovers=承認できるユーザー
+ChangeRequest.Code.ApproversClass_usersApprovers_hint=このドキュメントに関する変更リクエストを承認できるウィキのユーザー。
 ChangeRequest.Code.ApproversClass_groupsApprovers=承認できるグループ
-### Missing: ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change request made for this document.
-### Missing: ChangeRequest.Code.ApproversClass_manualEdition=Manually edited
+ChangeRequest.Code.ApproversClass_groupsApprovers_hint=このドキュメントに関する変更リクエストを承認できるウィキのユーザーのグループ。
+ChangeRequest.Code.ApproversClass_manualEdition=手動で変更済
 ### Missing: ChangeRequest.Code.ApproversClass_manualEdition_hint=Check the box if you don't want the approvers to be automatically synchronized when new changes are published.
-### Missing: changerequest.timeline.changerequest.create={0} created the change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.create={0}が&lt;a href="{1}"&gt;{2}&lt;/a&gt;に関する変更リクエストを作成しました
 ### Missing: changerequest.timeline.changerequest.create.fromSplit={0} created the change request by splitting an old change request with changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
-### Missing: changerequest.timeline.changerequest.filechange.added={0} added a new file change concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.filechange.added={0}が&lt;a href="{1}"&gt;{2}&lt;/a&gt;に関するファイルの新しい変更を追加しました
 ### Missing: changerequest.timeline.changerequest.status.modified={0} changed the status of the change request from {1} to {2}
 ### Missing: changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
-### Missing: changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting for changes
+changerequest.timeline.changerequest.review.added.requestchanges={0}が新しい変更リクエストのレビューを追加しました
 ### Missing: changerequest.timeline.changerequest.review.added.approval.delegate={0} added a new approval review on behalf of {1}
 changerequest.timeline.changerequest.review.added.requestchanges.delegate={0}が{1}の代わりに変更を要求する新しいレビューを追加しました
 ### Missing: changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0} added {1}a new global comment{2}
