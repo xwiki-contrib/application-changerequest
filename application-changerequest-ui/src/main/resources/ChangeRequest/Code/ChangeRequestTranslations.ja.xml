@@ -173,19 +173,19 @@ changerequest.timeline.changerequest.updated={0}が変更リクエストの説�
 ### Missing: changerequest.timeline.changerequest.rebased.all={0} refreshed the content of the whole change request
 ### Missing: changerequest.timeline.changerequest.rebased.filechange={0} refreshed the changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
 changerequest.timeline.changerequest.rebased.conflictFixing={0}が&lt;a href="{1}"&gt;{2}&lt;/a&gt;の競合を修正しました
-### Missing: changerequest.sheet.description.placeholder=Click on the edit link on the right to provide a description.
-### Missing: changerequest.sheet.existingChangeRequestSameChanges=Other change requests exist targeting one or several of the pages modified here:
-### Missing: changerequest.sheet.checks.otherCR.title=Existing change requests on same documents
-### Missing: changerequest.sheet.ready.button.title=Mark this change request as ready for review
-### Missing: changerequest.sheet.ready.button=Ready for review
-### Missing: changerequest.sheet.draft.button.title=Convert this change request as a draft
+changerequest.sheet.description.placeholder=右の編集リンクをクリックすると説明文を設定できます。
+changerequest.sheet.existingChangeRequestSameChanges=ここで修正したページに関する他の変更リクエストが存在します：
+changerequest.sheet.checks.otherCR.title=同じドキュメントに関する既存の変更リクエスト
+changerequest.sheet.ready.button.title=この変更リクエストをレビューの準備完了に設定
+changerequest.sheet.ready.button=レビューの準備完了
+changerequest.sheet.draft.button.title=この変更リクエストを下書きに変換
 changerequest.sheet.draft.button=下書きに変換
 changerequest.sheet.review.button.title=現在の変更リクエストをレビュー
 changerequest.sheet.review.button=レビュー
 changerequest.sheet.diff.conflictLabel=競合
-### Missing: changerequest.sheet.diff.conflictLabel.title=Those changes are in conflict with the new published version of the document. You must fix the conflicts for allowing to merge.
+changerequest.sheet.diff.conflictLabel.title=これらの変更は新しく公開されたドキュメントのバージョンと競合しています。マージするには競合を修正する必要があります。
 changerequest.sheet.message.outdated=期限切れ
-### Missing: changerequest.sheet.message.outdated.title=This message is outdated: the diff changed since it was written.
+changerequest.sheet.message.outdated.title=このメッセージは有効ではありません。記載後に差分が変更されました。
 changerequest.sheet.diff.outdated=期限切れ
 ### Missing: changerequest.sheet.diff.outdated.title=There was new changes in the published version of the document since this change request was edited. It is recommended to update the change request to see latest differences if possible.
 ### Missing: changerequest.sheet.diff.nochange=No change
