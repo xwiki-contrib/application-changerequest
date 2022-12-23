@@ -163,16 +163,16 @@ changerequest.timeline.changerequest.filechange.added={0}が&lt;a href="{1}"&gt;
 ### Missing: changerequest.timeline.changerequest.status.modified={0} changed the status of the change request from {1} to {2}
 ### Missing: changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
 changerequest.timeline.changerequest.review.added.requestchanges={0}が新しい変更リクエストのレビューを追加しました
-### Missing: changerequest.timeline.changerequest.review.added.approval.delegate={0} added a new approval review on behalf of {1}
+changerequest.timeline.changerequest.review.added.approval.delegate={0}が{1}に代わって新しい承認レビューを追加しました
 changerequest.timeline.changerequest.review.added.requestchanges.delegate={0}が{1}の代わりに変更を要求する新しいレビューを追加しました
-### Missing: changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0} added {1}a new global comment{2}
-### Missing: changerequest.timeline.changerequest.discussions.LINE_DIFF={0} added {1}a new diff comment{2}
-### Missing: changerequest.timeline.changerequest.discussions.REVIEW={0} added {1}a new review comment{2}
-### Missing: changerequest.timeline.changerequest.updated={0} edited the description or the title of the change request
+changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0}が{1}新しい全体コメント{2}を追加しました
+changerequest.timeline.changerequest.discussions.LINE_DIFF={0}が{1}新しい差分コメント{2}を追加しました
+changerequest.timeline.changerequest.discussions.REVIEW={0}が{1}新しいレビューコメント{2}を追加しました
+changerequest.timeline.changerequest.updated={0}が変更リクエストの説明あるいはタイトルを変更しました
 ### Missing: changerequest.timeline.changerequest.stale={0} marked the change request as stale
 ### Missing: changerequest.timeline.changerequest.rebased.all={0} refreshed the content of the whole change request
 ### Missing: changerequest.timeline.changerequest.rebased.filechange={0} refreshed the changes concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
-### Missing: changerequest.timeline.changerequest.rebased.conflictFixing={0} fixed a conflict concerning &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.rebased.conflictFixing={0}が&lt;a href="{1}"&gt;{2}&lt;/a&gt;の競合を修正しました
 ### Missing: changerequest.sheet.description.placeholder=Click on the edit link on the right to provide a description.
 ### Missing: changerequest.sheet.existingChangeRequestSameChanges=Other change requests exist targeting one or several of the pages modified here:
 ### Missing: changerequest.sheet.checks.otherCR.title=Existing change requests on same documents
