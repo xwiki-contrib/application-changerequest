@@ -239,4 +239,4 @@ changerequest.savemodal.approvers.groups=承認できるグループ
 ### Missing: changerequest.review.modal.warningReview=You already have a valid review concerning this change request, this new review will invalidate the previous one.
 ### Missing: changerequest.review.modal.warningReview.onBehalf=A valid review concerning this change request performed by or on behalf of {0} already exists, this new review will invalidate the previous one.
 </content>
-  </xwikidoc>
+</xwikidoc>
