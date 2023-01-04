@@ -83,7 +83,7 @@ $services.localization.render('changerequest.user.profile.nowiki')
 {{/liveData}}
 
 {{html}}
-<h2>$escapetool.xml()$services.localization.render('changerequest.user.profile.approverscr.title'))</h2>
+<h2>$escapetool.xml($services.localization.render('changerequest.user.profile.approverscr.title'))</h2>
 {{/html}}
 
 {{liveData
