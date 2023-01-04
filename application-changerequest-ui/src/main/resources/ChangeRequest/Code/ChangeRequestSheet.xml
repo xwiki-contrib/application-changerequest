@@ -2576,8 +2576,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <cache>long</cache>
     </property>
     <property>
-      <code>'use strict';
-require(['jquery'], function ($) {
+      <code>require(['jquery'], function ($) {
   var toggleReply = function () {
     var element = $(this);
     var originalMessageReference = element.attr('data-message-reference');
@@ -2590,13 +2589,18 @@ require(['jquery'], function ($) {
     $(selector).one('click', function() {
       $(this).removeClass('showMessage');
     });
+    $(selector).each(function() {
+      if ($(this).is(':visible')) {
+        $(this).get(0).scrollIntoView();
+      }
+    });
   };
   
-  var init = function () {
+  var initReplyNav = function () {
     $('a[data-message-reference]').on('click', toggleReply);
   };
   
-  init() &amp;&amp; $(document).on('xwiki:dom:updated', init);
+  initReplyNav() || $(document).on('xwiki:dom:updated', initReplyNav);
 });</code>
     </property>
     <property>
@@ -4018,6 +4022,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
   border-bottom: 1px dotted lightgrey;
 }
 .showMessage &gt; .message-metadata {
+  background-color: #fffbc3;
 }
 .message-content {
   padding: 1em;
