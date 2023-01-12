@@ -88,7 +88,11 @@
     #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
     #set ($dataAttributes = $NULL)
     #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
+    #set ($diffBlockMetadata = $services.changerequest.discussion.getDiffBlockMetadata($changeRequestDiscussion))
     &lt;div class="discussion" ${dataAttributes} &gt;
+      #if ($diffBlockMetadata)
+        #displayDiffBlockMetadata($diffBlockMetadata)
+      #end
       #foreach ($message in $messages)
         #displayMessage($message $changeRequest)
       #end
@@ -236,7 +240,6 @@
 #set ($conflictingFiles = {})
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
 &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
-#template('diff_macros.vm')
 #foreach ($ref in $modifiedFiles)
   #set ($crMergeDocumentResultOpt = $services.changerequest.merge.getMergeDocumentResult($changeRequest, $ref))
   #if ($crMergeDocumentResultOpt.isPresent())
@@ -1894,7 +1897,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
     </property>
     <property>
       <code>'use strict';
-require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, xm) {
+require(['CommentEditor', 'DiffSnippet', 'jquery', 'xwiki-meta'], function (CommentEditor, DiffSnippet, $, xm) {
   var sheetConfig = JSON.parse($('#changerequest-sheet-jsx-config').text());
   var hasLineNumber = function (element) {
     return (element.hasClass('diff-line-number') &amp;&amp; element.text() !== "");
@@ -1948,6 +1951,8 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
         var lineNumber = getLineNumber($(this));
         var changeType = getChangeType($(this));
         var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
+        var lineElement = $(this).parent('tr');
+        var unifiedDiffBlock = new DiffSnippet(lineElement);
         var editor = new CommentEditor($(this), {
           'type': 'diffLine',
           'changeRequestId': changeRequestId,
@@ -1956,7 +1961,8 @@ require(['CommentEditor', 'jquery', 'xwiki-meta'], function (CommentEditor, $, x
           'changeType': changeType,
           'targetReference': targetReference,
           'entityReference': documentParts[0],
-          'diffBlockId': documentParts[1]
+          'diffBlockId': documentParts[1],
+          'diffBlockContext': JSON.stringify(unifiedDiffBlock)
         });
         editor.requestEditor();
       });
@@ -2103,7 +2109,13 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var placeMessage = function (cssClass, index, message) {
     var messageId = $(message).attr('data-reference');
     var discussionElement = $('.discussion.'+cssClass+'[data-message-reference="'+messageId+'"]');
+    var diffBlock = $(message).parent('.discussion').find('.diff-block-metadata');
     if (discussionElement &amp;&amp; discussionElement.find('.message[data-reference="' + messageId+ '"]').length == 0) {
+      if (diffBlock.length &gt; 0) {
+        newBlock = diffBlock.clone();
+        discussionElement.append(newBlock);
+        newBlock.removeClass('hidden');
+      }
       discussionElement.append($(message));
     }
   };
@@ -2192,7 +2204,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   
   var insertLineDiffDiscussion = function (discussion) {
     var lineResult = findLineContainer(discussion);
-    if (lineResult) {
+    if (lineResult &amp;&amp; !lineResult.outdated) {
       var targetReference = discussion.attr('data-targetreference');
       var reference = discussion.attr('data-reference');
       discussion.insertAfter(lineResult.line);
@@ -2201,11 +2213,11 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       } else {
         discussion.wrap('&lt;div class="discussion-line" data-reference="'+reference+'"&gt;&lt;/div&gt;');
       }
-      if (lineResult.outdated) {
-        discussion.addClass('discussion-outdated');
-        discussion.find('.outdated-message').removeClass('hidden');
-      }
+      discussion.find('.diff-block-metadata').addClass('hidden');
       incrementCounter(targetReference);
+    } else if (lineResult.outdated) {
+      discussion.addClass('discussion-outdated');
+      discussion.find('.outdated-message').removeClass('hidden');
     }
   };
   
@@ -3359,6 +3371,245 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <name>Load rendered diff</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>19</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>19e9c5a1-c6f3-4218-9419-41e9f8d9dbed</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>'use strict';
+define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
+  const TYPE_ADDED = 'ADDED';
+  const TYPE_DELETED = 'DELETED';
+  const TYPE_CONTEXT = 'CONTEXT'; // used for diff element only
+  const TYPE_UNMODIFIED = 'UNMODIFIED'; // used for chunks only
+  const ADD_BEGIN = '&lt;ins&gt;';
+  const ADD_END = '&lt;/ins&gt;';
+  const DEL_BEGIN = '&lt;del&gt;';
+  const DEL_END = '&lt;/del&gt;';
+  const CONTEXT_SIZE = 3;
+  
+  var getChunk = function (type, elements) {
+    var deleted = type == TYPE_DELETED;
+    var added = type == TYPE_ADDED;
+    var unmodified = type == TYPE_UNMODIFIED;
+    return {
+      'type': type,
+      'elements': elements.split(""),
+      'added': added,
+      'deleted': deleted,
+      'unmodified': unmodified
+    }
+  };
+  
+  var getDiffElement = function (index, type, value, chunks) {
+    var deleted = type == TYPE_DELETED;
+    var added = type == TYPE_ADDED;
+    return {
+      'index': index,
+      'type': type,
+      'value': value,
+      'chunks': chunks,
+      'added': added,
+      'deleted': deleted
+    }
+  };
+  
+  var getDiffElementType = function (tdLine) {
+    if (tdLine.hasClass('diff-line-added')) {
+      return TYPE_ADDED;
+    } else if (tdLine.hasClass('diff-line-deleted')) {
+      return TYPE_DELETED;
+    } else {
+      return TYPE_CONTEXT;
+    }
+  };
+  
+  var getIndex = function (trLineElement, type) {
+    var tdIndexElement;
+    if (type == TYPE_CONTEXT || type == TYPE_DELETED) {
+      tdIndexElement = $(trLineElement).find('td.diff-line-number').first();
+    } else {
+      tdIndexElement = $(trLineElement).find('td.diff-line-number').last();
+    }
+    return parseInt(tdIndexElement.text(), 10) - 1;
+  };
+  
+  var buildChunks = function (htmlValue) {
+    return consumeChunk(htmlValue, []);
+  };
+  
+  var consumeChunk = function (htmlString, chunkArray) {
+    var nextAddition = htmlString.indexOf(ADD_BEGIN);
+    var nextDeletion = htmlString.indexOf(DEL_BEGIN);
+    if (nextAddition == -1 &amp;&amp; nextDeletion == -1) {
+      if (chunkArray.length &gt; 0) {
+        chunkArray.push(getChunk(TYPE_UNMODIFIED, htmlString));
+        return chunkArray;
+      } else {
+        return null;
+      }
+    } else if (nextAddition == -1 || (nextDeletion != -1 &amp;&amp; nextDeletion &lt; nextAddition)) {
+      var indexBegin = nextDeletion;
+      var newHtmlString = consumeSingleChunk(htmlString, indexBegin, TYPE_DELETED, chunkArray);
+      if (newHtmlString.length &gt; 0) {
+        return consumeChunk(newHtmlString, chunkArray);
+      } else {
+        return chunkArray;
+      }
+    } else {
+      var indexBegin = nextAddition;
+      var newHtmlString = consumeSingleChunk(htmlString, indexBegin, TYPE_ADDED, chunkArray);
+      if (newHtmlString.length &gt; 0) {
+        return consumeChunk(newHtmlString, chunkArray);
+      } else {
+        return chunkArray;
+      }
+    }
+  }
+  
+  var consumeSingleChunk = function (htmlElement, indexBegin, type, chunkArray) {
+    if (indexBegin != 0) {
+      var contextValue = htmlElement.substring(0, indexBegin);
+      chunkArray.push(getChunk(TYPE_UNMODIFIED, contextValue));
+    }
+    var beginValueIndex;
+    var endValueIndex;
+    var indexEnd;
+    if (type == TYPE_ADDED) {
+      beginValueIndex = indexBegin + ADD_BEGIN.length;
+      endValueIndex = htmlElement.indexOf(ADD_END);
+      indexEnd = endValueIndex + ADD_END.length;
+    } else {
+      beginValueIndex = indexBegin + DEL_BEGIN.length;
+      endValueIndex = htmlElement.indexOf(DEL_END);
+      indexEnd = endValueIndex + DEL_END.length;
+    }
+    chunkArray.push(getChunk(type, htmlElement.substring(beginValueIndex, endValueIndex)));
+    return htmlElement.substring(indexEnd);
+  }
+  
+  var buildDiffElement = function (trLineElement) {
+    var tdLine = $(trLineElement).find('td.diff-line');
+    var type = getDiffElementType(tdLine);
+    var index = getIndex(trLineElement, type);
+    // We need to remove first character because it's added to display +/-
+    // or space in case of context line
+    var value = tdLine.text().substring(1);
+    var htmlValue = tdLine.html().substring(1);
+    var chunks = buildChunks(htmlValue);
+    return getDiffElement(index, type, value, chunks);
+  }
+
+  var diffSnippet = function (trLineElement) {
+    var diffElements = [buildDiffElement(trLineElement)];
+    var currentElement = trLineElement;
+    for (i = CONTEXT_SIZE; i &gt; 0; i--) {
+      var prevElement = currentElement.prev('tr');
+      if (prevElement.length &gt; 0) {
+        diffElements.unshift(buildDiffElement(prevElement));
+        currentElement = prevElement;
+      } else {
+        break;
+      }
+    }
+    return diffElements;
+  };
+  return diffSnippet;
+})</code>
+    </property>
+    <property>
+      <name>Unified diff block</name>
     </property>
     <property>
       <parse>0</parse>

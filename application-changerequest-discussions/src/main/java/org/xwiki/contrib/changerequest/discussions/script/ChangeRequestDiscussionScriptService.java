@@ -29,9 +29,11 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussion;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.discussions.internal.ChangeRequestDiscussionDiffUtils;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestCommentReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestFileDiffReference;
@@ -44,10 +46,13 @@ import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineD
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
+import org.xwiki.diff.display.UnifiedDiffBlock;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.properties.ConverterManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Script service for using discussions in change request.
@@ -68,6 +73,9 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
 
     @Inject
     private ConverterManager converterManager;
+
+    @Inject
+    private ChangeRequestDiscussionDiffUtils changeRequestDiscussionDiffUtils;
 
     /**
      * Create a reference with the given information, to be used in for creating diff discussion.
@@ -250,5 +258,49 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
         throws ChangeRequestDiscussionException
     {
         return this.changeRequestDiscussionService.getReferenceFrom(discussion);
+    }
+
+    /**
+     * Deserialize the given context diff and attach it to the discussion.
+     * If the discussion does not reference a line diff, the method will return {@code false}.
+     *
+     * @param discussionReference the reference of the discussion for which to attach a context diff
+     * @param contextDiff a serialized representation of a {@link UnifiedDiffBlock}
+     * @return {@code true} if the block has been properly attached to the discussion context
+     * @throws ChangeRequestDiscussionException in case of problem for processing the block
+     * @throws JsonProcessingException in case of problem for parsing the given serialization
+     * @since 1.5
+     */
+    public boolean attachDiffBlockMetadata(DiscussionReference discussionReference, String contextDiff)
+        throws ChangeRequestDiscussionException, JsonProcessingException
+    {
+        if (!StringUtils.isEmpty(contextDiff)) {
+            UnifiedDiffBlock<String, Character> diffBlock =
+                this.changeRequestDiscussionDiffUtils.deserialize(contextDiff);
+            return this.changeRequestDiscussionService.attachDiffBlockMetadata(discussionReference, diffBlock);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Try to retrieve a diff block metadata for the given discussion.
+     * This method should check if the discussion has a line diff context, and check in the metadata of this context
+     * if there's an attached diff block, in which case it will be deserialized and returned.
+     *
+     * @param changeRequestDiscussion the discussion for which to find the context metadata
+     * @return the attached {@link UnifiedDiffBlock} or {@code null}
+     * @throws ChangeRequestException in case of problem when deserializing the attached block
+     * @since 1.5
+     */
+    public UnifiedDiffBlock<String, Character> getDiffBlockMetadata(ChangeRequestDiscussion changeRequestDiscussion)
+        throws ChangeRequestException
+    {
+        if (changeRequestDiscussion.getReference() instanceof ChangeRequestLineDiffReference) {
+            return this.changeRequestDiscussionService.getDiffBlockMetadata(changeRequestDiscussion.getDiscussion())
+                .orElse(null);
+        } else {
+            return null;
+        }
     }
 }

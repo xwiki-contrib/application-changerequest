@@ -37,6 +37,7 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
+#template('diff_macros.vm')
 ## FIXME: This needs to be removed once we bump parent to next version
 ## Was added to workaround https://jira.xwiki.org/browse/XWIKI-19508
 #macro (wrappedDisplayUser $user $options)
@@ -115,6 +116,32 @@
   #define ($dataAttributes)
     data-type="$escapetool.xml($reference.type)" data-reference="$escapetool.xml($reference.reference)" $supplementaryData
   #end
+#end
+## Macro inspired for unifiedDiff macro in diff_macros.vm
+#macro (displayDiffBlockMetadata $block)
+  #set ($discard = $xwiki.ssfx.use('uicomponents/viewers/diff.css', true))
+  #set ($discard = $xwiki.jsfx.use('uicomponents/viewers/diff.js'))
+&lt;div class="diff-block-metadata"&gt;
+  &lt;div class="diff-container"&gt;
+    &lt;table&gt;
+      &lt;tr&gt;
+        &lt;td class="diff-line-number"&gt;...&lt;/td&gt;
+        &lt;td class="diff-line-number"&gt;...&lt;/td&gt;
+        #set ($previousMeta = "-$mathtool.add($block.previousStart, 1),$block.previousSize")
+        #set ($nextMeta = "+$mathtool.add($block.nextStart, 1),$block.nextSize")
+        &lt;td class="diff-line diff-line-meta"&gt;@@ $previousMeta $nextMeta @@&lt;/td&gt;
+      &lt;/tr&gt;
+      #foreach ($line in $block)
+        &lt;tr&gt;
+          #set ($lineNumber = $line.index + 1)
+          &lt;td class="diff-line-number"&gt;#if (!$line.added)$lineNumber#end&lt;/td&gt;
+          &lt;td class="diff-line-number"&gt;#if (!$line.deleted)$lineNumber#end&lt;/td&gt;
+          &lt;td class="diff-line diff-line-$line.type.toString().toLowerCase()"&gt;#unifiedDiffLine($line)&lt;/td&gt;
+        &lt;/tr&gt;
+      #end
+    &lt;/table&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 #end
 #macro (displayEventStatus $status)
   #set ($lowerCaseStatus = $stringtool.lowerCase($status))
@@ -356,6 +383,7 @@
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
