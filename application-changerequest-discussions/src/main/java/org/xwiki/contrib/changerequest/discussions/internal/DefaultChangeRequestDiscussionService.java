@@ -35,6 +35,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
@@ -49,7 +50,11 @@ import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionService;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
+import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
+import org.xwiki.diff.display.UnifiedDiffBlock;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Default implementation of {@link ChangeRequestDiscussionService}.
@@ -76,6 +81,9 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     @Inject
     @Named("compactwiki")
     private EntityReferenceSerializer<String> stringEntityReferenceSerializer;
+
+    @Inject
+    private ChangeRequestDiscussionDiffUtils changeRequestDiscussionDiffUtils;
 
     @Inject
     private Logger logger;
@@ -322,5 +330,56 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         getOrCreateDiscussionContextFor(T reference) throws ChangeRequestDiscussionException
     {
         return this.changeRequestDiscussionFactory.getOrCreateContextFor(reference);
+    }
+
+    @Override
+    public boolean attachDiffBlockMetadata(DiscussionReference discussionReference,
+        UnifiedDiffBlock<String, Character> contextBlock) throws ChangeRequestDiscussionException
+    {
+        boolean result = false;
+        Optional<Discussion> discussionOptional = this.discussionService.get(discussionReference);
+        if (discussionOptional.isPresent()) {
+            AbstractChangeRequestDiscussionContextReference reference = this.getReferenceFrom(discussionOptional.get());
+            if (reference instanceof ChangeRequestLineDiffReference) {
+                DiscussionContext discussionContext =
+                    this.changeRequestDiscussionFactory.getOrCreateContextFor(reference);
+
+                try {
+                    this.discussionContextService.saveMetadata(discussionContext,
+                        Collections.singletonMap(DIFF_CONTEXT_METADATA_KEY,
+                            this.changeRequestDiscussionDiffUtils.serialize(contextBlock)));
+                } catch (JsonProcessingException e) {
+                    throw new ChangeRequestDiscussionException("Error when trying to serialize the context block", e);
+                }
+                result = true;
+            } else {
+                logger.error("Trying to attach a diff context to a reference not of type line diff: [{}]", reference);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public Optional<UnifiedDiffBlock<String, Character>> getDiffBlockMetadata(Discussion discussion)
+        throws ChangeRequestException
+    {
+        Optional<UnifiedDiffBlock<String, Character>> result = Optional.empty();
+        List<DiscussionContext> discussionContexts =
+            this.discussionContextService.findByDiscussionReference(discussion.getReference());
+        for (DiscussionContext discussionContext : discussionContexts) {
+            Map<String, String> metadata = discussionContext.getMetadata();
+            if (metadata.containsKey(DIFF_CONTEXT_METADATA_KEY)) {
+                String jsonDiffBlockSerialization = metadata.get(DIFF_CONTEXT_METADATA_KEY);
+                try {
+                    result = Optional.of(this.changeRequestDiscussionDiffUtils.deserialize(jsonDiffBlockSerialization));
+                } catch (JsonProcessingException e) {
+                    throw new ChangeRequestException("Error when parsing json serialization of diff block", e);
+                }
+                break;
+            }
+        }
+
+        return result;
     }
 }

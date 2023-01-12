@@ -52,6 +52,10 @@
     #set ($lineChange = $request.get('changeType'))
     #set ($fileDiffReference = $services.changerequest.discussion.getOrCreateFileDiffReference($changeRequestId, $targetReference, $diffId))
     #set ($discussionReference = $services.changerequest.discussion.getOrCreateDiffDiscussion($fileDiffReference, $entityReference, $diffBlockId, $lineNumber, $lineChange))
+    #set ($diffBlockContext = $request.get('diffBlockContext'))
+    #if ("$!diffBlockContext" != "")
+      #set ($discard = $services.changerequest.discussion.attachDiffBlockMetadata($discussionReference, $diffBlockContext))
+    #end
   #elseif ($request.get('type') == 'comment')
     #set ($discussionReference = $services.changerequest.discussion.getOrCreateChangeRequestCommentDiscussion($changeRequestId))
   #elseif ($request.get('type') == 'replyTo')

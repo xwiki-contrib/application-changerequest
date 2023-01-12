@@ -20,12 +20,16 @@
 package org.xwiki.contrib.changerequest.discussions;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
+import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
+import org.xwiki.diff.display.UnifiedDiffBlock;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -42,6 +46,12 @@ public interface ChangeRequestDiscussionService
      * Hint used for change request in discussions: this hint should be used in all discussion references.
      */
     String APPLICATION_HINT = "changerequest";
+
+    /**
+     * Metadata key used to store diff block in the discussion context (see {@link DiscussionContext#getMetadata()}).
+     * @since 1.5
+     */
+    String DIFF_CONTEXT_METADATA_KEY = "diffContext";
 
     /**
      * Allow to get or create a discussion based on the given reference.
@@ -129,4 +139,35 @@ public interface ChangeRequestDiscussionService
     {
         return null;
     }
+
+    /**
+     * Attach the given diff block to the given discussion, as a context diff of the discussion.
+     * The method returns {@code true} if the diff has been properly serialized and saved to the context of the
+     * discussion. If the discussion does not reference a line diff, the method will return {@code false}.
+     *
+     * @param discussionReference the reference of the discussion for which to attach a context diff
+     * @param contextBlock the block representing the context diff
+     * @return {@code true} if the context has been properly serialized and saved to the discussion context,
+     *         {@code false} otherwise
+     * @throws ChangeRequestDiscussionException if there's a problem when serializing the context block
+     * @since 1.5
+     */
+    boolean attachDiffBlockMetadata(DiscussionReference discussionReference,
+        UnifiedDiffBlock<String, Character> contextBlock) throws ChangeRequestDiscussionException;
+
+    /**
+     * Try to retrieve a diff block metadata for the given discussion.
+     * This method should check if the discussion has a line diff context, and check in the metadata of this context
+     * if there's an attached diff block, in which case it will be deserialized and returned. In all other cases,
+     * the method will return an {@link Optional#empty()}.
+     *
+     * @param discussion a discussion for which to retrieve a diff block metadata
+     * @return the deserialized {@link UnifiedDiffBlock} if there was one attached to the discussion context,
+     *          {@link Optional#empty()} otherwise.
+     * @throws ChangeRequestException in case of problem for deserializing the diff block
+     * @see #attachDiffBlockMetadata(DiscussionReference, UnifiedDiffBlock)
+     * @since 1.5
+     */
+    Optional<UnifiedDiffBlock<String, Character>> getDiffBlockMetadata(Discussion discussion)
+        throws ChangeRequestException;
 }
