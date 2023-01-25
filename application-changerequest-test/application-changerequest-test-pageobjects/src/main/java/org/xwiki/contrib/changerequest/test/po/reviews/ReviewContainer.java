@@ -24,6 +24,7 @@ import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.xwiki.ckeditor.test.po.CKEditor;
+import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseElement;
 
@@ -104,13 +105,15 @@ public class ReviewContainer extends BaseElement
 
     /**
      * Click on the save button and wait for the page to be reloaded.
+     * @return a new instance of {@link ChangeRequestPage} after the reload
      */
-    public void save()
+    public ChangeRequestPage save()
     {
         // Right now the page is reloaded when a review is posted.
         getDriver().addPageNotYetReloadedMarker();
         this.getSaveButton().click();
         getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
     }
 
     /**

@@ -38,7 +38,7 @@ import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.SuggestInputElement;
 import org.xwiki.test.ui.po.diff.EntityDiff;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -114,7 +114,7 @@ public class MinimumApproversIT
         assertTrue(extendedViewPage.hasChangeRequestCreate());
         ExtendedCreatePage extendedCreatePage = extendedViewPage.clickChangeRequestCreate();
 
-        ExtendedEditPage<WYSIWYGEditPage> editPage = extendedCreatePage.clickChangeRequestCreateButton();
+        ExtendedEditPage<WikiEditPage> editPage = extendedCreatePage.clickChangeRequestCreateButton();
         editPage.getEditor().setContent("Some content to the page");
         ChangeRequestSaveModal changeRequestSaveModal = editPage.clickSaveAsChangeRequest();
         assertFalse(changeRequestSaveModal.isMinimumApproverErrorDisplayed());

@@ -73,4 +73,10 @@ public class AllITs
     class NestedChangeRequestEditionIT extends ChangeRequestEditionIT
     {
     }
+
+    @Nested
+    @DisplayName("Merging change request")
+    class NestedChangeRequestMergeIT extends ChangeRequestMergeIT
+    {
+    }
 }

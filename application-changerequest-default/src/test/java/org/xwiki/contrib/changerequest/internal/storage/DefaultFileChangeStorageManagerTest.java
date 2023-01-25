@@ -610,7 +610,7 @@ class DefaultFileChangeStorageManagerTest
         this.fileChangeStorageManager.merge(fileChange);
         verify(targetDoc).clone();
         verify(targetDoc).setCreatorReference(mergerReference);
-        verify(targetDoc).setVersion("1.1");
+        verify(targetDoc).setRCSVersion(null);
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
     }
 
