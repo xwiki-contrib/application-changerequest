@@ -23,8 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
+import org.xwiki.ckeditor.test.po.CKEditor;
 import org.xwiki.test.ui.po.CreatePagePage;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 /**
  * Page object to represents the create page template with some button possibly injected by change request.
@@ -68,16 +69,34 @@ public class ExtendedCreatePage extends CreatePagePage
     }
 
     /**
+     * xplicitely click on the change request create button and returns the opened wiki editor.
+     * @return the wiki editor opened after clicking on the create button.
+     */
+    public ExtendedEditPage<WikiEditPage> clickChangeRequestCreateButton()
+    {
+        return (ExtendedEditPage<WikiEditPage>) clickChangeRequestCreateButton(false);
+    }
+
+    /**
      * Explicitely click on the change request create button and returns the opened editor.
      *
-     * @return the wysiwyg editor opened after clicking on the create button.
+     * @param isWysiwygEditor if {@code true} the editor will be a {@link CKEditor} else it will be a
+     *                        {@link WikiEditPage}.
+     * @return the editor opened after clicking on the create button.
      */
-    public ExtendedEditPage<WYSIWYGEditPage> clickChangeRequestCreateButton()
+    public ExtendedEditPage clickChangeRequestCreateButton(boolean isWysiwygEditor)
     {
         WebElement button = getDriver().findElementWithoutWaiting(By.id(CR_CREATE_BUTTON_ID));
         button.click();
-        ExtendedEditPage<WYSIWYGEditPage> extendedEditPage = new ExtendedEditPage<>(new WYSIWYGEditPage());
-        extendedEditPage.getEditor().waitUntilPageIsReady();
-        return extendedEditPage;
+        ExtendedEditPage result;
+        if (isWysiwygEditor) {
+            CKEditor editor = new CKEditor("content");
+            editor.waitToLoad();
+            result = new ExtendedEditPage<>(editor);
+        } else {
+            result = new ExtendedEditPage<>(new WikiEditPage());
+        }
+
+        return result;
     }
 }

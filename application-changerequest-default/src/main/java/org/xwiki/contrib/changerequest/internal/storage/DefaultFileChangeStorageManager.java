@@ -95,8 +95,6 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 {
     private static final String ATTACHMENT_EXTENSION = "xml";
 
-    private static final String FIRST_VERSION = "1.1";
-
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -464,7 +462,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         FileChange clone;
         if (currentDocument.isNew()) {
             clone = fileChange.cloneWithType(FileChange.FileChangeType.CREATION);
-            clone.setPreviousPublishedVersion(FIRST_VERSION, new Date());
+            clone.setPreviousPublishedVersion("1.1", new Date());
         } else {
             clone = fileChange.clone();
             clone = this.performMergeForRebase(clone, currentDocument);
@@ -551,7 +549,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         // the creator of the document should be the merge user.
         modifiedDoc.setCreatorReference(context.getUserReference());
         // When merging a document that does not exist yet, we need to ensure to reset its version to 1.1
-        modifiedDoc.setVersion(FIRST_VERSION);
+        modifiedDoc.setRCSVersion(null);
         try {
             wiki.saveDocument(modifiedDoc, getMergeSaveMessage(fileChange), context);
         } catch (XWikiException e) {
