@@ -90,6 +90,7 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
     protected ObservationManager observationManager;
 
     @Inject
+    @Named("current")
     protected DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Inject

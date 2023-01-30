@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -85,6 +86,7 @@ class CreateChangeRequestHandlerTest
     protected ObservationManager observationManager;
 
     @MockComponent
+    @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @MockComponent
