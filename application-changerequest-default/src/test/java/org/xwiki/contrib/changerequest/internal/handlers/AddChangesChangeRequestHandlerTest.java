@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 import java.util.Date;
 import java.util.Optional;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -104,6 +105,7 @@ class AddChangesChangeRequestHandlerTest
     protected ObservationManager observationManager;
 
     @MockComponent
+    @Named("current")
     protected DocumentReferenceResolver<String> documentReferenceResolver;
 
     @MockComponent
