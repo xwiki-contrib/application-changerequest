@@ -43,7 +43,6 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
-import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -73,9 +72,6 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     @Inject
     @Named("context")
     private ComponentManager componentManager;
-
-    @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
 
     @Inject
     private ChangeRequestMergeManager changeRequestMergeManager;
