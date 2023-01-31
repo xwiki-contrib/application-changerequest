@@ -222,7 +222,7 @@ public class FilechangesLiveDataElement extends BaseElement
             if (optionalActionLink.isPresent()) {
                 optionalActionLink.get().click();
                 ExtendedEditPage<WikiEditPage> extendedEditPage = new ExtendedEditPage<>(new WikiEditPage());
-                extendedEditPage.getEditor().waitUntilPageIsReady();
+                extendedEditPage.getWrappedEditor().waitUntilPageIsReady();
                 return extendedEditPage;
             } else {
                 throw new NoSuchElementException(

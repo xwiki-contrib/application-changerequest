@@ -219,6 +219,14 @@ public class ChangeRequestSaveModal extends BaseModal
     }
 
     /**
+     * @return the other error message.
+     */
+    public String getOtherErrorMessage()
+    {
+        return getDriver().findElementWithoutWaiting(getErrorContainer(), By.id("otherError")).getText();
+    }
+
+    /**
      * @return {@code true} if the specific error related to minimum number of approvers is displayed.
      */
     public boolean isMinimumApproverErrorDisplayed()

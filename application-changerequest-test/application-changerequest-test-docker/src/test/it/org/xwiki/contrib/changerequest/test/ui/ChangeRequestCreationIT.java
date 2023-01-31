@@ -128,7 +128,7 @@ class ChangeRequestCreationIT
         // Save the date for checking the events
         Date dateBeforeCR = new Date();
         ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
-        extendedEditPage.getEditor().setContent("Some new content.");
+        extendedEditPage.getWrappedEditor().setContent("Some new content.");
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
 
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();

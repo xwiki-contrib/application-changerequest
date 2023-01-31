@@ -128,7 +128,7 @@ class SplitChangeRequestIT
         setup.gotoPage(fooBarPageRef);
         ExtendedViewPage viewPage = new ExtendedViewPage();
         ExtendedEditPage<WikiEditPage> editPage = viewPage.clickStandardEdit();
-        editPage.getEditor().setContent("Some changes");
+        editPage.getWrappedEditor().setContent("Some changes");
         ChangeRequestSaveModal saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("SplitTest");
         ChangeRequestPage changeRequestPage = saveModal.clickSave();
@@ -137,7 +137,7 @@ class SplitChangeRequestIT
         setup.gotoPage(buzBazPageRef);
         viewPage = new ExtendedViewPage();
         editPage = viewPage.clickStandardEdit();
-        editPage.getEditor().setContent("Some other changes");
+        editPage.getWrappedEditor().setContent("Some other changes");
         saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.openAddChangesToExistingChangeRequestCollapse();
         SuggestInputElement.SuggestionElement selectedCR = saveModal.selectExistingChangeRequest("SplitTest");
