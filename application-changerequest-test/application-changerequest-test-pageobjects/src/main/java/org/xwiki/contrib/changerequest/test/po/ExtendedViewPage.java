@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.test.po;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
+import org.xwiki.ckeditor.test.po.CKEditor;
 import org.xwiki.test.ui.po.ViewPage;
 import org.xwiki.test.ui.po.editor.WikiEditPage;
 
@@ -69,9 +70,28 @@ public class ExtendedViewPage extends ViewPage
      */
     public ExtendedEditPage<WikiEditPage> clickStandardEdit()
     {
+        return this.clickStandardEdit(false);
+    }
+
+    /**
+     * Click on the standard edit button and returns the extended edit page that has been opened.
+     *
+     * @param isWysiwyg {@code true} if the wysiwyg editor should be used.
+     * @return a new instance of extended edit page.
+     */
+    public ExtendedEditPage clickStandardEdit(boolean isWysiwyg)
+    {
         super.edit();
-        ExtendedEditPage<WikiEditPage> extendedEditPage = new ExtendedEditPage<>(new WikiEditPage());
-        extendedEditPage.getEditor().waitUntilPageIsReady();
+        ExtendedEditPage extendedEditPage;
+        if (isWysiwyg) {
+            CKEditor editor = new CKEditor("content");
+            editor.waitToLoad();
+            extendedEditPage = new ExtendedEditPage<>(editor);
+        } else {
+            WikiEditPage wikiEditPage = new WikiEditPage();
+            extendedEditPage = new ExtendedEditPage<>(wikiEditPage);
+            wikiEditPage.waitUntilPageIsReady();
+        }
         return extendedEditPage;
     }
 
@@ -84,7 +104,7 @@ public class ExtendedViewPage extends ViewPage
     {
         getDriver().findElement(By.id(CR_EDIT_ID)).findElement(By.className("btn-default")).click();
         ExtendedEditPage<WikiEditPage> extendedEditPage = new ExtendedEditPage<>(new WikiEditPage());
-        extendedEditPage.getEditor().waitUntilPageIsReady();
+        extendedEditPage.getWrappedEditor().waitUntilPageIsReady();
         return extendedEditPage;
     }
 

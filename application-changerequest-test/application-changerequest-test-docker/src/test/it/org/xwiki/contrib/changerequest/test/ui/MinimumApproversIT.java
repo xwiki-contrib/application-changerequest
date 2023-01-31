@@ -115,7 +115,7 @@ public class MinimumApproversIT
         ExtendedCreatePage extendedCreatePage = extendedViewPage.clickChangeRequestCreate();
 
         ExtendedEditPage<WikiEditPage> editPage = extendedCreatePage.clickChangeRequestCreateButton();
-        editPage.getEditor().setContent("Some content to the page");
+        editPage.getWrappedEditor().setContent("Some content to the page");
         ChangeRequestSaveModal changeRequestSaveModal = editPage.clickSaveAsChangeRequest();
         assertFalse(changeRequestSaveModal.isMinimumApproverErrorDisplayed());
 

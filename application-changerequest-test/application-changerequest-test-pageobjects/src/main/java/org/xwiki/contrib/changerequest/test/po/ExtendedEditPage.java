@@ -20,7 +20,7 @@
 package org.xwiki.contrib.changerequest.test.po;
 
 import org.openqa.selenium.By;
-import org.xwiki.test.ui.po.BaseElement;
+import org.xwiki.test.ui.po.editor.EditPage;
 
 /**
  * Represents an edit page with the capability to save as change request.
@@ -30,7 +30,7 @@ import org.xwiki.test.ui.po.BaseElement;
  * @version $Id$
  * @since 0.5
  */
-public class ExtendedEditPage<T> extends BaseElement
+public class ExtendedEditPage<T> extends EditPage
 {
     private static final String SAVE_CHANGE_REQUEST_ID = "save_changerequest";
     private static final String STANDARD_SAVE_NAME = "action_save";
@@ -49,7 +49,7 @@ public class ExtendedEditPage<T> extends BaseElement
     /**
      * @return the actual editor used.
      */
-    public T getEditor()
+    public T getWrappedEditor()
     {
         return this.editor;
     }

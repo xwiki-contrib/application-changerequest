@@ -351,7 +351,7 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>define('SaveChangeRequestModal', ['jquery', 'xwiki-meta'], function ($, xm) {
+      <code>define('SaveChangeRequestModal', ['jquery', 'xwiki-meta', 'bootstrap'], function ($, xm) {
 
   var saveChangeRequestModal = function (configName) {
     var self = this;
@@ -428,27 +428,51 @@
           window.location.href = data.changeRequestUrl;
         }
       });
+
+      var originalAction;
+      var wasAsync;
+
+      var rollbackForm = function () {
+          if (saveConfig.isInplaceEditing) {
+              form['action'] = originalAction;
+              if (wasAsync) {
+                  form['async'] = 'true';
+              }
+          } else {
+              form.attr('action', originalAction);
+              if (wasAsync) {
+                form.find('input[name=async]').val('true');
+              }
+          }
+      }
+
       if (saveConfig.isDeletion) {
         actionURLParams.append("deletion", "1");
+        originalAction = form.attr('action');
         form.attr('action', actionURL + "?" + actionURLParams.toString());
         $('#saveChangeRequest').trigger('xwiki:document:saved');
         form.submit();
       } else if (saveConfig.isApproversEdition) {
+        originalAction = form.attr('action');
         form.attr('action', actionURL + "?" + actionURLParams.toString());
         $('#saveChangeRequest').trigger('xwiki:document:saved');
         form.submit();
       } else {
         var beforeSaveEvent = $.Event('xwiki:actions:beforeSave', {target: event.target});
         if (saveConfig.isInplaceEditing) {
+          originalAction = form['action'];
           form['action'] = actionURL + "?" + actionURLParams.toString();
           // if there's a template we specify to use sync save, in order to trick actionButtons.js
           if (form['template'] !== "") {
+            wasAsync = form['async'] == "true";
             form['async'] = "false";
           }
           var data =  {form: form, continue: true};
         } else {
+          originalAction = form.attr('action');
           form.attr('action', actionURL + "?" + actionURLParams.toString());
           if (form.find('input[name=template]').val() !== "") {
+            wasAsync = form.find('input[name=async]').val() == 'true';
             form.find('input[name=async]').val('false');
           }
           var data =  {form: form[0], continue: true};
@@ -461,6 +485,13 @@
         $(document).trigger(beforeSaveEvent, data);
       }
       $(document).on('xwiki:document:saveFailed', function (event, data) {
+        rollbackForm();
+        $(document).one('xwiki:dom:updated', function() {
+          // The conflict modal might have been shown in case of conflict, but we don't want to deal with it.
+          if ($('#previewDiffModal')) {
+            $('#previewDiffModal').modal('hide');
+          }
+        });
         $('#otherError').removeClass('hidden');
         $('#otherError').find('.details').text(data.response.responseJSON.changeRequestError);
       });

@@ -230,7 +230,7 @@ class ChangeRequestConflictsIT
         extendedCreatePage.getDocumentPicker().setTitle(pageName);
 
         ExtendedEditPage<WikiEditPage> extendedEditPage = extendedCreatePage.clickChangeRequestCreateButton();
-        extendedEditPage.getEditor().setContent("Some content on the new page");
+        extendedEditPage.getWrappedEditor().setContent("Some content on the new page");
         assertFalse(extendedEditPage.hasStandardSaveButton());
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
@@ -336,7 +336,7 @@ class ChangeRequestConflictsIT
         extendedCreatePage.getDocumentPicker().setTitle(pageName);
 
         ExtendedEditPage<WikiEditPage> extendedEditPage = extendedCreatePage.clickChangeRequestCreateButton();
-        extendedEditPage.getEditor().setContent("Some content on the new page");
+        extendedEditPage.getWrappedEditor().setContent("Some content on the new page");
         assertFalse(extendedEditPage.hasStandardSaveButton());
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
@@ -427,7 +427,7 @@ class ChangeRequestConflictsIT
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
         ExtendedEditPage<WikiEditPage> editPage = extendedViewPage.clickChangeRequestEdit();
 
-        editPage.getEditor().setTitle("A new title");
+        editPage.getWrappedEditor().setTitle("A new title");
         ChangeRequestSaveModal saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("CR1");
 
@@ -444,7 +444,7 @@ class ChangeRequestConflictsIT
         extendedViewPage = new ExtendedViewPage();
         editPage = extendedViewPage.clickChangeRequestEdit();
 
-        editPage.getEditor().setContent("A new content");
+        editPage.getWrappedEditor().setContent("A new content");
         saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("CR2");
 

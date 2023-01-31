@@ -36,7 +36,6 @@ import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.HistoryPane;
 import org.xwiki.test.ui.po.ViewPage;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,7 +72,7 @@ public class ChangeRequestMergeIT
 
         assertTrue(extendedCreatePage.hasChangeRequestCreateButton());
         ExtendedEditPage<CKEditor> extendedEditPage = extendedCreatePage.clickChangeRequestCreateButton(true);
-        extendedEditPage.getEditor().getRichTextArea().setContent("Some content in the new page");
+        extendedEditPage.getWrappedEditor().getRichTextArea().setContent("Some content in the new page");
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.setChangeRequestTitle("Merge new page");
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();

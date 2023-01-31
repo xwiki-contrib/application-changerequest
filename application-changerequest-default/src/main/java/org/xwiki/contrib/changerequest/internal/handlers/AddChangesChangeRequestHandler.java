@@ -145,80 +145,123 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         throws ChangeRequestException, IOException
     {
         FileChange fileChange = null;
-        String previousVersion;
-        String fileChangeVersion = "";
 
         switch (fileChangeType) {
             case CREATION:
-                fileChange = new FileChange(changeRequest, FileChange.FileChangeType.CREATION);
-                fileChangeVersion =
-                    this.fileChangeVersionManager.getNextFileChangeVersion("", false);
-                fileChange
-                    .setVersion(fileChangeVersion)
-                    .setModifiedDocument(modifiedDocument);
+                fileChange = createFileChangeForCreation(changeRequest, modifiedDocument, documentReference, request);
                 break;
 
             case DELETION:
-                fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
-                previousVersion = modifiedDocument.getVersion();
-                fileChangeVersion =
-                    this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
-                fileChange
-                    .setVersion(fileChangeVersion)
-                    .setPreviousVersion(previousVersion)
-                    .setPreviousPublishedVersion(previousVersion, modifiedDocument.getDate());
+                fileChange = createFileChangeForDeletion(changeRequest, modifiedDocument);
                 break;
 
             case EDITION:
-                fileChange = new FileChange(changeRequest);
-
-                Optional<FileChange> optionalFileChange = changeRequest.getLatestFileChangeFor(documentReference);
-                previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
-                XWikiContext context = this.contextProvider.get();
-                XWikiDocument previousDoc;
-                try {
-                    XWikiDocumentArchive xWikiDocumentArchive =
-                        context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
-                    previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
-                } catch (XWikiException e) {
-                    throw new ChangeRequestException(
-                        String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
-                            modifiedDocument), e);
-                }
-
-                if (optionalFileChange.isPresent()) {
-                    if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
-                        optionalFileChange.get(), modifiedDocument))
-                    {
-                        return null;
-                    }
-                } else {
-                    if (!this.changeRequestRightsManager
-                        .isViewAccessConsistent(changeRequest, modifiedDocument.getDocumentReferenceWithLocale())) {
-
-                        // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
-                        // as a needed precondition for the request to be handled.
-                        this.reportError(HttpStatus.SC_PRECONDITION_FAILED, "changerequest.save.error.rightsconflict");
-                        return null;
-                    }
-                    fileChangeVersion =
-                        this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
-                    fileChange
-                        .setVersion(fileChangeVersion)
-                        .setPreviousVersion(previousVersion)
-                        .setPreviousPublishedVersion(previousVersion, previousDoc.getDate())
-                        .setModifiedDocument(modifiedDocument);
-                }
+                fileChange = createFileChangeForEdition(changeRequest, modifiedDocument, documentReference, request);
                 break;
 
             default:
                 throw new ChangeRequestException(
                     String.format("Unknown file change type: [%s]", fileChange));
         }
-        fileChange
-            .setAuthor(currentUser)
-            .setTargetEntity(documentReference);
+        if (fileChange != null) {
+            fileChange
+                .setAuthor(currentUser)
+                .setTargetEntity(documentReference);
+        }
 
+        return fileChange;
+    }
+
+    private FileChange createFileChangeForEdition(ChangeRequest changeRequest, XWikiDocument modifiedDocument,
+        DocumentReference documentReference, HttpServletRequest request) throws ChangeRequestException, IOException
+    {
+        String previousVersion;
+        FileChange fileChange;
+        String fileChangeVersion;
+        Optional<FileChange> previousFileChange;
+        fileChange = new FileChange(changeRequest);
+
+        previousFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+        previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
+        XWikiContext context = this.contextProvider.get();
+        XWikiDocument previousDoc;
+        try {
+            XWikiDocumentArchive xWikiDocumentArchive =
+                context.getWiki().getVersioningStore().getXWikiDocumentArchive(modifiedDocument, context);
+            previousDoc = xWikiDocumentArchive.loadDocument(new Version(previousVersion), context);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error when trying to load previous version [%s] of doc [%s]", previousVersion,
+                    modifiedDocument), e);
+        }
+
+        if (previousFileChange.isPresent()) {
+            if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
+                previousFileChange.get(), modifiedDocument))
+            {
+                fileChange = null;
+            }
+        } else {
+            if (!this.changeRequestRightsManager
+                .isViewAccessConsistent(changeRequest, modifiedDocument.getDocumentReferenceWithLocale())) {
+
+                // We're using 412 to distinguish with 409 data conflict, the right consistency can be seen
+                // as a needed precondition for the request to be handled.
+                this.reportError(HttpStatus.SC_PRECONDITION_FAILED, "changerequest.save.error.rightsconflict");
+                fileChange = null;
+            } else {
+                fileChangeVersion =
+                    this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+                fileChange
+                    .setVersion(fileChangeVersion)
+                    .setPreviousVersion(previousVersion)
+                    .setPreviousPublishedVersion(previousVersion, previousDoc.getDate())
+                    .setModifiedDocument(modifiedDocument);
+            }
+        }
+        return fileChange;
+    }
+
+    private FileChange createFileChangeForDeletion(ChangeRequest changeRequest, XWikiDocument modifiedDocument)
+    {
+        String previousVersion;
+        String fileChangeVersion;
+        FileChange fileChange;
+        fileChange = new FileChange(changeRequest, FileChange.FileChangeType.DELETION);
+        previousVersion = modifiedDocument.getVersion();
+        fileChangeVersion =
+            this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+        fileChange
+            .setVersion(fileChangeVersion)
+            .setPreviousVersion(previousVersion)
+            .setPreviousPublishedVersion(previousVersion, modifiedDocument.getDate());
+        return fileChange;
+    }
+
+    private FileChange createFileChangeForCreation(ChangeRequest changeRequest, XWikiDocument modifiedDocument,
+        DocumentReference documentReference, HttpServletRequest request) throws ChangeRequestException, IOException
+    {
+        Optional<FileChange> previousFileChange;
+        FileChange fileChange;
+        String fileChangeVersion;
+        fileChange = new FileChange(changeRequest, FileChange.FileChangeType.CREATION);
+        previousFileChange = changeRequest.getLatestFileChangeFor(documentReference);
+        fileChangeVersion =
+            this.fileChangeVersionManager.getNextFileChangeVersion("", false);
+        fileChange
+            .setVersion(fileChangeVersion)
+            .setModifiedDocument(modifiedDocument);
+        if (previousFileChange.isPresent()) {
+            if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
+                previousFileChange.get(), modifiedDocument))
+            {
+                fileChange = null;
+            }
+        } else {
+            fileChange
+                .setVersion(fileChangeVersion)
+                .setModifiedDocument(modifiedDocument);
+        }
         return fileChange;
     }
 

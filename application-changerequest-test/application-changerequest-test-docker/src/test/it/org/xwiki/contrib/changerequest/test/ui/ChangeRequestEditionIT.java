@@ -87,7 +87,7 @@ public class ChangeRequestEditionIT
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
 
         ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickStandardEdit();
-        extendedEditPage.getEditor().setContent("Some new content.");
+        extendedEditPage.getWrappedEditor().setContent("Some new content.");
         ChangeRequestSaveModal saveModal = extendedEditPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("CR1_editDocument");
         ChangeRequestPage changeRequestPage = saveModal.clickSave();
@@ -114,9 +114,9 @@ public class ChangeRequestEditionIT
         assertEquals("1.1", rowElement.getPublishedDocumentVersion());
         assertTrue(rowElement.isEditActionAvailable());
         ExtendedEditPage<WikiEditPage> wikiEditPageExtendedEditPage = rowElement.clickEdit();
-        assertEquals("Some new content.", wikiEditPageExtendedEditPage.getEditor().getContent());
+        assertEquals("Some new content.", wikiEditPageExtendedEditPage.getWrappedEditor().getContent());
 
-        wikiEditPageExtendedEditPage.getEditor().setContent("Second edition");
+        wikiEditPageExtendedEditPage.getWrappedEditor().setContent("Second edition");
         changeRequestPage = wikiEditPageExtendedEditPage.clickSaveAsChangeRequestInExistingCR();
 
         fileChangesPane = changeRequestPage.openFileChanges();
@@ -180,8 +180,8 @@ public class ChangeRequestEditionIT
             ExtendedViewPage extendedViewPage = new ExtendedViewPage();
 
             ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickStandardEdit();
-            assertEquals("Some french content to the test page.", extendedEditPage.getEditor().getContent());
-            extendedEditPage.getEditor().setContent("Some new content.");
+            assertEquals("Some french content to the test page.", extendedEditPage.getWrappedEditor().getContent());
+            extendedEditPage.getWrappedEditor().setContent("Some new content.");
             ChangeRequestSaveModal saveModal = extendedEditPage.clickSaveAsChangeRequest();
             saveModal.setChangeRequestTitle("CR1_editDocumentwithLocale");
             ChangeRequestPage changeRequestPage = saveModal.clickSave();
@@ -196,7 +196,7 @@ public class ChangeRequestEditionIT
             FilechangesLiveDataElement.FilechangesRowElement rowElement = fileChanges.get(0);
             assertTrue(rowElement.isEditActionAvailable());
             ExtendedEditPage<WikiEditPage> wikiEditPageExtendedEditPage = rowElement.clickEdit();
-            assertEquals("Some new content.", wikiEditPageExtendedEditPage.getEditor().getContent());
+            assertEquals("Some new content.", wikiEditPageExtendedEditPage.getWrappedEditor().getContent());
         } finally {
             testUtils.loginAsSuperAdmin();
             testUtils.setWikiPreference("languages", "en");

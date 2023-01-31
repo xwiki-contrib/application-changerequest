@@ -145,7 +145,7 @@ class DelegateApproversIT
         assertTrue(extendedViewPage.hasStandardEditButton());
 
         ExtendedEditPage<WikiEditPage> editPage = extendedViewPage.clickStandardEdit();
-        editPage.getEditor().setContent("Some new content");
+        editPage.getWrappedEditor().setContent("Some new content");
         ChangeRequestSaveModal saveModal = editPage.clickSaveAsChangeRequest();
         saveModal.setChangeRequestTitle("Delegate test");
         ChangeRequestPage changeRequestPage = saveModal.clickSave();
@@ -296,7 +296,7 @@ class DelegateApproversIT
         assertTrue(fileChangeWithReference.isEditActionAvailable());
 
         editPage = fileChangeWithReference.clickEdit();
-        editPage.getEditor().setContent("Some new content with some new change");
+        editPage.getWrappedEditor().setContent("Some new content with some new change");
         changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR();
 
         reviewsPane = changeRequestPage.openReviewsPane();
