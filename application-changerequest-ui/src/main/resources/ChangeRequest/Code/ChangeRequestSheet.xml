@@ -56,6 +56,8 @@
 #set ($showcomments = false)
 #set ($showannotations = false)
 #set ($showattachments = false)
+## The history tab can be confusing for new users so better not display it by default.
+#set ($showhistory = false)
 #set ($changeRequestSheetJSXConfig = {
   'hasCommentRight': $services.changerequest.authorization.isAuthorizedToComment($changeRequest)
 })
