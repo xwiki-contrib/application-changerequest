@@ -34,6 +34,7 @@ import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
 import org.xwiki.contrib.changerequest.test.po.description.TimelineEvent;
+import org.xwiki.contrib.changerequest.test.po.filechanges.FilechangesLiveDataElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
@@ -106,7 +107,7 @@ class ChangeRequestCreationIT
     {
         String serializedReference = testReference.getLocalDocumentReference().toString();
         setup.loginAsSuperAdmin();
-        setup.createPage(testReference, "Some content to the test page.");
+        setup.createPage(testReference, "Some content to the test page.", "Some title");
 
         setup.setRights(testReference, "", CR_CREATOR, "edit", false);
         setup.setRights(testReference, "", CR_CREATOR, "changerequest", true);
@@ -129,6 +130,7 @@ class ChangeRequestCreationIT
         Date dateBeforeCR = new Date();
         ExtendedEditPage<WikiEditPage> extendedEditPage = extendedViewPage.clickChangeRequestEdit();
         extendedEditPage.getWrappedEditor().setContent("Some new content.");
+        extendedEditPage.getWrappedEditor().setTitle("A new title");
         assertTrue(extendedEditPage.hasSaveAsChangeRequestButton());
 
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
@@ -150,8 +152,7 @@ class ChangeRequestCreationIT
         TimelineEvent timelineEvent = events.get(0);
         assertTrue(timelineEvent.getDate().after(dateBeforeCR));
         assertTrue(timelineEvent.getDate().before(dateAfterCR));
-        assertEquals("CRCreator created the change request with changes concerning "
-                + "xwiki:" + serializedReference,
+        assertEquals("CRCreator created the change request with changes concerning Some title",
             timelineEvent.getContent().getText());
 
         // Update the description and check related event
@@ -177,15 +178,24 @@ class ChangeRequestCreationIT
 
         // Check the diff
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        assertEquals(1, fileChangesPane.getFileChangesListLiveData().countRows());
+        FilechangesLiveDataElement fileChangesListLiveData = fileChangesPane.getFileChangesListLiveData();
+        assertEquals(1, fileChangesListLiveData.countRows());
+        assertEquals("A new title",
+            fileChangesListLiveData.getFileChangeWithReference(serializedReference).getTitle());
+
         DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(serializedReference);
-        assertEquals("(2 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
+        assertEquals("(3 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
 
         EntityDiff contentDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
         List<String> content = contentDiff.getDiff("Content");
         assertEquals(3, content.size());
         assertEquals("-Some content<del> to the test page</del>.", content.get(1));
         assertEquals("+Some <ins>new </ins>content.", content.get(2));
+
+        content = contentDiff.getDiff("Title");
+        assertEquals(3, content.size());
+        assertEquals("-<del>Som</del>e title", content.get(1));
+        assertEquals("+<ins>A n</ins>e<ins>w</ins> title", content.get(2));
 
         // Check the review tab
         ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();

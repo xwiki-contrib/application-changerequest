@@ -36,9 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output="false"}}
-#template("displayer_page.vm")
-{{/velocity}}
+  <content>{{include reference="ChangeRequest.Code.ChangeRequestMacros"/}}
 {{velocity wiki="false"}}
 #if ("$!request.get('changerequest')" == '')
 Technical page for getting livetable data for change request file changes.
@@ -84,7 +82,7 @@ Technical page for getting livetable data for change request file changes.
           'doc_fullName': $services.model.serialize($docReference, 'local'),
           'doc_space': $services.model.serialize($docReference.parent, 'local'),
           'doc_location': "#hierarchy($docReference, {'limit': 5, 'plain': false, 'local': true, 'displayTitle': false})",
-          'doc_title': "#displayPageReference($docReference)",
+          'doc_title': "#displayFileChangeTitle($lastFileChange)",
           'doc_isNew': "$concernedDoc.isNew()",
           'doc_url': $xwiki.getURL($docReference),
           'doc_space_url': $xwiki.getURL($docReference.parent),

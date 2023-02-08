@@ -188,11 +188,10 @@ class DefaultChangeRequestMergeManagerTest
         when(currentDoc.isNew()).thenReturn(true);
         DocumentReference documentReference = mock(DocumentReference.class);
         when(currentDoc.getDocumentReference()).thenReturn(documentReference);
-        when(documentReference.toString()).thenReturn("Some.Reference");
 
         expectedResult =
             new ChangeRequestMergeDocumentResult(mergeDocumentResult, false, fileChange, "1.1", new Date(45))
-                .setDocumentTitle("Some.Reference");
+                .setDocumentTitle("Some title");
         assertEquals(expectedResult, this.crMergeManager.getMergeDocumentResult(fileChange));
 
         when(currentDoc.getVersion()).thenReturn("1.2");
@@ -207,6 +206,7 @@ class DefaultChangeRequestMergeManagerTest
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         XWikiDocument nextDoc = mock(XWikiDocument.class);
         when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(nextDoc);
+        when(nextDoc.getRenderedTitle(this.context)).thenReturn("Some other title");
 
         DocumentReference userReference = mock(DocumentReference.class);
         when(this.context.getUserReference()).thenReturn(userReference);
@@ -225,7 +225,7 @@ class DefaultChangeRequestMergeManagerTest
             });
 
         expectedResult = new ChangeRequestMergeDocumentResult(mergeDocumentResult2, fileChange, "1.1", new Date(45))
-            .setDocumentTitle("Some title");
+            .setDocumentTitle("Some other title");
         assertEquals(expectedResult, this.crMergeManager.getMergeDocumentResult(fileChange));
     }
 
