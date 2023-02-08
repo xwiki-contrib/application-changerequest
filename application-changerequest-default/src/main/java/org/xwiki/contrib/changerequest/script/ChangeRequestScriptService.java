@@ -34,7 +34,9 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -131,7 +133,7 @@ public class ChangeRequestScriptService implements ScriptService
     private DelegateApproverManager<FileChange> delegateApproverManager;
 
     @Inject
-    private ChangeRequestDiffManager diffManager;
+    private ChangeRequestDiffManager defaultDiffManager;
 
     @Inject
     private WikiUserManager wikiUserManager;
@@ -147,6 +149,9 @@ public class ChangeRequestScriptService implements ScriptService
 
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
+
+    @Inject
+    private Logger logger;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -522,6 +527,24 @@ public class ChangeRequestScriptService implements ScriptService
         return result;
     }
 
+    private ChangeRequestDiffManager getChangeRequestDiffManager()
+    {
+        String diffManagerHint = this.configuration.getRenderedDiffComponent();
+        ChangeRequestDiffManager result = this.defaultDiffManager;
+        if (this.componentManager.hasComponent(ChangeRequestDiffManager.class, diffManagerHint)) {
+            try {
+                result = this.componentManager.getInstance(ChangeRequestDiffManager.class, diffManagerHint);
+            } catch (ComponentLookupException e) {
+                this.logger.error("Error while loading ChangeRequestDiffManager with hint [{}]: [{}]",
+                    diffManagerHint, ExceptionUtils.getRootCauseMessage(e));
+                this.logger.debug("Full stack trace of the loading error:", e);
+            }
+        } else {
+            this.logger.warn("Cannot find ChangeRequestDiffManager component with hint [{}]", diffManagerHint);
+        }
+        return result;
+    }
+
     /**
      * Get the html diff for the given file change.
      * Note that this throws an exception if the configuration doesn't enable it.
@@ -536,7 +559,7 @@ public class ChangeRequestScriptService implements ScriptService
     public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
     {
         if (this.configuration.isRenderedDiffEnabled()) {
-            return this.diffManager.getHtmlDiff(fileChange);
+            return this.getChangeRequestDiffManager().getHtmlDiff(fileChange);
         } else {
             throw new ChangeRequestException("The rendered diff view is not enabled.");
         }

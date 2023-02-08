@@ -17,19 +17,17 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.internal;
+package org.xwiki.contrib.changerequest.internal.diff;
 
 import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
-import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
-import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestDiffManager;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
@@ -39,30 +37,25 @@ import org.xwiki.diff.DiffException;
 import org.xwiki.diff.xml.XMLDiffConfiguration;
 import org.xwiki.diff.xml.XMLDiffManager;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.store.TemporaryAttachmentException;
 import org.xwiki.store.TemporaryAttachmentSessionsManager;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Default implementation of {@link ChangeRequestDiffManager}.
+ *  Abstract implementation of {@link ChangeRequestDiffManager}.
+ *  This class has been made abstract in order to allow providing different implementations of
+ *  {@link #getRenderedContent(XWikiDocument, FileChange)} for more or less secure rendering.
  *
  * @version $Id$
  * @since 1.3
  */
-@Component
-@Singleton
-public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
+public abstract class AbstractChangeRequestDiffManager implements ChangeRequestDiffManager
 {
     @Inject
     private FileChangeStorageManager fileChangeStorageManager;
-
-    @Inject
-    private Provider<XWikiContext> contextProvider;
 
     @Inject
     @Named("html/unified")
@@ -103,7 +96,7 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
                     } else {
                         previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
                         this.handleAttachments(modifiedDoc);
-                        result = this.getHtmlDiff(previousDoc, modifiedDoc);
+                        result = this.getHtmlDiff(previousDoc, modifiedDoc, fileChange);
                         this.temporaryAttachmentSessionsManagerProvider.get()
                             .removeUploadedAttachments(modifiedDoc.getDocumentReference());
                     }
@@ -112,7 +105,7 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
                 case CREATION:
                     modifiedDoc =
                         (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
-                    result = this.getHtmlDiff(null, modifiedDoc);
+                    result = this.getHtmlDiff(null, modifiedDoc, fileChange);
                     break;
 
                 case DELETION:
@@ -122,7 +115,7 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
                         result = null;
                     } else {
                         previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
-                        result = this.getHtmlDiff(previousDoc, null);
+                        result = this.getHtmlDiff(previousDoc, null, fileChange);
                     }
                     break;
 
@@ -158,31 +151,15 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
         }
     }
 
-    private String getRenderedContent(XWikiDocument document) throws XWikiException
-    {
-        XWikiContext context = contextProvider.get();
-        XWikiDocument currentDoc = context.getDoc();
-        String result = "";
-        if (document != null) {
-            context.setDoc(document);
-            try {
-                // Note that we render the content in restricted mode to avoid any security issue:
-                // we cannot guarantee here that the provided changes are safe
-                result = document.displayDocument(Syntax.HTML_5_0, true, contextProvider.get());
-            } finally {
-                context.setDoc(currentDoc);
-            }
-        }
-        return result;
-    }
-
-    private String getHtmlDiff(XWikiDocument previousDoc, XWikiDocument nextDoc) throws ChangeRequestException
+    private String getHtmlDiff(XWikiDocument previousDoc, XWikiDocument nextDoc, FileChange fileChange)
+        throws ChangeRequestException
     {
         try {
             // Note that it's important here to keep on the same line the calls of both rendering content:
             // in case of stacktraces because of missing script rights we don't want to have different line numbers for
             // previousDoc and for nextDoc as it would produce an insertion in the diff.
-            return this.xmlDiffManager.diff(getRenderedContent(previousDoc), getRenderedContent(nextDoc),
+            return this.xmlDiffManager.diff(getRenderedContent(previousDoc, fileChange),
+                getRenderedContent(nextDoc, fileChange),
                 this.xmlDiffConfigurationProvider.get());
         } catch (XWikiException e) {
             throw new ChangeRequestException("Error while computing the rendered content for diff.", e);
@@ -190,4 +167,15 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
             throw new ChangeRequestException("Error while computing the diff", e);
         }
     }
+
+    /**
+     * Render the content for the given document: various implementation might be provided depending if the content
+     * should be rendered with restricted flag or not.
+     *
+     * @param document the document to be rendered
+     * @param fileChange the filechange which triggers this rendering as it might provide information
+     * @return the string corresponding to the rendered content
+     * @throws XWikiException in case of problem during the rendering
+     */
+    protected abstract String getRenderedContent(XWikiDocument document, FileChange fileChange) throws XWikiException;
 }

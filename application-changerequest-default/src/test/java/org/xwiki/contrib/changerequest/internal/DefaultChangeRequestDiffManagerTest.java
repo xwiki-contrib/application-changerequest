@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
+import org.xwiki.contrib.changerequest.internal.diff.DefaultChangeRequestDiffManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.DiffException;
 import org.xwiki.diff.xml.XMLDiffConfiguration;
