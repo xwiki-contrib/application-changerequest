@@ -303,17 +303,13 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
             mergeManager.mergeDocument(previousDoc, nextDoc, xwikiCurrentDoc, mergeConfiguration);
         return new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, previousDoc.getVersion(),
             previousDoc.getDate())
-            .setDocumentTitle(getTitle((XWikiDocument) mergeDocumentResult.getCurrentDocument()));
+            .setDocumentTitle(getTitle((XWikiDocument) nextDoc));
     }
 
     private String getTitle(XWikiDocument document)
     {
-        if (document.isNew()) {
-            return document.getDocumentReference().toString();
-        } else {
-            XWikiContext context = this.contextProvider.get();
-            return document.getRenderedTitle(context);
-        }
+        XWikiContext context = this.contextProvider.get();
+        return document.getRenderedTitle(context);
     }
 
     @Override

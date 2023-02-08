@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.test.po.filechanges.FilechangesLiveDataEl
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -90,6 +91,9 @@ public class ChangeRequestAddChangesIT
         assertTrue(extendedCreatePage.hasChangeRequestCreateButton());
         ExtendedEditPage<CKEditor> extendedEditPage = extendedCreatePage.clickChangeRequestCreateButton(true);
         extendedEditPage.getWrappedEditor().getRichTextArea().setContent("Some content in the new page");
+        // FIXME: We should be able to do that from the PO
+        WikiEditPage wikiEditPage = new WikiEditPage();
+        wikiEditPage.setTitle("A new title");
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.setChangeRequestTitle(testReference.getLastSpaceReference().getName());
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
@@ -103,6 +107,7 @@ public class ChangeRequestAddChangesIT
         assertEquals(ChangeType.CREATION, filechangesRowElement.getChangeType());
         assertEquals("filechange-1.1", filechangesRowElement.getVersion());
         assertEquals(serializedReference, filechangesRowElement.getReference());
+        assertEquals("A new title", filechangesRowElement.getTitle());
 
         testUtils.gotoPage(testReference);
         extendedViewPage = new ExtendedViewPage();

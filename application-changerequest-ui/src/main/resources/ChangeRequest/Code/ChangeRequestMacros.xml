@@ -342,6 +342,17 @@
     &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
   #end
 #end
+#template("displayer_page.vm")
+## Macro inspired from displayPageReference
+#macro(displayFileChangeTitle $fileChange)
+  #if ("$!fileChange.modifiedDocument" != '')
+    #set ($pageDoc = $fileChange.modifiedDocument.newDocument($xcontext.context))
+    #set ($title = $escapetool.xml($pageDoc.plainTitle))
+    &lt;a href="$pageDoc.URL"&gt;$title&lt;/a&gt;
+  #else
+    #displayPageReference($fileChange.targetEntity)
+  #end
+#end
 {{/velocity}}</content>
   <object>
     <name>ChangeRequest.Code.ChangeRequestMacros</name>
