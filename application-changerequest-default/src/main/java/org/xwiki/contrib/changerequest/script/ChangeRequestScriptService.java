@@ -135,7 +135,7 @@ public class ChangeRequestScriptService implements ScriptService
     private DelegateApproverManager<FileChange> delegateApproverManager;
 
     @Inject
-    private ChangeRequestDiffManager diffManager;
+    private Provider<ChangeRequestDiffManager> diffManagerProvider;
 
     @Inject
     private WikiUserManager wikiUserManager;
@@ -543,7 +543,7 @@ public class ChangeRequestScriptService implements ScriptService
     public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
     {
         if (this.configuration.isRenderedDiffEnabled()) {
-            return this.diffManager.getHtmlDiff(fileChange);
+            return this.diffManagerProvider.get().getHtmlDiff(fileChange);
         } else {
             throw new ChangeRequestException("The rendered diff view is not enabled.");
         }
