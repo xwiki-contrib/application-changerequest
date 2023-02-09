@@ -103,6 +103,19 @@
                 </item>
               </differences>
             </revapi.differences>
+            <revapi.differences>
+              <justification>Work on DiffManager</justification>
+              <ignore>true</ignore>
+              <criticality>documented</criticality>
+              <differences>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.class.removed</code>
+                  <old>interface org.xwiki.contrib.changerequest.ChangeRequestDiffManager</old>
+                  <justification>Moved to another package.</justification>
+                </item>
+              </differences>
+            </revapi.differences>
           </analysisConfiguration>
         </configuration>
       </plugin>

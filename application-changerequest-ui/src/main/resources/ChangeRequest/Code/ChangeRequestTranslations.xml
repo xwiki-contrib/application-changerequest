@@ -150,6 +150,15 @@ ChangeRequest.Code.ConfigurationClass_minimumApprovers=Minimum number of explici
 ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Define a required minimum numbers of explicit users approvers when managing change request approvers. Note that 0 means no minimum.
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=Enable the rendered diff view
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=When enabled allow to see a diff with the actual rendering of the page changes. 
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=Security policy to use for the rendered diff
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=The default policy is the safest one but it automatically prevents the rendering of any scripts even if those are part of the sheets of the documents: so it's possible to chose some relaxed policies for better usability of the rendered diff feature.
+
+changerequest.diffRender.name.default=Default policy
+changerequest.diffRender.description.default=Safest policy for the rendered diff: it prevents any script to be executed.
+changerequest.diffRender.name.guestright=Guest right policy
+changerequest.diffRender.description.guestright=This policy performs a rendering using the Guest user rights: the changes are rendered as if Guest was the author.
+changerequest.diffRender.name.authorright=Change author right policy
+changerequest.diffRender.description.authorright=This policy performs a rendering using the proposed changes author user rights: the changes are rendered with the right of the author of the changes. Be careful with that policy as it might allow execution of unpublished scripts if the authors have script rights.
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion
