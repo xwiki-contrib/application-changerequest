@@ -49,8 +49,7 @@
     <approvalStrategy>
       <customDisplay>{{velocity}}
 #if ($type == 'edit')
-  #set ($componentManager = $services.component.getContextComponentManager())
-  #set ($availableStrategies = $componentManager.getInstanceList('org.xwiki.contrib.changerequest.MergeApprovalStrategy'))
+  #set ($availableStrategies = $services.changerequest.allMergeApprovalStrategies)
   {{html}}
   &lt;div class='strategies'&gt;
   #foreach ($strategy in $availableStrategies)
@@ -242,6 +241,43 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
     </preventAuthorsToReview>
+    <renderedDiffComponent>
+      <customDisplay>{{velocity}}
+#if ($type == 'edit')
+  #set ($availableDiffRenders = $services.changerequest.diffRenderContentStrategies)
+  {{html}}
+  &lt;div class='diffRenders'&gt;
+  #foreach ($diffRender in $availableDiffRenders)
+    &lt;div class='radio'&gt;
+    #set ($isSelected = $diffRender.roleHint == $value)
+    #if ($diffRender.roleHint == 'default' &amp;&amp; $value == '')
+      #set ($isSelected = true)
+    #end
+      &lt;label&gt;
+        &lt;input type='radio' name="${prefix}${name}" id="${prefix}${name}_$diffRender.roleHint" value="$diffRender.roleHint" #if($isSelected)checked="checked"#end&gt;
+        $escapetool.xml($services.localization.render("changerequest.diffRender.name.$diffRender.roleHint"))
+        &lt;span class='xHint'&gt;$escapetool.xml($services.localization.render("changerequest.diffRender.description.$diffRender.roleHint"))&lt;/span&gt;
+      &lt;/label&gt;
+  &lt;/div&gt;
+  #end
+  &lt;/div&gt;
+  {{/html}}
+#elseif ($type == 'view')
+$escapetool.xml($services.localization.render("changerequest.diffRender.name.$value"))
+#end
+{{/velocity}}</customDisplay>
+      <disabled>0</disabled>
+      <hint/>
+      <name>renderedDiffComponent</name>
+      <number>14</number>
+      <picker>1</picker>
+      <prettyName>renderedDiffComponent</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </renderedDiffComponent>
     <renderedDiffEnabled>
       <customDisplay/>
       <defaultValue/>

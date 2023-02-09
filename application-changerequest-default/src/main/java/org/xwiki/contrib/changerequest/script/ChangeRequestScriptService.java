@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,17 +35,17 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.descriptor.ComponentDescriptor;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
-import org.xwiki.contrib.changerequest.ChangeRequestDiffManager;
+import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffManager;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -53,6 +54,7 @@ import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.extension.InstalledExtension;
@@ -133,7 +135,7 @@ public class ChangeRequestScriptService implements ScriptService
     private DelegateApproverManager<FileChange> delegateApproverManager;
 
     @Inject
-    private ChangeRequestDiffManager defaultDiffManager;
+    private ChangeRequestDiffManager diffManager;
 
     @Inject
     private WikiUserManager wikiUserManager;
@@ -527,24 +529,6 @@ public class ChangeRequestScriptService implements ScriptService
         return result;
     }
 
-    private ChangeRequestDiffManager getChangeRequestDiffManager()
-    {
-        String diffManagerHint = this.configuration.getRenderedDiffComponent();
-        ChangeRequestDiffManager result = this.defaultDiffManager;
-        if (this.componentManager.hasComponent(ChangeRequestDiffManager.class, diffManagerHint)) {
-            try {
-                result = this.componentManager.getInstance(ChangeRequestDiffManager.class, diffManagerHint);
-            } catch (ComponentLookupException e) {
-                this.logger.error("Error while loading ChangeRequestDiffManager with hint [{}]: [{}]",
-                    diffManagerHint, ExceptionUtils.getRootCauseMessage(e));
-                this.logger.debug("Full stack trace of the loading error:", e);
-            }
-        } else {
-            this.logger.warn("Cannot find ChangeRequestDiffManager component with hint [{}]", diffManagerHint);
-        }
-        return result;
-    }
-
     /**
      * Get the html diff for the given file change.
      * Note that this throws an exception if the configuration doesn't enable it.
@@ -559,7 +543,7 @@ public class ChangeRequestScriptService implements ScriptService
     public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
     {
         if (this.configuration.isRenderedDiffEnabled()) {
-            return this.getChangeRequestDiffManager().getHtmlDiff(fileChange);
+            return this.diffManager.getHtmlDiff(fileChange);
         } else {
             throw new ChangeRequestException("The rendered diff view is not enabled.");
         }
@@ -649,5 +633,26 @@ public class ChangeRequestScriptService implements ScriptService
             isInstalled = installedExtension.getNamespaces().contains(wikiNamespace);
         }
         return isInstalled;
+    }
+
+    /**
+     * @return the list of all merge approval strategies component.
+     * @throws ComponentLookupException in case of problem to list the instances
+     * @since 1.5
+     * @since 1.4.4
+     */
+    public List<MergeApprovalStrategy> getAllMergeApprovalStrategies() throws ComponentLookupException
+    {
+        return this.componentManager.getInstanceList(MergeApprovalStrategy.class);
+    }
+
+    /**
+     * @return the list of component descriptors of all render content component.
+     * @since 1.5
+     * @since 1.4.4
+     */
+    public List<ComponentDescriptor<ChangeRequestDiffRenderContent>> getDiffRenderContentStrategies()
+    {
+        return this.componentManager.getComponentDescriptorList((Type) ChangeRequestDiffRenderContent.class);
     }
 }

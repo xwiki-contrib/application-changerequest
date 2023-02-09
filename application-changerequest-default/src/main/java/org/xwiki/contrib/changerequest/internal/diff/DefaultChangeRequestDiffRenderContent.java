@@ -20,54 +20,56 @@
 package org.xwiki.contrib.changerequest.internal.diff;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.ChangeRequestDiffManager;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
 import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.user.GuestUserReference;
-import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Implementation of {@link ChangeRequestDiffManager} where the content is rendered with guest user.
+ * Default implementation of {@link ChangeRequestDiffRenderContent}.
+ * This is the most secure implementation: the restricted flag is used to performing the rendering so no script is
+ * executed during the rendering.
  *
  * @version $Id$
  * @since 1.5
- * @since 1.4.4
  */
 @Component
-@Named("guestright")
 @Singleton
-public class GuestRightChangeRequestDiffManager extends AbstractChangeRequestDiffManager
+public class DefaultChangeRequestDiffRenderContent implements ChangeRequestDiffRenderContent
 {
     @Inject
     private Provider<XWikiContext> contextProvider;
 
-    protected String getRenderedContent(XWikiDocument document, FileChange fileChange) throws XWikiException
+    @Override
+    public String getRenderedContent(DocumentModelBridge document, FileChange fileChange) throws ChangeRequestException
     {
         String result = "";
         if (document != null) {
+            if (!(document instanceof XWikiDocument)) {
+                // Should never happen.
+                throw new ChangeRequestException("This API should only be used with XWikiDocument.");
+            }
+            XWikiDocument xWikiDocument = (XWikiDocument) document;
             XWikiContext context = contextProvider.get();
-            UserReference fileChangeAuthor = fileChange.getAuthor();
-            XWikiDocument cloneDoc = document.clone();
-            cloneDoc.getAuthors().setEffectiveMetadataAuthor(GuestUserReference.INSTANCE);
             XWikiDocument currentDoc = context.getDoc();
-            DocumentReference currentUser = context.getUserReference();
-            context.setDoc(cloneDoc);
-            context.setUserReference(null);
+            context.setDoc(xWikiDocument);
             try {
-                result = cloneDoc.displayDocument(Syntax.HTML_5_0, false, contextProvider.get());
+                // Note that we render the content in restricted mode to avoid any security issue:
+                // we cannot guarantee here that the provided changes are safe
+                result = xWikiDocument.displayDocument(Syntax.HTML_5_0, true, context);
+            } catch (XWikiException e) {
+                throw new ChangeRequestException("Error while rendering the document", e);
             } finally {
                 context.setDoc(currentDoc);
-                context.setUserReference(currentUser);
             }
         }
         return result;

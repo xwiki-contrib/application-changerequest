@@ -24,10 +24,13 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.ChangeRequestDiffManager;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.user.UserReference;
@@ -37,8 +40,8 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Implementation of {@link ChangeRequestDiffManager} where the content is rendered with the author of the filechange
- * user.
+ * Implementation of {@link ChangeRequestDiffRenderContent} where the content is rendered with the author of the
+ * filechange user.
  *
  * @version $Id$
  * @since 1.5
@@ -47,7 +50,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Component
 @Named("authorright")
 @Singleton
-public class AuthorRightChangeRequestDiffManager extends AbstractChangeRequestDiffManager
+public class AuthorRightChangeRequestDiffRenderContent implements ChangeRequestDiffRenderContent
 {
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -55,20 +58,29 @@ public class AuthorRightChangeRequestDiffManager extends AbstractChangeRequestDi
     @Inject
     private UserReferenceConverter userReferenceConverter;
 
-    protected String getRenderedContent(XWikiDocument document, FileChange fileChange) throws XWikiException
+    @Override
+    public String getRenderedContent(DocumentModelBridge document, FileChange fileChange) throws ChangeRequestException
     {
         String result = "";
         if (document != null) {
+            if (!(document instanceof XWikiDocument)) {
+                // Should never happen.
+                throw new ChangeRequestException("This API should only be used with XWikiDocument.");
+            }
             XWikiContext context = contextProvider.get();
             UserReference fileChangeAuthor = fileChange.getAuthor();
-            XWikiDocument cloneDoc = document.clone();
-            cloneDoc.getAuthors().setEffectiveMetadataAuthor(fileChangeAuthor);
+            XWikiDocument cloneDoc = ((XWikiDocument) document).clone();
+            DocumentAuthors authors = cloneDoc.getAuthors();
+            authors.setEffectiveMetadataAuthor(fileChangeAuthor);
+            authors.setContentAuthor(fileChangeAuthor);
             XWikiDocument currentDoc = context.getDoc();
             DocumentReference currentUser = context.getUserReference();
             context.setDoc(cloneDoc);
             context.setUserReference(this.userReferenceConverter.convert(fileChangeAuthor));
             try {
                 result = cloneDoc.displayDocument(Syntax.HTML_5_0, false, contextProvider.get());
+            } catch (XWikiException e) {
+                throw new ChangeRequestException("Error while rendering the document", e);
             } finally {
                 context.setDoc(currentDoc);
                 context.setUserReference(currentUser);

@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.internal;
+package org.xwiki.contrib.changerequest.internal.diff;
 
 import java.util.Optional;
 
@@ -26,27 +26,30 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
-import org.xwiki.contrib.changerequest.internal.diff.DefaultChangeRequestDiffManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.DiffException;
 import org.xwiki.diff.xml.XMLDiffConfiguration;
 import org.xwiki.diff.xml.XMLDiffManager;
-import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -67,9 +70,6 @@ class DefaultChangeRequestDiffManagerTest
     private FileChangeStorageManager fileChangeStorageManager;
 
     @MockComponent
-    private Provider<XWikiContext> contextProvider;
-
-    @MockComponent
     @Named("html/unified")
     private XMLDiffManager xmlDiffManager;
 
@@ -80,20 +80,26 @@ class DefaultChangeRequestDiffManagerTest
     @MockComponent
     private DiffCacheManager diffCacheManager;
 
-    private XWikiContext context;
+    @MockComponent
+    private ChangeRequestConfiguration configuration;
+
+    @MockComponent
+    private ChangeRequestDiffRenderContent diffRenderContent;
+
     private XMLDiffConfiguration xmlDiffConfiguration;
-    private XWikiDocument contextDoc;
+
+    @BeforeComponent
+    void setupContext(MockitoComponentManager componentManager) throws Exception
+    {
+        componentManager.registerComponent(ComponentManager.class, "context", componentManager);
+    }
 
     @BeforeEach
-    void setup()
+    void setup() throws ChangeRequestException
     {
-        this.context = mock(XWikiContext.class);
-        when(this.contextProvider.get()).thenReturn(this.context);
-
         this.xmlDiffConfiguration = mock(XMLDiffConfiguration.class);
         when(this.xmlDiffConfigurationProvider.get()).thenReturn(this.xmlDiffConfiguration);
-        this.contextDoc = mock(XWikiDocument.class, "contextDoc");
-        when(this.context.getDoc()).thenReturn(contextDoc);
+        when(this.diffRenderContent.getRenderedContent(isNull(), any(FileChange.class))).thenReturn("");
     }
 
     @Test
@@ -122,19 +128,59 @@ class DefaultChangeRequestDiffManagerTest
             .thenReturn(Optional.of(previousDoc));
 
         String modifiedDocHtml = "modified doc html";
-        when(modifiedDoc.displayDocument(Syntax.HTML_5_0, true, this.context)).thenReturn(modifiedDocHtml);
+        when(this.diffRenderContent.getRenderedContent(modifiedDoc, fileChange)).thenReturn(modifiedDocHtml);
 
         String previousDocHtml = "previous doc html";
-        when(previousDoc.displayDocument(Syntax.HTML_5_0, true, this.context)).thenReturn(previousDocHtml);
+        when(this.diffRenderContent.getRenderedContent(previousDoc, fileChange)).thenReturn(previousDocHtml);
 
         expectedResult = "real diff";
         when(this.xmlDiffManager.diff(previousDocHtml, modifiedDocHtml, this.xmlDiffConfiguration))
             .thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
-        verify(this.context).setDoc(modifiedDoc);
-        verify(this.context).setDoc(previousDoc);
-        verify(this.context, times(2)).setDoc(contextDoc);
+    }
+
+    @Test
+    void getHtmlDiffForEditionOtherRenderingComponent(MockitoComponentManager componentManager)
+        throws Exception
+    {
+        when(configuration.getRenderedDiffComponent()).thenReturn("customHint");
+        ChangeRequestDiffRenderContent customDiffRenderContent = mock(ChangeRequestDiffRenderContent.class);
+        componentManager.registerComponent(ChangeRequestDiffRenderContent.class, "customHint", customDiffRenderContent);
+        FileChange fileChange = mock(FileChange.class);
+        String expectedResult = "some changes";
+        when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.of(expectedResult));
+
+        assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
+        verifyNoInteractions(xmlDiffManager);
+
+        when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.empty());
+
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        XWikiDocument modifiedDoc = mock(XWikiDocument.class, "modifiedDoc");
+        when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(modifiedDoc);
+        when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange)).thenReturn(Optional.empty());
+
+        assertNull(this.diffManager.getHtmlDiff(fileChange));
+        verify(this.diffCacheManager, never()).setRenderedDiff(fileChange, null);
+        verifyNoInteractions(xmlDiffManager);
+
+        XWikiDocument previousDoc = mock(XWikiDocument.class, "previousDoc");
+        when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange))
+            .thenReturn(Optional.of(previousDoc));
+
+        String modifiedDocHtml = "modified doc html";
+        when(customDiffRenderContent.getRenderedContent(modifiedDoc, fileChange)).thenReturn(modifiedDocHtml);
+
+        String previousDocHtml = "previous doc html";
+        when(customDiffRenderContent.getRenderedContent(previousDoc, fileChange)).thenReturn(previousDocHtml);
+
+        expectedResult = "real diff";
+        when(this.xmlDiffManager.diff(previousDocHtml, modifiedDocHtml, this.xmlDiffConfiguration))
+            .thenReturn(expectedResult);
+        assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
+        verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verifyNoInteractions(this.diffRenderContent);
     }
 
     @Test
@@ -154,15 +200,13 @@ class DefaultChangeRequestDiffManagerTest
         when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(modifiedDoc);
 
         String modifiedDocHtml = "modified doc html";
-        when(modifiedDoc.displayDocument(Syntax.HTML_5_0, true, this.context)).thenReturn(modifiedDocHtml);
+        when(this.diffRenderContent.getRenderedContent(modifiedDoc, fileChange)).thenReturn(modifiedDocHtml);
 
         expectedResult = "real diff";
         when(this.xmlDiffManager.diff("", modifiedDocHtml, this.xmlDiffConfiguration))
             .thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
-        verify(this.context).setDoc(modifiedDoc);
-        verify(this.context).setDoc(contextDoc);
     }
 
     @Test
@@ -189,15 +233,12 @@ class DefaultChangeRequestDiffManagerTest
             .thenReturn(Optional.of(previousDoc));
 
         String previousDocHtml = "previous doc html";
-        when(previousDoc.displayDocument(Syntax.HTML_5_0, true, this.context)).thenReturn(previousDocHtml);
+        when(this.diffRenderContent.getRenderedContent(previousDoc, fileChange)).thenReturn(previousDocHtml);
 
         expectedResult = "real diff";
-        when(this.xmlDiffManager.diff(previousDocHtml, "", this.xmlDiffConfiguration))
-            .thenReturn(expectedResult);
+        when(this.xmlDiffManager.diff(previousDocHtml, "", this.xmlDiffConfiguration)).thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
-        verify(this.context).setDoc(previousDoc);
-        verify(this.context).setDoc(contextDoc);
     }
 
     @Test
