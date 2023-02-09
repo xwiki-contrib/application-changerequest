@@ -31,8 +31,10 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestConfigurationSource;
 import org.xwiki.contrib.changerequest.internal.DefaultChangeRequestConfiguration;
+import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
 import org.xwiki.contrib.changerequest.internal.jobs.DelegateApproversComputationRequest;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
@@ -53,6 +55,8 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 /**
  * Listener in charge of triggering a global computation of delegate approvers if the configuration change to enable
  * the mechanism, or to update the list of fields to take into account in XWikiUser.
+ * This listener also invalidate the {@link DiffCacheManager} as a configuration change might mean an update in the
+ * {@link ChangeRequestConfiguration#getRenderedDiffComponent()}.
  *
  * @version $Id$
  * @since 0.13
@@ -82,6 +86,9 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractLocalEven
     private Provider<JobExecutor> jobExecutorProvider;
 
     @Inject
+    private Provider<DiffCacheManager> diffCacheManagerProvider;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -103,6 +110,7 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractLocalEven
             BaseObject previousObj =
                 originalConfigurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
 
+            this.diffCacheManagerProvider.get().invalidateAll();
             if (this.shouldRecomputeDelegate(currentObj, previousObj)) {
                 List<EntityReference> allUsers =
                     this.getAllUsers(configurationDoc.getDocumentReference().getWikiReference());

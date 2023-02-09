@@ -186,4 +186,17 @@ public interface ChangeRequestConfiguration
     {
         return false;
     }
+
+    /**
+     * Define the component hint to use for the rendered diff.
+     * The component should be chosen as a trade-off between security and usability.
+     *
+     * @return the hint of the component to use.
+     * @since 1.5
+     * @since 1.4.4
+     */
+    default String getRenderedDiffComponent()
+    {
+        return "";
+    }
 }

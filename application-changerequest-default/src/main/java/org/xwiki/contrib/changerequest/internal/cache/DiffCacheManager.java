@@ -129,4 +129,14 @@ public class DiffCacheManager implements Initializable, Disposable
             map.remove(fileChange.getTargetEntity());
         }
     }
+
+    /**
+     * Invalidate entirely the cache.
+     * @since 1.5
+     * @since 1.4.4
+     */
+    public void invalidateAll()
+    {
+        this.renderedDiffCache.removeAll();
+    }
 }

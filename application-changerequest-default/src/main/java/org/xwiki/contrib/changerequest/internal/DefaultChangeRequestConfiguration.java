@@ -213,4 +213,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty("renderedDiffEnabled", false);
     }
+
+    @Override
+    public String getRenderedDiffComponent()
+    {
+        return this.configurationSource.getProperty("renderedDiffComponent", "");
+    }
 }

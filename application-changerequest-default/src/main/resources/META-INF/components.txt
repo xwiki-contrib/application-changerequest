@@ -64,7 +64,10 @@ org.xwiki.contrib.changerequest.script.ChangeRequestMergeScriptService
 org.xwiki.contrib.changerequest.internal.listeners.ReviewXObjectUpdatedListener
 org.xwiki.contrib.changerequest.internal.checkers.MinimumApproversSavingChecker
 org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager
-org.xwiki.contrib.changerequest.internal.DefaultChangeRequestDiffManager
+org.xwiki.contrib.changerequest.internal.diff.DefaultChangeRequestDiffManager
+org.xwiki.contrib.changerequest.internal.diff.DefaultChangeRequestDiffRenderContent
+org.xwiki.contrib.changerequest.internal.diff.AuthorRightChangeRequestDiffRenderContent
+org.xwiki.contrib.changerequest.internal.diff.GuestRightChangeRequestDiffRenderContent
 org.xwiki.contrib.changerequest.internal.approvers.FileChangeDelegateApproversManager
 org.xwiki.contrib.changerequest.internal.handlers.ReviewChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.ui.ChangeRequestUserProfileUIExtension
