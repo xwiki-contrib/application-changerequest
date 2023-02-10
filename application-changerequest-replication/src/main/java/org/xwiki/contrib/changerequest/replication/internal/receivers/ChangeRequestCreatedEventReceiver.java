@@ -20,13 +20,18 @@
 package org.xwiki.contrib.changerequest.replication.internal.receivers;
 
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
@@ -35,6 +40,7 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeReque
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationException;
 import org.xwiki.contrib.replication.ReplicationReceiverMessage;
+import org.xwiki.user.UserReference;
 
 /**
  * Default implementation of a message receiver for {@link ChangeRequestCreatedRecordableEvent}.
@@ -53,6 +59,12 @@ public class ChangeRequestCreatedEventReceiver extends AbstractChangeRequestRece
     @Inject
     private ChangeRequestAutoWatchHandler autoWatchHandler;
 
+    @Inject
+    private Provider<ApproversManager<ChangeRequest>> approversManagerProvider;
+
+    @Inject
+    private Logger logger;
+
     @Override
     public void receiveWithUserSet(ReplicationReceiverMessage message) throws ReplicationException
     {
@@ -62,9 +74,25 @@ public class ChangeRequestCreatedEventReceiver extends AbstractChangeRequestRece
             Optional<ChangeRequest> changeRequestOpt = this.changeRequestStorageManager.load(changeRequestId);
             if (changeRequestOpt.isPresent()) {
                 ChangeRequest changeRequest = changeRequestOpt.get();
-                if (this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest)) {
-                    this.autoWatchHandler.watchChangeRequest(changeRequest);
+                if (this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, changeRequest.getCreator())) {
+                    this.autoWatchHandler.watchChangeRequest(changeRequest, changeRequest.getCreator());
                 }
+                Set<UserReference> allApprovers =
+                    this.approversManagerProvider.get().getAllApprovers(changeRequest, false);
+                allApprovers.forEach( userReference -> {
+                    if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, userReference)) {
+                        try {
+                            autoWatchHandler.watchChangeRequest(changeRequest, userReference);
+                        } catch (ChangeRequestException e) {
+                            this.logger.error(
+                                "Error while handling autowatch for changerequest [{}] and approver [{}]: [{}]",
+                                changeRequest, userReference,
+                                ExceptionUtils.getRootCauseMessage(e)
+                            );
+                            this.logger.debug("Full stack trace: ", e);
+                        }
+                    }
+                });
             }
         } catch (ChangeRequestException e) {
             throw new ReplicationException(
