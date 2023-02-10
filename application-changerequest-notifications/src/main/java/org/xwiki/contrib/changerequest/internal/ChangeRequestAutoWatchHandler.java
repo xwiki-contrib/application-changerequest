@@ -73,12 +73,11 @@ public class ChangeRequestAutoWatchHandler
      * @param changeRequest the change request for which to watch for changes.
      * @return {@code true} if the creator of the change request has any autowatch value set.
      */
-    public boolean shouldCreateWatchedEntity(ChangeRequest changeRequest)
+    public boolean shouldCreateWatchedEntity(ChangeRequest changeRequest, UserReference userReference)
     {
         boolean result = false;
-        UserReference creator = changeRequest.getCreator();
-        if (creator != GuestUserReference.INSTANCE) {
-            DocumentReference userDoc = this.userReferenceSerializer.serialize(creator);
+        if (userReference != GuestUserReference.INSTANCE) {
+            DocumentReference userDoc = this.userReferenceSerializer.serialize(userReference);
             AutomaticWatchMode automaticWatchMode = this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc);
             result = automaticWatchMode == AutomaticWatchMode.ALL
                 || automaticWatchMode == AutomaticWatchMode.MAJOR
@@ -94,10 +93,10 @@ public class ChangeRequestAutoWatchHandler
      * @param changeRequest the change request for which to create a new watch entity.
      * @throws ChangeRequestException in case of problem when saving the watch entity.
      */
-    public void watchChangeRequest(ChangeRequest changeRequest) throws ChangeRequestException
+    public void watchChangeRequest(ChangeRequest changeRequest, UserReference userReference)
+        throws ChangeRequestException
     {
-        UserReference creator = changeRequest.getCreator();
-        DocumentReference userDoc = this.userReferenceSerializer.serialize(creator);
+        DocumentReference userDoc = this.userReferenceSerializer.serialize(userReference);
         DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         WatchedLocationReference watchedLocationReference =
             this.watchedEntityFactory.createWatchedLocationReference(changeRequestDoc);

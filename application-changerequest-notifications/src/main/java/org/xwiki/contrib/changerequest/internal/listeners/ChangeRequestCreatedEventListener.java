@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,13 +30,16 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
+import org.xwiki.user.UserReference;
 
 /**
  * Component responsible to handle {@link ChangeRequestCreatedEvent}.
@@ -57,6 +61,9 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
     private Provider<ChangeRequestAutoWatchHandler> autoWatchHandlerProvider;
 
     @Inject
+    private Provider<ApproversManager<ChangeRequest>> approversManagerProvider;
+
+    @Inject
     private ObservationContext observationContext;
 
     /**
@@ -73,9 +80,26 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
         String changeRequestId = (String) source;
         try {
             ChangeRequest changeRequest = (ChangeRequest) data;
-            if (this.autoWatchHandlerProvider.get().shouldCreateWatchedEntity(changeRequest)) {
-                this.autoWatchHandlerProvider.get().watchChangeRequest(changeRequest);
+            UserReference creator = changeRequest.getCreator();
+            ChangeRequestAutoWatchHandler autoWatchHandler = this.autoWatchHandlerProvider.get();
+            if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator)) {
+                autoWatchHandler.watchChangeRequest(changeRequest, creator);
             }
+            Set<UserReference> allApprovers = this.approversManagerProvider.get().getAllApprovers(changeRequest, false);
+            allApprovers.forEach( userReference -> {
+                if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, userReference)) {
+                    try {
+                        autoWatchHandler.watchChangeRequest(changeRequest, userReference);
+                    } catch (ChangeRequestException e) {
+                        this.logger.error(
+                            "Error while handling autowatch for changerequest [{}] and approver [{}]: [{}]",
+                            changeRequest, userReference,
+                            ExceptionUtils.getRootCauseMessage(e)
+                        );
+                        this.logger.debug("Full stack trace: ", e);
+                    }
+                }
+            });
             DocumentModelBridge documentInstance = this.documentAccessBridge.getTranslatedDocumentInstance(
                 changeRequest.getModifiedDocuments().iterator().next());
             ChangeRequestCreatedRecordableEvent recordableEvent =
