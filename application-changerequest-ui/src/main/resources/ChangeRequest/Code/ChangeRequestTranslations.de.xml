@@ -149,6 +149,14 @@ ChangeRequest.Code.ConfigurationClass_minimumApprovers=Mindestanzahl genehmigend
 ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Definieren Sie eine Mindestanzahl von Benutzern, die Genehmigungen erteilen, wenn Sie Genehmigungen für Änderungsanträge verwalten. 0 bedeutet es gibt kein Minimum.
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=Aktivieren Sie die gerenderte Diff-Ansicht
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=Wenn aktiviert, erlauben Sie, ein Diff mit der tatsächlichen Darstellung der Seitenänderungen zu sehen. 
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=Zu verwendende Sicherheitsrichtlinie für das gerenderte Diff
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=Die Standardrichtlinie ist die sicherste, aber sie verhindert automatisch das Rendern von Skripten, selbst wenn diese Teil der Dokumente sind: Es ist jedoch möglich, eine lockere Richtlinien für eine bessere Nutzbarkeit der Rendered-Diff-Funktion zu wählen.
+changerequest.diffRender.name.default=Standard-Richtlinie
+changerequest.diffRender.description.default=Sicherste Richtlinie für das gerenderte Diff: sie verhindert die Ausführung von Skripten.
+changerequest.diffRender.name.guestright=Gastrecht-Richtlinie
+changerequest.diffRender.description.guestright=Diese Richtlinie führt ein Rendering unter Verwendung der Benutzerrechte "Gast" durch: die Änderungen werden so wiedergegeben, als ob "Gast" der Autor wäre.
+changerequest.diffRender.name.authorright=Richtlinie für Autorenrechte ändern
+changerequest.diffRender.description.authorright=Diese Richtlinie führt ein Rendering unter Verwendung der Benutzerrechte des Autors der vorgeschlagenen Änderungen durch: die Änderungen werden mit dem Recht des Autors der Änderungen gerendert. Vorsicht mit dieser Richtlinie, da sie die Ausführung von unveröffentlichten Skripten ermöglichen könnte, wenn die Autoren Skriptrechte haben.
 
 
 changerequest.moreactions.manageapprovers=Genehmiger verwalten
