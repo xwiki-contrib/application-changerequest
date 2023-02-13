@@ -77,25 +77,24 @@ class ChangeRequestAutoWatchHandlerTest
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         UserReference creator = mock(UserReference.class);
-        when(changeRequest.getCreator()).thenReturn(creator);
 
         DocumentReference userDoc = mock(DocumentReference.class);
         when(this.userReferenceSerializer.serialize(creator)).thenReturn(userDoc);
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(null);
-        assertFalse(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest));
+        assertFalse(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.ALL);
-        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest));
+        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.MAJOR);
-        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest));
+        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.NONE);
-        assertFalse(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest));
+        assertFalse(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.NEW);
-        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest));
+        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
     }
 
     @Test
@@ -103,7 +102,6 @@ class ChangeRequestAutoWatchHandlerTest
     {
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         UserReference creator = mock(UserReference.class);
-        when(changeRequest.getCreator()).thenReturn(creator);
 
         DocumentReference userDoc = mock(DocumentReference.class);
         when(this.userReferenceSerializer.serialize(creator)).thenReturn(userDoc);
@@ -115,7 +113,7 @@ class ChangeRequestAutoWatchHandlerTest
         when(this.watchedEntityFactory.createWatchedLocationReference(changeRequestDoc))
             .thenReturn(watchedLocationReference);
 
-        this.autoWatchHandler.watchChangeRequest(changeRequest);
+        this.autoWatchHandler.watchChangeRequest(changeRequest, creator);
         verify(this.watchedEntitiesManager).watchEntity(watchedLocationReference, userDoc);
     }
 }
