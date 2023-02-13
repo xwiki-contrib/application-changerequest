@@ -20,11 +20,11 @@
 package org.xwiki.contrib.changerequest.internal.listeners;
 
 import java.util.Collections;
-
-import javax.inject.Provider;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentAccessBridge;
+import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
@@ -36,6 +36,7 @@ import org.xwiki.observation.ObservationContext;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 
@@ -44,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +62,10 @@ class ChangeRequestCreatedEventListenerTest
     private ChangeRequestCreatedEventListener listener;
 
     @MockComponent
-    private Provider<ChangeRequestAutoWatchHandler> autoWatchHandlerProvider;
+    private ChangeRequestAutoWatchHandler changeRequestAutoWatchHandler;
+
+    @MockComponent
+    private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     @MockComponent
     private ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
@@ -76,11 +81,22 @@ class ChangeRequestCreatedEventListenerTest
     {
         String source = "crId";
         ChangeRequest data = mock(ChangeRequest.class);
+        UserReference creator = mock(UserReference.class);
+        when(data.getCreator()).thenReturn(creator);
+        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, creator)).thenReturn(true);
 
-        ChangeRequestAutoWatchHandler changeRequestAutoWatchHandler = mock(ChangeRequestAutoWatchHandler.class);
-        when(this.autoWatchHandlerProvider.get()).thenReturn(changeRequestAutoWatchHandler);
+        UserReference approver1 = mock(UserReference.class);
+        UserReference approver2 = mock(UserReference.class);
+        UserReference approver3 = mock(UserReference.class);
+        when(this.changeRequestApproversManager.getAllApprovers(data, false)).thenReturn(Set.of(
+            approver1,
+            approver2,
+            approver3
+        ));
+        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, approver1)).thenReturn(true);
+        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, approver2)).thenReturn(false);
+        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, approver3)).thenReturn(true);
 
-        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data)).thenReturn(true);
         DocumentReference documentReference = mock(DocumentReference.class);
         when(data.getModifiedDocuments()).thenReturn(Collections.singleton(documentReference));
 
@@ -101,5 +117,9 @@ class ChangeRequestCreatedEventListenerTest
         verify(this.changeRequestRecordableEventNotifier).notifyChangeRequestRecordableEvent(
             any(ChangeRequestCreatedRecordableEvent.class),
             eq(document));
+        verify(changeRequestAutoWatchHandler).watchChangeRequest(data, creator);
+        verify(changeRequestAutoWatchHandler).watchChangeRequest(data, approver1);
+        verify(changeRequestAutoWatchHandler).watchChangeRequest(data, approver3);
+        verify(changeRequestAutoWatchHandler, never()).watchChangeRequest(data, approver2);
     }
 }

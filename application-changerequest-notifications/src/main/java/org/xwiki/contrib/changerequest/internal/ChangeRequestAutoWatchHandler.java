@@ -68,9 +68,10 @@ public class ChangeRequestAutoWatchHandler
     private UserReferenceSerializer<DocumentReference> userReferenceSerializer;
 
     /**
-     * Check if the given change request should be automatically watched by its creator.
+     * Check if the given change request should be automatically watched by the given user.
      *
      * @param changeRequest the change request for which to watch for changes.
+     * @param userReference the user for whom to check if they should watch the change request.
      * @return {@code true} if the creator of the change request has any autowatch value set.
      */
     public boolean shouldCreateWatchedEntity(ChangeRequest changeRequest, UserReference userReference)
@@ -91,6 +92,7 @@ public class ChangeRequestAutoWatchHandler
      * request.
      *
      * @param changeRequest the change request for which to create a new watch entity.
+     * @param userReference the user who should watch the change request.
      * @throws ChangeRequestException in case of problem when saving the watch entity.
      */
     public void watchChangeRequest(ChangeRequest changeRequest, UserReference userReference)

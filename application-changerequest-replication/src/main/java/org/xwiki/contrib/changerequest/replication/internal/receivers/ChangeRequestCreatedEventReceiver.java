@@ -79,7 +79,7 @@ public class ChangeRequestCreatedEventReceiver extends AbstractChangeRequestRece
                 }
                 Set<UserReference> allApprovers =
                     this.approversManagerProvider.get().getAllApprovers(changeRequest, false);
-                allApprovers.forEach( userReference -> {
+                allApprovers.forEach(userReference -> {
                     if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, userReference)) {
                         try {
                             autoWatchHandler.watchChangeRequest(changeRequest, userReference);
