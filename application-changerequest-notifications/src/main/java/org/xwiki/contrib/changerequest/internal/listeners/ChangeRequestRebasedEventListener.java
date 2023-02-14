@@ -60,6 +60,7 @@ public class ChangeRequestRebasedEventListener extends AbstractChangeRequestEven
             DocumentModelBridge documentInstance = this.getChangeRequestDocument(changeRequestId);
             ChangeRequestRebasedRecordableEvent recordableEvent =
                 new ChangeRequestRebasedRecordableEvent(changeRequestId, false, null);
+            this.titleCacheManagerProvider.get().invalidate(changeRequestId);
             this.notifyChangeRequestRecordableEvent(recordableEvent, documentInstance);
         } catch (Exception e) {
             this.logger.error(

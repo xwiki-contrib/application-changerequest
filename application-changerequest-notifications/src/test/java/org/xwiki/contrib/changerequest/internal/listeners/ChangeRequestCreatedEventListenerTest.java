@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
@@ -40,6 +41,7 @@ import org.xwiki.user.UserReference;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -84,6 +86,10 @@ class ChangeRequestCreatedEventListenerTest
         UserReference creator = mock(UserReference.class);
         when(data.getCreator()).thenReturn(creator);
         when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, creator)).thenReturn(true);
+        FileChange fileChange = mock(FileChange.class);
+        String fileChangeId = "fileChangeId";
+        when(fileChange.getId()).thenReturn(fileChangeId);
+        when(data.getAllFileChanges()).thenReturn(Collections.singletonList(fileChange));
 
         UserReference approver1 = mock(UserReference.class);
         UserReference approver2 = mock(UserReference.class);
@@ -108,6 +114,7 @@ class ChangeRequestCreatedEventListenerTest
         doAnswer(invocation -> {
             ChangeRequestCreatedRecordableEvent event = invocation.getArgument(0);
             assertTrue(event.isFromSplit());
+            assertEquals(fileChangeId, event.getFileChangeId());
             return null;
         }).when(this.changeRequestRecordableEventNotifier).notifyChangeRequestRecordableEvent(
             any(ChangeRequestCreatedRecordableEvent.class),

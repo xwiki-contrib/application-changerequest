@@ -25,7 +25,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleCacheManager;
 import org.xwiki.eventstream.EventSearchResult;
 import org.xwiki.eventstream.EventStore;
 import org.xwiki.eventstream.EventStreamException;
@@ -33,6 +33,8 @@ import org.xwiki.eventstream.query.SimpleEventQuery;
 import org.xwiki.eventstream.query.SortableEventQuery;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
+
+import static org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY;
 
 /**
  * Script service related to notifications on change request.
@@ -49,6 +51,9 @@ public class ChangeRequestNotificationsScriptService implements ScriptService
     @Inject
     private Provider<EventStore> eventStoreProvider;
 
+    @Inject
+    private Provider<ChangeRequestTitleCacheManager> titleCacheManagerProvider;
+
     /**
      * Search for events related to the given change request.
      *
@@ -64,10 +69,23 @@ public class ChangeRequestNotificationsScriptService implements ScriptService
         // FIXME: this can be simplified with XWiki 13.9 API
         SimpleEventQuery eventQuery = new SimpleEventQuery(offset, limit)
             .eq(String.format("%s__properties_string",
-                AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY), changeRequestId)
+                CHANGE_REQUEST_ID_PARAMETER_KEY), changeRequestId)
             .addSort("date", SortableEventQuery.SortClause.Order.ASC);
 
         return this.eventStoreProvider.get().search(eventQuery);
     }
 
+    /**
+     * Retrieve the document title to be displayed for the given change request and file change identifier.
+     * This method automatically compute and cache the title to be displayed for the filechange identified by the given
+     * information.
+     *
+     * @param changeRequestId the identifier of a change request
+     * @param fileChangeId the identifier of a filechange
+     * @return a computed title of a page to be displayed or {@code null}
+     */
+    public String getPageTitle(String changeRequestId, String fileChangeId)
+    {
+        return this.titleCacheManagerProvider.get().getTitle(changeRequestId, fileChangeId);
+    }
 }

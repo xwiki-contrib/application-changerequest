@@ -56,7 +56,17 @@
         ##   the HTML renderer meanwhile they are trimmed when rendered with the plain text renderer.
         ##
         ## * It's consistent with the way the title is displayed in the page itself (using html, see: `titlevars.vm`).
-      <a href="$!escapetool.xml($document.getURL())">$document.displayTitle</a>
+        #set ($title = $NULL)
+        #set ($event = $compositeEvent.events.get(0))
+        #if ($event.parameters)
+            #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+            #set ($changeRequestId = $event.parameters.get('changerequest.id'))
+            #set ($title = $services.changerequest.notifications.getPageTitle($changeRequestId, $fileChangeId))
+        #end
+        #if ("$!title" == '')
+            #set ($title = $document.displayTitle)
+        #end
+        <a href="$!escapetool.xml($document.getURL())">$escapetool.xml($title)</a>
         ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
         ## to actually know where the request comes from.
         #if ($xcontext.getContext().getOriginalWikiId() != $compositeEvent.document.wikiReference.name)

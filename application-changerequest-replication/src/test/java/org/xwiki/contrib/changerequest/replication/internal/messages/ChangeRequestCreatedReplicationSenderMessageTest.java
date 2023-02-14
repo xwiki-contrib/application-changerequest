@@ -86,7 +86,8 @@ class ChangeRequestCreatedReplicationSenderMessageTest
     void initialize()
     {
         String crId = "fooBarCr";
-        ChangeRequestCreatedRecordableEvent event = new ChangeRequestCreatedRecordableEvent(crId);
+        String fileChangeId = "fileChangeId";
+        ChangeRequestCreatedRecordableEvent event = new ChangeRequestCreatedRecordableEvent(crId, fileChangeId);
         event.setFromSplit(true);
 
         DocumentReference dataDocReference = mock(DocumentReference.class, "dataDocReference");
@@ -102,6 +103,7 @@ class ChangeRequestCreatedReplicationSenderMessageTest
         parameters.put("DATA_DOCUMENT", Collections.singleton(serializedDataDoc));
         parameters.put("CHANGE_REQUEST_ID", Collections.singleton(crId));
         parameters.put("FROM_SPLIT", Collections.singleton("true"));
+        parameters.put("FILE_CHANGE_ID", Collections.singleton(fileChangeId));
 
         assertEquals(parameters, this.senderMessage.getCustomMetadata());
     }
