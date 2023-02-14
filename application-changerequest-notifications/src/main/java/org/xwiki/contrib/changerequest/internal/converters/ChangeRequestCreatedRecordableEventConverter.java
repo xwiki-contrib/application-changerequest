@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.converters;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Named;
@@ -56,6 +57,10 @@ public class ChangeRequestCreatedRecordableEventConverter extends
     @Override
     protected Map<String, String> getSpecificParameters(ChangeRequestCreatedRecordableEvent event)
     {
-        return Collections.singletonMap(IS_FROM_SPLIT_PARAMETER, Boolean.toString(event.isFromSplit()));
+        Map<String, String> result = new HashMap<>();
+        result.put(IS_FROM_SPLIT_PARAMETER, Boolean.toString(event.isFromSplit()));
+        result.put(ChangeRequestFileChangeAddedRecordableEventConverter.FILECHANGE_ID_PARAMETER_KEY,
+            event.getFileChangeId());
+        return result;
     }
 }

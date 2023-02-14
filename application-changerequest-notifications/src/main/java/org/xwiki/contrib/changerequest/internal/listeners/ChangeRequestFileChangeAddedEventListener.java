@@ -63,6 +63,7 @@ public class ChangeRequestFileChangeAddedEventListener extends AbstractChangeReq
             // one that targets the watchers of the document that has been modified
             // the other one that targets the watchers of the change request itself.
             FileChange fileChange = (FileChange) data;
+            this.titleCacheManagerProvider.get().invalidate(changeRequestId, fileChange);
             DocumentModelBridge documentInstance = this.documentAccessBridge.getTranslatedDocumentInstance(
                 fileChange.getTargetEntity());
             this.notifyChangeRequestRecordableEvent(new DocumentModifiedInChangeRequestEvent(changeRequestId),

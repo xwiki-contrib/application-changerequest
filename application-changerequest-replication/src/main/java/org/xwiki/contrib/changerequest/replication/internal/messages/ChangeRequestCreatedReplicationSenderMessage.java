@@ -54,5 +54,7 @@ public class ChangeRequestCreatedReplicationSenderMessage extends
     protected void initializeCustomMetadata(RecordableEvent event)
     {
         this.putCustomMetadata(FROM_SPLIT, ((ChangeRequestCreatedRecordableEvent) event).isFromSplit());
+        this.putCustomMetadata(FileChangeAddedReplicationSenderMessage.FILE_CHANGE_ID,
+            ((ChangeRequestCreatedRecordableEvent) event).getFileChangeId());
     }
 }

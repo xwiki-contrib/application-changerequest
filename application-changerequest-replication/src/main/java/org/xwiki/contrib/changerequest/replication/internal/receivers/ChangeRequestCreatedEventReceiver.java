@@ -37,6 +37,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestCreatedReplicationSenderMessage;
+import org.xwiki.contrib.changerequest.replication.internal.messages.FileChangeAddedReplicationSenderMessage;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationException;
 import org.xwiki.contrib.replication.ReplicationReceiverMessage;
@@ -69,7 +70,8 @@ public class ChangeRequestCreatedEventReceiver extends AbstractChangeRequestRece
     public void receiveWithUserSet(ReplicationReceiverMessage message) throws ReplicationException
     {
         String changeRequestId = getChangeRequestId(message);
-
+        String fileChangeId =
+            this.messageReader.getMetadata(message, FileChangeAddedReplicationSenderMessage.FILE_CHANGE_ID, true);
         try {
             Optional<ChangeRequest> changeRequestOpt = this.changeRequestStorageManager.load(changeRequestId);
             if (changeRequestOpt.isPresent()) {
@@ -102,7 +104,7 @@ public class ChangeRequestCreatedEventReceiver extends AbstractChangeRequestRece
         boolean isFromSplit = Boolean.parseBoolean(this.messageReader.getMetadata(message,
             ChangeRequestCreatedReplicationSenderMessage.FROM_SPLIT, true));
         ChangeRequestCreatedRecordableEvent event =
-            new ChangeRequestCreatedRecordableEvent(changeRequestId);
+            new ChangeRequestCreatedRecordableEvent(changeRequestId, fileChangeId);
         event.setFromSplit(isFromSplit);
 
         DocumentModelBridge dataDocument = this.getDataDocument(message);

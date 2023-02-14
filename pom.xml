@@ -103,15 +103,16 @@
               </differences>
             </revapi.differences>
             <revapi.differences>
-              <justification>Work on DiffManager</justification>
+              <justification>Work on Notifications</justification>
               <ignore>true</ignore>
               <criticality>documented</criticality>
               <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.class.removed</code>
-                  <old>interface org.xwiki.contrib.changerequest.ChangeRequestDiffManager</old>
-                  <justification>Moved to another package.</justification>
+                  <code>java.method.numberOfParametersChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent::&lt;init&gt;(java.lang.String)</old>
+                  <new>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent::&lt;init&gt;(java.lang.String, java.lang.String)</new>
+                  <justification>The event has been modified to also contain identification of the filechange.</justification>
                 </item>
               </differences>
             </revapi.differences>

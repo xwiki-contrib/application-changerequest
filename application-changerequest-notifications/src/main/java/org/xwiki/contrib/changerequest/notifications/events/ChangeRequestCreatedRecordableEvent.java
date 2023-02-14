@@ -36,23 +36,26 @@ public class ChangeRequestCreatedRecordableEvent extends AbstractChangeRequestRe
     public static final String EVENT_NAME = "changerequest.create";
 
     private boolean fromSplit;
+    private final String fileChangeId;
 
     /**
      * Default empty constructor.
      */
     public ChangeRequestCreatedRecordableEvent()
     {
-        this(null);
+        this(null, null);
     }
 
     /**
      * Default constructor with a change request id.
      * @param id the identifier of a change request for which the event is triggered.
+     * @param fileChangeId the identifier of the filechange created.
      */
-    public ChangeRequestCreatedRecordableEvent(String id)
+    public ChangeRequestCreatedRecordableEvent(String id, String fileChangeId)
     {
         super(id);
         this.fromSplit = false;
+        this.fileChangeId = fileChangeId;
     }
 
     /**
@@ -69,6 +72,14 @@ public class ChangeRequestCreatedRecordableEvent extends AbstractChangeRequestRe
     public void setFromSplit(boolean fromSplit)
     {
         this.fromSplit = fromSplit;
+    }
+
+    /**
+     * @return the identifier of the file change added leading to this event.
+     */
+    public String getFileChangeId()
+    {
+        return fileChangeId;
     }
 
     @Override

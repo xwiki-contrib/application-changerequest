@@ -149,7 +149,19 @@
   $stringtool.lowerCase($translation)
 #end
 
-#macro (displayEvent $event)
+#template("displayer_page.vm")
+## Macro inspired from displayPageReference
+#macro(displayFileChangeTitle $fileChange)
+  #if ("$!fileChange.modifiedDocument" != '')
+    #set ($pageDoc = $fileChange.modifiedDocument.newDocument($xcontext.context))
+    #set ($title = $escapetool.xml($pageDoc.plainTitle))
+    &lt;a href="$pageDoc.URL"&gt;$title&lt;/a&gt;
+  #else
+    #displayPageReference($fileChange.targetEntity)
+  #end
+#end
+
+#macro (displayEvent $event $changeRequest)
   #set ($escapedUserName = "$escapetool.xml($xwiki.getPlainUserName($event.user))")
   #set ($userArgument = "&lt;a class=""user-name"" href=""$escapetool.xml($xwiki.getURL($event.user))""&gt;$escapedUserName&lt;/a&gt;")
   #set ($localizationKey = "changerequest.timeline.$event.type")
@@ -165,7 +177,15 @@
     #set ($skip = true)
   #elseif ($event.type == 'changerequest.create')
     #set ($actualDoc = $xwiki.getDocument($event.document))
-    #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $actualDoc.displayTitle])
+    #set ($title = $NULL)
+    #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+    #if ("$!fileChangeId" != '')
+      #set ($title = $services.changerequest.notifications.getPageTitle($changeRequest.id, $fileChangeId))
+    #end
+    #if ("$!title" == '')
+      #set ($title = $actualDoc.displayTitle)
+    #end
+    #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $escapetool.xml($title)])
     #set ($icon = 'space')
   #elseif ($event.type == 'changerequest.filechange.added')
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
@@ -174,7 +194,11 @@
     #if ($fileChangeOpt.isPresent())
       #set ($eventDoc = $fileChangeOpt.get().targetEntity)
       #set ($actualDoc = $xwiki.getDocument($eventDoc))
-      #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+      #set ($title = $services.changerequest.notifications.getPageTitle($changeRequest.id, $fileChangeId))
+      #if ("$!title" == '')
+        #set ($title = $actualDoc.displayTitle)
+      #end
+      #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $escapetool.xml($title)])
     #else
       #set ($skip = true)
     #end
@@ -287,8 +311,9 @@
 #macro (displayAllEvents $changeRequestId)
   &lt;ul class="timeline"&gt;
     #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
+    #set ($changeRequest = $services.changerequest.get($changeRequestId).get())
     #foreach ($event in $eventSearchResult.stream().iterator())
-      #displayEvent($event)
+      #displayEvent($event $changeRequest)
     #end
   &lt;/ul&gt;
 #end
@@ -340,17 +365,6 @@
     #end
   #else
     &lt;span class="description-content"&gt;$doc.getRenderedContent($doc.content, $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;')&lt;/span&gt;
-  #end
-#end
-#template("displayer_page.vm")
-## Macro inspired from displayPageReference
-#macro(displayFileChangeTitle $fileChange)
-  #if ("$!fileChange.modifiedDocument" != '')
-    #set ($pageDoc = $fileChange.modifiedDocument.newDocument($xcontext.context))
-    #set ($title = $escapetool.xml($pageDoc.plainTitle))
-    &lt;a href="$pageDoc.URL"&gt;$title&lt;/a&gt;
-  #else
-    #displayPageReference($fileChange.targetEntity)
   #end
 #end
 {{/velocity}}</content>

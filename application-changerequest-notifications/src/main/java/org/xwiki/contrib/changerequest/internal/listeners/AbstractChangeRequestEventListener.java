@@ -22,11 +22,13 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleCacheManager;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
@@ -47,6 +49,9 @@ public abstract class AbstractChangeRequestEventListener extends AbstractEventLi
 
     @Inject
     protected ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
+
+    @Inject
+    protected Provider<ChangeRequestTitleCacheManager> titleCacheManagerProvider;
 
     /**
      * Default constructor.

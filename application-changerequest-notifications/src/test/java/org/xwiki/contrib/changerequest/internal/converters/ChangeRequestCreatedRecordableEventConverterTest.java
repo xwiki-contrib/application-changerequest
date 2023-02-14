@@ -56,6 +56,7 @@ class ChangeRequestCreatedRecordableEventConverterTest
         when(this.defaultConverter.convert(recordableEvent, source, data)).thenReturn(event);
 
         String crId = "myCr42";
+        String fileChangeId = "someFileChangeId";
         String eventName = "ChangeRequestFileChangeAddedRecordableEvent";
         when(recordableEvent.getChangeRequestId()).thenReturn(crId);
         when(recordableEvent.getEventName()).thenReturn(eventName);
@@ -68,7 +69,10 @@ class ChangeRequestCreatedRecordableEventConverterTest
             crId);
 
         when(recordableEvent.isFromSplit()).thenReturn(true);
+        when(recordableEvent.getFileChangeId()).thenReturn(fileChangeId);
         expectedParameters.put(ChangeRequestCreatedRecordableEventConverter.IS_FROM_SPLIT_PARAMETER, "true");
+        expectedParameters.put(ChangeRequestFileChangeAddedRecordableEventConverter.FILECHANGE_ID_PARAMETER_KEY,
+            fileChangeId);
 
         assertSame(event, this.converter.convert(recordableEvent, source, data));
         verify(event).setType(eventName);

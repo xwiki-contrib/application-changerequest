@@ -97,7 +97,8 @@ class ChangeRequestCreatedListenerTest
     void onEvent(MockitoComponentManager componentManager) throws Exception
     {
         String crId = "crFooBar";
-        ChangeRequestCreatedRecordableEvent event = new ChangeRequestCreatedRecordableEvent(crId);
+        String fileChangeId = "fileChangeId";
+        ChangeRequestCreatedRecordableEvent event = new ChangeRequestCreatedRecordableEvent(crId, fileChangeId);
         XWikiDocument data = mock(XWikiDocument.class, "data");
         DocumentReference dataDocRef = mock(DocumentReference.class);
         when(data.getDocumentReference()).thenReturn(dataDocRef);
