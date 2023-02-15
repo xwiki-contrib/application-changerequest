@@ -231,6 +231,7 @@ changerequest.conflict.modal.options.keeppublished.title=Keep published version
 changerequest.conflict.modal.options.keeppublished.description=Fix the conflicts by keeping published version.
 changerequest.conflict.modal.custom.hint.disabled=This option is disabled: some conflict occurs in some part of the document that cannot be handled by custom resolution.
 
+changerequest.savemodal.approvers.edition.warning=Once a document has been published, any change to the list of approvers must be approved by the existing list of approvers before the changes impact any open review cycles. If you're looking to add or remove approvers for the changes proposed in this Change Request, please open a new  Change Request with a new set of approvers. This Change Request will be automatically updated once the proposed change to the approvers has been accepted.
 changerequest.savemodal.approvers.header.title=Approvers management
 changerequest.savemodal.approvers.header.hint=You can specify the list of users and groups that should be allowed to approve the changes on that page. Those lists will be submitted in a change request, either a new one or an existing one.
 changerequest.savemodal.approvers.heading=Approvers
