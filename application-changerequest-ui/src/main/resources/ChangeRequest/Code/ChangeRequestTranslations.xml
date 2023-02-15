@@ -36,12 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>changerequest.livetable.doc.name=Location
-changerequest.livetable.doc.date=Modification date
-changerequest.livetable.status=Status
-changerequest.livetable.changedDocuments=Target documents
-changerequest.livetable.authors=Authors
-changerequest.docextra.title=Change Requests
+  <content>changerequest.docextra.title=Change Requests
 changerequest.application.label=Change Request
 changerequest.picker.placeholder=Type a change request name
 changerequest.editor.button.save=Save as change request
@@ -212,13 +207,6 @@ changerequest.sheet.message.reply.button.title=Reply to this message
 changerequest.sheet.message.reply.button=Reply
 
 changerequest.minimumApprovers.warning=The minimum number of explicit approvers is not met in this document.
-
-ChangeRequest.Code.ChangeRequestClass_status_draft=Draft
-ChangeRequest.Code.ChangeRequestClass_status_merged=Merged
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Ready for review
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=Ready for merging
-ChangeRequest.Code.ChangeRequestClass_status_closed=Closed
-ChangeRequest.Code.ChangeRequestClass_status_stale=Closed (stale)
 
 changerequest.conflict.modal.title=Fix conflict
 changerequest.conflict.modal.description=This interface allows you to chose how to handle the conflicts related to this change request. You can navigate between the versions to see the changes before performing your choice.

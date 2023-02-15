@@ -36,12 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>changerequest.livetable.doc.name=Speicherort
-changerequest.livetable.doc.date=Änderungsdatum
-changerequest.livetable.status=Status
-changerequest.livetable.changedDocuments=Zieldokumente
-changerequest.livetable.authors=Autoren
-changerequest.docextra.title=Änderungsanforderungen
+  <content>changerequest.docextra.title=Änderungsanforderungen
 changerequest.application.label=Änderungsanforderung
 changerequest.picker.placeholder=Name der Änderungsanforderung
 changerequest.editor.button.save=Als Änderungsanforderung speichern
@@ -208,12 +203,6 @@ changerequest.sheet.message.expand.button.title=Klicken Sie, um die Nachricht zu
 changerequest.sheet.message.reply.button.title=Auf die Nachricht antworten
 changerequest.sheet.message.reply.button=Antworten
 changerequest.minimumApprovers.warning=Die Mindestanzahl explizit genehmigender Personen wird in diesem Dokument nicht erreicht.
-ChangeRequest.Code.ChangeRequestClass_status_draft=Entwurf
-ChangeRequest.Code.ChangeRequestClass_status_merged=Zusammengeführt
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Bereit zur Überprüfung
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=Bereit zum Zusammenführen
-ChangeRequest.Code.ChangeRequestClass_status_closed=Geschlossen
-ChangeRequest.Code.ChangeRequestClass_status_stale=Geschlossen (veraltet)
 changerequest.conflict.modal.title=Konflikt beheben
 changerequest.conflict.modal.description=Über diese Schnittstelle können Sie auswählen, wie die Konflikte im Zusammenhang mit dieser Änderungsanforderung behandelt werden sollen. Sie können zwischen den Versionen navigieren, um die Änderungen anzuzeigen, bevor Sie Ihre Auswahl treffen.
 changerequest.conflict.modal.description.EDITION=Konflikte sind aufgetreten, weil das Originaldokument, für das Sie Änderungen vorgeschlagen haben, bearbeitet wurde, seit Sie die Änderungsanforderung geöffnet haben. Sie können Ihre Änderungen beibehalten oder die Änderungen der veröffentlichten Version beibehalten oder versuchen, den Konflikt manuell aufzulösen.

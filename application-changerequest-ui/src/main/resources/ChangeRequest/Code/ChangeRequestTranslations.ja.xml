@@ -36,12 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>changerequest.livetable.doc.name=保存場所
-changerequest.livetable.doc.date=修正日
-changerequest.livetable.status=状態
-changerequest.livetable.changedDocuments=ターゲットのドキュメント
-changerequest.livetable.authors=作者
-changerequest.docextra.title=変更のリクエスト
+  <content>changerequest.docextra.title=変更のリクエスト
 changerequest.application.label=変更のリクエスト
 changerequest.picker.placeholder=変更リクエストの名称を入力してください
 changerequest.editor.button.save=変更リクエストとして保存
@@ -198,12 +193,6 @@ changerequest.sheet.message.expand.button.title=クリックするとメッセ�
 changerequest.sheet.message.reply.button.title=このメッセージに返信
 changerequest.sheet.message.reply.button=返信
 ### Missing: changerequest.minimumApprovers.warning=The minimum number of explicit approvers is not met in this document.
-ChangeRequest.Code.ChangeRequestClass_status_draft=下書き
-ChangeRequest.Code.ChangeRequestClass_status_merged=マージ済
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=レビューの準備完了
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=マージの準備完了
-### Missing: ChangeRequest.Code.ChangeRequestClass_status_closed=Closed
-### Missing: ChangeRequest.Code.ChangeRequestClass_status_stale=Closed (stale)
 changerequest.conflict.modal.title=競合を修正
 changerequest.conflict.modal.description=この画面から、この変更リクエストに関する競合の処理方法を選択できます。選択する前にバージョン間の変更を確認できます。
 changerequest.conflict.modal.description.EDITION=この変更リクエストを行ってから、変更を提案した元のドキュメントが変更されたため、競合が発生しました。変更を維持するか、公開済のバージョンを維持するか、または、個別に競合の解決を試みることができます。
