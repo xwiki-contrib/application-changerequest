@@ -36,12 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>changerequest.livetable.doc.name=Emplacement
-changerequest.livetable.doc.date=Date de modification
-changerequest.livetable.status=Statut
-changerequest.livetable.changedDocuments=Documents concernés
-changerequest.livetable.authors=Auteurs
-changerequest.docextra.title=Demandes de modification
+  <content>changerequest.docextra.title=Demandes de modification
 changerequest.application.label=Demande de modification
 changerequest.picker.placeholder=Saisissez un nom pour la demande de modification
 changerequest.editor.button.save=Enregistrer comme demande de modification
@@ -200,12 +195,6 @@ changerequest.sheet.message.reply.button=Répondre
 changerequest.minimumApprovers.warning=Le nombre minimum d'approbateurs explicites n'est pas atteint dans ce document.
 
 ## changerequest.sheet.status.draft=Draft
-ChangeRequest.Code.ChangeRequestClass_status_draft=Brouillon
-ChangeRequest.Code.ChangeRequestClass_status_merged=Fusionné
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_review=Prêt pour vérification
-ChangeRequest.Code.ChangeRequestClass_status_ready_for_merging=Prêt pour fusion
-ChangeRequest.Code.ChangeRequestClass_status_closed=Fermé
-ChangeRequest.Code.ChangeRequestClass_status_stale=Fermé (périmé)
 changerequest.conflict.modal.title=Résoudre le conflit
 changerequest.conflict.modal.description=Cet écran vous permet de choisir comment gérer les conflits liés à la demande de modification. Vous pouvez naviguer entre les versions pour voir les modification avant d'effectuer votre choix.
 changerequest.conflict.modal.description.EDITION=Des conflits existent car le document d'origine a évolué après votre demande de modification. Pour résoudre ces conflits, vous pouvez : soit conserver toutes vos modifications soit conserver toutes les nouveautés de la version publiée ou encore choisir de résoudre les conflits manuellement de manière personnalisée.
