@@ -95,6 +95,11 @@
   #set ($usersApproversInput = $approversXObject.display('usersApprovers', 'edit'))
   #set ($groupsApproversInput = $approversXObject.display('groupsApprovers', 'edit'))
   #define ($approversPanel)
+    #if ($isApproversEdition)
+    &lt;div class="box warningmessage"&gt;
+      $escapetool.xml($services.localization.render('changerequest.savemodal.approvers.edition.warning'))
+    &lt;/div&gt;
+    #end
     &lt;div class="panel #if($isApproversEdition)panel-primary #else panel-default#end"&gt;
       &lt;div class="panel-heading" role="tab" id="approversHeading"&gt;
         &lt;h4 class="panel-title"&gt;$services.localization.render('changerequest.savemodal.approvers.heading')&lt;/h4&gt;
