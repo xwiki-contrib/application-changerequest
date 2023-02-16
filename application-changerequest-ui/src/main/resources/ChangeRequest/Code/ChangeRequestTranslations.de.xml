@@ -213,6 +213,7 @@ changerequest.conflict.modal.options.keepcr.description=Beheben Sie die Konflikt
 changerequest.conflict.modal.options.keeppublished.title=Veröffentlichte Version behalten
 changerequest.conflict.modal.options.keeppublished.description=Beheben Sie die Konflikte, indem Sie die veröffentlichte Version nehmen.
 changerequest.conflict.modal.custom.hint.disabled=Diese Option ist deaktiviert: In einigen Teilen des Dokuments tritt ein Konflikt auf, der nicht durch eine benutzerdefinierte Auflösung behandelt werden kann.
+changerequest.savemodal.approvers.edition.warning=Sobald ein Dokument veröffentlicht wurde, muss jede Änderung an der Liste der Genehmigenden von der bestehenden Liste der Genehmigenden genehmigt werden, bevor sich die Änderungen auf offene Überprüfungszyklen auswirken. Wenn Sie Genehmigende für die in dieser Änderungsanforderung vorgeschlagenen Änderungen hinzufügen oder entfernen möchten, öffnen Sie bitte eine neue Änderungsanforderung mit einer neuen Gruppe von Genehmigenden. Diese Änderungsanforderung wird automatisch aktualisiert, sobald die vorgeschlagene Änderung an den Genehmigenden akzeptiert wurde.
 changerequest.savemodal.approvers.header.title=Verwaltung der Genehmiger
 changerequest.savemodal.approvers.header.hint=Sie können die Liste der Benutzer und Gruppen angeben, die berechtigt sein sollen, die Änderungen auf dieser Seite zu genehmigen. Diese Listen werden in einem Änderungsantrag eingereicht, entweder einem neuen oder einem bestehenden.
 changerequest.savemodal.approvers.heading=Genehmiger
