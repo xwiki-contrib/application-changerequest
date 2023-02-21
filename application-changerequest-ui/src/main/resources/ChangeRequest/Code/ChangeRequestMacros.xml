@@ -311,7 +311,7 @@
 #macro (displayAllEvents $changeRequestId)
   &lt;ul class="timeline"&gt;
     #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
-    #set ($changeRequest = $services.changerequest.get($changeRequestId).get())
+    #set ($changeRequest = $services.changerequest.getChangeRequest($changeRequestId).get())
     #foreach ($event in $eventSearchResult.stream().iterator())
       #displayEvent($event $changeRequest)
     #end
