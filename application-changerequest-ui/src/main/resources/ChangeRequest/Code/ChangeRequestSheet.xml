@@ -2226,9 +2226,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var placeLineDiffDiscussion = function (discussion) {
     var reference = discussion.attr('data-reference');
     var existingLine = $('.discussion-line[data-reference="'+reference+'"]');
-    if (existingLine.length) {
-      existingLine.find('.discussion').append(discussion.find('.message'));
-    } else {
+    if (!existingLine.length) {
       insertLineDiffDiscussion(discussion);
     }
     
@@ -3598,7 +3596,8 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     var currentElement = trLineElement;
     for (i = CONTEXT_SIZE; i &gt; 0; i--) {
       var prevElement = currentElement.prev('tr');
-      if (prevElement.length &gt; 0) {
+      // If the line contains "diff-line-meta" then it's the first one and we should ignore it.
+      if (prevElement.length &gt; 0 &amp;&amp; prevElement.has('td.diff-line-meta').length == 0) {
         diffElements.unshift(buildDiffElement(prevElement));
         currentElement = prevElement;
       } else {
