@@ -187,6 +187,20 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <values>days|hours|minutes|seconds</values>
       <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
     </durationUnit>
+    <idGeneratorHint>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>idGeneratorHint</name>
+      <number>15</number>
+      <picker>1</picker>
+      <prettyName>idGeneratorHint</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </idGeneratorHint>
     <mergeUser>
       <cache>0</cache>
       <customDisplay/>

@@ -37,7 +37,12 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
@@ -55,7 +60,7 @@ import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
-import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
@@ -127,8 +132,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private UserReferenceSerializer<String> userReferenceSerializer;
 
     @Inject
-    @Named("title")
-    private ChangeRequestIDGenerator idGenerator;
+    private ChangeRequestIDGenerator defaultIDGenerator;
 
     @Inject
     private QueryManager queryManager;
@@ -171,13 +175,41 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     @Named("count")
     private QueryFilter countQueryFilter;
 
+    @Inject
+    @Named("context")
+    private ComponentManager componentManager;
+
+    @Inject
+    private Logger logger;
+
+    private ChangeRequestIDGenerator getIdGenerator()
+    {
+        ChangeRequestIDGenerator result = this.defaultIDGenerator;
+        String idGeneratorHint = this.configuration.getIdGeneratorHint();
+        if (!StringUtils.isBlank(idGeneratorHint)
+            && this.componentManager.hasComponent(ChangeRequestIDGenerator.class, idGeneratorHint)) {
+            try {
+                result = this.componentManager.getInstance(ChangeRequestIDGenerator.class, idGeneratorHint);
+            } catch (ComponentLookupException e) {
+                this.logger.error("Error while loading ChangeRequestIDGenerator component with hint [{}]: [{}]",
+                    idGeneratorHint,
+                    ExceptionUtils.getRootCauseMessage(e));
+                this.logger.debug("Full stack trace of component loading error: ", e);
+            }
+        } else if (!StringUtils.isBlank(idGeneratorHint)) {
+            this.logger.warn("Cannot find ChangeRequestIDGenerator component with hint [{}], it will fallback on "
+                + "default implementation.", idGeneratorHint);
+        }
+        return result;
+    }
+
     @Override
     public void save(ChangeRequest changeRequest) throws ChangeRequestException
     {
         XWikiContext context = this.contextProvider.get();
         XWiki wiki = context.getWiki();
         if (changeRequest.getId() == null) {
-            changeRequest.setId(this.idGenerator.generateId(changeRequest));
+            changeRequest.setId(this.getIdGenerator().generateId(changeRequest));
         }
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         try {

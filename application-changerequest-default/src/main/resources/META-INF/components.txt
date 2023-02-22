@@ -10,8 +10,8 @@ org.xwiki.contrib.changerequest.internal.strategies.AcceptAllMergeApprovalStrate
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestConfiguration
 org.xwiki.contrib.changerequest.internal.DefaultChangeRequestManager
 org.xwiki.contrib.changerequest.internal.handlers.MergeChangeRequestHandler
-org.xwiki.contrib.changerequest.internal.id.TitleChangeRequestIDGenerator
-org.xwiki.contrib.changerequest.internal.id.UUIDChangeRequestIDGenerator
+org.xwiki.contrib.changerequest.internal.storage.id.TitleChangeRequestIDGenerator
+org.xwiki.contrib.changerequest.internal.storage.id.UUIDChangeRequestIDGenerator
 org.xwiki.contrib.changerequest.internal.handlers.AddChangesChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.ChangeRequestReferenceSerializer
 org.xwiki.contrib.changerequest.internal.FileChangeVersionManager

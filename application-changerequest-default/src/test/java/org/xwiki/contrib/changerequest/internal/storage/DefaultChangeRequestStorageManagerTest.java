@@ -46,7 +46,7 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionServic
 import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
-import org.xwiki.contrib.changerequest.internal.id.ChangeRequestIDGenerator;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.job.JobExecutor;
@@ -109,7 +109,6 @@ class DefaultChangeRequestStorageManagerTest
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @MockComponent
-    @Named("title")
     private ChangeRequestIDGenerator idGenerator;
 
     @MockComponent

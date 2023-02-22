@@ -219,4 +219,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty("renderedDiffComponent", "");
     }
+
+    @Override
+    public String getIdGeneratorHint()
+    {
+        return this.configurationSource.getProperty("idGeneratorHint", "");
+    }
 }

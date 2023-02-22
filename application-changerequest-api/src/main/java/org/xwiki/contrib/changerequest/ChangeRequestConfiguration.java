@@ -199,4 +199,16 @@ public interface ChangeRequestConfiguration
     {
         return "";
     }
+
+    /**
+     * Define the component hint to use for the
+     * {@link org.xwiki.contrib.changerequest.storage.ChangeRequestIDGenerator}.
+     *
+     * @return the hint of the component to use.
+     * @since 1.5
+     */
+    default String getIdGeneratorHint()
+    {
+        return "";
+    }
 }

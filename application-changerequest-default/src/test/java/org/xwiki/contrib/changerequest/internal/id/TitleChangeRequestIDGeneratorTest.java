@@ -26,6 +26,7 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.internal.storage.id.TitleChangeRequestIDGenerator;
 import org.xwiki.model.validation.EntityNameValidation;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
