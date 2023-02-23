@@ -225,4 +225,15 @@ public class ChangeRequestReviewScriptService implements ScriptService
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         return this.changeRequestDelegateApproverManager.getOriginalApprovers(currentUserReference, changeRequest);
     }
+
+    /**
+     * Check if the change request has valid reviews.
+     * @param changeRequest the change request to check for valid reviews.
+     * @return {@code true} if the change request has at least one valid review
+     * @since 1.5
+     */
+    public boolean hasValidReviews(ChangeRequest changeRequest)
+    {
+        return changeRequest.getReviews().stream().anyMatch(ChangeRequestReview::isValid);
+    }
 }

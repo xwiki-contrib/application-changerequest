@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
@@ -47,6 +48,9 @@ public class FilechangesLiveDataElement extends BaseElement
     private static final String REBASE_ACTION_CLASS = "action_rebase";
     private static final String EDIT_ACTION_CLASS = "action_edit";
     private static final String EDIT_APPROVERS_ACTION_CLASS = "action_editapprovers";
+
+    private static final String CONFIRM_REFRESH_TEXT = "Refreshing the changes will invalidate any reviews, do you "
+        + "confirm the action?";
 
     private static final String LOCATION_COLUMN = "Location";
 
@@ -173,15 +177,21 @@ public class FilechangesLiveDataElement extends BaseElement
         /**
          * Click on the refresh content link of the current row, and wait for the reload of the page.
          *
+         * @param expectConfirmation {@code true} if a confirm dialog is expected to confirm the refresh.
          * @return a new instance of the {@link ChangeRequestPage} since this action reload the page.
          * @see #isRefreshActionAvailable()
          */
-        public ChangeRequestPage clickRefresh()
+        public ChangeRequestPage clickRefresh(boolean expectConfirmation)
         {
             Optional<WebElement> optionalActionLink = this.getActionLink(REBASE_ACTION_CLASS);
             if (optionalActionLink.isPresent()) {
                 getDriver().addPageNotYetReloadedMarker();
                 optionalActionLink.get().click();
+                if (expectConfirmation) {
+                    Alert confirmAlert = getDriver().switchTo().alert();
+                    assert confirmAlert.getText().equals(CONFIRM_REFRESH_TEXT);
+                    confirmAlert.accept();
+                }
                 getDriver().waitUntilPageIsReloaded();
                 return new ChangeRequestPage();
             } else {

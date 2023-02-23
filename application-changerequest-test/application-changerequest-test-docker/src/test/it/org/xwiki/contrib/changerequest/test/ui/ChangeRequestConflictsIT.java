@@ -168,7 +168,7 @@ class ChangeRequestConflictsIT
         assertTrue(fileChangeWithReference.isRefreshActionAvailable());
         assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
-        changeRequestPage = fileChangeWithReference.clickRefresh();
+        changeRequestPage = fileChangeWithReference.clickRefresh(false);
         fileChangesPane = changeRequestPage.openFileChanges();
         fileChangeWithReference =
             fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
@@ -194,7 +194,7 @@ class ChangeRequestConflictsIT
         assertTrue(fileChangeWithReference.isRefreshActionAvailable());
         assertFalse(fileChangeWithReference.isFixConflictActionAvailable());
 
-        changeRequestPage = fileChangeWithReference.clickRefresh();
+        changeRequestPage = fileChangeWithReference.clickRefresh(false);
         fileChangesPane = changeRequestPage.openFileChanges();
         fileChangeWithReference =
             fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
@@ -604,7 +604,7 @@ class ChangeRequestConflictsIT
         fileChangeWithReference =
             fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);
         assertTrue(fileChangeWithReference.isRefreshActionAvailable());
-        changeRequestPage = fileChangeWithReference.clickRefresh();
+        changeRequestPage = fileChangeWithReference.clickRefresh(true);
 
         // check that now the reviews are invalidated
         reviewsPane = changeRequestPage.openReviewsPane();
