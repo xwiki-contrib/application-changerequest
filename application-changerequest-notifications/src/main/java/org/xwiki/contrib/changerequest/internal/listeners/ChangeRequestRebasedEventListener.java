@@ -53,14 +53,13 @@ public class ChangeRequestRebasedEventListener extends AbstractChangeRequestEven
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         String changeRequestId = (String) source;
         try {
             DocumentModelBridge documentInstance = this.getChangeRequestDocument(changeRequestId);
             ChangeRequestRebasedRecordableEvent recordableEvent =
                 new ChangeRequestRebasedRecordableEvent(changeRequestId, false, null);
-            this.titleCacheManagerProvider.get().invalidate(changeRequestId);
             this.notifyChangeRequestRecordableEvent(recordableEvent, documentInstance);
         } catch (Exception e) {
             this.logger.error(
@@ -68,5 +67,15 @@ public class ChangeRequestRebasedEventListener extends AbstractChangeRequestEven
                 source, ExceptionUtils.getRootCauseMessage(e)
             );
         }
+    }
+
+    @Override
+    public void onEvent(Event event, Object source, Object data)
+    {
+        super.onEvent(event, source, data);
+
+        // Title cache invalidation should be done also for remote events.
+        String changeRequestId = (String) source;
+        this.titleCacheManagerProvider.get().invalidate(changeRequestId);
     }
 }

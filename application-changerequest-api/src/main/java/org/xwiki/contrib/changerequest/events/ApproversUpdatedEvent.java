@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.Event;
 import org.xwiki.stability.Unstable;
 
@@ -36,7 +38,7 @@ import org.xwiki.stability.Unstable;
  * @since 0.10
  */
 @Unstable
-public class ApproversUpdatedEvent implements Event
+public class ApproversUpdatedEvent implements Event, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)

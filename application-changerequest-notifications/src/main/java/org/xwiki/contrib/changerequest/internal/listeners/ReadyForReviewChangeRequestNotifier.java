@@ -44,6 +44,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceSerializer;
@@ -58,7 +59,7 @@ import org.xwiki.user.UserReferenceSerializer;
 @Component
 @Singleton
 @Named(ReadyForReviewChangeRequestNotifier.NAME)
-public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
+public class ReadyForReviewChangeRequestNotifier extends AbstractLocalEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.ReadyToReviewChangeRequestNotifier";
 
@@ -92,7 +93,7 @@ public class ReadyForReviewChangeRequestNotifier extends AbstractEventListener
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         if (event instanceof ChangeRequestStatusChangedEvent) {
             ChangeRequestStatus[] statuses = (ChangeRequestStatus[]) data;

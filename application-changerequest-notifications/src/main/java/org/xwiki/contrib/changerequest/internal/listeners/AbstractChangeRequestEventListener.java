@@ -31,6 +31,7 @@ import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNoti
 import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleCacheManager;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
 import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 
 /**
@@ -39,7 +40,7 @@ import org.xwiki.observation.event.Event;
  * @version $Id$
  * @since 0.6
  */
-public abstract class AbstractChangeRequestEventListener extends AbstractEventListener
+public abstract class AbstractChangeRequestEventListener extends AbstractLocalEventListener
 {
     @Inject
     protected Logger logger;

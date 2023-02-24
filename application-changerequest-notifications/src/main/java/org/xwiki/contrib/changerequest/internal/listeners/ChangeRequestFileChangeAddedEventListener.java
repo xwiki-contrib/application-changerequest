@@ -55,7 +55,7 @@ public class ChangeRequestFileChangeAddedEventListener extends AbstractChangeReq
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         String changeRequestId = (String) source;
         try {
@@ -63,7 +63,6 @@ public class ChangeRequestFileChangeAddedEventListener extends AbstractChangeReq
             // one that targets the watchers of the document that has been modified
             // the other one that targets the watchers of the change request itself.
             FileChange fileChange = (FileChange) data;
-            this.titleCacheManagerProvider.get().invalidate(changeRequestId, fileChange);
             DocumentModelBridge documentInstance = this.documentAccessBridge.getTranslatedDocumentInstance(
                 fileChange.getTargetEntity());
             this.notifyChangeRequestRecordableEvent(new DocumentModifiedInChangeRequestEvent(changeRequestId),
@@ -78,5 +77,16 @@ public class ChangeRequestFileChangeAddedEventListener extends AbstractChangeReq
                 data, ExceptionUtils.getRootCauseMessage(e)
             );
         }
+    }
+
+    @Override
+    public void onEvent(Event event, Object source, Object data)
+    {
+        super.onEvent(event, source, data);
+
+        String changeRequestId = (String) source;
+        FileChange fileChange = (FileChange) data;
+        // We need to invalidate the cache also in case of remote events
+        this.titleCacheManagerProvider.get().invalidate(changeRequestId, fileChange);
     }
 }

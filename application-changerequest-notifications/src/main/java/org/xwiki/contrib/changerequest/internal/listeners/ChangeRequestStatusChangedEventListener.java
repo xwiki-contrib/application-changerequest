@@ -54,7 +54,7 @@ public class ChangeRequestStatusChangedEventListener extends AbstractChangeReque
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         String changeRequestId = (String) source;
         try {
