@@ -37,7 +37,9 @@ import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.model.reference.RegexEntityReference;
+import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationContext;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -57,7 +59,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Component
 @Singleton
 @Named(FileChangeXObjectUpdatedListener.NAME)
-public class FileChangeXObjectUpdatedListener extends AbstractLocalEventListener
+public class FileChangeXObjectUpdatedListener extends AbstractEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.FileChangeXObjectUpdatedListener";
 
@@ -94,7 +96,7 @@ public class FileChangeXObjectUpdatedListener extends AbstractLocalEventListener
     }
 
     @Override
-    public void processLocalEvent(Event event, Object source, Object data)
+    public void onEvent(Event event, Object source, Object data)
     {
         if (!observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())) {
             XWikiDocument updatedDoc = (XWikiDocument) source;

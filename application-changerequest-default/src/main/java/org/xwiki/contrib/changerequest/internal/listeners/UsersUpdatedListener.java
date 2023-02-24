@@ -34,6 +34,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.RegexEntityReference;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;

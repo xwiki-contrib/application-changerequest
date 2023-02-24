@@ -32,6 +32,7 @@ import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheM
 import org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.RegexEntityReference;
+import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -47,7 +48,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Component
 @Singleton
 @Named(ChangeRequestXObjectUpdatedListener.NAME)
-public class ChangeRequestXObjectUpdatedListener extends AbstractLocalEventListener
+public class ChangeRequestXObjectUpdatedListener extends AbstractEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestXObjectUpdatedListener";
 
@@ -74,7 +75,7 @@ public class ChangeRequestXObjectUpdatedListener extends AbstractLocalEventListe
     }
 
     @Override
-    public void processLocalEvent(Event event, Object source, Object data)
+    public void onEvent(Event event, Object source, Object data)
     {
         XWikiDocument updatedDoc = (XWikiDocument) source;
         String changeRequestId =

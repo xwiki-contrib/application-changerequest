@@ -31,6 +31,8 @@ import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheM
 import org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.RegexEntityReference;
+import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -49,7 +51,7 @@ import com.xpn.xwiki.objects.BaseObjectReference;
 @Component
 @Singleton
 @Named(ReviewXObjectUpdatedListener.NAME)
-public class ReviewXObjectUpdatedListener extends AbstractLocalEventListener
+public class ReviewXObjectUpdatedListener extends AbstractEventListener
 {
     static final String NAME = "org.xwiki.contrib.changerequest.internal.listeners.ReviewXObjectUpdatedListener";
 
@@ -78,7 +80,7 @@ public class ReviewXObjectUpdatedListener extends AbstractLocalEventListener
     }
 
     @Override
-    public void processLocalEvent(Event event, Object source, Object data)
+    public void onEvent(Event event, Object source, Object data)
     {
         XWikiDocument updatedDoc = (XWikiDocument) source;
         String changeRequestId =

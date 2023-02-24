@@ -34,6 +34,7 @@ import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.notifications.events.ApproversUpdatedTargetableEvent;
 import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 
@@ -46,7 +47,7 @@ import org.xwiki.observation.remote.RemoteObservationManagerContext;
 @Component
 @Singleton
 @Named(ApproversUpdatedEventListener.NAME)
-public class ApproversUpdatedEventListener extends AbstractEventListener
+public class ApproversUpdatedEventListener extends AbstractLocalEventListener
 {
     static final String NAME = "ApproversUpdatedEventListener";
 
@@ -65,7 +66,7 @@ public class ApproversUpdatedEventListener extends AbstractEventListener
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void processLocalEvent(Event event, Object source, Object data)
     {
         if (!this.remoteObservationManagerContext.isRemoteState()) {
             Pair<Set<String>, Set<String>> approvers = (Pair<Set<String>, Set<String>>) data;

@@ -363,6 +363,13 @@ public class ChangeRequest
         return getReviews().stream().filter(review -> reviewer.equals(review.getAuthor())).findFirst();
     }
 
+    public Optional<FileChange> getFileChangeById(String fileChangeId)
+    {
+        return this.getAllFileChanges().stream()
+            .filter(fileChange -> fileChange.getId().equals(fileChangeId))
+            .findFirst();
+    }
+
     /**
      * Retrieve the latest review either performed by the given author, or on behalf of them.
      *

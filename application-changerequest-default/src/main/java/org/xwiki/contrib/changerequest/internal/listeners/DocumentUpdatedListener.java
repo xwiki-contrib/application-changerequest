@@ -42,6 +42,7 @@ import org.xwiki.job.Job;
 import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 
 import com.xpn.xwiki.XWikiContext;
@@ -98,7 +99,6 @@ public class DocumentUpdatedListener extends AbstractLocalEventListener
 
         // We ignore all updates occurring during a wiki initialization.
         if (isWikiReady(reference.getWikiReference())) {
-            this.conflictCacheManager.get().invalidate(reference);
             try {
                 List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
                 for (ChangeRequest changeRequest : changeRequests) {
@@ -110,6 +110,19 @@ public class DocumentUpdatedListener extends AbstractLocalEventListener
                 logger.warn("Error while computing the merging status of change requests after update of [{}]: [{}]",
                     reference, ExceptionUtils.getRootCauseMessage(e));
             }
+        }
+    }
+
+    @Override
+    public void onEvent(Event event, Object source, Object data)
+    {
+        super.onEvent(event, source, data);
+
+        // The cache invalidation should be performed even in case of remote event.
+        XWikiDocument sourceDoc = (XWikiDocument) source;
+        DocumentReference reference = sourceDoc.getDocumentReferenceWithLocale();
+        if (isWikiReady(reference.getWikiReference())) {
+            this.conflictCacheManager.get().invalidate(reference);
         }
     }
 

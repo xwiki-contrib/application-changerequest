@@ -42,6 +42,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.RegexEntityReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
@@ -110,12 +111,24 @@ public class ChangeRequestConfigurationUpdatedListener extends AbstractLocalEven
             BaseObject previousObj =
                 originalConfigurationDoc.getXObject(ChangeRequestConfigurationSource.CLASS_REFERENCE);
 
-            this.diffCacheManagerProvider.get().invalidateAll();
             if (this.shouldRecomputeDelegate(currentObj, previousObj)) {
                 List<EntityReference> allUsers =
                     this.getAllUsers(configurationDoc.getDocumentReference().getWikiReference());
                 this.startComputationJob(allUsers);
             }
+        }
+    }
+
+    @Override
+    public void onEvent(Event event, Object source, Object data)
+    {
+        super.onEvent(event, source, data);
+
+        // We always invalidate the diff manager cache, even in case of remote event.
+        XWikiDocument configurationDoc = (XWikiDocument) source;
+        if (configurationDoc.getDocumentReference().getLocalDocumentReference()
+            .equals(ChangeRequestConfigurationSource.DOC_REFERENCE)) {
+            this.diffCacheManagerProvider.get().invalidateAll();
         }
     }
 
