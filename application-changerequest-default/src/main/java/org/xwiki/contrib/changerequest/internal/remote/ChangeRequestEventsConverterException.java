@@ -17,32 +17,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest.events;
-
-import java.io.Serializable;
-
-import org.xwiki.observation.event.BeginEvent;
-import org.xwiki.stability.Unstable;
+package org.xwiki.contrib.changerequest.internal.remote;
 
 /**
- * Event triggered when a change request start to be merged.
- * When the merge is finished, {@link ChangeRequestMergedEvent} is triggered.
- *
- * The event also send the following parameters:
- * <ul>
- *     <li>source: the change request identifier</li>
- *     <li>data: the merged change request (or {@code null} in the context of a remote event)</li>
- * </ul>
+ * Internal exception to be used in converters and helpers.
  *
  * @version $Id$
- * @since 0.8
+ * @since 1.5
  */
-@Unstable
-public class ChangeRequestMergingEvent implements BeginEvent, Serializable
+public class ChangeRequestEventsConverterException extends Exception
 {
-    @Override
-    public boolean matches(Object otherEvent)
+    /**
+     * Default constructor.
+     * @param message the message of the exception.
+     */
+    public ChangeRequestEventsConverterException(String message)
     {
-        return otherEvent instanceof ChangeRequestMergingEvent;
+        super(message);
+    }
+
+    /**
+     * Default constructor with cause.
+     * @param message the message of the exception.
+     * @param throwable the actual cause.
+     */
+    public ChangeRequestEventsConverterException(String message, Throwable throwable)
+    {
+        super(message, throwable);
     }
 }

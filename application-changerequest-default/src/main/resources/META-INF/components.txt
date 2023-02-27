@@ -71,3 +71,5 @@ org.xwiki.contrib.changerequest.internal.diff.GuestRightChangeRequestDiffRenderC
 org.xwiki.contrib.changerequest.internal.approvers.FileChangeDelegateApproversManager
 org.xwiki.contrib.changerequest.internal.handlers.ReviewChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.ui.ChangeRequestUserProfileUIExtension
+org.xwiki.contrib.changerequest.internal.remote.ChangeRequestEventsConverter
+org.xwiki.contrib.changerequest.internal.remote.ChangeRequestEventsConverterHelper

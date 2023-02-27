@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.AbstractCancelableEvent;
 import org.xwiki.observation.event.BeginEvent;
 import org.xwiki.stability.Unstable;
@@ -34,15 +36,16 @@ import org.xwiki.stability.Unstable;
  * The event also send the following parameters:
  * <ul>
  *     <li>source: the {@link org.xwiki.contrib.changerequest.FileChange} about to be saved</li>
- *     <li>data: the XWikiDocument where the filechange will be saved. Note that this document does not yet contain
- *         the data from the filechange when this event is triggered.</li>
+ *     <li>data: the XWikiDocument where the filechange will be saved. (or {@code null} in case of a remote event).
+ *              Note that this document does not yet contain the data from the filechange when this event is
+ *              triggered.</li>
  * </ul>
  *
  * @version $Id$
  * @since 1.2
  */
 @Unstable
-public class FileChangeDocumentSavingEvent extends AbstractCancelableEvent implements BeginEvent
+public class FileChangeDocumentSavingEvent extends AbstractCancelableEvent implements BeginEvent, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)

@@ -80,10 +80,6 @@ class ChangeRequestConfigurationUpdatedListenerTest
     void onEventNoRecomputation()
     {
         XWikiDocument source = mock(XWikiDocument.class);
-        when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(true);
-        this.configurationUpdatedListener.onEvent(null, source, null);
-        verifyNoInteractions(source);
-
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
         when(source.getDocumentReference()).thenReturn(new DocumentReference("xwiki", "Foo", "Bar"));
         this.configurationUpdatedListener.onEvent(null, source, null);

@@ -363,6 +363,12 @@ public class ChangeRequest
         return getReviews().stream().filter(review -> reviewer.equals(review.getAuthor())).findFirst();
     }
 
+    /**
+     * Retrieve a specific file change based on its identifier.
+     * @param fileChangeId the identifier of the file change to find
+     * @return an {@link Optional#empty()} if the file change cannot be found, else the instance of file change
+     * @since 1.5
+     */
     public Optional<FileChange> getFileChangeById(String fileChangeId)
     {
         return this.getAllFileChanges().stream()

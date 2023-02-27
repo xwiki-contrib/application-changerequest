@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.EndEvent;
 
 /**
@@ -35,7 +37,7 @@ import org.xwiki.observation.event.EndEvent;
  * @version $Id$
  * @since 0.7
  */
-public class SplitEndChangeRequestEvent implements EndEvent
+public class SplitEndChangeRequestEvent implements EndEvent, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)

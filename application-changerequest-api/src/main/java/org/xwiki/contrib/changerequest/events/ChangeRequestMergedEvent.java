@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.EndEvent;
 import org.xwiki.stability.Unstable;
 
@@ -36,7 +38,7 @@ import org.xwiki.stability.Unstable;
  * @since 0.8
  */
 @Unstable
-public class ChangeRequestMergedEvent implements EndEvent
+public class ChangeRequestMergedEvent implements EndEvent, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)
