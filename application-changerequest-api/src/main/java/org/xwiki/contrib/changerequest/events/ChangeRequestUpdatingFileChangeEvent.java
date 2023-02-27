@@ -33,7 +33,9 @@ import org.xwiki.stability.Unstable;
  * The event also send the following parameters:
  * <ul>
  *      <li>source: the change request identifier (empty string in case of the creation of a change request)</li>
- *      <li>data: the change request instance that will be saved (null in case of the creation of a change request)</li>
+ *      <li>data: the change request instance that will be saved ({@code null} in case of the creation of a change
+ *      request or in case of a remote event)
+ *      </li>
  * </ul>
  *
  * @version $Id$

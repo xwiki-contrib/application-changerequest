@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.EndEvent;
 import org.xwiki.stability.Unstable;
 
@@ -36,7 +38,7 @@ import org.xwiki.stability.Unstable;
  * @since 1.2
  */
 @Unstable
-public class FileChangeDocumentSavedEvent implements EndEvent
+public class FileChangeDocumentSavedEvent implements EndEvent, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)

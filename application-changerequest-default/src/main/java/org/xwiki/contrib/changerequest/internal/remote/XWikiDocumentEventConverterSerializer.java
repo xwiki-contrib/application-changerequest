@@ -1,3 +1,22 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
 package org.xwiki.contrib.changerequest.internal.remote;
 
 import java.io.Serializable;
@@ -17,6 +36,15 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.util.XWikiStubContextProvider;
 
+/**
+ * Helper to perform conversion of old core elements.
+ * This class is basically a copy of {@code com.xpn.xwiki.internal.observation.remote
+ * .converter.AbstractXWikiEventConverter}.
+ *
+ * @version $Id$
+ * @since 1.5
+ */
+// TODO: Remove it in favor of the new helper component once https://jira.xwiki.org/browse/XWIKI-20681 is done
 @Component(roles = XWikiDocumentEventConverterSerializer.class)
 @Singleton
 public class XWikiDocumentEventConverterSerializer
@@ -49,7 +77,7 @@ public class XWikiDocumentEventConverterSerializer
      */
     public Serializable serializeXWikiDocument(XWikiDocument document)
     {
-        HashMap<String, Serializable> remoteDataMap = new HashMap<String, Serializable>();
+        Map<String, Serializable> remoteDataMap = new HashMap<String, Serializable>();
 
         remoteDataMap.put(DOC_NAME, document.getDocumentReference());
 
@@ -65,7 +93,7 @@ public class XWikiDocumentEventConverterSerializer
             remoteDataMap.put(ORIGDOC_LANGUAGE, originalDocument.getLanguage());
         }
 
-        return remoteDataMap;
+        return (Serializable) remoteDataMap;
     }
 
     /**

@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.BeginEvent;
 
 /**
@@ -27,13 +29,13 @@ import org.xwiki.observation.event.BeginEvent;
  * The event also send the following parameters:
  * <ul>
  *     <li>source: the original change request identifier</li>
- *     <li>data: the change request object</li>
+ *     <li>data: the change request object (or {@code null} in case of a remote event)</li>
  * </ul>
  *
  * @version $Id$
  * @since 0.7
  */
-public class SplitBeginChangeRequestEvent implements BeginEvent
+public class SplitBeginChangeRequestEvent implements BeginEvent, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)
