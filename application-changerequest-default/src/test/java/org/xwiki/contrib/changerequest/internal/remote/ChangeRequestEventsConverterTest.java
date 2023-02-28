@@ -43,6 +43,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent;
+import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent;
 import org.xwiki.contrib.changerequest.events.FileChangeRebasedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
@@ -439,6 +440,21 @@ class ChangeRequestEventsConverterTest
         verify(remoteEvent).setEvent(event);
         verify(remoteEvent).setSource(source);
         verify(remoteEvent).setData(new ArrayList<>(List.of(cr1Id, cr2Id, cr3Id)));
+    }
+
+    @Test
+    void toRemoteFileChangeDocumentSavingEvent()
+    {
+        LocalEventData localEvent = mock(LocalEventData.class);
+        RemoteEventData remoteEvent = mock(RemoteEventData.class);
+
+        FileChangeDocumentSavingEvent event = new FileChangeDocumentSavingEvent();
+        when(localEvent.getEvent()).thenReturn(event);
+
+        assertTrue(this.converterToRemote.toRemote(localEvent, remoteEvent));
+        verify(remoteEvent).setEvent(event);
+        verify(remoteEvent, never()).setSource(any());
+        verify(remoteEvent, never()).setData(any());
     }
 
     @Test
@@ -842,5 +858,23 @@ class ChangeRequestEventsConverterTest
         verify(localEvent).setEvent(event);
         verify(localEvent).setSource(source);
         verify(localEvent).setData(new ArrayList<>(List.of(changeRequest1, changeRequest2, changeRequest3)));
+    }
+
+    @Test
+    void fromRemoteFileChangeDocumentSavingEvent()
+    {
+        RemoteEventData remoteEvent = mock(RemoteEventData.class);
+        LocalEventData localEvent = mock(LocalEventData.class);
+
+        FileChangeDocumentSavingEvent event = new FileChangeDocumentSavingEvent();
+        when(remoteEvent.getEvent()).thenReturn(event);
+
+        assertTrue(this.converterFromRemote.fromRemote(remoteEvent, localEvent));
+
+        verify(remoteEvent, never()).getSource();
+        verify(remoteEvent, never()).getData();
+        verify(localEvent).setEvent(event);
+        verify(localEvent, never()).setSource(any());
+        verify(localEvent, never()).setData(any());
     }
 }

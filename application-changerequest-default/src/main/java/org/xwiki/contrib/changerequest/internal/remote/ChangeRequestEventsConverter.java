@@ -52,6 +52,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent;
+import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent;
 import org.xwiki.contrib.changerequest.events.FileChangeRebasedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
@@ -121,7 +122,16 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             // the data is a filechange we set the data as the identifier.
             remoteEvent.setData(((FileChange) localEvent.getData()).getId());
             result = true;
-        } else if (localEvent.getEvent() instanceof ApproversUpdatedEvent) {
+        } else {
+            result = this.toRemoteSpecificEvents(localEvent, remoteEvent);
+        }
+        return result;
+    }
+
+    private boolean toRemoteSpecificEvents(LocalEventData localEvent, RemoteEventData remoteEvent)
+    {
+        boolean result = false;
+        if (localEvent.getEvent() instanceof ApproversUpdatedEvent) {
             // fill the remote event
             remoteEvent.setEvent((Serializable) localEvent.getEvent());
             // the source is an XWikiDocument
@@ -139,11 +149,7 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             remoteEvent.setData(review.getId());
             result = true;
         } else if (localEvent.getEvent() instanceof ChangeRequestStatusChangedEvent) {
-            this.copyEventAndSource(localEvent, remoteEvent);
-            ChangeRequestStatus[] statuses = (ChangeRequestStatus[]) localEvent.getData();
-            List<String> data = Arrays.stream(statuses).map(ChangeRequestStatus::name).collect(Collectors.toList());
-            remoteEvent.setData(new ArrayList<>(data));
-            result = true;
+            result = this.toRemoteChangeRequestStatusChangedEvent(localEvent, remoteEvent);
         } else if (localEvent.getEvent() instanceof FileChangeDocumentSavedEvent) {
             result = this.toRemoteFileChangeDocumentSavedEvent(localEvent, remoteEvent);
         } else if (localEvent.getEvent() instanceof SplitEndChangeRequestEvent) {
@@ -151,8 +157,20 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             List<ChangeRequest> data = (List<ChangeRequest>) localEvent.getData();
             remoteEvent.setData(new ArrayList<>(data.stream().map(ChangeRequest::getId).collect(Collectors.toList())));
             result = true;
+        } else if (localEvent.getEvent() instanceof FileChangeDocumentSavingEvent) {
+            remoteEvent.setEvent((FileChangeDocumentSavingEvent) localEvent.getEvent());
+            result = true;
         }
         return result;
+    }
+
+    private boolean toRemoteChangeRequestStatusChangedEvent(LocalEventData localEvent, RemoteEventData remoteEvent)
+    {
+        this.copyEventAndSource(localEvent, remoteEvent);
+        ChangeRequestStatus[] statuses = (ChangeRequestStatus[]) localEvent.getData();
+        List<String> data = Arrays.stream(statuses).map(ChangeRequestStatus::name).collect(Collectors.toList());
+        remoteEvent.setData(new ArrayList<>(data));
+        return true;
     }
 
     private boolean toRemoteUpdatedFileChangeEvent(LocalEventData localEvent, RemoteEventData remoteEvent)
@@ -196,10 +214,14 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             if (e.getCause() != null) {
                 this.logger.debug("Full root cause: ", e);
             }
+            // Ensure to not send the event in case of error.
+            localEvent.setEvent(null);
         } catch (XWikiException e) {
             this.logger.error("Error while trying to unserialize document from remote event [{}]: [{}]",
                 remoteEvent, ExceptionUtils.getRootCauseMessage(e));
             this.logger.debug("Full stack trace of the error to unserialize document: ", e);
+            // Ensure to not send the event in case of error.
+            localEvent.setEvent(null);
         }
         return result;
     }
@@ -227,7 +249,17 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             String changeRequestId = (String) remoteEvent.getSource();
             localEvent.setSource(changeRequestId);
             result = true;
-        } else if (remoteEvent.getEvent() instanceof ApproversUpdatedEvent) {
+        } else {
+            result = this.handleFromRemoteSpecificEvents(remoteEvent, localEvent);
+        }
+        return result;
+    }
+
+    private boolean handleFromRemoteSpecificEvents(RemoteEventData remoteEvent, LocalEventData localEvent)
+        throws ChangeRequestEventsConverterException, XWikiException
+    {
+        boolean result = false;
+        if (remoteEvent.getEvent() instanceof ApproversUpdatedEvent) {
             result = this.fromRemoteApproversUpdatedEvent(remoteEvent, localEvent);
         } else if (remoteEvent.getEvent() instanceof ChangeRequestUpdatedFileChangeEvent) {
             result = this.fromRemoteFileChangeUpdatedEvent(remoteEvent, localEvent);
@@ -239,6 +271,9 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             result = this.fromRemoteFileChangeDocumentSavedEvent(remoteEvent, localEvent);
         } else if (remoteEvent.getEvent() instanceof SplitEndChangeRequestEvent) {
             result = this.fromRemoteSplitEndChangeRequestEvent(remoteEvent, localEvent);
+        } else if (remoteEvent.getEvent() instanceof FileChangeDocumentSavingEvent) {
+            localEvent.setEvent((FileChangeDocumentSavingEvent) remoteEvent.getEvent());
+            result = true;
         }
         return result;
     }

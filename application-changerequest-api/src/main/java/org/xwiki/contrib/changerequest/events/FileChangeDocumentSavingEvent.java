@@ -35,7 +35,8 @@ import org.xwiki.stability.Unstable;
  *
  * The event also send the following parameters:
  * <ul>
- *     <li>source: the {@link org.xwiki.contrib.changerequest.FileChange} about to be saved</li>
+ *     <li>source: the {@link org.xwiki.contrib.changerequest.FileChange} about to be saved
+ *                 (or {@code null} in case of a remote event)</li>
  *     <li>data: the XWikiDocument where the filechange will be saved. (or {@code null} in case of a remote event).
  *              Note that this document does not yet contain the data from the filechange when this event is
  *              triggered.</li>

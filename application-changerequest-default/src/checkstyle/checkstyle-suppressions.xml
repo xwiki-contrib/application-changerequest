@@ -35,6 +35,8 @@
   <suppress checks="ClassFanOutComplexity" files="CreateInChangeRequestResourceHandler.java"/>
   <suppress checks="ClassFanOutComplexity" files="TemplateProviderSupportChecker.java"/>
 
+  <suppress checks="ClassFanOutComplexity" files="ChangeRequestEventsConverter.java"/>
+
   <!-- False positive introduced by multi strings used for queries -->
   <suppress checks="MultipleStringLiterals" files="DefaultChangeRequestStorageManager.java"/>
 
