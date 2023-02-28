@@ -148,7 +148,7 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             result = this.toRemoteFileChangeDocumentSavedEvent(localEvent, remoteEvent);
         } else if (localEvent.getEvent() instanceof SplitEndChangeRequestEvent) {
             this.copyEventAndSource(localEvent, remoteEvent);
-            List<ChangeRequest> data = (List<ChangeRequest>) localEvent.getEvent();
+            List<ChangeRequest> data = (List<ChangeRequest>) localEvent.getData();
             remoteEvent.setData(new ArrayList<>(data.stream().map(ChangeRequest::getId).collect(Collectors.toList())));
             result = true;
         }
@@ -266,6 +266,7 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             data.add(this.changeRequestEventsConverterHelperProvider.get()
                 .getChangeRequest(changeRequestId, remoteEvent));
         }
+        localEvent.setData(data);
         return true;
     }
 
@@ -287,8 +288,7 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
     private boolean fromRemoteReviewAddedEvent(RemoteEventData remoteEvent, LocalEventData localEvent)
         throws ChangeRequestEventsConverterException
     {
-        boolean result = false;
-        localEvent.setEvent((ChangeRequestUpdatedFileChangeEvent) remoteEvent.getEvent());
+        localEvent.setEvent((ChangeRequestReviewAddedEvent) remoteEvent.getEvent());
 
         String changeRequestId = (String) remoteEvent.getSource();
         localEvent.setSource(changeRequestId);
@@ -301,13 +301,12 @@ public class ChangeRequestEventsConverter extends AbstractEventConverter
             .findFirst();
         if (reviewOptional.isPresent()) {
             localEvent.setData(reviewOptional.get());
-            result = true;
+            return true;
         } else {
-            this.logger.error(
-                "Cannot find review with id [{}] in the change request reviews to properly convert"
-                    + " remote event [{}]", reviewId, remoteEvent);
+            throw new ChangeRequestEventsConverterException(
+                String.format("Cannot find review with id [%s] in the change request reviews to properly convert"
+                    + " remote event [%s]", reviewId, remoteEvent));
         }
-        return result;
     }
 
     private boolean fromRemoteFileChangeUpdatedEvent(RemoteEventData remoteEvent, LocalEventData localEvent)

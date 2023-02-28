@@ -30,7 +30,6 @@ import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleCacheManager;
 import org.xwiki.contrib.changerequest.notifications.events.AbstractChangeRequestRecordableEvent;
-import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 

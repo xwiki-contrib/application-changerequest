@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.events;
 
+import java.io.Serializable;
+
 import org.xwiki.observation.event.BeginEvent;
 import org.xwiki.stability.Unstable;
 
@@ -42,7 +44,7 @@ import org.xwiki.stability.Unstable;
  * @since 0.10
  */
 @Unstable
-public class ChangeRequestUpdatingFileChangeEvent implements BeginEvent
+public class ChangeRequestUpdatingFileChangeEvent implements BeginEvent, Serializable
 {
     @Override
     public boolean matches(Object otherEvent)
