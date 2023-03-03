@@ -214,6 +214,13 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     public ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
+        return this.getMergeDocumentResult(fileChange, null);
+    }
+
+    private ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange,
+        ConflictResolutionChoice resolutionChoice)
+        throws ChangeRequestException
+    {
         Optional<ChangeRequestMergeDocumentResult> optionalResult =
             this.mergeCacheManager.getChangeRequestMergeDocumentResult(fileChange);
         ChangeRequestMergeDocumentResult result;
@@ -264,7 +271,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
                     break;
 
                 case EDITION:
-                    result = this.getEditionMergeDocumentResult(fileChange, xwikiCurrentDoc);
+                    result = this.getEditionMergeDocumentResult(fileChange, xwikiCurrentDoc, resolutionChoice);
                     break;
 
                 default:
@@ -276,7 +283,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     }
 
     private ChangeRequestMergeDocumentResult getEditionMergeDocumentResult(FileChange fileChange,
-        XWikiDocument xwikiCurrentDoc)
+        XWikiDocument xwikiCurrentDoc, ConflictResolutionChoice resolutionChoice)
         throws ChangeRequestException
     {
         Optional<DocumentModelBridge> optionalPreviousDoc =
@@ -299,6 +306,10 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         // the conflict decision in the MergeManager.
         mergeConfiguration.setUserReference(context.getUserReference());
         mergeConfiguration.setConcernedDocument(documentReference);
+
+        if (resolutionChoice == ConflictResolutionChoice.CHANGE_REQUEST_VERSION) {
+            mergeConfiguration.setConflictFallbackVersion(MergeConfiguration.ConflictFallbackVersion.NEXT);
+        }
 
         mergeConfiguration.setProvidedVersionsModifiables(false);
         MergeDocumentResult mergeDocumentResult =
@@ -491,30 +502,26 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         // We need to invalidate the cache so that the merge operation can occur again with the decisions.
         this.mergeCacheManager.invalidate(fileChange);
         // This second call is needed to actually perform the merge operation.
-        mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
-        if (mergeDocumentResult.hasConflicts()) {
-            result = false;
-        } else {
-            String previousVersion = fileChange.getVersion();
-            String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
-            Date previousPublishedVersionDate = mergeDocumentResult.getCurrentDocument().getDate();
-            String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
+        mergeDocumentResult = this.getMergeDocumentResult(fileChange, resolutionChoice).getWrappedResult();
 
-            ChangeRequest changeRequest = fileChange.getChangeRequest();
-            FileChange mergeFileChange = new FileChange(changeRequest)
-                .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
-                .setCreationDate(new Date())
-                .setPreviousVersion(previousVersion)
-                .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
-                .setVersion(version)
-                .setModifiedDocument(mergeDocumentResult.getMergeResult())
-                .setTargetEntity(targetEntity);
+        String previousVersion = fileChange.getVersion();
+        String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();
+        Date previousPublishedVersionDate = mergeDocumentResult.getCurrentDocument().getDate();
+        String version = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, false);
 
-            changeRequest.addFileChange(mergeFileChange);
-            this.changeRequestStorageManager.save(changeRequest);
-            this.changeRequestManagerProvider.get().computeReadyForMergingStatus(changeRequest);
-            result = true;
-        }
-        return result;
+        ChangeRequest changeRequest = fileChange.getChangeRequest();
+        FileChange mergeFileChange = new FileChange(changeRequest)
+            .setAuthor(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE))
+            .setCreationDate(new Date())
+            .setPreviousVersion(previousVersion)
+            .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
+            .setVersion(version)
+            .setModifiedDocument(mergeDocumentResult.getMergeResult())
+            .setTargetEntity(targetEntity);
+
+        changeRequest.addFileChange(mergeFileChange);
+        this.changeRequestStorageManager.save(changeRequest);
+        this.changeRequestManagerProvider.get().computeReadyForMergingStatus(changeRequest);
+        return true;
     }
 }
