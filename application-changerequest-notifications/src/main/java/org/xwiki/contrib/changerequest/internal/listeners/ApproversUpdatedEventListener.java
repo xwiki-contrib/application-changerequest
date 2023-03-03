@@ -35,7 +35,6 @@ import org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNoti
 import org.xwiki.contrib.changerequest.notifications.events.ApproversUpdatedTargetableEvent;
 import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.remote.RemoteObservationManagerContext;
 
 /**
  * Listener in charge of transforming a {@link ApproversUpdatedEvent} to a {@link ApproversUpdatedTargetableEvent}.
@@ -51,9 +50,6 @@ public class ApproversUpdatedEventListener extends AbstractLocalEventListener
     static final String NAME = "ApproversUpdatedEventListener";
 
     @Inject
-    private RemoteObservationManagerContext remoteObservationManagerContext;
-
-    @Inject
     private ChangeRequestRecordableEventNotifier changeRequestRecordableEventNotifier;
 
     /**
@@ -67,14 +63,12 @@ public class ApproversUpdatedEventListener extends AbstractLocalEventListener
     @Override
     public void processLocalEvent(Event event, Object source, Object data)
     {
-        if (!this.remoteObservationManagerContext.isRemoteState()) {
-            Pair<Set<String>, Set<String>> approvers = (Pair<Set<String>, Set<String>>) data;
-            Set<String> target = new HashSet<>(approvers.getLeft());
-            target.addAll(approvers.getRight());
-            ApproversUpdatedTargetableEvent approversUpdatedTargetableEvent =
-                new ApproversUpdatedTargetableEvent(target);
-            this.changeRequestRecordableEventNotifier
-                .notifyChangeRequestRecordableEvent(approversUpdatedTargetableEvent, (DocumentModelBridge) source);
-        }
+        Pair<Set<String>, Set<String>> approvers = (Pair<Set<String>, Set<String>>) data;
+        Set<String> target = new HashSet<>(approvers.getLeft());
+        target.addAll(approvers.getRight());
+        ApproversUpdatedTargetableEvent approversUpdatedTargetableEvent =
+            new ApproversUpdatedTargetableEvent(target);
+        this.changeRequestRecordableEventNotifier
+            .notifyChangeRequestRecordableEvent(approversUpdatedTargetableEvent, (DocumentModelBridge) source);
     }
 }
