@@ -64,8 +64,8 @@
     </div>
     <div class="notification-description">
         #set ($onlyDelegates = true)
-        #foreach ($event in $compositeEvent)
-            #if ($event.parameters && $event.parameters.get('changerequest.review.originalApprover'))
+        #foreach ($event in $compositeEvent.events)
+            #if ("$!event.parameters.get('changerequest.review.originalApprover')" != '')
                 #set ($onlyDelegates = ($onlyDelegates && true))
             #else
                 #set ($onlyDelegates = false)
