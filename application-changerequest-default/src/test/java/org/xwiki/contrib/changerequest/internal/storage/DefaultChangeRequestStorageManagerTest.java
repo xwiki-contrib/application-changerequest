@@ -58,6 +58,8 @@ import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.refactoring.job.EntityRequest;
 import org.xwiki.refactoring.job.RefactoringJobs;
@@ -83,6 +85,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS;
 
 /**
  * Tests for {@link DefaultChangeRequestStorageManager}.
@@ -155,6 +158,10 @@ class DefaultChangeRequestStorageManagerTest
     @MockComponent
     private ObservationManager observationManager;
 
+    @MockComponent
+    @Named("count")
+    private QueryFilter countQueryFilter;
+
     private XWikiContext context;
     private XWiki wiki;
 
@@ -198,7 +205,7 @@ class DefaultChangeRequestStorageManagerTest
         when(this.userReferenceResolver.resolve(userDocRef)).thenReturn(userReference);
 
         BaseObject xobject = mock(BaseObject.class);
-        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+        when(document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(xobject);
         // First call when checking if the ID should be set, second call to invalidate the cache.
         when(changeRequest.getId()).thenReturn(null).thenReturn("id42");
@@ -234,16 +241,16 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
         BaseObject xobject = mock(BaseObject.class);
-        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(document.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
 
         when(document.isNew()).thenReturn(true);
         assertEquals(Optional.empty(), this.storageManager.load(id));
 
         when(document.isNew()).thenReturn(false);
-        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(null);
+        when(document.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(null);
         assertEquals(Optional.empty(), this.storageManager.load(id));
 
-        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(document.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
         when(xobject.getListValue(ChangeRequestXClassInitializer.CHANGED_DOCUMENTS_FIELD))
             .thenReturn(Arrays.asList("ref1", "ref2"));
 
@@ -294,7 +301,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference targetReference = mock(DocumentReference.class);
         when(this.localEntityReferenceSerializer.serialize(targetReference)).thenReturn("Foo.MyPage");
 
-        when(this.entityReferenceSerializer.serialize(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS))
+        when(this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS))
             .thenReturn("ChangeRequest.ChangeRequestClass");
         String expectedStatement =
             "from doc.object(ChangeRequest.ChangeRequestClass) as obj where :reference member of obj.changedDocuments";
@@ -330,13 +337,13 @@ class DefaultChangeRequestStorageManagerTest
         // skip ref1
         XWikiDocument doc1 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref1, this.context)).thenReturn(doc1);
-        when(doc1.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(null);
+        when(doc1.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(null);
 
         // ref2
         XWikiDocument doc2 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref2, this.context)).thenReturn(doc2);
         BaseObject xobject = mock(BaseObject.class);
-        when(doc2.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(doc2.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
         String title = "sometitle";
         String description = "a description";
         when(doc2.getTitle()).thenReturn(title);
@@ -361,7 +368,7 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument doc3 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref3, this.context)).thenReturn(doc3);
         BaseObject xobject2 = mock(BaseObject.class);
-        when(doc3.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
+        when(doc3.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
         String title2 = "anothertitle";
         String description2 = "another description";
         when(doc3.getTitle()).thenReturn(title2);
@@ -392,7 +399,7 @@ class DefaultChangeRequestStorageManagerTest
         SpaceReference targetReference = mock(SpaceReference.class);
         when(this.localEntityReferenceSerializer.serialize(targetReference)).thenReturn("Foo.MySpace");
 
-        when(this.entityReferenceSerializer.serialize(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS))
+        when(this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS))
             .thenReturn("ChangeRequest.ChangeRequestClass");
         String expectedStatement = ", BaseObject as obj, DBStringListProperty as prop join prop.list list "
             + "where obj.name=doc.fullName and obj.className='ChangeRequest.ChangeRequestClass' and obj.id=prop.id.id "
@@ -428,13 +435,13 @@ class DefaultChangeRequestStorageManagerTest
         // skip ref1
         XWikiDocument doc1 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref1, this.context)).thenReturn(doc1);
-        when(doc1.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(null);
+        when(doc1.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(null);
 
         // ref2
         XWikiDocument doc2 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref2, this.context)).thenReturn(doc2);
         BaseObject xobject = mock(BaseObject.class);
-        when(doc2.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
+        when(doc2.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(xobject);
         String title = "sometitle";
         String description = "a description";
         when(doc2.getTitle()).thenReturn(title);
@@ -459,7 +466,7 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument doc3 = mock(XWikiDocument.class);
         when(this.wiki.getDocument(ref3, this.context)).thenReturn(doc3);
         BaseObject xobject2 = mock(BaseObject.class);
-        when(doc3.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
+        when(doc3.getXObject(CHANGE_REQUEST_XCLASS)).thenReturn(xobject2);
         String title2 = "anothertitle";
         String description2 = "another description";
         when(doc3.getTitle()).thenReturn(title2);
@@ -500,7 +507,7 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
         BaseObject baseObject = mock(BaseObject.class);
-        when(document.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, context))
+        when(document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context))
             .thenReturn(baseObject);
         Date date = new Date(845);
         when(changeRequest.getStaleDate()).thenReturn(date);
@@ -631,7 +638,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentAuthors cr1Authors = mock(DocumentAuthors.class, "cr1Authors");
         when(cr1Doc.getAuthors()).thenReturn(cr1Authors);
         BaseObject cr1Obj = mock(BaseObject.class, "cr1Obj");
-        when(cr1Doc.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+        when(cr1Doc.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(cr1Obj);
 
         // save setup for CR2
@@ -650,7 +657,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentAuthors cr2Authors = mock(DocumentAuthors.class, "cr2Authors");
         when(cr2Doc.getAuthors()).thenReturn(cr2Authors);
         BaseObject cr2Obj = mock(BaseObject.class, "cr2Obj");
-        when(cr2Doc.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+        when(cr2Doc.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(cr2Obj);
 
         // save setup for CR2
@@ -669,7 +676,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentAuthors cr3Authors = mock(DocumentAuthors.class, "cr3Authors");
         when(cr3Doc.getAuthors()).thenReturn(cr3Authors);
         BaseObject cr3Obj = mock(BaseObject.class, "cr3Obj");
-        when(cr3Doc.getXObject(ChangeRequestXClassInitializer.CHANGE_REQUEST_XCLASS, 0, true, this.context))
+        when(cr3Doc.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(cr3Obj);
 
         // Reviews
@@ -849,5 +856,88 @@ class DefaultChangeRequestStorageManagerTest
 
         verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
             eq(List.of(changeRequest1, changeRequest2, changeRequest3)));
+    }
+
+    @Test
+    void countChangeRequests() throws QueryException, ChangeRequestException
+    {
+        String serializedXClass = "ChangeRequest.Code.ChangeRequestClass";
+        when(this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS)).thenReturn(serializedXClass);
+
+        String expectedQuery = ", BaseObject as obj , StringProperty as obj_status "
+            + "where obj_status.value in ('draft','ready_for_review','ready_for_merging') and "
+            + "doc.fullName=obj.name and obj.className='" + serializedXClass +"' "
+            + "and obj_status.id.id=obj.id and obj_status.id.name='status' ";
+        Query query = mock(Query.class);
+        when(this.queryManager.createQuery(expectedQuery, Query.HQL)).thenReturn(query);
+        when(query.addFilter(this.countQueryFilter)).thenReturn(query);
+        long expectedValue = 12L;
+        when(query.execute()).thenReturn(Collections.singletonList(expectedValue));
+
+        assertEquals(expectedValue, this.storageManager.countChangeRequests(true));
+        verify(query).addFilter(this.countQueryFilter);
+
+        expectedQuery = ", BaseObject as obj , StringProperty as obj_status "
+            + "where doc.fullName=obj.name and obj.className='" + serializedXClass + "' ";
+        query = mock(Query.class);
+        when(this.queryManager.createQuery(expectedQuery, Query.HQL)).thenReturn(query);
+        when(query.addFilter(this.countQueryFilter)).thenReturn(query);
+
+        expectedValue = 365L;
+        when(query.execute()).thenReturn(Collections.singletonList(expectedValue));
+
+        assertEquals(expectedValue, this.storageManager.countChangeRequests(false));
+        verify(query).addFilter(this.countQueryFilter);
+    }
+
+    @Test
+    void getChangeRequestsReferences() throws QueryException, ChangeRequestException
+    {
+        String serializedXClass = "ChangeRequest.Code.ChangeRequestClass";
+        when(this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS)).thenReturn(serializedXClass);
+        int offset = 12;
+        int limit = 25;
+        String expectedQuery = ", BaseObject as obj , StringProperty as obj_status "
+            + "where obj_status.value in ('draft','ready_for_review','ready_for_merging') and "
+            + "doc.fullName=obj.name and obj.className='" + serializedXClass +"' "
+            + "and obj_status.id.id=obj.id and obj_status.id.name='status' ";
+        Query query = mock(Query.class);
+        when(this.queryManager.createQuery(expectedQuery, Query.HQL)).thenReturn(query);
+        when(query.setOffset(offset)).thenReturn(query);
+        when(query.setLimit(limit)).thenReturn(query);
+
+        String crRef1 = "ChangeRequest.CR1";
+        String crRef2 = "ChangeRequest.CR2";
+        String crRef3 = "ChangeRequest.CR3";
+
+        DocumentReference documentReference1 = mock(DocumentReference.class, "docRef1");
+        DocumentReference documentReference2 = mock(DocumentReference.class, "docRef2");
+        DocumentReference documentReference3 = mock(DocumentReference.class, "docRef3");
+        when(this.documentReferenceResolver.resolve(crRef1)).thenReturn(documentReference1);
+        when(this.documentReferenceResolver.resolve(crRef2)).thenReturn(documentReference2);
+        when(this.documentReferenceResolver.resolve(crRef3)).thenReturn(documentReference3);
+
+        when(query.execute()).thenReturn(List.of(crRef1, crRef2, crRef3));
+
+        assertEquals(List.of(documentReference1, documentReference2, documentReference3),
+            this.storageManager.getChangeRequestsReferences(true, offset, limit));
+        verify(query).setLimit(limit);
+        verify(query).setOffset(offset);
+
+        limit = 32;
+        offset = 2232;
+        expectedQuery = ", BaseObject as obj , StringProperty as obj_status "
+            + "where doc.fullName=obj.name and obj.className='" + serializedXClass + "' ";
+        query = mock(Query.class);
+        when(this.queryManager.createQuery(expectedQuery, Query.HQL)).thenReturn(query);
+        when(query.setOffset(offset)).thenReturn(query);
+        when(query.setLimit(limit)).thenReturn(query);
+
+        when(query.execute()).thenReturn(List.of(crRef1, crRef3));
+
+        assertEquals(List.of(documentReference1, documentReference3),
+            this.storageManager.getChangeRequestsReferences(false, offset, limit));
+        verify(query).setLimit(limit);
+        verify(query).setOffset(offset);
     }
 }

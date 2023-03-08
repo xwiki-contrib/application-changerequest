@@ -618,7 +618,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
                 STATUS_FIELD);
         } else {
-            statement = String.format(", BaseObject as obj , StringProperty as obj_status, "
+            statement = String.format(", BaseObject as obj , StringProperty as obj_status "
                     + "where doc.fullName=obj.name and obj.className='%s' ",
                 this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS));
         }
