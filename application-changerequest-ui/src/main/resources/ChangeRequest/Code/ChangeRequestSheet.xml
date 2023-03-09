@@ -4206,6 +4206,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
     border-bottom: 1px dashed @color-light;
     margin-bottom: @spacing;  
     position: relative;
+    min-height: 50px;
 
     &amp;:last-of-type { 
       padding-bottom: 0;
@@ -4240,8 +4241,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 
     .content, .date {
       position: relative;
-      top: -0.5em;
-      left: (@avatar * 0.5) * -1;
+      left: (@avatar * 0.4) * -1;
     }
 
     .user-event.user-avatar {
@@ -4249,12 +4249,16 @@ input#edit-title-input:focus, .edit-title-icon:hover {
       color: fade(@color-light, 40%);
       text-align: right;
       position: relative;
-      display: inline-block;
       top: -0.5em;
+      float: left;
 
       img {
         width: @avatar * 0.5;
       }
+    }
+    
+    .discussion .diff-container {
+      width: 100%;
     }
   }
 }</code>
