@@ -551,7 +551,7 @@
             #if ($conflictingFiles.isEmpty())
               $services.localization.render('changerequest.sheet.tab.checks.conflicts.noconflict.body')
             #else
-              $services.localization.render('changerequest.sheet.tab.checks.conflicts.body', ["$conflictingFiles.size()", '&lt;a href="#filechanges" aria-controls="filechanges" data-toggle="tab"&gt;', '&lt;/a&gt;'])
+              $services.localization.render('changerequest.sheet.tab.checks.conflicts.body', ["$conflictingFiles.size()", '&lt;a href="#filechanges" class="check-conflict-link"&gt;', '&lt;/a&gt;'])
             #end
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body conflict --&gt;
@@ -3869,6 +3869,114 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <name>collapse filechange</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>22</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>9d035854-bc03-44b8-8ef3-a4ceac4a2b34</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'bootstrap'], function ($) {
+  var initializeCheckConflictLink = function() {
+    $('.check-conflict-link').on('click', function() {
+      $('#changeRequestTabs a[href="#filechanges"]').tab('show');
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initializeCheckConflictLink()) || $(document).on('xwiki:dom:loading', initializeCheckConflictLink);
+});</code>
+    </property>
+    <property>
+      <name>check conflict link</name>
     </property>
     <property>
       <parse>0</parse>
