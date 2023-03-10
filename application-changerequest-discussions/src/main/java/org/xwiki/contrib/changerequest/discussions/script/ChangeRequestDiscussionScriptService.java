@@ -31,6 +31,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussion;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionDiffBlock;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.internal.ChangeRequestDiscussionDiffUtils;
@@ -121,12 +122,16 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
             documentPart = LineDiffLocation.DiffDocumentPart.METADATA;
         } else {
             switch (entityReference.getType()) {
-                case OBJECT_PROPERTY:
+                case OBJECT:
                     documentPart = LineDiffLocation.DiffDocumentPart.XOBJECT;
                     break;
 
                 case CLASS_PROPERTY:
                     documentPart = LineDiffLocation.DiffDocumentPart.XCLASS;
+                    break;
+
+                case ATTACHMENT:
+                    documentPart = LineDiffLocation.DiffDocumentPart.ATTACHMENT;
                     break;
 
                 default:
@@ -285,22 +290,15 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
 
     /**
      * Try to retrieve a diff block metadata for the given discussion.
-     * This method should check if the discussion has a line diff context, and check in the metadata of this context
-     * if there's an attached diff block, in which case it will be deserialized and returned.
      *
-     * @param changeRequestDiscussion the discussion for which to find the context metadata
+     * @param discussion the discussion for which to find the context metadata
      * @return the attached {@link UnifiedDiffBlock} or {@code null}
      * @throws ChangeRequestException in case of problem when deserializing the attached block
      * @since 1.5
      */
-    public UnifiedDiffBlock<String, Character> getDiffBlockMetadata(ChangeRequestDiscussion changeRequestDiscussion)
+    public ChangeRequestDiscussionDiffBlock getDiffBlockMetadata(Discussion discussion)
         throws ChangeRequestException
     {
-        if (changeRequestDiscussion.getReference() instanceof ChangeRequestLineDiffReference) {
-            return this.changeRequestDiscussionService.getDiffBlockMetadata(changeRequestDiscussion.getDiscussion())
-                .orElse(null);
-        } else {
-            return null;
-        }
+        return this.changeRequestDiscussionService.getDiffBlockMetadata(discussion).orElse(null);
     }
 }

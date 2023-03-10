@@ -92,7 +92,7 @@
     #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
     #set ($dataAttributes = $NULL)
     #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
-    #set ($diffBlockMetadata = $services.changerequest.discussion.getDiffBlockMetadata($changeRequestDiscussion))
+    #set ($diffBlockMetadata = $services.changerequest.discussion.getDiffBlockMetadata($changeRequestDiscussion.discussion))
     &lt;div class="discussion" ${dataAttributes} &gt;
       #if ($diffBlockMetadata)
         #displayDiffBlockMetadata($diffBlockMetadata)
@@ -3987,6 +3987,114 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>23</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c92dfe04-dfa6-4db4-9814-1cd44764c23f</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function ($) {
+  var initializeDiffReferenceDetailsSwitch = function() {
+    $('.diff-reference-details-switch').on('click', function () {
+      $(this).siblings('.diff-reference-details').toggleClass('hidden');
+    });
+  };
+  
+  (XWiki.isInitialized &amp;&amp; initializeDiffReferenceDetailsSwitch()) || $(document).on('xwiki:dom:updated', initializeDiffReferenceDetailsSwitch);
+});</code>
+    </property>
+    <property>
+      <name>collapse diff reference details</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
@@ -4506,6 +4614,15 @@ input#edit-title-input:focus, .edit-title-icon:hover {
   .label {
     margin: 5px;
   }
+}
+.diff-reference-details-switch {
+  float: right;
+}
+.diff-reference-details {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed lightgrey;
+  font-weight: normal;
 }</code>
     </property>
     <property>

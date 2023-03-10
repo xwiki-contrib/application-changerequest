@@ -92,7 +92,11 @@
     #set ($message = $services.discussions.getMessage($request.get('messageReference')))
     #set ($dataAttributes = $NULL)
     #set ($discard = "#getDiscussionDataAttributes($message.discussion, $dataAttributes)")
+    #set ($diffBlockMetadata = $services.changerequest.discussion.getDiffBlockMetadata($message.discussion))
     &lt;div class="discussion" ${dataAttributes} &gt;
+    #if ($diffBlockMetadata)
+      #displayDiffBlockMetadata($diffBlockMetadata)
+    #end
     #displayMessage($message $changeRequest)
     &lt;/div&gt;
   #end

@@ -655,4 +655,18 @@ public class ChangeRequestScriptService implements ScriptService
     {
         return this.componentManager.getComponentDescriptorList((Type) ChangeRequestDiffRenderContent.class);
     }
+
+    /**
+     * Retrieve the document title to be displayed for the given change request and file change identifier.
+     * This method automatically compute and cache the title to be displayed for the filechange identified by the given
+     * information.
+     *
+     * @param changeRequestId the identifier of a change request
+     * @param fileChangeId the identifier of a filechange
+     * @return a computed title of a page to be displayed or {@code null}
+     */
+    public String getPageTitle(String changeRequestId, String fileChangeId)
+    {
+        return this.changeRequestManager.getTitle(changeRequestId, fileChangeId);
+    }
 }

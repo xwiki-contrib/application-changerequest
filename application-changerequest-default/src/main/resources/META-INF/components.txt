@@ -74,3 +74,5 @@ org.xwiki.contrib.changerequest.internal.ui.ChangeRequestUserProfileUIExtension
 org.xwiki.contrib.changerequest.internal.remote.ChangeRequestEventsConverter
 org.xwiki.contrib.changerequest.internal.remote.ChangeRequestEventsConverterHelper
 org.xwiki.contrib.changerequest.internal.remote.XWikiDocumentEventConverterSerializer
+org.xwiki.contrib.changerequest.internal.listeners.TitleCacheInvalidationListener
+org.xwiki.contrib.changerequest.internal.cache.ChangeRequestTitleCacheManager

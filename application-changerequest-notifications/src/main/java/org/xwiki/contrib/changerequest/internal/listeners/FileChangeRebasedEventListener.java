@@ -78,16 +78,4 @@ public class FileChangeRebasedEventListener extends AbstractChangeRequestEventLi
             );
         }
     }
-
-    @Override
-    public void onEvent(Event event, Object source, Object data)
-    {
-        super.onEvent(event, source, data);
-
-        String changeRequestId = (String) source;
-        FileChange fileChange = (FileChange) data;
-
-        // We need to invalidate the title cache also in case of remote event.
-        this.titleCacheManagerProvider.get().invalidate(changeRequestId, fileChange);
-    }
 }

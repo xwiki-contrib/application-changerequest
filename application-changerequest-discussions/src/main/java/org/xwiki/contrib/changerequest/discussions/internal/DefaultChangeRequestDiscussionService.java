@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionDiffBlock;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
@@ -361,22 +362,28 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     }
 
     @Override
-    public Optional<UnifiedDiffBlock<String, Character>> getDiffBlockMetadata(Discussion discussion)
+    public Optional<ChangeRequestDiscussionDiffBlock> getDiffBlockMetadata(Discussion discussion)
         throws ChangeRequestException
     {
-        Optional<UnifiedDiffBlock<String, Character>> result = Optional.empty();
+        Optional<ChangeRequestDiscussionDiffBlock> result = Optional.empty();
         List<DiscussionContext> discussionContexts =
             this.discussionContextService.findByDiscussionReference(discussion.getReference());
-        for (DiscussionContext discussionContext : discussionContexts) {
-            Map<String, String> metadata = discussionContext.getMetadata();
-            if (metadata.containsKey(DIFF_CONTEXT_METADATA_KEY)) {
-                String jsonDiffBlockSerialization = metadata.get(DIFF_CONTEXT_METADATA_KEY);
-                try {
-                    result = Optional.of(this.changeRequestDiscussionDiffUtils.deserialize(jsonDiffBlockSerialization));
-                } catch (JsonProcessingException e) {
-                    throw new ChangeRequestException("Error when parsing json serialization of diff block", e);
+        AbstractChangeRequestDiscussionContextReference referenceFrom = getReferenceFrom(discussion);
+        if (referenceFrom instanceof ChangeRequestLineDiffReference) {
+            ChangeRequestLineDiffReference lineDiffReference = (ChangeRequestLineDiffReference) referenceFrom;
+            for (DiscussionContext discussionContext : discussionContexts) {
+                Map<String, String> metadata = discussionContext.getMetadata();
+                if (metadata.containsKey(DIFF_CONTEXT_METADATA_KEY)) {
+                    String jsonDiffBlockSerialization = metadata.get(DIFF_CONTEXT_METADATA_KEY);
+                    try {
+                        UnifiedDiffBlock<String, Character> unifiedDiffBlock =
+                            this.changeRequestDiscussionDiffUtils.deserialize(jsonDiffBlockSerialization);
+                        result = Optional.of(new ChangeRequestDiscussionDiffBlock(unifiedDiffBlock, lineDiffReference));
+                    } catch (JsonProcessingException e) {
+                        throw new ChangeRequestException("Error when parsing json serialization of diff block", e);
+                    }
+                    break;
                 }
-                break;
             }
         }
 

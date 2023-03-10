@@ -117,13 +117,27 @@
     data-type="$escapetool.xml($reference.type)" data-reference="$escapetool.xml($reference.reference)" $supplementaryData
   #end
 #end
-## Macro inspired for unifiedDiff macro in diff_macros.vm
-#macro (displayDiffBlockMetadata $block)
+## Macro inspired for unifiedDiff macro in diff_macros.vm
+#macro (displayDiffBlockMetadata $crDiscussionDiffBlock)
+  #set ($block = $crDiscussionDiffBlock.diffBlock)
+  #set ($reference = $crDiscussionDiffBlock.reference)
   #set ($discard = $xwiki.ssfx.use('uicomponents/viewers/diff.css', true))
   #set ($discard = $xwiki.jsfx.use('uicomponents/viewers/diff.js'))
 &lt;div class="diff-block-metadata"&gt;
   &lt;div class="diff-container"&gt;
     &lt;table&gt;
+      &lt;thead&gt;
+        &lt;tr class="diff-reference"&gt;
+          &lt;th colspan="3"&gt;
+          Some document title &lt;span class="diff-reference-details-switch" title="Display details"&gt;$services.icon.renderHTML('eye')&lt;/span&gt;
+          &lt;div class="diff-reference-details hidden"&gt;
+          Reference: $reference.lineDiffLocation.entityReference &lt;br /&gt;
+          Property: $reference.lineDiffLocation.diffBlockId
+          &lt;/div&gt;
+          &lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+     &lt;tbody&gt;
       &lt;tr&gt;
         &lt;td class="diff-line-number"&gt;...&lt;/td&gt;
         &lt;td class="diff-line-number"&gt;...&lt;/td&gt;
@@ -139,6 +153,7 @@
           &lt;td class="diff-line diff-line-$line.type.toString().toLowerCase()"&gt;#unifiedDiffLine($line)&lt;/td&gt;
         &lt;/tr&gt;
       #end
+     &lt;/tbody&gt;
     &lt;/table&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -180,7 +195,7 @@
     #set ($title = $NULL)
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
     #if ("$!fileChangeId" != '')
-      #set ($title = $services.changerequest.notifications.getPageTitle($changeRequest.id, $fileChangeId))
+      #set ($title = $services.changerequest.getPageTitle($changeRequest.id, $fileChangeId))
     #end
     #if ("$!title" == '')
       #set ($title = $actualDoc.displayTitle)
@@ -194,7 +209,7 @@
     #if ($fileChangeOpt.isPresent())
       #set ($eventDoc = $fileChangeOpt.get().targetEntity)
       #set ($actualDoc = $xwiki.getDocument($eventDoc))
-      #set ($title = $services.changerequest.notifications.getPageTitle($changeRequest.id, $fileChangeId))
+      #set ($title = $services.changerequest.getPageTitle($changeRequest.id, $fileChangeId))
       #if ("$!title" == '')
         #set ($title = $actualDoc.displayTitle)
       #end

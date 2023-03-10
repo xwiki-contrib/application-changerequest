@@ -58,7 +58,13 @@ public class LineDiffLocation extends AbstractDiffLocation
          * the entity reference can be either {@code _} to represent the reference contained in the file diff location,
          * or the explicit reference. The diffBlockId should be the name of the property.
          */
-        METADATA
+        METADATA,
+
+        /**
+         * Any attachment property change of the document: when used the entity reference should be the reference of the
+         * attachment, and the diffBlockId should be the name of the property.
+         */
+        ATTACHMENT
     }
 
     /**

@@ -25,7 +25,6 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleCacheManager;
 import org.xwiki.eventstream.EventSearchResult;
 import org.xwiki.eventstream.EventStore;
 import org.xwiki.eventstream.EventStreamException;
@@ -51,9 +50,6 @@ public class ChangeRequestNotificationsScriptService implements ScriptService
     @Inject
     private Provider<EventStore> eventStoreProvider;
 
-    @Inject
-    private Provider<ChangeRequestTitleCacheManager> titleCacheManagerProvider;
-
     /**
      * Search for events related to the given change request.
      *
@@ -73,19 +69,5 @@ public class ChangeRequestNotificationsScriptService implements ScriptService
             .addSort("date", SortableEventQuery.SortClause.Order.ASC);
 
         return this.eventStoreProvider.get().search(eventQuery);
-    }
-
-    /**
-     * Retrieve the document title to be displayed for the given change request and file change identifier.
-     * This method automatically compute and cache the title to be displayed for the filechange identified by the given
-     * information.
-     *
-     * @param changeRequestId the identifier of a change request
-     * @param fileChangeId the identifier of a filechange
-     * @return a computed title of a page to be displayed or {@code null}
-     */
-    public String getPageTitle(String changeRequestId, String fileChangeId)
-    {
-        return this.titleCacheManagerProvider.get().getTitle(changeRequestId, fileChangeId);
     }
 }

@@ -168,6 +168,6 @@ public interface ChangeRequestDiscussionService
      * @see #attachDiffBlockMetadata(DiscussionReference, UnifiedDiffBlock)
      * @since 1.5
      */
-    Optional<UnifiedDiffBlock<String, Character>> getDiffBlockMetadata(Discussion discussion)
+    Optional<ChangeRequestDiscussionDiffBlock> getDiffBlockMetadata(Discussion discussion)
         throws ChangeRequestException;
 }

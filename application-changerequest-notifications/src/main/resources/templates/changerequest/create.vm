@@ -33,7 +33,7 @@
             #if ($event.parameters)
                 #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
                 #set ($changeRequestId = $event.parameters.get('changerequest.id'))
-                #set ($title = $services.changerequest.notifications.getPageTitle($changeRequestId, $fileChangeId))
+                #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
             #end
             #set ($document = $xwiki.getDocument($event.document))
             #if ("$!title" == '')

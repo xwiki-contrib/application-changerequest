@@ -46,6 +46,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestRebasedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.events.FileChangeRebasedEvent;
+import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestTitleCacheManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
@@ -96,6 +97,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Inject
     private ChangeRequestMergeManager changeRequestMergeManager;
+
+    @Inject
+    private ChangeRequestTitleCacheManager titleCacheManager;
 
     private XarExtensionScriptService xarExtensionScriptService;
 
@@ -332,5 +336,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 this.reviewStorageManager.save(review);
             }
         }
+    }
+
+    @Override
+    public String getTitle(String changeRequestId, String fileChangeId)
+    {
+        return this.titleCacheManager.getTitle(changeRequestId, fileChangeId);
     }
 }

@@ -200,4 +200,17 @@ public interface ChangeRequestManager
     default void invalidateReviews(ChangeRequest changeRequest) throws ChangeRequestException
     {
     }
+
+    /**
+     * Compute and return the title for the given change request and file change.
+     * If it's not already in cache, this method will put the computed title in cache.
+     *
+     * @param changeRequestId the identifier of the change request for which to retrieve a document title
+     * @param fileChangeId the identifier of the file change for which to retrieve a document title
+     * @return a title or {@code null} if there was a problem to compute it
+     */
+    default String getTitle(String changeRequestId, String fileChangeId)
+    {
+        return null;
+    }
 }

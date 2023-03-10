@@ -68,14 +68,4 @@ public class ChangeRequestRebasedEventListener extends AbstractChangeRequestEven
             );
         }
     }
-
-    @Override
-    public void onEvent(Event event, Object source, Object data)
-    {
-        super.onEvent(event, source, data);
-
-        // Title cache invalidation should be done also for remote events.
-        String changeRequestId = (String) source;
-        this.titleCacheManagerProvider.get().invalidate(changeRequestId);
-    }
 }

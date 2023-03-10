@@ -97,22 +97,14 @@
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.addedToInterface</code>
-                  <new>method java.util.Optional&lt;org.xwiki.diff.display.UnifiedDiffBlock&lt;java.lang.String, java.lang.Character&gt;&gt; org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::getDiffBlockMetadata(org.xwiki.contrib.discussions.domain.Discussion) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <new>method java.util.Optional&lt;org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionDiffBlock&gt; org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::getDiffBlockMetadata(org.xwiki.contrib.discussions.domain.Discussion) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
                   <justification>New API needed for new feature.</justification>
                 </item>
-              </differences>
-            </revapi.differences>
-            <revapi.differences>
-              <justification>Work on Notifications</justification>
-              <ignore>true</ignore>
-              <criticality>documented</criticality>
-              <differences>
                 <item>
                   <ignore>true</ignore>
-                  <code>java.method.numberOfParametersChanged</code>
-                  <old>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent::&lt;init&gt;(java.lang.String)</old>
-                  <new>method void org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent::&lt;init&gt;(java.lang.String, java.lang.String)</new>
-                  <justification>The event has been modified to also contain identification of the filechange.</justification>
+                  <code>java.method.removed</code>
+                  <old>method java.lang.String org.xwiki.contrib.changerequest.script.ChangeRequestNotificationsScriptService::getPageTitle(java.lang.String, java.lang.String)</old>
+                  <justification>This API has been moved to ChangeRequestScriptService with same signature.</justification>
                 </item>
               </differences>
             </revapi.differences>

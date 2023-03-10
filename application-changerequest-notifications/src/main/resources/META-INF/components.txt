@@ -31,5 +31,4 @@ org.xwiki.contrib.changerequest.internal.converters.ChangeRequestStatusChangedRe
 org.xwiki.contrib.changerequest.internal.ChangeRequestAutoWatchHandler
 org.xwiki.contrib.changerequest.internal.converters.ChangeRequestCreatedRecordableEventConverter
 org.xwiki.contrib.changerequest.internal.ChangeRequestRecordableEventNotifier
-org.xwiki.contrib.changerequest.internal.ChangeRequestTitleCacheManager
 org.xwiki.contrib.changerequest.internal.ChangeRequestStandardPageNotificationFilter
