@@ -91,20 +91,26 @@
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.addedToInterface</code>
-                  <new>method boolean org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::attachDiffBlockMetadata(org.xwiki.contrib.discussions.domain.references.DiscussionReference, org.xwiki.diff.display.UnifiedDiffBlock&lt;java.lang.String, java.lang.Character&gt;) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</new>
-                  <justification>New API needed for new feature.</justification>
+                  <new>method java.util.Optional&lt;org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionDiffBlock&gt; org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::getDiffBlockMetadata(org.xwiki.contrib.discussions.domain.Discussion) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <justification>New API needed for new feature</justification>
                 </item>
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.addedToInterface</code>
-                  <new>method java.util.Optional&lt;org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionDiffBlock&gt; org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::getDiffBlockMetadata(org.xwiki.contrib.discussions.domain.Discussion) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                  <justification>New API needed for new feature.</justification>
+                  <new>method boolean org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService::attachDiffBlockMetadata(org.xwiki.contrib.discussions.domain.references.DiscussionReference, org.xwiki.diff.display.UnifiedDiffBlock&lt;java.lang.String, java.lang.Character&gt;) throws org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException</new>
+                  <justification>New API needed for new feature</justification>
                 </item>
+              </differences>
+            </revapi.differences>
+            <revapi.differences>
+              <justification>Unstable API</justification>
+              <criticality>documented</criticality>
+              <differences>
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.removed</code>
                   <old>method java.lang.String org.xwiki.contrib.changerequest.script.ChangeRequestNotificationsScriptService::getPageTitle(java.lang.String, java.lang.String)</old>
-                  <justification>This API has been moved to ChangeRequestScriptService with same signature.</justification>
+                  <justification>Moved API</justification>
                 </item>
               </differences>
             </revapi.differences>
