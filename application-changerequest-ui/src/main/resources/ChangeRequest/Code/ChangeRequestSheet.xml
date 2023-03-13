@@ -2148,10 +2148,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var outdated = false;
     var line;
     
-    // if we did not find it, it means the diff is outdated, we fallback on the diff concerning same document
+    // if we did not find it, it means the diff might be outdated, we fallback on the diff concerning same document
     if (mainContainer.length == 0) {
       mainContainer = $('.diff-body[data-documentreference="' + targetReference + '"]');
-      outdated = true;
     }
     
     // if we did not find the diff about same document, then it's another issue, we log an error.
@@ -2174,8 +2173,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     } else {
       // we have the entity reference diff container, now we can look for the specific property change
       var diffBlockId = discussion.attr('data-diffblockid');
-      var diffBlockContainer = diffRefContainer.parent('.diff-group').find('.diff-header[data-property-name="' + diffBlockId + '"]').next().find('.diff-container');
-      
+      var diffBlockContainer = diffRefContainer.next().find('.diff-header[data-property-name="' + diffBlockId + '"]').next().find('.diff-container');
       if (diffBlockContainer.length == 0) {
         line = diffRefContainer;
         outdated = true;
@@ -2195,12 +2193,21 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           return node.text() === lineNumber &amp;&amp; node.parent().find('.diff-line').hasClass(searchingClass);
         }
 
-        line = diffBlockContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).parent();
+        line = diffBlockContainer.find('.diff-line-number:contains("' + lineNumber + '")').filter(filterLine).first().parent();
 
         // if we did not find the line, then it's outdated and we should attach the discussion to the entity reference container.
         if (line.length == 0) {
           line = diffRefContainer;
           outdated = true;
+        } else {
+          var diffBlockMetadata = discussion.find('.diff-block-metadata');
+          if (diffBlockMetadata.length &gt; 0) {
+            var lastLineContent = diffBlockMetadata.find('.diff-container').find('tr').last().find('td.diff-line').html();
+            var lineContent = line.find('td.diff-line').html();
+            if (lastLineContent != lineContent) {
+              outdated = true;
+            }
+          }
         }
       }
     }
