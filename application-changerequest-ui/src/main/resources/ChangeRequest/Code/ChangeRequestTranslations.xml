@@ -204,6 +204,13 @@ changerequest.sheet.diff.approverLabel=you are approver
 changerequest.sheet.diff.approverLabel.title=You are an explicit approver of this specific document. However, please be aware that approving or rejecting the changes will concern the entire change request.
 changerequest.sheet.diff.delegateApproverLabel=you are delegate approver
 changerequest.sheet.diff.delegateApproverLabel.title=You are a delegate approver of this specific document. However, please be aware that approving or rejecting the changes will concern the entire change request.
+changerequest.sheet.diff.detailsButton=View details
+changerequest.sheet.diff.details.location.metadata=Page property
+changerequest.sheet.diff.details.location.attachment=Property of attachment {0}
+changerequest.sheet.diff.details.location.xobject=Property of object {0}
+changerequest.sheet.diff.details.location.xclass=Property of class {0}
+changerequest.sheet.diff.details.propertyName=Property name: {0}
+ 
 changerequest.sheet.message.collapse.button.title=Click to collapse the message.
 changerequest.sheet.message.expand.button.title=Click to expand the message.
 changerequest.sheet.message.reply.button.title=Reply to this message

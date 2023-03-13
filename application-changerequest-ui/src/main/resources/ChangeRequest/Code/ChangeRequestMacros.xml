@@ -121,6 +121,7 @@
 #macro (displayDiffBlockMetadata $crDiscussionDiffBlock)
   #set ($block = $crDiscussionDiffBlock.diffBlock)
   #set ($reference = $crDiscussionDiffBlock.reference)
+  #set ($diffLocation = $reference.lineDiffLocation)
   #set ($discard = $xwiki.ssfx.use('uicomponents/viewers/diff.css', true))
   #set ($discard = $xwiki.jsfx.use('uicomponents/viewers/diff.js'))
 &lt;div class="diff-block-metadata"&gt;
@@ -129,10 +130,23 @@
       &lt;thead&gt;
         &lt;tr class="diff-reference"&gt;
           &lt;th colspan="3"&gt;
-          Some document title &lt;span class="diff-reference-details-switch" title="Display details"&gt;$services.icon.renderHTML('eye')&lt;/span&gt;
+          &lt;span class="diff-reference-title" title="$escapetool.xml($diffLocation.entityReference)"&gt;
+             $services.changerequest.discussion.getPageTitle($crDiscussionDiffBlock)
+          &lt;/span&gt;
+          &lt;span class="diff-reference-details-switch" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.detailsButton'))"&gt;$services.icon.renderHTML('eye')&lt;/span&gt;
           &lt;div class="diff-reference-details hidden"&gt;
-          Reference: $reference.lineDiffLocation.entityReference &lt;br /&gt;
-          Property: $reference.lineDiffLocation.diffBlockId
+            &lt;div class="diff-reference-detail-location"&gt;
+            #set ($translationKey = "changerequest.sheet.diff.details.location.$stringtool.toRootLowerCase($diffLocation.documentPart)")
+            #set ($translationArgument = [])
+            #if ($diffLocation.documentPart != 'METADATA')
+              #set ($blockReference = $services.changerequest.discussion.getDiffBlockReference($crDiscussionDiffBlock))
+              #set ($translationArgument = [$blockReference.name])
+            #end
+            $services.localization.render($translationKey, $translationArgument)
+            &lt;/div&gt;
+            &lt;div class="diff-reference-detail-property"&gt;
+              $services.localization.render('changerequest.sheet.diff.details.propertyName', $diffLocation.diffBlockId)
+            &lt;/div&gt;
           &lt;/div&gt;
           &lt;/th&gt;
         &lt;/tr&gt;

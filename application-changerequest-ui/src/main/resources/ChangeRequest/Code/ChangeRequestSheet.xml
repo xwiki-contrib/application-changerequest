@@ -4080,7 +4080,7 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     });
   };
   
-  (XWiki.isInitialized &amp;&amp; initializeDiffReferenceDetailsSwitch()) || $(document).on('xwiki:dom:updated', initializeDiffReferenceDetailsSwitch);
+  $(document).on('xwiki:dom:updated', initializeDiffReferenceDetailsSwitch);
 });</code>
     </property>
     <property>
@@ -4617,6 +4617,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 }
 .diff-reference-details-switch {
   float: right;
+  cursor: pointer;
 }
 .diff-reference-details {
   margin-top: 5px;

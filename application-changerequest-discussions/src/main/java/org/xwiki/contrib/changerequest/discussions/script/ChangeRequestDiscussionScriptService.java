@@ -21,6 +21,8 @@ package org.xwiki.contrib.changerequest.discussions.script;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,6 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussion;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionDiffBlock;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
@@ -44,12 +48,16 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestRevie
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
+import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
 import org.xwiki.diff.display.UnifiedDiffBlock;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
-import org.xwiki.properties.ConverterManager;
+import org.xwiki.model.reference.EntityReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
@@ -73,10 +81,23 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
     private ChangeRequestDiscussionService changeRequestDiscussionService;
 
     @Inject
-    private ConverterManager converterManager;
+    @Named("withtype")
+    private EntityReferenceSerializer<String> entityReferenceSerializer;
 
     @Inject
     private ChangeRequestDiscussionDiffUtils changeRequestDiscussionDiffUtils;
+
+    @Inject
+    private ChangeRequestManager changeRequestManager;
+
+    @Inject
+    private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @Inject
+    private DocumentReferenceResolver<String> documentReferenceResolver;
+
+    @Inject
+    private EntityReferenceResolver<String> entityReferenceResolver;
 
     /**
      * Create a reference with the given information, to be used in for creating diff discussion.
@@ -114,9 +135,7 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
         throws ChangeRequestDiscussionException
     {
         LineDiffLocation.DiffDocumentPart documentPart;
-        // We rely on the ConverterManager and not on the serializer here, to keep the syntax containing the
-        // entity reference type.
-        String serializedEntityReference = this.converterManager.convert(String.class, entityReference);
+        String serializedEntityReference = this.entityReferenceSerializer.serialize(entityReference);
         if (serializedEntityReference.equals(fileDiffReference.getReference())) {
             serializedEntityReference = UNDERSCORE;
             documentPart = LineDiffLocation.DiffDocumentPart.METADATA;
@@ -300,5 +319,52 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
         throws ChangeRequestException
     {
         return this.changeRequestDiscussionService.getDiffBlockMetadata(discussion).orElse(null);
+    }
+
+    /**
+     * Compute and return the page title related to the document referenced by the given diff block.
+     *
+     * @param diffBlock the block for which to retrieve a page title
+     * @return a page title as retrieved by {@link ChangeRequestManager#getTitle(String, String)}.
+     * @throws ChangeRequestException in case of problem to find the change request, or the file change
+     */
+    public String getPageTitle(ChangeRequestDiscussionDiffBlock diffBlock) throws ChangeRequestException
+    {
+        ChangeRequestLineDiffReference reference = diffBlock.getReference();
+        Optional<ChangeRequest> optionalChangeRequest =
+            this.changeRequestStorageManager.load(reference.getChangeRequestId());
+        if (optionalChangeRequest.isPresent()) {
+            ChangeRequest changeRequest = optionalChangeRequest.get();
+            String targetReference = reference.getLineDiffLocation().getFileDiffLocation().getTargetReference();
+            DocumentReference documentReference = this.documentReferenceResolver.resolve(targetReference);
+            if (documentReference.getLocale() == null) {
+                documentReference = new DocumentReference(documentReference, Locale.ROOT);
+            }
+            Optional<FileChange> latestFileChangeFor = changeRequest.getLatestFileChangeFor(documentReference);
+            if (latestFileChangeFor.isPresent()) {
+                return this.changeRequestManager.getTitle(reference.getChangeRequestId(),
+                    latestFileChangeFor.get().getId());
+            } else {
+                throw new ChangeRequestException(
+                    String.format("Cannot find filechange with reference for [%s]", documentReference));
+            }
+        } else {
+            throw new ChangeRequestException(
+                String.format("Cannot find change request with id [%s]", reference.getChangeRequestId()));
+        }
+    }
+
+    /**
+     * Parse and return the reference contained in the {@link LineDiffLocation}.
+     * Note: this method aims at being removed once <a href="https://jira.xwiki.org/browse/XWIKI-20735">XWIKI-20735</a>
+     * is done.
+     *
+     * @param diffBlock the block for which to get the actual entity reference
+     * @return the parsed entity reference
+     */
+    public EntityReference getDiffBlockReference(ChangeRequestDiscussionDiffBlock diffBlock)
+    {
+        return this.entityReferenceResolver
+            .resolve(diffBlock.getReference().getLineDiffLocation().getEntityReference(), null);
     }
 }
