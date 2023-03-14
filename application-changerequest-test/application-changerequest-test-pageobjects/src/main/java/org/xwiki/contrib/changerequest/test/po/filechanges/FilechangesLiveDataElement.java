@@ -52,7 +52,7 @@ public class FilechangesLiveDataElement extends BaseElement
     private static final String CONFIRM_REFRESH_TEXT = "Refreshing the changes will invalidate any reviews, do you "
         + "confirm the action?";
 
-    private static final String LOCATION_COLUMN = "Location";
+    private static final String LOCATION_COLUMN = "Target Location";
 
     private final TableLayoutElement tableLayoutElement;
 
@@ -91,7 +91,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public String getTitle()
         {
-            return getCell("Title").getText();
+            return getCell("Modified Title").getText();
         }
 
         /**
@@ -125,7 +125,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public String getVersion()
         {
-            return getCell("Version").getText();
+            return getCell("Changes version").getText();
         }
 
         /**
@@ -133,7 +133,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public String getPublishedDocumentVersion()
         {
-            return getCell("Published document version").getText();
+            return getCell("Published version").getText();
         }
 
         /**
