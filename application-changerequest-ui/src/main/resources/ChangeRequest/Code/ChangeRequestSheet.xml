@@ -3232,7 +3232,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     editApproversLinks.on('click', function(event) {
       event.preventDefault();
       // FIXME: this is clearly fragile and would need to be based on a proper data-attribute in the future.
-      var targetReference = $(event.target).parents('td.cell').siblings('td.cell[data-title=Location]').find('ol.breadcrumb').attr('data-entity');
+      var targetReference = $(event.target).parents('td.cell').siblings().find('ol.breadcrumb').attr('data-entity');
       var changeRequest = $(event.target).parents('div.cr-main-div').attr('data-changerequest-id');
       var data = {
         'changerequest': changeRequest,
