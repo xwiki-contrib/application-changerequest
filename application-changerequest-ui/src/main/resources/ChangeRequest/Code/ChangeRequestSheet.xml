@@ -103,6 +103,7 @@
     &lt;/div&gt;
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
+  &lt;div id="timeline-loading" class="loading hidden"&gt;&lt;/div&gt;
   &lt;!-- Nav tabs --&gt;
   &lt;ul class="nav nav-tabs" role="tablist" id="changeRequestTabs"&gt;
     &lt;li role="presentation" class="active"&gt;&lt;a href="#home" aria-controls="home" role="tab" data-toggle="tab"&gt;
@@ -2100,13 +2101,21 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   
   var placeReviewDiscussion = function (discussion) {
     var reviewId = discussion.attr('data-reference');
-    var reviewElement = $('.review[data-reviewid=' + reviewId +']');
-    if (reviewElement) {
-      discussion.wrap('&lt;div class="panel-body"&gt;&lt;/div&gt;');
-      reviewElement.append(discussion.parent());
+    var reviewPanelElement = $('.panel.review[data-reviewid=' + reviewId +']');
+    if (reviewPanelElement &amp;&amp; reviewPanelElement.find('.discussion').length == 0) {
+      var clone = discussion.clone();
+      clone.wrap('&lt;div class="panel-body"&gt;&lt;/div&gt;');
+      clone.addClass('review');
+      reviewPanelElement.append(clone.parent());
+    }
+    var reviewTimelineElement = $('.discussion-holder.review[data-reviewid=' + reviewId +']');
+    if (reviewTimelineElement &amp;&amp; reviewTimelineElement.find('.discussion').length == 0) {
+      var clone = discussion.clone();
+      clone.addClass('review');
+      reviewTimelineElement.append(clone);
     }
     discussion.clone().find('.message').each(function (index, message) {
-      placeMessage('review', index, message);
+      placeMessage('review', reviewId, message);
     });
   };
   
@@ -2115,12 +2124,16 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   };
   
   var placeCommentMessage = function (index, message) {
-    placeMessage('global-comment', index, message);
+    placeMessage('global-comment', '', message);
   };
   
-  var placeMessage = function (cssClass, index, message) {
+  var placeMessage = function (cssClass, otherId, message) {
     var messageId = $(message).attr('data-reference');
-    var discussionElement = $('.discussion.'+cssClass+'[data-message-reference="'+messageId+'"]');
+    if (cssClass == 'review') {
+      var discussionElement = $('.discussion.review[data-reference=' + otherId +']');
+    } else {
+      var discussionElement = $('.discussion.'+cssClass+'[data-message-reference="'+messageId+'"]');
+    }
     var diffBlock = $(message).parent('.discussion').find('.diff-block-metadata');
     if (discussionElement &amp;&amp; discussionElement.find('.message[data-reference="' + messageId+ '"]').length == 0) {
       if (diffBlock.length &gt; 0) {
@@ -2248,12 +2261,13 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     }
     
     discussion.clone().find('.message').each(function (index, message) {
-      placeMessage('diff', index, message);
+      placeMessage('diff', '', message);
     });
   }
   
   var placeAllDiscussions = function () {
     $('#discussions .discussion').each(placeDiscussions);
+    $('#timeline-loading').addClass('hidden');
     $(document).trigger('xwiki:dom:updated', {'elements': $('#discussions .discussion').toArray()});
   };
   
@@ -3105,6 +3119,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
   
   var refreshTimeline = function() {
+    $('#timeline-loading').removeClass('hidden');
     var data = {
       form_token: xm.form_token,
       changerequest: changeRequestId,
@@ -4268,6 +4283,10 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 }
 .panel-default.disabled &gt; .panel-heading {
   color: #8e8e8e;
+}
+#timeline-loading {
+  float: right;
+  width: 25px;
 }</code>
     </property>
     <property>
