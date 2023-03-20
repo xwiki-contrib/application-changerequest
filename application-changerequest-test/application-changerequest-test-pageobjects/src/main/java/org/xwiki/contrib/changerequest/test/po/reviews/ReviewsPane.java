@@ -90,7 +90,8 @@ public class ReviewsPane extends BaseElement
     {
         WebElement reviewsContainer = this.container.findElement(By.id("reviewsContainer"));
         List<ReviewElement> result = new ArrayList<>();
-        List<WebElement> reviews = getDriver().findElementsWithoutWaiting(reviewsContainer, By.className("review"));
+        List<WebElement> reviews = getDriver().findElementsWithoutWaiting(reviewsContainer,
+            By.className("panel-review"));
         for (WebElement reviewElement : reviews) {
             result.add(new ReviewElement(reviewElement));
         }

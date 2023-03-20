@@ -413,7 +413,7 @@
         #set ($reviewPanelClass = "panel-default")
       #end
       #set ($canEditReview = $services.changerequest.review.canEditReview($review))
-      &lt;div class="panel $reviewPanelClass review" data-reviewid="$review.id" data-approved="$review.approved" data-valid="$review.valid" data-date="$review.reviewDate.time" data-author="$escapetool.xml($services.user.serialize($review.author))" #if($originalApprover)data-original-approver="$escapetool.xml($services.user.serialize($review.originalApprover))"#end&gt;
+      &lt;div class="panel $reviewPanelClass review panel-review" data-reviewid="$review.id" data-approved="$review.approved" data-valid="$review.valid" data-date="$review.reviewDate.time" data-author="$escapetool.xml($services.user.serialize($review.author))" #if($originalApprover)data-original-approver="$escapetool.xml($services.user.serialize($review.originalApprover))"#end&gt;
         &lt;div class="panel-heading"&gt;
            #if ($canEditReview)
             #if ($review.valid)
