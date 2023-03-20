@@ -70,7 +70,7 @@
 &lt;div class="message" data-reference="$messageReference"&gt;
   &lt;div class="message-metadata"&gt;
     &lt;span class="message-author"&gt;#wrappedDisplayUser($message.actorReference.reference, {'useInlineHTML': true})&lt;/span&gt;
-    &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
+    &lt;span class="message-creationDate" title="$escapetool.xml($message.updateDate)" data-timestamp="$escapetool.xml($message.updateDate.getTime())"&gt;$escapetool.xml($services.date.displayTimeAgo($message.updateDate))&lt;/span&gt;
     &lt;span class="message-badges"&gt;
       &lt;span class="outdated-message hidden"&gt;
         &lt;span class="badge btn-danger" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.outdated.title'))"&gt;
@@ -319,7 +319,7 @@
     #set ($localizationArguments = [$userArgument])
   #end
   #if (!$skip)
-  &lt;li class="event" id="event-$event.date.time"&gt;
+  &lt;li class="event" id="event-$event.date.time" data-event-type="$escapetool.xml($event.type)"&gt;
     #getUserAvatarURL($event.user $avatarURL 80)
     &lt;span class="user-event user-avatar"&gt;&lt;img src="$escapetool.xml($avatarURL.url)" alt="$escapedUserName" /&gt;&lt;/span&gt;
     &lt;span class="event-icon $iconClass"&gt;$services.icon.renderHTML($icon)&lt;/span&gt;
