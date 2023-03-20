@@ -85,4 +85,10 @@ public class AllITs
     class NestedChangeRequestAddChangesIT extends ChangeRequestAddChangesIT
     {
     }
+
+    @Nested
+    @DisplayName("Manipulate discussions in change request")
+    class NestedChangeRequestDiscussionIT extends ChangeRequestDiscussionIT
+    {
+    }
 }

@@ -28,6 +28,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
+import org.xwiki.contrib.changerequest.test.po.discussion.DiscussionEditor;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseElement;
 
@@ -41,6 +42,7 @@ import org.xwiki.test.ui.po.BaseElement;
 public class DescriptionPane extends BaseElement
 {
     private static final String EDIT_DESCRIPTION_LINK_CLASS = "edit-description";
+    private static final String ADD_COMMENT_CLASS = "add-comment";
     private WebElement tabContainer;
 
     /**
@@ -175,6 +177,30 @@ public class DescriptionPane extends BaseElement
      */
     public boolean hasCommentButton()
     {
-        return getDriver().hasElement(this.getCommentsContainer(), By.className("add-comment"));
+        return getDriver().hasElement(this.getCommentsContainer(), By.className(ADD_COMMENT_CLASS));
+    }
+
+    /**
+     * Click on the button to add a global comment and return the editor to manipulate it.
+     * @return an instance of {@link DiscussionEditor} to add a new message
+     */
+    public DiscussionEditor clickCommentButton()
+    {
+        WebElement addCommentContainer =
+            getDriver().findElementWithoutWaiting(this.getCommentsContainer(), By.className(ADD_COMMENT_CLASS));
+        getDriver().findElementWithoutWaiting(addCommentContainer, By.className("open-editor")).click();
+
+        // We need to wait here.
+        WebElement addCommentEditor = addCommentContainer.findElement(By.className(ADD_COMMENT_CLASS));
+        return new DiscussionEditor(addCommentEditor);
+    }
+
+    /**
+     * Perform a wait until the timeline is refreshed.
+     */
+    public void waitForTimelineRefresh()
+    {
+        getDriver().waitUntilCondition(driver ->
+            !getDriver().findElementWithoutWaiting(By.id("timeline-loading")).isDisplayed());
     }
 }

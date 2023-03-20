@@ -131,7 +131,7 @@
         &lt;tr class="diff-reference"&gt;
           &lt;th colspan="3"&gt;
           &lt;span class="diff-reference-title" title="$escapetool.xml($diffLocation.entityReference)"&gt;
-             $services.changerequest.discussion.getPageTitle($crDiscussionDiffBlock)
+            $services.changerequest.discussion.getPageTitle($crDiscussionDiffBlock)
           &lt;/span&gt;
           &lt;span class="diff-reference-details-switch" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.detailsButton'))"&gt;$services.icon.renderHTML('eye')&lt;/span&gt;
           &lt;div class="diff-reference-details hidden"&gt;

@@ -24,6 +24,7 @@ import java.util.Date;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
+import org.xwiki.contrib.changerequest.test.po.discussion.ReviewDiscussion;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseElement;
 
@@ -36,6 +37,8 @@ import org.xwiki.test.ui.po.BaseElement;
 @Unstable
 public class ReviewElement extends BaseElement
 {
+    private static final String DISCUSSION_ELEMENT = "discussion";
+
     private final WebElement reviewElement;
 
     /**
@@ -114,5 +117,22 @@ public class ReviewElement extends BaseElement
         getDriver().addPageNotYetReloadedMarker();
         getToggleValidButton().click();
         getDriver().waitUntilPageIsReloaded();
+    }
+
+    /**
+     * @return {@code true} if there's a discussion attached to the review
+     */
+    public boolean hasDiscussion()
+    {
+        return getDriver().hasElementWithoutWaiting(this.reviewElement, By.className(DISCUSSION_ELEMENT));
+    }
+
+    /**
+     * @return the discussion attached to the review
+     */
+    public ReviewDiscussion getDiscussion()
+    {
+        return new ReviewDiscussion(getDriver().findElementWithoutWaiting(this.reviewElement,
+            By.className(DISCUSSION_ELEMENT)));
     }
 }
