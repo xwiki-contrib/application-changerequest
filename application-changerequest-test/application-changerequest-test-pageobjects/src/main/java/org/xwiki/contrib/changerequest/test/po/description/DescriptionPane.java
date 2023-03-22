@@ -194,13 +194,4 @@ public class DescriptionPane extends BaseElement
         WebElement addCommentEditor = addCommentContainer.findElement(By.className(ADD_COMMENT_CLASS));
         return new DiscussionEditor(addCommentEditor);
     }
-
-    /**
-     * Perform a wait until the timeline is refreshed.
-     */
-    public void waitForTimelineRefresh()
-    {
-        getDriver().waitUntilCondition(driver ->
-            !getDriver().findElementWithoutWaiting(By.id("timeline-loading")).isDisplayed());
-    }
 }

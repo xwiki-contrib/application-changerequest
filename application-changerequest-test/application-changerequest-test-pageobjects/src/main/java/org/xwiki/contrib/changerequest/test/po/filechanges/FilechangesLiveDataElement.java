@@ -221,7 +221,7 @@ public class FilechangesLiveDataElement extends BaseElement
         }
 
         /**
-         * Click on the refresh content link of the current row, and wait for the reload of the page.
+         * Click on the edit content link of the current row, and wait for the editor of the page.
          *
          * @return a new instance of the {@link ChangeRequestPage} since this action reload the page.
          * @see #isRefreshActionAvailable()

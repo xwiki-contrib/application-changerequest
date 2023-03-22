@@ -434,4 +434,13 @@ public class ChangeRequestPage extends ViewPage
         getDriver().waitUntilPageIsReloaded();
         return new ChangeRequestPage();
     }
+
+    /**
+     * Perform a wait until the timeline is refreshed.
+     */
+    public void waitForTimelineRefresh()
+    {
+        getDriver().waitUntilCondition(driver ->
+            !getDriver().findElementWithoutWaiting(By.id("timeline-loading")).isDisplayed());
+    }
 }

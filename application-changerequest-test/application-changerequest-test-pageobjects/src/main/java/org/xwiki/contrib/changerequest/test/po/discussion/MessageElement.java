@@ -80,6 +80,15 @@ public class MessageElement extends BaseElement
     }
 
     /**
+     * Click on the expand button to expand the message.
+     */
+    public void clickExpand()
+    {
+        getDriver().findElementWithoutWaiting(this.container, By.className("expand-button")).click();
+        getDriver().waitUntilCondition(driver -> isExpanded());
+    }
+
+    /**
      * @return the content of the message
      */
     public String getContent()
@@ -107,5 +116,13 @@ public class MessageElement extends BaseElement
         replyButton.click();
         WebElement addComment = this.container.findElement(By.xpath("../div/div[@class='add-comment']"));
         return new DiscussionEditor(addComment);
+    }
+
+    /**
+     * @return {@code true} if the message is outdated
+     */
+    public boolean isOutdated()
+    {
+        return getDriver().findElementWithoutWaiting(this.container, By.className("outdated-message")).isDisplayed();
     }
 }
