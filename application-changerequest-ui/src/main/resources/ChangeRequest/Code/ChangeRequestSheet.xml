@@ -89,7 +89,7 @@
   #foreach ($changeRequestDiscussion in $allDiscussions)
     #set ($reference = $changeRequestDiscussion.reference)
     ## TODO: handle pagination
-    #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 10))
+    #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 100))
     #set ($dataAttributes = $NULL)
     #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
     #set ($diffBlockMetadata = $services.changerequest.discussion.getDiffBlockMetadata($changeRequestDiscussion.discussion))
