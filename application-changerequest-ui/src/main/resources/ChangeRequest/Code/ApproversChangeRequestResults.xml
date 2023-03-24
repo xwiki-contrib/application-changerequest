@@ -78,7 +78,7 @@
 #end
 ## FIXME: this should be improved for pagination
 #set ($discard = $map.put('rows', $newRows))
-#set ($discard = $map.put('count', $newRows.size()))
+#set ($discard = $map.put('totalrows', $newRows.size()))
 ##==================
 ## Serialize the map in the JSON format.
 ##==================
