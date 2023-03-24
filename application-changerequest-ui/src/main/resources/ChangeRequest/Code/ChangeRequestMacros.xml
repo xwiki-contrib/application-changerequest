@@ -198,6 +198,7 @@
   #set ($discussionClass = $NULL)
   #set ($dataReviewId = $NULL)
   #set ($icon = $NULL)
+  #set ($title = $NULL)
   #set ($iconClass = "")
   #set ($skip = false)
   #set ($reviewDiscussion = $NULL)
@@ -206,7 +207,6 @@
     #set ($skip = true)
   #elseif ($event.type == 'changerequest.create')
     #set ($actualDoc = $xwiki.getDocument($event.document))
-    #set ($title = $NULL)
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
     #if ("$!fileChangeId" != '')
       #set ($title = $services.changerequest.getPageTitle($changeRequest.id, $fileChangeId))
@@ -283,7 +283,11 @@
       #if ($fileChangeOpt.isPresent())
         #set ($eventDoc = $fileChangeOpt.get().targetEntity)
         #set ($actualDoc = $xwiki.getDocument($eventDoc))
-        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $actualDoc.displayTitle])
+        #set ($title = $services.changerequest.getPageTitle($changeRequest.id, $fileChangeId))
+        #if ("$!title" == '')
+          #set ($title = $actualDoc.displayTitle)
+        #end
+        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $escapetool.xml($title)])
       #else
         #set ($skip = true)
       #end
