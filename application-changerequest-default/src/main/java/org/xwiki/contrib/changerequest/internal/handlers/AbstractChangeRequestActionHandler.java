@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -238,6 +239,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
             }
 
             modifiedDocument.readFromForm(editForm, context);
+            if (modifiedDocument.getDefaultLocale() == Locale.ROOT) {
+                modifiedDocument.setDefaultLocale(context.getWiki().getLocalePreference(context));
+            }
             return modifiedDocument;
         } catch (XWikiException e) {
             throw new ChangeRequestException(
