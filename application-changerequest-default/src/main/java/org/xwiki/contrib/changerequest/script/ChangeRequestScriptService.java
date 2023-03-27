@@ -36,7 +36,6 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.descriptor.ComponentDescriptor;
@@ -153,7 +152,8 @@ public class ChangeRequestScriptService implements ScriptService
     private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
-    private Logger logger;
+    @Named("changerequestid")
+    private DocumentReferenceResolver<String> changeRequestIdDocumentReferenceResolver;
 
     /**
      * @param <S> the type of the {@link ScriptService}
@@ -176,6 +176,16 @@ public class ChangeRequestScriptService implements ScriptService
     public Optional<ChangeRequest> getChangeRequest(String changeRequestId) throws ChangeRequestException
     {
         return this.changeRequestStorageManager.load(changeRequestId);
+    }
+
+    /**
+     * Resolve the reference of a change request document identified by the given id.
+     * @param changeRequestId a change request id
+     * @return a document reference for the change request identified by the given id
+     */
+    public DocumentReference resolveChangeRequestIdDocumentReference(String changeRequestId)
+    {
+        return this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId);
     }
 
     /**

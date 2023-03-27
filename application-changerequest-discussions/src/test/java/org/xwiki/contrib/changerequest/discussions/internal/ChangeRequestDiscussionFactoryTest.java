@@ -21,6 +21,8 @@ package org.xwiki.contrib.changerequest.discussions.internal;
 
 import java.util.Optional;
 
+import javax.inject.Named;
+
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
@@ -37,6 +39,9 @@ import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.MessageService;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -66,16 +71,31 @@ class ChangeRequestDiscussionFactoryTest
     private DiscussionContextService discussionContextService;
 
     @MockComponent
+    @Named("changerequestid")
+    private DocumentReferenceResolver<String> changeRequestIdDocumentReferenceResolver;
+
+    @MockComponent
+    private EntityReferenceSerializer<String> entityReferenceSerializer;
+
+    @MockComponent
     private MessageService messageService;
 
     @Test
     void createDiscussionStoreConfigurationParametersFor()
     {
+        String changeRequestId = "someId";
         ChangeRequestCommentReference reference = mock(ChangeRequestCommentReference.class);
-        when(reference.getChangeRequestId()).thenReturn("someId");
+        when(reference.getChangeRequestId()).thenReturn(changeRequestId);
+
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
-        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY, "someId");
+        parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
+            changeRequestId);
+        parameters.put("redirection",  serializedCRDoc);
         assertEquals(parameters, this.factory.createDiscussionStoreConfigurationParametersFor(reference));
     }
 
@@ -85,9 +105,15 @@ class ChangeRequestDiscussionFactoryTest
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc2";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
+        parameters.put("redirection", serializedCRDoc);
 
         ChangeRequestReference changeRequestReference = new ChangeRequestReference(changeRequestId);
 
@@ -116,9 +142,15 @@ class ChangeRequestDiscussionFactoryTest
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc3";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
+        parameters.put("redirection", serializedCRDoc);
 
         ChangeRequestCommentReference changeRequestReference = new ChangeRequestCommentReference(changeRequestId);
 
@@ -147,9 +179,15 @@ class ChangeRequestDiscussionFactoryTest
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc4";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
+        parameters.put("redirection", serializedCRDoc);
 
         ChangeRequestReviewsReference changeRequestReference = new ChangeRequestReviewsReference(changeRequestId);
 
@@ -178,9 +216,15 @@ class ChangeRequestDiscussionFactoryTest
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc5";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
+        parameters.put("redirection", serializedCRDoc);
 
         ChangeRequestReviewReference changeRequestReference =
             new ChangeRequestReviewReference("review_424", changeRequestId);
@@ -211,9 +255,15 @@ class ChangeRequestDiscussionFactoryTest
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc6";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
+        parameters.put("redirection", serializedCRDoc);
 
         ChangeRequestFileDiffReference changeRequestReference =
             new ChangeRequestFileDiffReference(changeRequestId, new FileDiffLocation("diff4858", "xwiki:Main.WebHome"));
@@ -245,9 +295,15 @@ class ChangeRequestDiscussionFactoryTest
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
+        DocumentReference crDocRef = mock(DocumentReference.class);
+        when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
+        String serializedCRDoc = "CR.Doc7";
+        when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
+        parameters.put("redirection", serializedCRDoc);
 
         FileDiffLocation fileDiffLocation = new FileDiffLocation("diff4858", "xwiki:Main.WebHome");
         LineDiffLocation lineDiffLocation = new LineDiffLocation(fileDiffLocation,

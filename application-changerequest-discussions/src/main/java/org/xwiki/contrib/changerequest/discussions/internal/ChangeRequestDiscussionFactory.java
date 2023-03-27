@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,9 @@ import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.Message;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 
 /**
  * Internal component for managing the creation of various elements related to discussions.
@@ -54,6 +58,13 @@ public class ChangeRequestDiscussionFactory
 
     @Inject
     private DiscussionContextService discussionContextService;
+
+    @Inject
+    @Named("changerequestid")
+    private DocumentReferenceResolver<String> changeRequestIdDocumentReferenceResolver;
+
+    @Inject
+    private EntityReferenceSerializer<String> entityReferenceSerializer;
 
     @Inject
     private MessageService messageService;
@@ -86,8 +97,12 @@ public class ChangeRequestDiscussionFactory
         createDiscussionStoreConfigurationParametersFor(T reference)
     {
         DiscussionStoreConfigurationParameters configurationParameters = new DiscussionStoreConfigurationParameters();
+        String changeRequestId = reference.getChangeRequestId();
         configurationParameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
-            reference.getChangeRequestId());
+            changeRequestId);
+
+        DocumentReference crReference = this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId);
+        configurationParameters.put("redirection", this.entityReferenceSerializer.serialize(crReference));
         return configurationParameters;
     }
 

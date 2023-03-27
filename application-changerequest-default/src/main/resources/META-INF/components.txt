@@ -76,3 +76,4 @@ org.xwiki.contrib.changerequest.internal.remote.ChangeRequestEventsConverterHelp
 org.xwiki.contrib.changerequest.internal.remote.XWikiDocumentEventConverterSerializer
 org.xwiki.contrib.changerequest.internal.listeners.TitleCacheInvalidationListener
 org.xwiki.contrib.changerequest.internal.cache.ChangeRequestTitleCacheManager
+org.xwiki.contrib.changerequest.internal.ChangeRequestIdDocumentReferenceResolver

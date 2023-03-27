@@ -42,7 +42,6 @@ public abstract class AbstractChangeRequestDiscussionContextReference
     private final String changeRequestId;
     private final ChangeRequestDiscussionReferenceType type;
     private final String reference;
-
     private final boolean uniqueDiscussion;
 
     /**

@@ -67,7 +67,10 @@
   #set ($reference = $services.discussions.serialize($discussionReference))
   #set ($url = "${request.getContextPath()}/discussions/wiki/$services.wiki.getCurrentWikiId()/create/Message/$escapetool.url($reference)")
   &lt;form method="post" action="$url" class="message-form"&gt;
-    &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$changeRequestId" /&gt;
+    &lt;input type="hidden" name="storeConfiguration_changeRequestId" value="$escapetool.xml($changeRequestId)" /&gt;
+    #set ($crDocReference = $services.changerequest.resolveChangeRequestIdDocumentReference($changeRequestId))
+    #set ($serializedCrDocReference = $services.model.serialize($crDocReference))
+    &lt;input type="hidden" name="storeConfiguration_redirection" value="$escapetool.xml($serializedCrDocReference)" /&gt;
     &lt;input type="hidden" name="async" value="1" /&gt;
     &lt;input type="hidden" name="form_token" value="$!services.csrf.getToken()" /&gt;
     &lt;input type="hidden" name="discussionReference" value="$escapetool.xml($reference)" /&gt;
