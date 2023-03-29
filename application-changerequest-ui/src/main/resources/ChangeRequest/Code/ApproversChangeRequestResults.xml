@@ -73,12 +73,16 @@
       &lt;/span&gt;
     #end
     #set ($discard = $row.put('reviews', "$reviews"))
-    #set($discard = $newRows.add($row))
+  #else
+    ## Obfuscate the entries to not mess up pagination.
+    #set ($discard = $row.put('doc_viewable', false))
+    #set ($discard = $row.put('doc_date', ''))
+    #set ($discard = $row.put('authors', ''))
+    #set ($discard = $row.put('status', ''))
+    #set ($discard = $row.put('changedDocuments', ''))
+    #set ($discard = $row.put('reviews', ''))
   #end
 #end
-## FIXME: this should be improved for pagination
-#set ($discard = $map.put('rows', $newRows))
-#set ($discard = $map.put('totalrows', $newRows.size()))
 ##==================
 ## Serialize the map in the JSON format.
 ##==================
