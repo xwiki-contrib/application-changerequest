@@ -88,10 +88,10 @@ public class DiffMessageElement extends MessageElement
      */
     public void clickToggleDetails()
     {
-        boolean isExpanded = isDetailsExpanded();
+        boolean isDetailsExpanded = isDetailsExpanded();
         getDriver().findElementWithoutWaiting(this.diffBlockContainer, By.className("diff-reference-details-switch"))
             .click();
-        getDriver().waitUntilCondition(webDriver -> isExpanded != isExpanded());
+        getDriver().waitUntilCondition(webDriver -> isDetailsExpanded != isDetailsExpanded());
     }
 
     /**
