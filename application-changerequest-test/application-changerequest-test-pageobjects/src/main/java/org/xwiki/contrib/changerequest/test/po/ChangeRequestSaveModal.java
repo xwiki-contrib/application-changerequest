@@ -210,7 +210,7 @@ public class ChangeRequestSaveModal extends BaseModal
     public boolean hasErrorDisplayed()
     {
         for (WebElement errorElement : getDriver().findElementsWithoutWaiting(getErrorContainer(),
-            By.cssSelector(".text-danger"))) {
+            By.className("text-danger"))) {
             if (errorElement.isDisplayed()) {
                 return true;
             }

@@ -120,6 +120,7 @@ public class ChangeRequestAddChangesIT
         changeRequestSaveModal.openAddChangesToExistingChangeRequestCollapse();
         changeRequestSaveModal.selectExistingChangeRequest(testReference.getLastSpaceReference().getName());
         changeRequestSaveModal.clickSaveExpectFailure(false);
+        changeRequestSaveModal = new ChangeRequestSaveModal();
         assertTrue(changeRequestSaveModal.hasErrorDisplayed());
         assertEquals("The change request cannot be saved, maybe you can try creating a new change request or adding "
             + "the changes to another existing change request. Here are the technical details about the encountered "

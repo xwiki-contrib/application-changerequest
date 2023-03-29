@@ -435,9 +435,9 @@ class ChangeRequestDiscussionIT
         discussionEditor.setContent("Replying to the review comment.");
         discussionEditor.clickSave();
         changeRequestPage.waitForTimelineRefresh();
-        afterComment = new Date();
 
         fileChangesPane = changeRequestPage.openFileChanges();
+        afterComment = new Date();
 
         fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference).clickEdit();
         editPage = new ExtendedEditPage<>(new CKEditor("content"));
