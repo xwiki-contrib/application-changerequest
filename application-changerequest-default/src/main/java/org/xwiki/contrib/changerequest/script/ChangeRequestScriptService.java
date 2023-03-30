@@ -55,6 +55,7 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
@@ -120,6 +121,9 @@ public class ChangeRequestScriptService implements ScriptService
     @Inject
     @Named("context")
     private ComponentManager componentManager;
+
+    @Inject
+    private FileChangeSavingCheckersLoader fileChangeSavingCheckersLoader;
 
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -303,7 +307,7 @@ public class ChangeRequestScriptService implements ScriptService
      */
     public FileChangeSavingChecker.SavingCheckerResult checkDocumentChangeCompatibility(String changeRequestId,
         DocumentReference newDocumentChange, FileChange.FileChangeType changeType)
-        throws ComponentLookupException, ChangeRequestException
+        throws ChangeRequestException
     {
         FileChangeSavingChecker.SavingCheckerResult result = new FileChangeSavingChecker.SavingCheckerResult();
 
@@ -314,8 +318,7 @@ public class ChangeRequestScriptService implements ScriptService
                 "changerequest.script.compatibility.changeRequestNotFound");
         } else {
             ChangeRequest changeRequest = changeRequestOptional.get();
-            List<FileChangeSavingChecker> checkerList =
-                this.componentManager.getInstanceList(FileChangeSavingChecker.class);
+            List<FileChangeSavingChecker> checkerList = this.fileChangeSavingCheckersLoader.getCheckers();
 
             for (FileChangeSavingChecker fileChangeSavingChecker : checkerList) {
                 result = fileChangeSavingChecker.canChangeOnDocumentBeAdded(changeRequest, newDocumentChange,

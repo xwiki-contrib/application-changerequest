@@ -32,8 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.http.HttpStatus;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
@@ -43,6 +41,7 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
+import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
@@ -70,8 +69,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
-    @Named("context")
-    private ComponentManager componentManager;
+    private FileChangeSavingCheckersLoader fileChangeSavingCheckersLoader;
 
     @Inject
     private ChangeRequestMergeManager changeRequestMergeManager;
@@ -120,21 +118,15 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         throws ChangeRequestException, IOException
     {
         FileChangeSavingChecker.SavingCheckerResult result = new FileChangeSavingChecker.SavingCheckerResult();
-        try {
-            List<FileChangeSavingChecker> checkers =
-                this.componentManager.getInstanceList(FileChangeSavingChecker.class);
-            for (FileChangeSavingChecker checker : checkers) {
-                result = checker.canChangeOnDocumentBeAdded(changeRequest, fileChange);
-                if (!result.canBeSaved()) {
-                    break;
-                }
-            }
+        List<FileChangeSavingChecker> checkers = this.fileChangeSavingCheckersLoader.getCheckers();
+        for (FileChangeSavingChecker checker : checkers) {
+            result = checker.canChangeOnDocumentBeAdded(changeRequest, fileChange);
             if (!result.canBeSaved()) {
-                this.reportError(HttpStatus.SC_PRECONDITION_FAILED, result.getReason());
+                break;
             }
-        } catch (ComponentLookupException e) {
-            throw new ChangeRequestException(String.format("Error when trying to load the compatibility checkers for "
-                + "adding new changes from [%s] in [%s].", fileChange, changeRequest.getId()), e);
+        }
+        if (!result.canBeSaved()) {
+            this.reportError(HttpStatus.SC_PRECONDITION_FAILED, result.getReason());
         }
         return result.canBeSaved();
     }

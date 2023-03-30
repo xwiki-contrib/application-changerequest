@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal.checkers;
 
+import javax.annotation.Priority;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -38,6 +39,7 @@ import org.xwiki.model.reference.DocumentReference;
 @Component
 @Named("org.xwiki.contrib.changerequest.internal.checkers.ChangeRequestStatusChecker")
 @Singleton
+@Priority(50)
 public class ChangeRequestStatusChecker implements FileChangeSavingChecker
 {
     @Override

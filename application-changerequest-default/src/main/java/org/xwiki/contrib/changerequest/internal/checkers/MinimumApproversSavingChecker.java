@@ -21,6 +21,7 @@ package org.xwiki.contrib.changerequest.internal.checkers;
 
 import java.util.Optional;
 
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -49,6 +50,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Component
 @Named("org.xwiki.contrib.changerequest.internal.checkers.MinimumApproversSavingChecker")
 @Singleton
+@Priority(500)
 public class MinimumApproversSavingChecker implements FileChangeSavingChecker
 {
     private static final String FAILURE_REASON = "changerequest.checkers.minimumApprovers.incompatibilityReason";

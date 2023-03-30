@@ -34,8 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -45,6 +43,7 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
+import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -71,8 +70,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
     @Inject
-    @Named("context")
-    private ComponentManager componentManager;
+    private FileChangeSavingCheckersLoader fileChangeSavingCheckersLoader;
 
     /**
      * Handle the given {@link ChangeRequestReference} for performing the create.
@@ -135,17 +133,12 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         throws ChangeRequestException
     {
         FileChangeSavingChecker.SavingCheckerResult result = new FileChangeSavingChecker.SavingCheckerResult();
-        try {
-            List<FileChangeSavingChecker> checkers =
-                this.componentManager.getInstanceList(FileChangeSavingChecker.class);
-            for (FileChangeSavingChecker checker : checkers) {
-                result = checker.canChangeRequestBeCreatedWith(fileChange);
-                if (!result.canBeSaved()) {
-                    break;
-                }
+        List<FileChangeSavingChecker> checkers = this.fileChangeSavingCheckersLoader.getCheckers();
+        for (FileChangeSavingChecker checker : checkers) {
+            result = checker.canChangeRequestBeCreatedWith(fileChange);
+            if (!result.canBeSaved()) {
+                break;
             }
-        } catch (ComponentLookupException e) {
-            throw new ChangeRequestException("Error when trying to retrieve the list of FileChangeSavingChecker", e);
         }
         return result;
     }

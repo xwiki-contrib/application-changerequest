@@ -42,6 +42,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
@@ -135,6 +136,9 @@ class ChangeRequestScriptServiceTest
 
     @MockComponent
     private InstalledExtensionRepository installedExtensionRepository;
+
+    @MockComponent
+    private FileChangeSavingCheckersLoader fileChangeSavingCheckersLoader;
 
     private XWikiContext context;
 
@@ -323,12 +327,11 @@ class ChangeRequestScriptServiceTest
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.changeRequestStorageManager.load(crId)).thenReturn(Optional.of(changeRequest));
 
-        FileChangeSavingChecker checker1 =
-            componentManager.registerMockComponent(FileChangeSavingChecker.class, "checker1");
-        FileChangeSavingChecker checker2 =
-            componentManager.registerMockComponent(FileChangeSavingChecker.class, "checker2");
-        FileChangeSavingChecker checker3 =
-            componentManager.registerMockComponent(FileChangeSavingChecker.class, "checker3");
+        FileChangeSavingChecker checker1 = mock(FileChangeSavingChecker.class, "checker1");
+        FileChangeSavingChecker checker2 = mock(FileChangeSavingChecker.class, "checker2");
+        FileChangeSavingChecker checker3 = mock(FileChangeSavingChecker.class, "checker3");
+
+        when(fileChangeSavingCheckersLoader.getCheckers()).thenReturn(List.of(checker1, checker2, checker3));
 
         expectedIncompatibilityReason = "Problem with checker 2";
 

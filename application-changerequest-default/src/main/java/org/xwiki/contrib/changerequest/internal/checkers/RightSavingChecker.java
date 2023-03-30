@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal.checkers;
 
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -42,6 +43,7 @@ import org.xwiki.model.reference.DocumentReference;
 @Component
 @Named("org.xwiki.contrib.changerequest.internal.checkers.RightSavingChecker")
 @Singleton
+@Priority(100)
 public class RightSavingChecker implements FileChangeSavingChecker
 {
     @Inject

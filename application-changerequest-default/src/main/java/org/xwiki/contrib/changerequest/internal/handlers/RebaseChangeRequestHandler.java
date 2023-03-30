@@ -100,6 +100,7 @@ public class RebaseChangeRequestHandler extends AbstractChangeRequestActionHandl
                     this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
                         fileChange);
                 }
+                // TODO: Check compatibility and split if needed, in case of split display a template with remaining CR
                 this.responseSuccess(changeRequest);
             } else {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You are not authorized to perform a rebase.");

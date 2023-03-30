@@ -29,6 +29,9 @@ import org.xwiki.stability.Unstable;
 /**
  * Define various checks to be performed whenever a filechange is saved: either checks for changes to be added in an
  * existing change request, or changes when a change request is about to be created.
+ * Note that any checker can use a {@code javax.annotation.Priority} to define the order of execution of the checker,
+ * knowing that in case of failure the reason of the first one failing will be displayed. The lower the priority value,
+ * the higher the priority of execution.
  *
  * @version $Id$
  * @since 0.9
