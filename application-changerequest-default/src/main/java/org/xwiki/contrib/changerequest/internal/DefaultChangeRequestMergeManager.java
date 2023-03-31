@@ -129,9 +129,13 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
                     result = creationHasConflict(fileChange);
                     break;
 
-                default:
                 case EDITION:
                     result = editionHasConflict(fileChange);
+                    break;
+
+                default:
+                case NO_CHANGE:
+                    result = false;
             }
             this.mergeCacheManager.setConflictStatus(fileChange, result);
         }
@@ -168,25 +172,23 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         DocumentModelBridge previousDoc;
         Optional<DocumentModelBridge> optionalPreviousDoc =
             this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-        if (optionalPreviousDoc.isEmpty()) {
-            this.logger.debug(PREVIOUS_DOC_NOT_FOUND_LOGGER_MSG, fileChange);
-            previousDoc = originalDoc;
-        } else {
+        if (!optionalPreviousDoc.isEmpty()) {
             previousDoc = optionalPreviousDoc.get();
+            XWikiContext context = this.contextProvider.get();
+            MergeConfiguration mergeConfiguration = new MergeConfiguration();
+
+            // We need the reference of the user and the document in the config to retrieve
+            // the conflict decision in the MergeManager.
+            mergeConfiguration.setUserReference(context.getUserReference());
+            mergeConfiguration.setConcernedDocument(modifiedDoc.getDocumentReference());
+            mergeConfiguration.setProvidedVersionsModifiables(false);
+
+            MergeDocumentResult mergeDocumentResult =
+                mergeManager.mergeDocument(previousDoc, originalDoc, modifiedDoc, mergeConfiguration);
+            return mergeDocumentResult.hasConflicts();
+        } else {
+            return true;
         }
-
-        XWikiContext context = this.contextProvider.get();
-        MergeConfiguration mergeConfiguration = new MergeConfiguration();
-
-        // We need the reference of the user and the document in the config to retrieve
-        // the conflict decision in the MergeManager.
-        mergeConfiguration.setUserReference(context.getUserReference());
-        mergeConfiguration.setConcernedDocument(modifiedDoc.getDocumentReference());
-        mergeConfiguration.setProvidedVersionsModifiables(false);
-
-        MergeDocumentResult mergeDocumentResult =
-            mergeManager.mergeDocument(previousDoc, originalDoc, modifiedDoc, mergeConfiguration);
-        return mergeDocumentResult.hasConflicts();
     }
 
     @Override

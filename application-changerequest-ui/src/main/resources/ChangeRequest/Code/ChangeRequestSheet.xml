@@ -531,14 +531,22 @@
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body status panel --&gt;
       &lt;/div&gt;&lt;!-- End status panel --&gt;
-       #if ($conflictingFiles.isEmpty())
+       #set ($hasConflict = $services.changerequest.merge.hasConflict($changeRequest))
+       #if (!$hasConflict)
          #set ($conflictPanelClass = "panel-success")
          #set ($conflictPanelTitle = $services.localization.render('changerequest.sheet.tab.checks.conflicts.noconflict.title'))
          #set ($statusIcon = $checkIconSuccess)
-       #else
+         #set ($conflictPanelBody = $services.localization.render('changerequest.sheet.tab.checks.conflicts.noconflict.body'))
+       #elseif (!$conflictingFiles.isEmpty())
          #set ($conflictPanelClass = "panel-warning")
          #set ($conflictPanelTitle = $services.localization.render('changerequest.sheet.tab.checks.conflicts.title', "$conflictingFiles.size()"))
          #set ($statusIcon = $checkIconProblem)
+         #set ($conflictPanelBody = $services.localization.render('changerequest.sheet.tab.checks.conflicts.body', ["$conflictingFiles.size()", '&lt;a href="#filechanges" class="check-conflict-link"&gt;', '&lt;/a&gt;']))
+       #else
+         #set ($conflictPanelClass = "panel-warning")
+         #set ($conflictPanelTitle = $services.localization.render('changerequest.sheet.tab.checks.conflicts.needsrefresh.title'))
+         #set ($statusIcon = $checkIconProblem)
+         #set ($conflictPanelBody = $services.localization.render('changerequest.sheet.tab.checks.conflicts.needsrefresh.body', ['&lt;a href="#filechanges" class="check-conflict-link"&gt;', '&lt;/a&gt;']))
        #end
        &lt;div class="panel check-panel-conflict $conflictPanelClass"&gt;
         &lt;div class="panel-heading" role="tab" id="headingConflictPanel"&gt;
@@ -550,11 +558,7 @@
         &lt;/div&gt; &lt;!-- End heading conflict --&gt;
         &lt;div id="conflictPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingConflictPanel"&gt;
           &lt;div class="panel-body"&gt;
-            #if ($conflictingFiles.isEmpty())
-              $services.localization.render('changerequest.sheet.tab.checks.conflicts.noconflict.body')
-            #else
-              $services.localization.render('changerequest.sheet.tab.checks.conflicts.body', ["$conflictingFiles.size()", '&lt;a href="#filechanges" class="check-conflict-link"&gt;', '&lt;/a&gt;'])
-            #end
+            $conflictPanelBody
           &lt;/div&gt;
         &lt;/div&gt;&lt;!-- End body conflict --&gt;
       &lt;/div&gt;&lt;!-- End panel conflict --&gt;
