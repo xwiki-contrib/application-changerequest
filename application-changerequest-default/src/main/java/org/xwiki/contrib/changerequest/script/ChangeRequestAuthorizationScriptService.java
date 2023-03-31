@@ -230,4 +230,16 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
         }
         return result;
     }
+
+    /**
+     * Check if the current user is authorized to split the change request.
+     *
+     * @param changeRequest the change request to split
+     * @return {@code true} if the current user is authorized to perform a split
+     */
+    public boolean isAuthorizedToSplit(ChangeRequest changeRequest)
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isAuthorizedToSplit(currentUserReference, changeRequest);
+    }
 }

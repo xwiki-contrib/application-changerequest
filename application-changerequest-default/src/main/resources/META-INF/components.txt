@@ -78,3 +78,4 @@ org.xwiki.contrib.changerequest.internal.listeners.TitleCacheInvalidationListene
 org.xwiki.contrib.changerequest.internal.cache.ChangeRequestTitleCacheManager
 org.xwiki.contrib.changerequest.internal.ChangeRequestIdDocumentReferenceResolver
 org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader
+org.xwiki.contrib.changerequest.internal.handlers.SplitChangeRequestHandler

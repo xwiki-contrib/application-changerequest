@@ -79,7 +79,13 @@ public class ChangeRequestReference extends AbstractResourceReference
          * Perform a review.
          * @since 1.4
          */
-        REVIEW
+        REVIEW,
+
+        /**
+         * Split a change request.
+         * @since 1.6
+         */
+        SPLIT
     }
 
     private final ChangeRequestAction action;

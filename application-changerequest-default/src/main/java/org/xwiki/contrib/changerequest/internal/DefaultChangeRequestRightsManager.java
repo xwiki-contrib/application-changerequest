@@ -606,4 +606,16 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
     {
         return this.isAuthorizedToEdit(userReference, changeRequest, true);
     }
+
+    @Override
+    public boolean isAuthorizedToSplit(UserReference userReference, ChangeRequest changeRequest)
+    {
+        boolean result = changeRequest.getAuthors().contains(userReference);
+        if (!result) {
+            DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+            DocumentReference crReference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+            result = this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, crReference);
+        }
+        return result;
+    }
 }

@@ -188,4 +188,17 @@ public interface ChangeRequestRightsManager
      * @return {@code true} if the given user can re-open the change request, {@code false otherwise}.
      */
     boolean isAuthorizedToOpen(UserReference userReference, ChangeRequest changeRequest);
+
+    /**
+     * Check if the given user is authorized to perform a split of the change request.
+     * Users that are authors of the change request, and admins are authorized to split a change request.
+     *
+     * @param userReference the user for which to check rights
+     * @param changeRequest the change request that is requested to be split
+     * @return {@code true} if the given user is an author or an admin
+     */
+    default boolean isAuthorizedToSplit(UserReference userReference, ChangeRequest changeRequest)
+    {
+        return false;
+    }
 }

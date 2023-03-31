@@ -160,6 +160,9 @@ changerequest.diffRender.description.authorright=This policy performs a renderin
 
 changerequest.moreactions.manageapprovers=Manage approvers
 changerequest.moreactions.deletionrequest=Request for deletion
+changerequest.moreactions.splitcr=Split the change request
+changerequest.moreactions.splitcr.confirm=Are you sure you want to split this change request? This action is irreversible: it will create new change requests for each modified document and will delete the current change request. Some links might be broken after the split.
+
 ChangeRequest.Code.ApproversClass_usersApprovers=Users who can approve
 ChangeRequest.Code.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change request made for this document.
 ChangeRequest.Code.ApproversClass_groupsApprovers=Groups who can approve
