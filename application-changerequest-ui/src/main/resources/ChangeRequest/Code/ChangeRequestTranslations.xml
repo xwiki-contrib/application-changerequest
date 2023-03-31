@@ -45,6 +45,7 @@ changerequest.savemodal.header.title=Save as change request
 changerequest.savemodal.header.hint=Provide some information to save your changes in a new or existing change request.
 changerequest.savemodal.create.heading=Create new change request
 changerequest.savemodal.create.input.title=Title of the change request
+changerequest.savemodal.create.input.title.placeholder=a title representing the proposed changes
 changerequest.savemodal.create.input.description=Description of the change request
 changerequest.savemodal.create.input.draft=Mark the change request as draft
 changerequest.savemodal.edit.heading=Add changes to existing change request
