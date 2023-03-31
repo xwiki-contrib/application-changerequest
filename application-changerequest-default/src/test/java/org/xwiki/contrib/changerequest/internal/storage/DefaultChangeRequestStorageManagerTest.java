@@ -128,6 +128,7 @@ class DefaultChangeRequestStorageManagerTest
     private ChangeRequestConfiguration configuration;
 
     @MockComponent
+    @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @MockComponent
@@ -226,8 +227,6 @@ class DefaultChangeRequestStorageManagerTest
     void load() throws Exception
     {
         String id = "myId";
-        WikiReference wikiReference = new WikiReference("foo");
-        when(this.context.getWikiReference()).thenReturn(wikiReference);
         ChangeRequest changeRequest = new ChangeRequest();
         changeRequest.setId(id);
 
@@ -256,8 +255,8 @@ class DefaultChangeRequestStorageManagerTest
 
         DocumentReference ref1 = mock(DocumentReference.class);
         DocumentReference ref2 = mock(DocumentReference.class);
-        when(this.documentReferenceResolver.resolve("ref1", wikiReference)).thenReturn(ref1);
-        when(this.documentReferenceResolver.resolve("ref2", wikiReference)).thenReturn(ref2);
+        when(this.documentReferenceResolver.resolve("ref1")).thenReturn(ref1);
+        when(this.documentReferenceResolver.resolve("ref2")).thenReturn(ref2);
 
         FileChange fileChange1 = mock(FileChange.class);
         FileChange fileChange2 = mock(FileChange.class);
