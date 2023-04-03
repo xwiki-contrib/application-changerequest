@@ -370,6 +370,7 @@
     self.saveChangeRequest = function (event, fromChangeRequest) {
       var isNewCR = $('#existingCRSelector').val() === "";
       var actionURL;
+      var oldInplace;
       var form;
       if (saveConfig.isApproversEdition) {
         form = $('#saveChangeRequestForm');
@@ -378,7 +379,13 @@
         form = $('#delete_changerequest').parents('form');
         asyncQuery = false;
       } else if (saveConfig.isInplaceEditing) {
-        form = $('.sticky-buttons-wrapper .sticky-buttons').data('fakeForm');
+        // This is the new selector for inplace editing form since XWIKI-20690
+        if ($('form#inplace-editing').length &gt; 0) {
+          form = $('form#inplace-editing');
+        } else {
+          form = $('.sticky-buttons-wrapper .sticky-buttons').data('fakeForm');
+          oldInplace = true;
+        }
       } else {
         form = $('#save_changerequest').parents('form');
       }
@@ -440,7 +447,7 @@
       var wasAsync;
 
       var rollbackForm = function () {
-          if (saveConfig.isInplaceEditing) {
+          if (saveConfig.isInplaceEditing &amp;&amp; oldInplace) {
               form['action'] = originalAction;
               if (wasAsync) {
                   form['async'] = 'true';
@@ -465,8 +472,9 @@
         $('#saveChangeRequest').trigger('xwiki:document:saved');
         form.submit();
       } else {
+        var saveCrButton = $('#save_changerequest');
         var beforeSaveEvent = $.Event('xwiki:actions:beforeSave', {target: event.target});
-        if (saveConfig.isInplaceEditing) {
+        if (saveConfig.isInplaceEditing &amp;&amp; oldInplace) {
           originalAction = form['action'];
           form['action'] = actionURL + "?" + actionURLParams.toString();
           // if there's a template we specify to use sync save, in order to trick actionButtons.js
@@ -486,10 +494,10 @@
         }
         $(document).one('xwiki:actions:beforeSave', function (event) {
           if (!event.isPropagationStopped()) {
-            $(document).trigger('xwiki:actions:save', data);
+            saveCrButton.trigger('xwiki:actions:save', data);
           }
         });
-        $(document).trigger(beforeSaveEvent, data);
+        saveCrButton.trigger(beforeSaveEvent, data);
       }
       $(document).on('xwiki:document:saveFailed', function (event, data) {
         rollbackForm();
@@ -507,7 +515,6 @@
     
 
     var validateForm = function (successCallback, isEditingChangeRequest) {
-      console.log("Validation: is editing change request: " + isEditingChangeRequest);
       var crTitleField = $('#crTitle');
       var crSelectorField = $('#existingCRSelector');
       $('#otherError').addClass('hidden');
