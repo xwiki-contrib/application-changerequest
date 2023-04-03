@@ -301,7 +301,6 @@ public class ChangeRequestScriptService implements ScriptService
      * @param changeType the type of change to be made.
      * @return a {@link Pair} whose left value is a boolean representing the compatibility, and left value is an empty
      *         string in case of compatibility, or the actual incompatibility reason.
-     * @throws ComponentLookupException in case of problem to load the compatibility checkers components
      * @throws ChangeRequestException in case of problem to load the change request
      * @since 0.14
      */
