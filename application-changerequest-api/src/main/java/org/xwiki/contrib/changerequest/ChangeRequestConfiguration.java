@@ -211,4 +211,16 @@ public interface ChangeRequestConfiguration
     {
         return "";
     }
+
+    /**
+     * Define if the defined list of approvers should be checked over the given rights.
+     *
+     * @return {@code true} if the approvers needs to have
+     *          {@link org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight}
+     * @since 1.7
+     */
+    default boolean acceptOnlyAllowedApprovers()
+    {
+        return false;
+    }
 }

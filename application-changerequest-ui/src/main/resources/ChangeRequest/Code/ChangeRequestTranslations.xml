@@ -153,6 +153,8 @@ ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=Enable the rendered di
 ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=When enabled allow to see a diff with the actual rendering of the page changes. 
 ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=Security policy to use for the rendered diff
 ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=The default policy is the safest one but it automatically prevents the rendering of any scripts even if those are part of the sheets of the documents: so it's possible to chose some relaxed policies for better usability of the rendered diff feature.
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers=Accept only approvers that have the approver right
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=When this option is checked, the approvers are systematically validated to ensure they have the proper approver rights.
 
 changerequest.diffRender.name.default=Default policy
 changerequest.diffRender.description.default=Safest policy for the rendered diff: it prevents any script to be executed.

@@ -225,4 +225,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty("idGeneratorHint", "");
     }
+
+    @Override
+    public boolean acceptOnlyAllowedApprovers()
+    {
+        return this.configurationSource.getProperty("acceptOnlyAllowedApprovers", false);
+    }
 }

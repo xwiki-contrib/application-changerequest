@@ -46,6 +46,21 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <acceptOnlyAllowedApprovers>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>acceptOnlyAllowedApprovers</name>
+      <number>16</number>
+      <prettyName>acceptOnlyAllowedApprovers</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </acceptOnlyAllowedApprovers>
     <approvalStrategy>
       <customDisplay>{{velocity}}
 #if ($type == 'edit')

@@ -39,6 +39,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.approvers.ApproversXClassInitializer;
+import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationContext;
@@ -58,8 +59,10 @@ import com.xpn.xwiki.objects.BaseObject;
 /**
  * Listener in charge of checking the updates performed on approvers list to discard changes done on behalf of the
  * current user: basically the current user should not be able to add themselves from the list of approvers.
- * This listener also check if the configuration for minimum of approvers is respected. Finally this listener
- * also ensure that all approvers have right on the modified document.
+ * This listener also check if the configuration for minimum of approvers is respected. This listener
+ * also ensure that all approvers have right on the modified document. And it finally also check if the approvers
+ * have {@link org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight} if the
+ * {@link ChangeRequestConfiguration#acceptOnlyAllowedApprovers()} is set to {@code true}.
  *
  * @version $Id$
  * @since 0.8
@@ -227,8 +230,12 @@ public class ApproversXObjectUpdatingListener extends AbstractLocalEventListener
     private boolean allAddedUsersHaveViewRights(DocumentReference concernedDoc, List<DocumentReference> addedUsers)
     {
         boolean result = true;
+        Right approveRight = ChangeRequestApproveRight.getRight();
         for (DocumentReference addedUser : addedUsers) {
             result &= this.authorizationManager.hasAccess(Right.VIEW, addedUser, concernedDoc);
+            if (this.changeRequestConfigurationProvider.get().acceptOnlyAllowedApprovers()) {
+                result &= this.authorizationManager.hasAccess(approveRight, addedUser, concernedDoc);
+            }
         }
 
         return result;

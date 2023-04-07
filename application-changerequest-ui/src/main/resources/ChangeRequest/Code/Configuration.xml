@@ -51,6 +51,21 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
+      <acceptOnlyAllowedApprovers>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <hint/>
+        <name>acceptOnlyAllowedApprovers</name>
+        <number>16</number>
+        <prettyName>acceptOnlyAllowedApprovers</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </acceptOnlyAllowedApprovers>
       <approvalStrategy>
         <customDisplay>{{velocity}}
 #if ($type == 'edit')
@@ -192,6 +207,20 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
         <values>days|hours|minutes|seconds</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </durationUnit>
+      <idGeneratorHint>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>idGeneratorHint</name>
+        <number>15</number>
+        <picker>1</picker>
+        <prettyName>idGeneratorHint</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </idGeneratorHint>
       <mergeUser>
         <cache>0</cache>
         <customDisplay/>
@@ -339,6 +368,9 @@ $escapetool.xml($services.localization.render("changerequest.diffRender.name.$va
         <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
       </useCreationDateForStaleDurations>
     </class>
+    <property>
+      <acceptOnlyAllowedApprovers/>
+    </property>
     <property>
       <approvalStrategy>onlyapproved</approvalStrategy>
     </property>
@@ -634,6 +666,7 @@ $escapetool.xml($services.localization.render("changerequest.diffRender.name.$va
         <value>minimumApprovers</value>
         <value>renderedDiffEnabled</value>
         <value>renderedDiffComponent</value>
+        <value>acceptOnlyAllowedApprovers</value>
       </propertiesToShow>
     </property>
     <property>
