@@ -64,6 +64,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
+import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.document.DocumentAuthors;
@@ -541,10 +542,16 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             deleteRequest.setCheckAuthorRights(false);
             deleteRequest.setCheckRights(false);
             try {
-                this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
+                Job deletionJob = this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
+                deletionJob.join();
             } catch (JobException e) {
                 throw new ChangeRequestException(
                     String.format("Error while performing deletion of change request document [%s]",
+                        changeRequestDocument),
+                    e);
+            } catch (InterruptedException e) {
+                throw new ChangeRequestException(
+                    String.format("Deletion of change request document [%s] was interrupted",
                         changeRequestDocument),
                     e);
             }

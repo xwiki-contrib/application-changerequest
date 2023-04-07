@@ -32,6 +32,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer;
@@ -97,7 +98,8 @@ public class FileChangeXObjectUpdatedListener extends AbstractEventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (!observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())) {
+        if (!observationContext.isIn(new ChangeRequestUpdatingFileChangeEvent())
+            && !observationContext.isIn(new SplitBeginChangeRequestEvent())) {
             XWikiDocument updatedDoc = (XWikiDocument) source;
             if (event instanceof XObjectDeletedEvent) {
                 updatedDoc = updatedDoc.getOriginalDocument();

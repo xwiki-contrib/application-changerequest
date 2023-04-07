@@ -111,7 +111,7 @@ public class RightsUpdatedListener extends AbstractLocalEventListener
                         if (status == ChangeRequestStatus.MERGED) {
                             continue;
                         // if it's closed, we don't want to split it, we just edit the rights no matter the consequences
-                        } else if (status == ChangeRequestStatus.CLOSED) {
+                        } else if (status == ChangeRequestStatus.CLOSED || status == ChangeRequestStatus.STALE) {
                             this.changeRequestRightsManager.get().applyChanges(changeRequest, securityRuleDiffList);
                         } else {
                             this.handleOpenChangeRequest(changeRequest, ruleSubjects, entityReference,

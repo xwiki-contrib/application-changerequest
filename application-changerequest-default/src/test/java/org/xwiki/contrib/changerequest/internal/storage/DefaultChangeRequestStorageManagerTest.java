@@ -49,6 +49,7 @@ import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheM
 import org.xwiki.contrib.changerequest.storage.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
+import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
@@ -750,6 +751,8 @@ class DefaultChangeRequestStorageManagerTest
         EntityRequest deleteRequest = mock(EntityRequest.class, "deleteRequest");
         when(this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(originalCRDocRef)))
             .thenReturn(deleteRequest);
+        Job deletionJob = mock(Job.class);
+        when(this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest)).thenReturn(deletionJob);
 
         assertEquals(List.of(changeRequest1, changeRequest2, changeRequest3), this.storageManager.split(changeRequest));
 
@@ -852,6 +855,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(deleteRequest).setCheckAuthorRights(false);
 
         verify(this.jobExecutor).execute(RefactoringJobs.DELETE, deleteRequest);
+        verify(deletionJob).join();
 
         verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
             eq(List.of(changeRequest1, changeRequest2, changeRequest3)));
