@@ -188,7 +188,7 @@
       },
       {
         "id": "doc.title",
-        "displayer": "html",
+        "displayer": "text",
         "editable": false
       },
       {

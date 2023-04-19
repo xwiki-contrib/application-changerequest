@@ -180,13 +180,22 @@
 
 #template("displayer_page.vm")
 ## Macro inspired from displayPageReference
-#macro(displayFileChangeTitle $fileChange)
+## Set $rawTitle to True to not display html for the title.
+#macro(displayFileChangeTitle $fileChange $rawTitle)
   #if ("$!fileChange.modifiedDocument" != '')
     #set ($pageDoc = $fileChange.modifiedDocument.newDocument($xcontext.context))
     #set ($title = $escapetool.xml($pageDoc.plainTitle))
-    &lt;a href="$pageDoc.URL"&gt;$title&lt;/a&gt;
+    #if ($rawTitle)
+      $title
+    #else
+      &lt;a href="$pageDoc.URL"&gt;$title&lt;/a&gt;
+    #end
   #else
-    #displayPageReference($fileChange.targetEntity)
+    #if ($rawTitle)
+      $fileChange.targetEntity
+    #else
+      #displayPageReference($fileChange.targetEntity)
+    #end
   #end
 #end
 
