@@ -37,6 +37,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>changerequest.docextra.title=Change Requests
+changerequest.homepage.title=Change Requests
 changerequest.application.label=Change Request
 changerequest.picker.placeholder=Type a change request name
 changerequest.editor.button.save=Save as change request
