@@ -94,9 +94,11 @@ public class ChangeRequestDiscussionScriptService implements ScriptService
     private ChangeRequestStorageManager changeRequestStorageManager;
 
     @Inject
+    @Named("currentmixed")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Inject
+    @Named("currentmixed")
     private EntityReferenceResolver<String> entityReferenceResolver;
 
     /**
