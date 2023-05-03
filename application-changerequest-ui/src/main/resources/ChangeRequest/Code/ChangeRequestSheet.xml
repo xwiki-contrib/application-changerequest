@@ -941,6 +941,9 @@ require(['jquery', 'bootstrap'], function ($) {
       var notification = new XWiki.widgets.Notification('Requesting conflict modal...','inprogress');
       $.post(self.postUrl, params).done(function (data) {
         notification.hide();
+        // Hide previous modal if it exists.
+        $('#changeRequestConflictModal').modal('hide');
+        $('div.modal-backdrop').remove();
         $('body').append(data);
         $(document).trigger('xwiki:dom:updated', {'elements': $('#changeRequestConflictModal').toArray()});
         self.initModal();
@@ -957,7 +960,7 @@ require(['jquery', 'bootstrap'], function ($) {
         // It's the next and current value which will be used for the merge, so better use them in case of custom
         // conflicts resolution.
       } else if (selectedValue == "keepPublished" || selectedValue == "custom") {
-        self.requestModal("NEXT", "CURRENT");
+        self.requestModal("CURRENT", "NEXT");
       }
     };
     
@@ -1006,8 +1009,8 @@ require(['jquery', 'bootstrap'], function ($) {
 
       if (modal) {
         modal.on('hidden.bs.modal', function (e) {
-          modal.remove();
           $('div.modal-backdrop').remove();
+          modal.remove();
         });
 
         $('#changeRequestConflictModalChoices .panel').on('click', self.selectChoice);
