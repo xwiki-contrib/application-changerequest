@@ -37,6 +37,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>changerequest.docextra.title=Änderungsanforderungen
+changerequest.homepage.title=Änderungsanforderungen
 changerequest.application.label=Änderungsanforderung
 changerequest.picker.placeholder=Name der Änderungsanforderung
 changerequest.editor.button.save=Als Änderungsanforderung speichern
