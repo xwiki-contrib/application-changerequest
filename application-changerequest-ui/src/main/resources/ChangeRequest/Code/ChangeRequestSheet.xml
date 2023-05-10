@@ -58,6 +58,8 @@
 #set ($showattachments = false)
 ## The history tab can be confusing for new users so better not display it by default.
 #set ($showhistory = false)
+## We don't want to see the tab for change requests in change requests
+#set ($showChangeRequestTab = false)
 #set ($changeRequestSheetJSXConfig = {
   'hasCommentRight': $services.changerequest.authorization.isAuthorizedToComment($changeRequest),
   'hasValidReviews': $services.changerequest.review.hasValidReviews($changeRequest),
