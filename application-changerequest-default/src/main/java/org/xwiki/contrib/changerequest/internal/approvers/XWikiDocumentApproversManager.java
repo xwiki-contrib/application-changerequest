@@ -89,6 +89,7 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
     private UserReferenceSerializer<String> userReferenceSerializer;
 
     @Inject
+    @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Inject

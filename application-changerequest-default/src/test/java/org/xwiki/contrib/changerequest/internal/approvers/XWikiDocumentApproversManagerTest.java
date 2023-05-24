@@ -85,6 +85,7 @@ class XWikiDocumentApproversManagerTest
     private UserReferenceSerializer<String> userReferenceSerializer;
 
     @MockComponent
+    @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @MockComponent
