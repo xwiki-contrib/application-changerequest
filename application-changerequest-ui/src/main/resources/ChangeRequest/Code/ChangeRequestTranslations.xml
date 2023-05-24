@@ -164,6 +164,8 @@ changerequest.diffRender.description.guestright=This policy renders the page usi
 changerequest.diffRender.name.authorright=Change author rights policy
 changerequest.diffRender.description.authorright=This policy renders the page using the rights of the user proposing the changes. Use with caution as this policy could allow unpublished scripts to be executed if the author has script rights.
 
+changerequest.diff.rendered.warningNotExact=The rendered diff feature aims at giving an insight of what the actual changes of the page will look like. However, for security reasons, we cannot render the changes exactly as they will be once the change will be merged. In particular any macro that uses javascript might not be properly rendered, and any macro that uses specific data from the user won't also be properly rendered. So this view should not be taken as the truth as some differences might appear once published.
+
 changerequest.moreactions.manageapprovers=Manage Approvers
 changerequest.moreactions.deletionrequest=Request Deletion
 changerequest.moreactions.splitcr=Split this Change Request

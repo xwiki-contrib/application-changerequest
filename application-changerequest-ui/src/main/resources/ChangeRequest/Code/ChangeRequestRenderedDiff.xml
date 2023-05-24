@@ -54,6 +54,9 @@
             $escapetool.xml($services.localization.render('web.history.changes.failedToCompute'))
           &lt;/div&gt;
         #else
+          &lt;div class="alert alert-warning"&gt;
+            $escapetool.xml($services.localization.render('changerequest.diff.rendered.warningNotExact'))
+          &lt;/div&gt;
           ${services.rendering.escape($htmlDiff, 'xwiki/2.1')}
         #end
       #else
