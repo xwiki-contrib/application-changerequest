@@ -49,8 +49,8 @@ public class FilechangesLiveDataElement extends BaseElement
     private static final String EDIT_ACTION_CLASS = "action_edit";
     private static final String EDIT_APPROVERS_ACTION_CLASS = "action_editapprovers";
 
-    private static final String CONFIRM_REFRESH_TEXT = "Refreshing the changes will invalidate any reviews, do you "
-        + "confirm the action?";
+    private static final String CONFIRM_REFRESH_TEXT = "This action will invalidate all reviews, "
+        + "are you happy to continue?";
 
     private static final String LOCATION_COLUMN = "Target Location";
 
@@ -99,7 +99,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public ChangeType getChangeType()
         {
-            WebElement changeType = getCell("Change type");
+            WebElement changeType = getCell("Change Type");
             return ChangeType.relaxedValueOf(changeType.getText());
         }
 
@@ -125,7 +125,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public String getVersion()
         {
-            return getCell("Changes version").getText();
+            return getCell("Temporary Version").getText();
         }
 
         /**
@@ -133,7 +133,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public String getPublishedDocumentVersion()
         {
-            return getCell("Published version").getText();
+            return getCell("Published Version").getText();
         }
 
         /**

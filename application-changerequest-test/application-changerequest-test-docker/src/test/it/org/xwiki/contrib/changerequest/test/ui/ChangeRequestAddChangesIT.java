@@ -122,9 +122,10 @@ public class ChangeRequestAddChangesIT
         changeRequestSaveModal.clickSaveExpectFailure(false);
         changeRequestSaveModal = new ChangeRequestSaveModal();
         assertTrue(changeRequestSaveModal.hasErrorDisplayed());
-        assertEquals("The change request cannot be saved, maybe you can try creating a new change request or adding "
-            + "the changes to another existing change request. Here are the technical details about the encountered "
-            + "error: Conflict found in the changes.", changeRequestSaveModal.getOtherErrorMessage());
+        assertEquals("This Change Request cannot be saved. "
+            + "Try creating a new Change Request or add your changes to another Change Request. "
+            + "The following errors were encountered: Conflict found in the changes.",
+            changeRequestSaveModal.getOtherErrorMessage());
 
         // Close the modal to prevent issues with other tests.
         changeRequestSaveModal.close();
@@ -171,9 +172,10 @@ public class ChangeRequestAddChangesIT
         changeRequestSaveModal.selectExistingChangeRequest(testReference.getLastSpaceReference().getName());
         changeRequestSaveModal.clickSaveExpectFailure(false);
         assertTrue(changeRequestSaveModal.hasErrorDisplayed());
-        assertEquals("The change request cannot be saved, maybe you can try creating a new change request or adding "
-            + "the changes to another existing change request. Here are the technical details about the encountered "
-            + "error: Conflict found in the changes.", changeRequestSaveModal.getOtherErrorMessage());
+        assertEquals("This Change Request cannot be saved. "
+            + "Try creating a new Change Request or add your changes to another Change Request. "
+            + "The following errors were encountered: Conflict found in the changes.",
+            changeRequestSaveModal.getOtherErrorMessage());
 
         // Close the modal to prevent issues with other tests.
         changeRequestSaveModal.close();
