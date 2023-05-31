@@ -137,26 +137,29 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
             XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
             List<BaseObject> xObjects = changeRequestDoc.getXObjects(REVIEW_XCLASS);
             for (BaseObject xObject : xObjects) {
-                boolean isApproved = StringUtils.equals(xObject.getStringValue(APPROVED_PROPERTY), "1");
-                UserReference author = this.userReferenceResolver.resolve(xObject.getStringValue(AUTHOR_PROPERTY));
-                Date reviewDate = xObject.getDateValue(DATE_PROPERTY);
-                boolean isValid = StringUtils.equals(xObject.getStringValue(VALID_PROPERTY), "1");
-                String id = String.format(ID_FORMAT, xObject.getNumber());
-                String originalApproverSerialized = xObject.getStringValue(ORIGINAL_APPROVER_PROPERTY);
+                // Some objects might be null after deletion.
+                if (xObject != null) {
+                    boolean isApproved = StringUtils.equals(xObject.getStringValue(APPROVED_PROPERTY), "1");
+                    UserReference author = this.userReferenceResolver.resolve(xObject.getStringValue(AUTHOR_PROPERTY));
+                    Date reviewDate = xObject.getDateValue(DATE_PROPERTY);
+                    boolean isValid = StringUtils.equals(xObject.getStringValue(VALID_PROPERTY), "1");
+                    String id = String.format(ID_FORMAT, xObject.getNumber());
+                    String originalApproverSerialized = xObject.getStringValue(ORIGINAL_APPROVER_PROPERTY);
 
-                ChangeRequestReview review = new ChangeRequestReview(changeRequest, isApproved, author);
-                review
-                    .setValid(isValid)
-                    .setId(id)
-                    .setReviewDate(reviewDate)
-                    .setSaved(true);
+                    ChangeRequestReview review = new ChangeRequestReview(changeRequest, isApproved, author);
+                    review
+                        .setValid(isValid)
+                        .setId(id)
+                        .setReviewDate(reviewDate)
+                        .setSaved(true);
 
-                if (!StringUtils.isEmpty(originalApproverSerialized)) {
-                    UserReference originalApprover = this.userReferenceResolver.resolve(originalApproverSerialized);
-                    review.setOriginalApprover(originalApprover);
+                    if (!StringUtils.isEmpty(originalApproverSerialized)) {
+                        UserReference originalApprover = this.userReferenceResolver.resolve(originalApproverSerialized);
+                        review.setOriginalApprover(originalApprover);
+                    }
+
+                    changeRequest.addReview(review);
                 }
-
-                changeRequest.addReview(review);
             }
             result = changeRequest.getReviews();
         } catch (XWikiException e) {
