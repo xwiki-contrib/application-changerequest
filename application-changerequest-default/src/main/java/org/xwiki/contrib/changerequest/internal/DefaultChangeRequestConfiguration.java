@@ -79,6 +79,7 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     private SpaceReferenceResolver<String> spaceReferenceResolver;
 
     @Inject
+    @Named("current")
     private UserReferenceResolver<String> userReferenceResolver;
 
     @Inject
