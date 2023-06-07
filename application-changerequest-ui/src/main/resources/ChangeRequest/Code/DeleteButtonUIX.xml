@@ -588,9 +588,9 @@
   #set ($changeRequestSaveConfig = {
     'createURL': $createURL,
     'addChangesURL': $addChangesURL,
-    'deleteButtonTranslation': $escapetool.json($services.localization.render('changerequest.template.deletecr.confirm')),
-    'disabledDeleteButtonTranslation': $escapetool.json($services.localization.render('changerequest.delete.button.disabled')),
-    'nestedPagesMessage': $escapetool.json($services.localization.render('changerequest.delete.nested.message')),
+    'deleteButtonTranslation': $services.localization.render('changerequest.template.deletecr.confirm'),
+    'disabledDeleteButtonTranslation': $services.localization.render('changerequest.delete.button.disabled'),
+    'nestedPagesMessage': $services.localization.render('changerequest.delete.nested.message'),
     'isDeletion': true
   })
   
