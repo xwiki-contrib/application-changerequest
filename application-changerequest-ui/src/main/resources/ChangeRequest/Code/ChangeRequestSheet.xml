@@ -63,8 +63,8 @@
 #set ($changeRequestSheetJSXConfig = {
   'hasCommentRight': $services.changerequest.authorization.isAuthorizedToComment($changeRequest),
   'hasValidReviews': $services.changerequest.review.hasValidReviews($changeRequest),
-  'confirmRefreshTranslation': $escapetool.json($services.localization.render('changerequest.sheet.rebase.confirm')),
-  'confirmSplitTranslation': $escapetool.json($services.localization.render('changerequest.moreactions.splitcr.confirm'))
+  'confirmRefreshTranslation': $services.localization.render('changerequest.sheet.rebase.confirm'),
+  'confirmSplitTranslation': $services.localization.render('changerequest.moreactions.splitcr.confirm')
 })
 
 {{html clean="false"}}
