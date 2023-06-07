@@ -25,10 +25,10 @@
   <parent>
     <groupId>org.xwiki.contrib.changerequest</groupId>
     <artifactId>application-changerequest</artifactId>
-    <version>1.9.1</version>
+    <version>1.9.2-SNAPSHOT</version>
   </parent>
   <artifactId>application-changerequest-replication</artifactId>
-  <version>1.9.1</version>
+  <version>1.9.2-SNAPSHOT</version>
   <name>Application Change Request - Replication</name>
   <packaging>jar</packaging>
   <description>Allow to replicate events coming from Change request.</description>
