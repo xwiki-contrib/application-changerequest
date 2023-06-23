@@ -282,10 +282,13 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         XWikiContext context = contextProvider.get();
         XWikiResponse response = context.getResponse();
         String jsonAnswerAsString = mapper.writeValueAsString(answer);
+        String encoding = context.getWiki().getEncoding();
         response.setContentType("application/json");
-        response.setContentLength(jsonAnswerAsString.length());
+        // Set the content length to the number of bytes, not the
+        // string length, so as to handle multi-byte encodings
+        response.setContentLength(jsonAnswerAsString.getBytes(encoding).length);
         response.setStatus(status);
-        response.setCharacterEncoding(context.getWiki().getEncoding());
+        response.setCharacterEncoding(encoding);
         response.getWriter().print(jsonAnswerAsString);
         context.setResponseSent(true);
     }
