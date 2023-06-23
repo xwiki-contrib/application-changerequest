@@ -30,7 +30,7 @@ import org.xwiki.test.docker.junit5.UITest;
  * @since 0.5
  */
 @UITest
-public class AllITs
+public class AllIT
 {
     @Nested
     @DisplayName("Change Request Creations")
