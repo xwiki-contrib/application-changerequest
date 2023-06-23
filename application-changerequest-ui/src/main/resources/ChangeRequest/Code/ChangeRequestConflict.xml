@@ -60,7 +60,7 @@
       #set ($mergeDocument = $crMergeDocument.wrappedResult)
       #set ($fileChangeType = $crMergeDocument.type)
       #set ($contentConflicts = $mergeDocument.getConflicts('CONTENT'))
-      #set ($disableCustomResolution = !($contentConflicts &amp;&amp; !$contentConflicts.isEmpty() &amp;&amp; $contentConflicts.size() == $mergeDocument.conflicts.size()))
+      #set ($disableCustomResolution = !$mergedDocResult.hasOnlyContentConflicts())
       #if ("$!request.get('decision')" == '')
 {{html clean="false"}}
 #set ($discard = $services.template.execute('diff_macros.vm'))
