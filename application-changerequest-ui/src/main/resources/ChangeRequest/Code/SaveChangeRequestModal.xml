@@ -495,6 +495,8 @@
         $(document).one('xwiki:actions:beforeSave', function (event) {
           if (!event.isPropagationStopped()) {
             saveCrButton.trigger('xwiki:actions:save', data);
+          } else {
+              rollbackForm();
           }
         });
         saveCrButton.trigger(beforeSaveEvent, data);
