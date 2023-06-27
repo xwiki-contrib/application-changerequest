@@ -2513,9 +2513,16 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       return;
     }
     event.preventDefault();
-    $(document).trigger('xwiki:actions:cancel');
     cancelled = true;
-    $(this).trigger('click');
+    // We need to call beforeSave first to put the data in the actual content field.
+    $(document).trigger('xwiki:actions:beforeSave');
+    var editForm = $('.cr-description &gt; form');
+    var actionUrl = editForm.attr('action');
+    $(document).trigger('xwiki:actions:cancel');
+    // We use ajax to send the form to workaround CRAPP-288
+    $.post(actionUrl, editForm.serialize()).done(function (data) {
+      window.location.href = new XWiki.Document(xm.documentReference).getURL('view');
+    });
   };
   
   var cancelDescription = function () {
@@ -2756,10 +2763,6 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     <property>
       <code>'use strict';
 require(['jquery', 'xwiki-meta'], function ($, xm) {
-  var editTitle = function () {
-    console.log("Edit title");
-  };
-  
   var displayButtons = function () {
     $('.title-button-wrapper').removeClass('hidden');
   };
@@ -2776,6 +2779,18 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       $('#document-title').empty().append(editTitleForm);
       $('input#edit-title-input').on('focus', displayButtons);
       $('#cancel-title').on('click', cancelTitle);
+      
+      // We use ajax to send the form to workaround CRAPP-288
+      $('#crTitleForm').on('submit', function(event) {
+        event.preventDefault();
+        var actionUrl = $('#crTitleForm').attr('action');
+        $.post(actionUrl, {
+          'changeType': 'settitle',
+          'new-title': $('input#edit-title-input').val()
+        }).done(function (data) {
+          location.reload();
+        });
+      });
     }
   };
   
