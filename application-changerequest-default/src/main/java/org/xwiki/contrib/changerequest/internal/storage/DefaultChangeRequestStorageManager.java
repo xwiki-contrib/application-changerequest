@@ -352,7 +352,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public List<DocumentReference> getOpenChangeRequestMatchingName(String title) throws ChangeRequestException
     {
         String statement = String.format(", BaseObject as obj , StringProperty as obj_status where "
-            + "doc.fullName like :reference and obj_status.value in %s and "
+            + "(doc.fullName like :reference or doc.title like :title) and obj_status.value in %s and "
             + "doc.fullName=obj.name and obj.className='%s' and obj_status.id.id=obj.id and obj_status.id.name='%s'",
             getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
             STATUS_FIELD);
@@ -361,6 +361,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             Query query = this.queryManager.createQuery(statement, Query.HQL);
             query.bindValue(REFERENCE, String.format("%s.%%%s%%",
                 this.localEntityReferenceSerializer.serialize(changeRequestSpaceLocation), title));
+            query.bindValue("title", String.format("%%%s%%", title));
             List<String> changeRequestDocuments = query.execute();
             return changeRequestDocuments.stream()
                 .map(this.documentReferenceResolver::resolve).collect(Collectors.toList());
