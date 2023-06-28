@@ -571,9 +571,23 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         for (Map.Entry<DocumentReference, Deque<FileChange>> entry : fileChanges.entrySet()) {
             ChangeRequest splittedChangeRequest = changeRequest.cloneWithoutFileChanges();
 
+            FileChange lastFileChange = entry.getValue().getLast();
             for (FileChange fileChange : entry.getValue()) {
+                FileChange.FileChangeType fileChangeType = fileChange.getType();
+
+                // We are handling here a specific case when a change concerns a document that has been later
+                // deleted. In theory, the CR should be created keeping same type, and then refreshed.
+                // However this might create problems because we're not handling the same way approvers of a filechange
+                // if it's a creation or an edition. See CRAPP-199 for more information.
+                // So we immediately change in such case the type to specifies it's a creation: we're acting as we're
+                // doing an automatic refresh of this filechange while splitting.
+                if (fileChange == lastFileChange && fileChangeType == FileChange.FileChangeType.EDITION
+                    && ((XWikiDocument)
+                    this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).isNew()) {
+                    fileChangeType = FileChange.FileChangeType.CREATION;
+                }
                 FileChange clonedFileChange = fileChange
-                    .cloneWithChangeRequestAndType(splittedChangeRequest, fileChange.getType());
+                    .cloneWithChangeRequestAndType(splittedChangeRequest, fileChangeType);
                 splittedChangeRequest.addFileChange(clonedFileChange);
             }
 

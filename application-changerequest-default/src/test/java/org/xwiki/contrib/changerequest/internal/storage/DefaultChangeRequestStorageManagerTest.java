@@ -531,11 +531,13 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference doc1 = mock(DocumentReference.class, "doc1");
         DocumentReference doc2 = mock(DocumentReference.class, "doc2");
         DocumentReference doc3 = mock(DocumentReference.class, "doc3");
+        DocumentReference doc4 = mock(DocumentReference.class, "doc4");
 
         when(changeRequest.getModifiedDocuments()).thenReturn(new HashSet<>(List.of(
             doc1,
             doc2,
-            doc3
+            doc3,
+            doc4
         )));
 
         FileChange fileChange1Doc1 = mock(FileChange.class, "filechange1Doc1");
@@ -550,20 +552,25 @@ class DefaultChangeRequestStorageManagerTest
         FileChange fileChange2Doc3 = mock(FileChange.class, "filechange2Doc3");
         FileChange fileChange3Doc3 = mock(FileChange.class, "filechange3Doc3");
 
+        FileChange fileChange1Doc4 = mock(FileChange.class, "filechange1Doc4");
+
         Map<DocumentReference, Deque<FileChange>> filesChanges = new HashMap<>();
         filesChanges.put(doc1, new LinkedList<>(List.of(fileChange1Doc1, fileChange2Doc1, fileChange3Doc1)));
         filesChanges.put(doc2, new LinkedList<>(List.of(fileChange1Doc2, fileChange2Doc2, fileChange3Doc2)));
         filesChanges.put(doc3, new LinkedList<>(List.of(fileChange1Doc3, fileChange2Doc3, fileChange3Doc3)));
+        filesChanges.put(doc4, new LinkedList<>(List.of(fileChange1Doc4)));
 
         when(changeRequest.getFileChanges()).thenReturn(filesChanges);
 
         ChangeRequest changeRequest1 = mock(ChangeRequest.class, "cr1");
         ChangeRequest changeRequest2 = mock(ChangeRequest.class, "cr2");
         ChangeRequest changeRequest3 = mock(ChangeRequest.class, "cr3");
+        ChangeRequest changeRequest4 = mock(ChangeRequest.class, "cr4");
         when(changeRequest.cloneWithoutFileChanges())
             .thenReturn(changeRequest1)
             .thenReturn(changeRequest2)
-            .thenReturn(changeRequest3);
+            .thenReturn(changeRequest3)
+            .thenReturn(changeRequest4);
 
         when(fileChange1Doc1.getType()).thenReturn(FileChange.FileChangeType.DELETION);
         when(fileChange2Doc1.getType()).thenReturn(FileChange.FileChangeType.EDITION);
@@ -571,11 +578,13 @@ class DefaultChangeRequestStorageManagerTest
 
         when(fileChange1Doc2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         when(fileChange2Doc2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        when(fileChange3Doc2.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange3Doc2.getType()).thenReturn(FileChange.FileChangeType.EDITION);
 
         when(fileChange1Doc3.getType()).thenReturn(FileChange.FileChangeType.CREATION);
         when(fileChange2Doc3.getType()).thenReturn(FileChange.FileChangeType.DELETION);
         when(fileChange3Doc3.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+
+        when(fileChange1Doc4.getType()).thenReturn(FileChange.FileChangeType.EDITION);
 
         FileChange fileChange1Doc1Clone = mock(FileChange.class, "filechange1Doc1Clone");
         FileChange fileChange2Doc1Clone = mock(FileChange.class, "filechange2Doc1Clone");
@@ -589,6 +598,8 @@ class DefaultChangeRequestStorageManagerTest
         FileChange fileChange2Doc3Clone = mock(FileChange.class, "filechange2Doc3Clone");
         FileChange fileChange3Doc3Clone = mock(FileChange.class, "filechange3Doc3Clone");
 
+        FileChange fileChange1Doc4Clone = mock(FileChange.class, "filechange1Doc4Clone");
+
         when(fileChange1Doc1.cloneWithChangeRequestAndType(changeRequest1, FileChange.FileChangeType.DELETION))
             .thenReturn(fileChange1Doc1Clone);
         when(fileChange2Doc1.cloneWithChangeRequestAndType(changeRequest1, FileChange.FileChangeType.EDITION))
@@ -600,6 +611,10 @@ class DefaultChangeRequestStorageManagerTest
             .thenReturn(fileChange1Doc2Clone);
         when(fileChange2Doc2.cloneWithChangeRequestAndType(changeRequest2, FileChange.FileChangeType.EDITION))
             .thenReturn(fileChange2Doc2Clone);
+        XWikiDocument fileChange3Doc2Doc = mock(XWikiDocument.class);
+        when(fileChange3Doc2Doc.isNew()).thenReturn(true);
+        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange3Doc2))
+            .thenReturn(fileChange3Doc2Doc);
         when(fileChange3Doc2.cloneWithChangeRequestAndType(changeRequest2, FileChange.FileChangeType.CREATION))
             .thenReturn(fileChange3Doc2Clone);
 
@@ -610,9 +625,17 @@ class DefaultChangeRequestStorageManagerTest
         when(fileChange3Doc3.cloneWithChangeRequestAndType(changeRequest3, FileChange.FileChangeType.DELETION))
             .thenReturn(fileChange3Doc3Clone);
 
+        XWikiDocument fileChange1Doc4Doc = mock(XWikiDocument.class);
+        when(fileChange1Doc4Doc.isNew()).thenReturn(false);
+        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange1Doc4))
+            .thenReturn(fileChange1Doc4Doc);
+        when(fileChange1Doc4.cloneWithChangeRequestAndType(changeRequest4, FileChange.FileChangeType.EDITION))
+            .thenReturn(fileChange1Doc4Clone);
+
         String changeRequest1Id = "cr1Id";
         String changeRequest2Id = "cr2Id";
         String changeRequest3Id = "cr3Id";
+        String changeRequest4Id = "cr4Id";
         String title = "crTitle";
         String description = "crContent";
         ChangeRequestStatus status = ChangeRequestStatus.READY_FOR_MERGING;
@@ -660,7 +683,7 @@ class DefaultChangeRequestStorageManagerTest
         when(cr2Doc.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(cr2Obj);
 
-        // save setup for CR2
+        // save setup for CR3
         when(changeRequest3.getId()).thenReturn(changeRequest3Id);
         when(changeRequest3.getTitle()).thenReturn(title);
         when(changeRequest3.getDescription()).thenReturn(description);
@@ -678,6 +701,25 @@ class DefaultChangeRequestStorageManagerTest
         BaseObject cr3Obj = mock(BaseObject.class, "cr3Obj");
         when(cr3Doc.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
             .thenReturn(cr3Obj);
+
+        // save setup for CR4
+        when(changeRequest4.getId()).thenReturn(changeRequest4Id);
+        when(changeRequest4.getTitle()).thenReturn(title);
+        when(changeRequest4.getDescription()).thenReturn(description);
+        when(changeRequest4.getCreator()).thenReturn(crCreator);
+        when(changeRequest4.getStatus()).thenReturn(status);
+        when(changeRequest4.getAllFileChanges())
+            .thenReturn(List.of(fileChange1Doc4Clone));
+
+        DocumentReference cr4Ref = mock(DocumentReference.class, "cr4Ref");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest4)).thenReturn(cr4Ref);
+        XWikiDocument cr4Doc = mock(XWikiDocument.class, "cr4Doc");
+        when(this.wiki.getDocument(cr4Ref, this.context)).thenReturn(cr4Doc);
+        DocumentAuthors cr4Authors = mock(DocumentAuthors.class, "cr4Authors");
+        when(cr4Doc.getAuthors()).thenReturn(cr4Authors);
+        BaseObject cr4Obj = mock(BaseObject.class, "cr3Obj");
+        when(cr4Doc.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context))
+            .thenReturn(cr4Obj);
 
         // Reviews
         String review1Id = "review1";
@@ -705,6 +747,10 @@ class DefaultChangeRequestStorageManagerTest
         ChangeRequestReview review2CloneCR3 = mock(ChangeRequestReview.class, "review2CloneCR3");
         ChangeRequestReview review3CloneCR3 = mock(ChangeRequestReview.class, "review3CloneCR3");
 
+        ChangeRequestReview review1CloneCR4 = mock(ChangeRequestReview.class, "review1CloneCR4");
+        ChangeRequestReview review2CloneCR4 = mock(ChangeRequestReview.class, "review2CloneCR4");
+        ChangeRequestReview review3CloneCR4 = mock(ChangeRequestReview.class, "review3CloneCR4");
+
         when(review1.cloneWithChangeRequest(changeRequest1)).thenReturn(review1CloneCR1);
         when(review2.cloneWithChangeRequest(changeRequest1)).thenReturn(review2CloneCR1);
         when(review3.cloneWithChangeRequest(changeRequest1)).thenReturn(review3CloneCR1);
@@ -717,15 +763,21 @@ class DefaultChangeRequestStorageManagerTest
         when(review2.cloneWithChangeRequest(changeRequest3)).thenReturn(review2CloneCR3);
         when(review3.cloneWithChangeRequest(changeRequest3)).thenReturn(review3CloneCR3);
 
+        when(review1.cloneWithChangeRequest(changeRequest4)).thenReturn(review1CloneCR4);
+        when(review2.cloneWithChangeRequest(changeRequest4)).thenReturn(review2CloneCR4);
+        when(review3.cloneWithChangeRequest(changeRequest4)).thenReturn(review3CloneCR4);
+
         // Approvers
         when(this.approversManager.wasManuallyEdited(changeRequest)).thenReturn(false);
         when(changeRequest1.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange3Doc1Clone));
         when(changeRequest2.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange3Doc2Clone));
         when(changeRequest3.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange3Doc3Clone));
+        when(changeRequest4.getLastFileChanges()).thenReturn(Collections.singletonList(fileChange1Doc4Clone));
 
         UserReference approverDoc1 = mock(UserReference.class, "approverDoc1");
         UserReference approverDoc2 = mock(UserReference.class, "approverDoc2");
         UserReference approverDoc3 = mock(UserReference.class, "approverDoc3");
+        UserReference approverDoc4 = mock(UserReference.class, "approverDoc4");
 
         DocumentReference approverGroupDoc1 = mock(DocumentReference.class, "approverGroupDoc1");
         DocumentReference approverGroupDoc2 = mock(DocumentReference.class, "approverGroupDoc2");
@@ -737,6 +789,8 @@ class DefaultChangeRequestStorageManagerTest
             .thenReturn(Collections.singleton(approverDoc2));
         when(this.fileChangeApproversManager.getAllApprovers(fileChange3Doc3Clone, false))
             .thenReturn(Collections.singleton(approverDoc3));
+        when(this.fileChangeApproversManager.getAllApprovers(fileChange1Doc4Clone, false))
+            .thenReturn(Collections.singleton(approverDoc4));
 
         when(this.fileChangeApproversManager.getGroupsApprovers(fileChange3Doc1Clone))
             .thenReturn(Collections.singleton(approverGroupDoc1));
@@ -754,7 +808,8 @@ class DefaultChangeRequestStorageManagerTest
         Job deletionJob = mock(Job.class);
         when(this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest)).thenReturn(deletionJob);
 
-        assertEquals(List.of(changeRequest1, changeRequest2, changeRequest3), this.storageManager.split(changeRequest));
+        assertEquals(List.of(changeRequest1, changeRequest2, changeRequest3, changeRequest4),
+            this.storageManager.split(changeRequest));
 
         // For some reason it's working only in debug, no idea why
         // verify file change adding
@@ -838,7 +893,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(this.reviewStorageManager).save(review3CloneCR3);
 
         verify(this.discussionService).moveDiscussions(changeRequest,
-            List.of(changeRequest1, changeRequest2, changeRequest3));
+            List.of(changeRequest1, changeRequest2, changeRequest3, changeRequest4));
 
         // verify approvers handling
         verify(this.approversManager).setUsersApprovers(Collections.singleton(approverDoc1), changeRequest1);
@@ -858,7 +913,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(deletionJob).join();
 
         verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
-            eq(List.of(changeRequest1, changeRequest2, changeRequest3)));
+            eq(List.of(changeRequest1, changeRequest2, changeRequest3, changeRequest4)));
     }
 
     @Test
