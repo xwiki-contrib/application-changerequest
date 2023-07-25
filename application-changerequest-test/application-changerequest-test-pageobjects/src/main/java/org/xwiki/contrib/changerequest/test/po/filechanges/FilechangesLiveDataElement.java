@@ -91,7 +91,7 @@ public class FilechangesLiveDataElement extends BaseElement
          */
         public String getTitle()
         {
-            return getCell("Modified Title").getText();
+            return getCell("Proposed Title").getText();
         }
 
         /**

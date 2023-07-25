@@ -152,7 +152,7 @@ class ChangeRequestCreationIT
         TimelineEvent timelineEvent = events.get(0);
         assertTrue(timelineEvent.getDate().after(dateBeforeCR));
         assertTrue(timelineEvent.getDate().before(dateAfterCR));
-        assertEquals("CRCreator created the Change Request with changes concerning A new title",
+        assertEquals("CRCreator created this Change Request with changes for A new title",
             timelineEvent.getContent().getText());
 
         // Update the description and check related event
@@ -510,7 +510,7 @@ class ChangeRequestCreationIT
         timelineEvent = events.get(10);
         assertTrue(timelineEvent.getDate().after(dateAfterReview));
         assertTrue(timelineEvent.getDate().before(dateAfterReview2));
-        assertEquals("Approver added a new review requesting for changes",
+        assertEquals("Approver added a new review requesting changes",
             timelineEvent.getContent().getText());
 
         timelineEvent = events.get(11);

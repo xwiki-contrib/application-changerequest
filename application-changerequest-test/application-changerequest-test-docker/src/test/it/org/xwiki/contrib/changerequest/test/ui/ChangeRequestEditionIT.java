@@ -151,7 +151,7 @@ public class ChangeRequestEditionIT
         TimelineEvent timelineEvent = events.get(1);
         assertTrue(timelineEvent.getDate().after(afterSave));
         assertTrue(timelineEvent.getDate().before(dateAfterNewChange));
-        assertEquals(CR_EDITOR + " added a new change concerning "
+        assertEquals(CR_EDITOR + " added a new change for "
                 + "xwiki:" + serializedReference,
             timelineEvent.getContent().getText());
     }
