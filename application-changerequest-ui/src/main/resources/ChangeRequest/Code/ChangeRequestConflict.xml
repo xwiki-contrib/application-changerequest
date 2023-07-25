@@ -112,6 +112,7 @@
         &lt;hr /&gt;
         &lt;div class="xHint"&gt;
           &lt;div&gt;$services.localization.render('changerequest.conflict.modal.description')&lt;/div&gt;
+          &lt;br /&gt;
           &lt;div&gt;$services.localization.render("changerequest.conflict.modal.description.$fileChangeType")&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
