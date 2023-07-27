@@ -82,9 +82,9 @@ changerequest.sheet.tab.checks.title=Prüfungen
 changerequest.sheet.tab.checks.conflicts.noconflict.title=Keine Konflikte gefunden
 changerequest.sheet.tab.checks.conflicts.title={0} Konflikt(e) gefunden
 changerequest.sheet.tab.checks.conflicts.noconflict.body=Keine Konflikte anzuzeigen.
-changerequest.sheet.tab.checks.conflicts.body={0} Konflikte wurden in den vorgeschlagenen Änderungen gefunden. Die Registerkarte {1}vorgeschlagene Änderungen{2} überprüfen, um sie zu beheben.
+changerequest.sheet.tab.checks.conflicts.body={0} Konflikt(e) wurde(n) in den vorgeschlagenen Änderungen gefunden. Die Registerkarte {1}vorgeschlagene Änderungen{2} überprüfen, um sie zu beheben.
 changerequest.sheet.tab.checks.conflicts.needsrefresh.title=Es wurde ein ungelöster Dokumentenkonflikt gefunden.
-changerequest.sheet.tab.checks.conflicts.needsrefresh.body=Es wurde ein ungelöster Dokumentenkonflikt gefunden. Dies hängt wahrscheinlich mit einem gelöschten Dokument oder einer gelöschten Version zusammen. Die Registerkarte {0}vorgeschlagene Änderungen{1} überprüfenn und den Dokumentinhalt aktualisieren.
+changerequest.sheet.tab.checks.conflicts.needsrefresh.body=Es wurde ein ungelöster Dokumentenkonflikt gefunden. Dies hängt wahrscheinlich mit einem gelöschten Dokument oder einer gelöschten Version zusammen. Die Registerkarte {0}vorgeschlagene Änderungen{1} überprüfen und den Dokumenteninhalt aktualisieren.
 changerequest.sheet.fixconflict.button=Konflikt beheben
 changerequest.sheet.tab.review.approvers.title=Genehmiger
 changerequest.sheet.tab.review.approvers.noapprover=Für diese Änderungsanforderung sind keine Genehmigenden explizit definiert. Die Zulassung erfolgt ausschließlich auf Grundlage des Genehmigungsrechts.
@@ -118,7 +118,7 @@ changerequest.filechange.type.DELETION=Löschung
 changerequest.filechange.type.CREATION=Erstellung
 changerequest.filechange.type.NO_CHANGE=Keine Änderung
 changerequest.livetable.filechange.doc.location=Ziel-Speicherort
-changerequest.livetable.filechange.doc.title=Veränderter Titel
+changerequest.livetable.filechange.doc.title=Vorgeschlagener Titel
 changerequest.livetable.filechange.filechange_type=Änderungstyp
 changerequest.livetable.filechange.filechange_author=Autor der Änderung
 changerequest.livetable.filechange.filechange_version=Vorläufige Version
@@ -132,13 +132,13 @@ ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=Die Strategie, mit d
 ChangeRequest.Code.ConfigurationClass_changeRequestLocation=Speicherort der Änderungsanforderung
 ChangeRequest.Code.ConfigurationClass_changeRequestLocation.hint=Bereich, in dem Dokumente und Daten zu Änderungsanforderungen gespeichert werden.
 ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale=Zeitüberschreitung bei veralteten Änderungsanforderungen
-ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale.hint=Die Anzahl der Tage, die eine Änderungsanforderung in einem "veralteten" Zustand bleiben darf. Nach Ablauf dieses Zeitraums ändert das System den Status in "geschlossen" und gibt die entsprechenden Benachrichtigungen aus. Die verstrichene Zeit wird entweder ab dem Zeitpunkt berechnet, an dem die Änderungsanforderung erstellt oder aktualisiert wurde, oder ab dem Zeitpunkt, an dem die Änderungsanforderung in den Zustand "veraltet" versetzt wurde. Die letzte Option gilt, wenn der Wert "Zeitüberschreitung für offene Änderungsanforderungen" festgelegt ist. Andernfalls im Feld "Erstellungsdatum für Timeouts verwenden" nachsehen, welche Option gilt. Den Wert auf 0 setzen, um die Funktion zu deaktivieren.
+ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale.hint=Die Anzahl der Tage, die ein Änderungsanforderung in einem "veralteten" Zustand bleiben darf. Nach Ablauf dieses Zeitraums ändert das System den Status in "geschlossen" und gibt die entsprechenden Benachrichtigungen aus. Die verstrichene Zeit wird entweder ab dem Zeitpunkt berechnet, zu dem die Änderungsanforderung erstellt oder aktualisiert wurde (siehe Erstellungsdatum für Timeouts verwenden), oder ab dem Zeitpunkt, zu dem die Änderungsanforderung in einen "veralteten" Zustand versetzt wurde (siehe Timeout für offene Änderungsanforderung). Setzen Sie den Wert auf 0, um diese Funktion zu deaktivieren.
 ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale=Zeitüberschreitung für offene Änderungsanforderungen
 ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale.hint=Die Anzahl der Tage, die eine Änderungsanforderung im Status "offen" bleiben darf. Nach Ablauf dieses Zeitraums ändert das System den Status in "veraltet" und gibt die entsprechenden Benachrichtigungen aus. Die verstrichene Zeit wird entweder ab dem Zeitpunkt der letzten Änderung der Änderungsanforderung oder ab dem Zeitpunkt der Erstellung der Änderungsanforderung berechnet. Im Feld "Erstellungsdatum für Zeitüberschreitungen verwenden" steht, was zutrifft. Den Wert auf 0 setzen, um die Funktion zu deaktivieren.
 ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations=Erstellungsdatum für Timeouts verwenden
 ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations.hint=Ja bedeutet, dass das Erstellungsdatum verwendet wird, um eine veraltete Änderungsanforderung zu erkennen. Nein bedeutet, dass die letzte Aktivität der Änderungsanforderung verwendet wird.
 ChangeRequest.Code.ConfigurationClass_schedulerContextUser=Benutzer für den geplanten Job
-ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=Dieser Benutzer wird als Autor verwendet, wenn eine Änderungsanforderung nach dem angegebenen Zeitplan automatisch auf "veraltet" oder "geschlossen" gesetzt wird. Benachrichtigungen, die mit diesen Aktionen verbunden sind, werden ebenfalls von diesem Benutzer ausgegeben. Standardmäßig wird der Benutzer, der die Erweiterung installiert hat, verwendet.
+ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=Dieser Benutzer wird als Autor verwendet, wenn eine Änderungsanforderung nach dem angegebenen Zeitplan automatisch auf "veraltet" oder "geschlossen" gesetzt wird. Benachrichtigungen, die mit diesen Aktionen verbunden sind, werden ebenfalls von diesem Benutzer ausgegeben. Wird kein Benutzer angegeben, wird der Benutzer, der die Erweiterung installiert hat, verwendet.
 ChangeRequest.Code.ConfigurationClass_mergeUser=Benutzer für die Veröffentlichung
 ChangeRequest.Code.ConfigurationClass_mergeUser.hint=Wenn ein Benutzer angegeben wird, wird dieser immer verwendet, wenn Änderungsanforderungen veröffentlicht werden. Dieser Benutzer sollte über entsprechende Rechte verfügen. Wenn kein Benutzer angegeben wird, erfolgt die Veröffentlichung durch den Benutzer, der auf die Schaltfläche "Veröffentlichen" klickt.
 ChangeRequest.Code.ConfigurationClass_delegateEnabled=Delegierte Genehmiger aktivieren
@@ -154,14 +154,14 @@ ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=Wenn aktiviert, e
 ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=Zu verwendende Sicherheitsrichtlinie für das gerenderte Diff
 ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=Die Standardrichtlinie ist die sicherste, aber sie verhindert, dass alle Skripte gerendert werden, selbst wenn die Skripte Teil der zugrundeliegenden Dokumentenblätter sind. Diese Regelung kann gelockert werden, indem einer der anderen Ansätze gewählt wird.
 ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers=Nur Genehmigende akzeptieren, die über das Recht zur Genehmigung verfügen
-ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=Wenn diese Option aktiviert ist, werden die benannten Genehmigenden systematisch überprüft, um sicherzustellen, dass sie über die richtigen Genehmigungsrechte verfügen.
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=Wenn diese Option aktiviert ist, werden Benutzer, die als Genehmigende vorgeschlagen werden, systematisch überprüft, um sicherzustellen, dass sie das Recht zur Genehmigung haben.
 changerequest.diffRender.name.default=Standard-Richtlinie
 changerequest.diffRender.description.default=Sicherste Richtlinie für das gerenderte Diff: sie verhindert die Ausführung von Skripten.
 changerequest.diffRender.name.guestright=Rechte von Gastautoren
 changerequest.diffRender.description.guestright=Diese Richtlinie rendert die Seite unter Verwendung der Benutzerrechte "Gast" durch: die Änderungen werden so wiedergegeben, als ob "Gast" der Autor wäre.
 changerequest.diffRender.name.authorright=Richtlinie für Autorenrechte ändern
 changerequest.diffRender.description.authorright=Diese Richtlinie rendert die Seite mit den Rechten des Benutzers, der die Änderungen vorschlägt. Diese Richtlinie sollte mit Vorsicht verwendet werden, da sie die Ausführung unveröffentlichter Skripte ermöglichen kann, wenn der Autor über Skriptrechte verfügt.
-changerequest.diff.rendered.warningNotExact=Die Rendered-Diff-Funktion soll einen Einblick in die tatsächlichen Änderungen der Seite geben. Aus Sicherheitsgründen können wir die Änderungen jedoch nicht genau so darstellen, wie sie nach dem Zusammenführen der Änderungen aussehen werden. Insbesondere Makros, die Javascript verwenden, werden möglicherweise nicht richtig wiedergegeben, und Makros, die spezifische Daten des Benutzers verwenden, werden ebenfalls nicht richtig wiedergegeben. Diese Ansicht sollte also nicht als die Wahrheit angesehen werden, da nach der Veröffentlichung einige Unterschiede auftreten können.
+changerequest.diff.rendered.warningNotExact=Dies ist eine Annäherung daran, wie das Dokument nach der Veröffentlichung gerendert wird. Aus Sicherheitsgründen kann das Rendering von Rich Content eingeschränkt oder nicht verfügbar sein. Umfangreiche Inhalte werden häufig in Makros angezeigt, so dass diese Inhaltselemente in dieser Ansicht wahrscheinlich blockiert werden. Makros, die JavaScript verwenden oder auf spezifische Benutzerinformationen zugreifen, sind besonders sensibel.
 
 
 changerequest.moreactions.manageapprovers=Genehmigende verwalten
@@ -174,9 +174,9 @@ ChangeRequest.Code.ApproversClass_groupsApprovers=Gruppen, die genehmigen könne
 ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Gruppen von Benutzern des Wikis, die jede Änderung für dieses Dokument genehmigen können.
 ChangeRequest.Code.ApproversClass_manualEdition=Manuell bearbeitet
 ChangeRequest.Code.ApproversClass_manualEdition_hint=Dieses Kontrollkästchen aktivieren, wenn die Genehmigenden nicht automatisch synchronisiert werden sollen, wenn neue Änderungen veröffentlicht werden.
-changerequest.timeline.changerequest.create={0} hat die Änderungsanforderung mit Änderungen bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; erstellt
+changerequest.timeline.changerequest.create={0} hat die Änderungsanforderung mit Änderungen für &lt;a href="{1}"&gt;{2}&lt;/a&gt; erstellt
 changerequest.timeline.changerequest.create.fromSplit={0} hat diese Änderungsanforderung erstellt, indem eine alte Änderungsanforderung mit Änderungen bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; geteilt wurde
-changerequest.timeline.changerequest.filechange.added={0} hat eine neue Änderung bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; hinzugefügt
+changerequest.timeline.changerequest.filechange.added={0} hat eine neue Änderung für &lt;a href="{1}"&gt;{2}&lt;/a&gt; hinzugefügt
 changerequest.timeline.changerequest.status.modified={0} hat den Status der Änderungsanforderung von {1} in {2} geändert
 changerequest.timeline.changerequest.review.added.approval={0} hat eine neue Genehmigungsprüfung hinzugefügt
 changerequest.timeline.changerequest.review.added.requestchanges={0} hat eine neue Überprüfung hinzugefügt
@@ -192,7 +192,7 @@ changerequest.timeline.changerequest.rebased.filechange={0} hat die Änderungen 
 changerequest.timeline.changerequest.rebased.conflictFixing={0} hat einen Konflikt bezüglich &lt;a href="{1}"&gt;{2}&lt;/a&gt; behoben
 changerequest.sheet.description.placeholder=Auf den Bearbeiten-Link klicken, um eine Beschreibung bereitzustellen.
 changerequest.sheet.existingChangeRequestSameChanges=Es gibt weitere Änderungsanforderungen für eine oder mehrere der hier geänderten Seiten:
-changerequest.sheet.checks.otherCR.title=Bestehende Änderungswünsche an denselben Dokumenten
+changerequest.sheet.checks.otherCR.title=Für einige dieser Dokumente liegen bereits Änderungsanträge vor
 changerequest.sheet.ready.button.title=Markieren Sie diese Änderungsanforderung als zur Überprüfung bereit
 changerequest.sheet.ready.button=Zur Überprüfung bereit
 changerequest.sheet.draft.button.title=Diese Änderungsanforderung zum Entwurf konvertieren.
@@ -232,8 +232,8 @@ changerequest.conflict.modal.options.keeppublished.title=Die veröffentlichte Ve
 changerequest.conflict.modal.options.keeppublished.description=Die vorgeschlagenen Änderungen verwerfen und das veröffentlichte Dokument behalten.
 changerequest.conflict.modal.custom.hint.disabled=Diese Option ist deaktiviert. In einem Teil des Dokuments ist ein Konflikt aufgetreten, der nicht durch die benutzerdefinierte Auflösung behandelt werden kann.
 changerequest.savemodal.approvers.edition.warning=Sobald ein Dokument veröffentlicht wurde, muss jede Änderung an der Liste der Genehmigenden von der bestehenden Liste der Genehmigenden genehmigt werden, bevor sich die Änderungen auf offene Überprüfungszyklen auswirken. Wenn Genehmigende für die in dieser Änderungsanforderung vorgeschlagenen Änderungen hinzugefügt oder entfernt werden sollen, bitte eine neue Änderungsanforderung mit einer neuen Gruppe von Genehmigenden öffnen. Diese Änderungsanforderung wird automatisch aktualisiert, sobald die vorgeschlagene Änderung an den Genehmigenden akzeptiert wurde.
-changerequest.savemodal.approvers.header.title=Verwaltung der Genehmiger
-changerequest.savemodal.approvers.header.hint=Sie können die Liste der Benutzer und Gruppen angeben, die berechtigt sein sollen, die Änderungen auf dieser Seite zu genehmigen. Diese Listen werden in einem Änderungsantrag eingereicht, entweder einem neuen oder einem bestehenden.
+changerequest.savemodal.approvers.header.title=Genehmiger verwalten
+changerequest.savemodal.approvers.header.hint=Gib die Liste der Benutzer und/oder Gruppen an, die Änderungen für dieses Dokument überprüfen dürfen. Diese Benutzer werden zusammen mit dem Änderungsantrag zur Überprüfung vorgelegt.
 changerequest.savemodal.approvers.heading=Genehmiger
 changerequest.savemodal.approvers.users=Benutzer, die genehmigen können
 changerequest.savemodal.approvers.groups=Gruppen, die genehmigen können
