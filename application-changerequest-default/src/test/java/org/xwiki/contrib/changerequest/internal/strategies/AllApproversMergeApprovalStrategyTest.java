@@ -19,15 +19,16 @@
  */
 package org.xwiki.contrib.changerequest.internal.strategies;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
@@ -64,6 +65,9 @@ class AllApproversMergeApprovalStrategyTest
     private ApproversManager<ChangeRequest> changeRequestApproversManager;
 
     @MockComponent
+    private ChangeRequestConfiguration configuration;
+
+    @MockComponent
     private ContextualLocalizationManager contextualLocalizationManager;
 
     @Test
@@ -79,29 +83,46 @@ class AllApproversMergeApprovalStrategyTest
         UserReference user1 = mock(UserReference.class);
         UserReference user2 = mock(UserReference.class);
         when(this.changeRequestApproversManager.getAllApprovers(changeRequest, true))
-            .thenReturn(new HashSet<>(Arrays.asList(user1, user2)));
+            .thenReturn(Set.of(user1, user2));
+
+        when(changeRequest.getAuthors()).thenReturn(Set.of(user2));
+        when(configuration.preventAuthorToReview()).thenReturn(false);
 
         ChangeRequestReview review1 = mock(ChangeRequestReview.class);
 
-        when(changeRequest.getReviews()).thenReturn(Collections.singletonList(review1));
+        when(changeRequest.getReviews()).thenReturn(List.of(review1));
         when(review1.isApproved()).thenReturn(true);
         when(review1.isValid()).thenReturn(true);
         when(review1.getAuthor()).thenReturn(user1);
         assertFalse(this.strategy.canBeMerged(changeRequest));
 
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        assertTrue(this.strategy.canBeMerged(changeRequest));
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+
         ChangeRequestReview review2 = mock(ChangeRequestReview.class);
-        when(changeRequest.getReviews()).thenReturn(Arrays.asList(review1, review2));
+        when(changeRequest.getReviews()).thenReturn(List.of(review1, review2));
 
         when(review2.isApproved()).thenReturn(true);
         when(review2.isValid()).thenReturn(true);
         when(review2.getAuthor()).thenReturn(user2);
         assertTrue(this.strategy.canBeMerged(changeRequest));
 
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        assertTrue(this.strategy.canBeMerged(changeRequest));
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
         when(review2.isApproved()).thenReturn(false);
         assertFalse(this.strategy.canBeMerged(changeRequest));
 
+        when(configuration.preventAuthorToReview()).thenReturn(true);
+        assertTrue(this.strategy.canBeMerged(changeRequest));
+
+        when(configuration.preventAuthorToReview()).thenReturn(false);
+
         ChangeRequestReview review3 = mock(ChangeRequestReview.class);
-        when(changeRequest.getReviews()).thenReturn(Arrays.asList(review1, review2, review3));
+        when(changeRequest.getReviews()).thenReturn(List.of(review1, review2, review3));
 
         when(review3.isApproved()).thenReturn(true);
         when(review3.isValid()).thenReturn(true);

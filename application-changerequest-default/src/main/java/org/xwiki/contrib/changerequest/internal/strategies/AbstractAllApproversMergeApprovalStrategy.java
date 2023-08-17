@@ -30,6 +30,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
@@ -49,6 +50,9 @@ public abstract class AbstractAllApproversMergeApprovalStrategy extends Abstract
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private ChangeRequestConfiguration configuration;
 
     private MergeApprovalStrategy fallbackStrategy;
 
@@ -79,7 +83,9 @@ public abstract class AbstractAllApproversMergeApprovalStrategy extends Abstract
         try {
             Set<UserReference> allApprovers =
                 new HashSet<>(this.changeRequestApproversManager.getAllApprovers(changeRequest, true));
-            allApprovers.removeAll(changeRequest.getAuthors());
+            if (configuration.preventAuthorToReview()) {
+                allApprovers.removeAll(changeRequest.getAuthors());
+            }
             if (!allApprovers.isEmpty()) {
                 result = Optional.of(allApprovers);
             }
