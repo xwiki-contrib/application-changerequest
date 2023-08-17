@@ -311,8 +311,8 @@
                 $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.approverLabel')
               &lt;/span&gt;
               #elseif ($services.changerequest.isDelegateApproverOf($crMergeDocumentResult.fileChange))
-              &lt;span class="label label-success label-delegate-approver" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.approverLabel.title'))"&gt;
-                $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.approverLabel')
+              &lt;span class="label label-success label-delegate-approver" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.delegateApproverLabel.title'))"&gt;
+                $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.delegateApproverLabel')
               &lt;/span&gt;
               #end
             #end
