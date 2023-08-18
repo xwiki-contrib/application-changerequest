@@ -2147,7 +2147,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var diffBlock = $(message).parent('.discussion').find('.diff-block-metadata');
     if (discussionElement &amp;&amp; discussionElement.find('.message[data-reference="' + messageId+ '"]').length == 0) {
       if (diffBlock.length &gt; 0) {
-        newBlock = diffBlock.clone();
+        var newBlock = diffBlock.clone();
         discussionElement.append(newBlock);
         newBlock.removeClass('hidden');
       }
@@ -2167,10 +2167,12 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var diffId = discussion.attr('data-diffid');
     
     // try first to find the diff file with same exact id
-    var mainContainer = $('.diff-body[data-diffid="' + diffId + '"]');
+    // Backward compatibility: the diffId use to only contain 3 elements before we added the filechange id,
+    // so we don't check full equality but if the id is contained with *=
+    var mainContainer = $('.diff-body[data-diffid*="' + diffId + '"]');
     var outdated = false;
     var line;
-    
+
     // if we did not find it, it means the diff might be outdated, we fallback on the diff concerning same document
     if (mainContainer.length == 0) {
       mainContainer = $('.diff-body[data-documentreference="' + targetReference + '"]');

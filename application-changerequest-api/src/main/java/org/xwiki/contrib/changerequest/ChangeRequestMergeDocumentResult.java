@@ -154,8 +154,11 @@ public class ChangeRequestMergeDocumentResult
      */
     public String getIdentifier()
     {
-        return StringUtils.replace(String.format("%s_%s_%s", fileChange.getVersion(),
-            previousVersion, previousVersionDate.getTime()), ".", "dot");
+        return StringUtils.replace(String.format("%s_%s_%s_%s",
+            fileChange.getId(),
+            fileChange.getVersion(),
+            previousVersion,
+            previousVersionDate.getTime()), ".", "dot");
     }
 
     @Override

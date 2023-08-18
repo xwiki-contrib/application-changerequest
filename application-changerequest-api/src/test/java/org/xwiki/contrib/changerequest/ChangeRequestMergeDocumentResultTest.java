@@ -71,11 +71,12 @@ class ChangeRequestMergeDocumentResultTest
     {
         MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
         FileChange fileChange = mock(FileChange.class);
-        when(fileChange.getVersion()).thenReturn("1.4-filechange");
+        when(fileChange.getId()).thenReturn("adumbid");
+        when(fileChange.getVersion()).thenReturn("filechange-1.4");
         ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult =
             new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, "1.3", new Date(45));
 
-        assertEquals("1dot4-filechange_1dot3_45", changeRequestMergeDocumentResult.getIdentifier());
+        assertEquals("adumbid_filechange-1dot4_1dot3_45", changeRequestMergeDocumentResult.getIdentifier());
     }
 
     @Test
