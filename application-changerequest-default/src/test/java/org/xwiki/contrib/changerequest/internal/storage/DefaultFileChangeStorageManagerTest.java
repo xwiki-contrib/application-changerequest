@@ -75,6 +75,7 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
+import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
@@ -197,6 +198,9 @@ class DefaultFileChangeStorageManagerTest
 
     @MockComponent
     private ContextualLocalizationManager contextualLocalizationManager;
+
+    @MockComponent
+    private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
 
     @RegisterExtension
     LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
@@ -592,12 +596,16 @@ class DefaultFileChangeStorageManagerTest
     {
         FileChange fileChange = mock(FileChange.class);
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
-        DocumentReference mergerReference = new DocumentReference("xwiki", "XWiki", "Merger");
-        when(context.getUserReference()).thenReturn(mergerReference);
+        UserReference mergerUser = mock(UserReference.class, "merger");
+        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(mergerUser);
 
         XWikiDocument targetDoc = mock(XWikiDocument.class);
         when(fileChange.getModifiedDocument()).thenReturn(targetDoc);
         when(targetDoc.clone()).thenReturn(targetDoc);
+
+        DocumentAuthors authors = mock(DocumentAuthors.class);
+        when(targetDoc.getAuthors()).thenReturn(authors);
+
         String crTitle = "Some title";
         String crID = "someId";
         ChangeRequest changeRequest = mock(ChangeRequest.class);
@@ -609,8 +617,13 @@ class DefaultFileChangeStorageManagerTest
 
         this.fileChangeStorageManager.merge(fileChange);
         verify(targetDoc).clone();
-        verify(targetDoc).setCreatorReference(mergerReference);
         verify(targetDoc).setRCSVersion(null);
+        verify(authors).setCreator(mergerUser);
+        verify(authors).setContentAuthor(mergerUser);
+        verify(authors).setEffectiveMetadataAuthor(mergerUser);
+        verify(targetDoc).setContentUpdateDate(any());
+        verify(targetDoc).setDate(any());
+        verify(targetDoc).setCreationDate(any());
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
     }
 
