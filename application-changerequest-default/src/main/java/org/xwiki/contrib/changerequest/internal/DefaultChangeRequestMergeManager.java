@@ -214,13 +214,6 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     public ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange)
         throws ChangeRequestException
     {
-        return this.getMergeDocumentResult(fileChange, null);
-    }
-
-    private ChangeRequestMergeDocumentResult getMergeDocumentResult(FileChange fileChange,
-        ConflictResolutionChoice resolutionChoice)
-        throws ChangeRequestException
-    {
         Optional<ChangeRequestMergeDocumentResult> optionalResult =
             this.mergeCacheManager.getChangeRequestMergeDocumentResult(fileChange);
         ChangeRequestMergeDocumentResult result;
@@ -271,7 +264,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
                     break;
 
                 case EDITION:
-                    result = this.getEditionMergeDocumentResult(fileChange, xwikiCurrentDoc, resolutionChoice);
+                    result = this.getEditionMergeDocumentResult(fileChange, xwikiCurrentDoc);
                     break;
 
                 default:
@@ -283,7 +276,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     }
 
     private ChangeRequestMergeDocumentResult getEditionMergeDocumentResult(FileChange fileChange,
-        XWikiDocument xwikiCurrentDoc, ConflictResolutionChoice resolutionChoice)
+        XWikiDocument xwikiCurrentDoc)
         throws ChangeRequestException
     {
         Optional<DocumentModelBridge> optionalPreviousDoc =
@@ -307,16 +300,23 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         mergeConfiguration.setUserReference(context.getUserReference());
         mergeConfiguration.setConcernedDocument(documentReference);
 
-        if (resolutionChoice == ConflictResolutionChoice.CHANGE_REQUEST_VERSION) {
-            mergeConfiguration.setConflictFallbackVersion(MergeConfiguration.ConflictFallbackVersion.NEXT);
-        }
-
         mergeConfiguration.setProvidedVersionsModifiables(false);
         MergeDocumentResult mergeDocumentResult =
             mergeManager.mergeDocument(previousDoc, nextDoc, xwikiCurrentDoc, mergeConfiguration);
-        return new ChangeRequestMergeDocumentResult(mergeDocumentResult, fileChange, previousDoc.getVersion(),
-            previousDoc.getDate())
-            .setDocumentTitle(getTitle((XWikiDocument) nextDoc));
+        ChangeRequestMergeDocumentResult result = new ChangeRequestMergeDocumentResult(mergeDocumentResult,
+            fileChange,
+            previousDoc.getVersion(),
+            previousDoc.getDate());
+        result.setDocumentTitle(getTitle((XWikiDocument) nextDoc));
+
+        if (mergeDocumentResult.hasConflicts()) {
+            mergeConfiguration.setConflictFallbackVersion(MergeConfiguration.ConflictFallbackVersion.NEXT);
+            MergeDocumentResult mergeDocumentResultWithCRFallback =
+                mergeManager.mergeDocument(previousDoc, nextDoc, xwikiCurrentDoc, mergeConfiguration);
+            result.setWrappedResultWithCRFallback(mergeDocumentResultWithCRFallback);
+        }
+
+        return result;
     }
 
     private String getTitle(XWikiDocument document)
@@ -463,46 +463,33 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         DocumentReference targetEntity = fileChange.getTargetEntity();
         DocumentReference userReference = this.contextProvider.get().getUserReference();
 
-        MergeDocumentResult mergeDocumentResult = this.getMergeDocumentResult(fileChange).getWrappedResult();
-
-        ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
-        // FIXME: only handle content conflicts for now, see XWIKI-18908
-        this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
-            conflicts);
-
-        ConflictDecision.DecisionType globalDecisionType = null;
+        ChangeRequestMergeDocumentResult changeRequestMergeDocumentResult = this.getMergeDocumentResult(fileChange);
+        MergeDocumentResult mergeDocumentResult = null;
 
         switch (resolutionChoice) {
             case CUSTOM:
+                ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
+                this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
+                    conflicts);
                 this.mergeConflictDecisionsManager
                     .setConflictDecisionList(new ArrayList<>(conflictDecisionList), targetEntity, userReference);
+                // We need to invalidate the cache so that the merge operation can occur again with the decisions.
+                this.mergeCacheManager.invalidate(fileChange);
+                changeRequestMergeDocumentResult = this.getMergeDocumentResult(fileChange);
+                mergeDocumentResult = changeRequestMergeDocumentResult.getWrappedResult();
                 break;
 
             case CHANGE_REQUEST_VERSION:
-                globalDecisionType = ConflictDecision.DecisionType.NEXT;
+                mergeDocumentResult = changeRequestMergeDocumentResult.getWrappedResultWithCRFallback();
                 break;
 
             case PUBLISHED_VERSION:
-                globalDecisionType = ConflictDecision.DecisionType.CURRENT;
+                mergeDocumentResult = changeRequestMergeDocumentResult.getWrappedResult();
                 break;
 
             default:
-                globalDecisionType = ConflictDecision.DecisionType.UNDECIDED;
-                break;
+                throw new ChangeRequestException("Missing decision for fixing the conflict.");
         }
-
-        if (globalDecisionType != null) {
-            for (Conflict<?> conflict : conflicts) {
-                this.mergeConflictDecisionsManager.recordDecision(targetEntity, userReference,
-                    conflict.getReference(),
-                    globalDecisionType, Collections.emptyList());
-            }
-        }
-
-        // We need to invalidate the cache so that the merge operation can occur again with the decisions.
-        this.mergeCacheManager.invalidate(fileChange);
-        // This second call is needed to actually perform the merge operation.
-        mergeDocumentResult = this.getMergeDocumentResult(fileChange, resolutionChoice).getWrappedResult();
 
         String previousVersion = fileChange.getVersion();
         String previousPublishedVersion = mergeDocumentResult.getCurrentDocument().getVersion();

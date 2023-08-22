@@ -58,6 +58,7 @@
     #else
       #set ($crMergeDocument = $mergeDocumentOpt.get())
       #set ($mergeDocument = $crMergeDocument.wrappedResult)
+      #set ($mergeDocumentCRFallback = $crMergeDocument.wrappedResultWithCRFallback)
       #set ($fileChangeType = $crMergeDocument.type)
       #set ($contentConflicts = $mergeDocument.getConflicts('CONTENT'))
       #set ($disableCustomResolution = !$mergedDocResult.hasOnlyContentConflicts())
@@ -70,7 +71,8 @@
     'PREVIOUS': $mergeDocument.previousDocument,
     'CURRENT': $mergeDocument.currentDocument,
     'NEXT': $mergeDocument.nextDocument,
-    'MERGED': $mergeDocument.mergeResult
+    'MERGED': $mergeDocument.mergeResult,
+    'MERGED_CRFALLBACK': $mergeDocumentCRFallback.mergeResult
   })
   #set ($defaultOriginal = 'NEXT')
   #set ($defaultRevised = 'MERGED')
@@ -103,7 +105,7 @@
   #set ($warningConflictAction = "keepChangeRequest")
 #end
 
-&lt;div class="modal text-left" id="changeRequestConflictModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static"&gt;
+&lt;div class="modal text-left" id="changeRequestConflictModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-filechangetype="$fileChangeType"&gt;
   &lt;div class="modal-dialog modal-lg"&gt;
     &lt;div class="modal-content"&gt;
       &lt;div class="modal-header"&gt;
@@ -173,7 +175,7 @@
                   #foreach($entry in $versions.entrySet())
                     #if ($entry.value)
                       &lt;option value="$entry.key"#if ($entry.key == $originalVersion) selected="selected"#end&gt;
-                        $services.localization.render("core.editors.save.previewDiff.versionToCompare.${entry.key.toLowerCase()}")
+                        $services.localization.render("changerequest.conflict.modal.diffoption.${entry.key.toLowerCase()}")
                       &lt;/option&gt;
                     #end
                   #end
@@ -183,7 +185,7 @@
                   #foreach($entry in $versions.entrySet())
                     #if ($entry.value)
                       &lt;option value="$entry.key"#if ($entry.key == $revisedVersion) selected="selected"#end&gt;
-                        $services.localization.render("core.editors.save.previewDiff.versionToCompare.${entry.key.toLowerCase()}")
+                        $services.localization.render("changerequest.conflict.modal.diffoption.${entry.key.toLowerCase()}")
                       &lt;/option&gt;
                     #end
                   #end
@@ -197,17 +199,13 @@
               &lt;/div&gt;
               #end
               &lt;div id="changescontent"&gt;
-                #if ($originalVersion == "CURRENT")
-                  #set ($rev1 = "Current")
-                #elseif ($originalVersion == "MERGED")
-                  #set ($rev1 = "Merged")
+                #if ($originalVersion == 'NEXT' || $originalVersion == 'MERGED' || $originalVersion == 'MERGED_CRFALLBACK')
+                  #set ($rev1 = $services.localization.render("changerequest.conflict.modal.diffoption.${originalVersion.toLowerCase()}"))
                 #else
                   #set ($rev1 = $originalDocument.getVersion())
                 #end
-                #if ($revisedVersion == "CURRENT")
-                  #set ($rev2 = "Current")
-                #elseif ($revisedVersion == "MERGED")
-                  #set ($rev2 = "Merged")
+                #if ($revisedVersion == 'NEXT' || $revisedVersion == 'MERGED' || $revisedVersion == 'MERGED_CRFALLBACK')
+                  #set ($rev2 = $services.localization.render("changerequest.conflict.modal.diffoption.${revisedVersion.toLowerCase()}"))
                 #else
                   #set ($rev2 = $revisedDocument.getVersion())
                 #end

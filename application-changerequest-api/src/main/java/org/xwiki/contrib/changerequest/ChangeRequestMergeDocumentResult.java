@@ -43,6 +43,8 @@ public class ChangeRequestMergeDocumentResult
 {
     private final FileChange fileChange;
     private MergeDocumentResult wrappedResult;
+
+    private MergeDocumentResult wrappedResultWithCRFallback;
     private final boolean isConflicting;
     private String documentTitle;
     private final String previousVersion;
@@ -138,6 +140,32 @@ public class ChangeRequestMergeDocumentResult
     public MergeDocumentResult getWrappedResult()
     {
         return wrappedResult;
+    }
+
+    /**
+     * Result of the merge when the conflicts are solved with using the CR version.
+     * @return the wrapped {@link MergeDocumentResult} when this change is of type
+     *       {@link FileChange.FileChangeType#EDITION} and conflicts have been solved using the version in the change
+     *       request, or {@code null} in case there was no conflict
+     * @since 1.9.4
+     */
+    public MergeDocumentResult getWrappedResultWithCRFallback()
+    {
+        return wrappedResultWithCRFallback;
+    }
+
+    /**
+     * Set the result of the merge when conflicts are solved using the change request version.
+     * @param wrappedResultWithCRFallback the result of the merge when there was conflicts and they're solved with the
+     *                                    change request version
+     * @return the current instance
+     * @since 1.9.4
+     */
+    public ChangeRequestMergeDocumentResult setWrappedResultWithCRFallback(
+        MergeDocumentResult wrappedResultWithCRFallback)
+    {
+        this.wrappedResultWithCRFallback = wrappedResultWithCRFallback;
+        return this;
     }
 
     /**

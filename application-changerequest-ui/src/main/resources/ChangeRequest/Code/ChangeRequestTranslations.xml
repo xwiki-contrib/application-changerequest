@@ -235,10 +235,15 @@ changerequest.conflict.modal.description.EDITION=This document is in conflict be
 changerequest.conflict.modal.description.CREATION=This document is in conflict because the page you are trying to create has been created while you were raising this Change Request. You can can publish your changes or use the published version.
 changerequest.conflict.modal.recommended=Recommended
 changerequest.conflict.modal.options.keepcr.title=Keep the proposed changes
-changerequest.conflict.modal.options.keepcr.description=Overwrite the published document with the proposed changes.
+changerequest.conflict.modal.options.keepcr.description=Overwrite the conflict(s) of published document with the proposed changes.
 changerequest.conflict.modal.options.keeppublished.title=Keep the published version
-changerequest.conflict.modal.options.keeppublished.description=Discard the proposed changes and keep the published document.
+changerequest.conflict.modal.options.keeppublished.description=Discard the conflict(s) of the proposed changes and keep the published document.
 changerequest.conflict.modal.custom.hint.disabled=This option is disabled. A conflict has occurred in part of the document that cannot be handled by custom resolution.
+changerequest.conflict.modal.diffoption.previous=Previous version before changes
+changerequest.conflict.modal.diffoption.next=Version with proposed changes
+changerequest.conflict.modal.diffoption.current=Version currently published
+changerequest.conflict.modal.diffoption.merged=Conflicts solved with published document
+changerequest.conflict.modal.diffoption.merged_crfallback=Conflicts solved with current changes
 
 changerequest.savemodal.approvers.edition.warning=Once a document has been published, any change to the list of approvers must be approved by the existing list of approvers before the changes impact any open review cycles. If you are looking to add or remove approvers for the changes proposed in this Change Request, please open a new Change Request with a new set of approvers. This Change Request will be automatically updated once the proposed change to the approvers has been accepted.
 changerequest.savemodal.approvers.header.title=Manage Approvers

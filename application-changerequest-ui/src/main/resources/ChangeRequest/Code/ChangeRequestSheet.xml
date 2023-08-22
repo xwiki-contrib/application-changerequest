@@ -311,8 +311,8 @@
                 $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.approverLabel')
               &lt;/span&gt;
               #elseif ($services.changerequest.isDelegateApproverOf($crMergeDocumentResult.fileChange))
-              &lt;span class="label label-success label-delegate-approver" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.delegateApproverLabel.title'))"&gt;
-                $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.delegateApproverLabel')
+              &lt;span class="label label-success label-delegate-approver" title="$escapetool.xml($services.localization.render('changerequest.sheet.diff.approverLabel.title'))"&gt;
+                $services.icon.renderHTML('certificate') $services.localization.render('changerequest.sheet.diff.approverLabel')
               &lt;/span&gt;
               #end
             #end
@@ -957,12 +957,19 @@ require(['jquery', 'bootstrap'], function ($) {
     // Change the diff based on the action chosen.
     self.radioSelect = function () {
       var selectedValue = $('#changeRequestConflictModal input[name=warningConflictAction]:checked').val();
-      if (selectedValue == "keepChangeRequest") {
-        self.requestModal("NEXT", "MERGED");
-        // It's the next and current value which will be used for the merge, so better use them in case of custom
-        // conflicts resolution.
-      } else if (selectedValue == "keepPublished" || selectedValue == "custom") {
-        self.requestModal("CURRENT", "NEXT");
+      var filechangetype = $('#changeRequestConflictModal').attr('data-filechangetype');
+      if (filechangetype == "EDITION") {
+        if (selectedValue == "keepChangeRequest" || selectedValue == "custom") {
+          self.requestModal("CURRENT", "MERGED_CRFALLBACK");
+        } else if (selectedValue == "keepPublished") {
+          self.requestModal("CURRENT", "MERGED");
+        }
+      } else {
+        if (selectedValue == "keepChangeRequest" || selectedValue == "custom") {
+          self.requestModal("CURRENT", "NEXT");
+        } else if (selectedValue == "keepPublished") {
+          self.requestModal("NEXT", "CURRENT");
+        }
       }
     };
     
@@ -2147,7 +2154,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var diffBlock = $(message).parent('.discussion').find('.diff-block-metadata');
     if (discussionElement &amp;&amp; discussionElement.find('.message[data-reference="' + messageId+ '"]').length == 0) {
       if (diffBlock.length &gt; 0) {
-        var newBlock = diffBlock.clone();
+        newBlock = diffBlock.clone();
         discussionElement.append(newBlock);
         newBlock.removeClass('hidden');
       }
@@ -2167,12 +2174,10 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var diffId = discussion.attr('data-diffid');
     
     // try first to find the diff file with same exact id
-    // Backward compatibility: the diffId use to only contain 3 elements before we added the filechange id,
-    // so we don't check full equality but if the id is contained with *=
     var mainContainer = $('.diff-body[data-diffid*="' + diffId + '"]');
     var outdated = false;
     var line;
-
+    
     // if we did not find it, it means the diff might be outdated, we fallback on the diff concerning same document
     if (mainContainer.length == 0) {
       mainContainer = $('.diff-body[data-documentreference="' + targetReference + '"]');
@@ -5005,7 +5010,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -5167,7 +5172,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -5430,7 +5435,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
