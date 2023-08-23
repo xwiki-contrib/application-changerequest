@@ -319,7 +319,7 @@ class ChangeRequestDiscussionIT
 
         event = events.get(7);
         assertEquals("CRAddChangesITCRUser changed the status of the Change Request from ready for review to ready "
-            + "for merging", event.getContent().getText());
+            + "for publication", event.getContent().getText());
 
         event = events.get(6);
         assertEquals("changerequest.review.added", event.getEventType());
@@ -452,7 +452,7 @@ class ChangeRequestDiscussionIT
         events = descriptionPane.getEvents();
 
         event = events.get(11);
-        assertEquals("CRAddChangesITCRCreator changed the status of the Change Request from ready for merging "
+        assertEquals("CRAddChangesITCRCreator changed the status of the Change Request from ready for publication "
             + "to ready for review", event.getContent().getText());
 
         // We check the review added in comments only there since we don't have a proper mechanism to wait...

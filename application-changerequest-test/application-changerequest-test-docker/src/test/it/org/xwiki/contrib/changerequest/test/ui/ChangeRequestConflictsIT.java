@@ -546,7 +546,7 @@ class ChangeRequestConflictsIT
         testUtils.gotoPage(cr1Url);
         changeRequestPage = new ChangeRequestPage();
 
-        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+        assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
 
         // Since CR_USER is the author and not an approver he cannot merge
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
@@ -583,7 +583,7 @@ class ChangeRequestConflictsIT
         assertEquals("xwiki:XWiki." + FOO, reviewElement.getAuthor());
 
         // check that it's still ready for merging
-        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+        assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
         assertTrue(changeRequestPage.isMergeButtonEnabled());
 
@@ -659,7 +659,7 @@ class ChangeRequestConflictsIT
 
         changeRequestPage = new ChangeRequestPage();
 
-        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+        assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
         assertTrue(changeRequestPage.isMergeButtonEnabled());
 
@@ -726,7 +726,7 @@ class ChangeRequestConflictsIT
         reviewContainer.save();
 
         changeRequestPage = new ChangeRequestPage();
-        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+        assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
         assertTrue(changeRequestPage.isMergeButtonEnabled());
 

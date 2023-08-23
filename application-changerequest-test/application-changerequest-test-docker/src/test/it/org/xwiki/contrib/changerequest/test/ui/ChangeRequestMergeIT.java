@@ -92,12 +92,12 @@ public class ChangeRequestMergeIT
         reviewContainer.selectApprove();
         changeRequestPage = reviewContainer.save();
 
-        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+        assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
         assertTrue(changeRequestPage.isMergeButtonEnabled());
 
         changeRequestPage = changeRequestPage.clickMergeButton();
-        assertEquals("Merged", changeRequestPage.getStatusLabel());
+        assertEquals("Published", changeRequestPage.getStatusLabel());
 
         ViewPage viewPage = testUtils.gotoPage(testReference);
         assertEquals("Some content in the new page", viewPage.getContent());

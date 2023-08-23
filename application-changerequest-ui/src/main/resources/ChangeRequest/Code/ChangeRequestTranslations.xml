@@ -128,7 +128,7 @@ changerequest.sheet.tab.approvers.title=Approvers
 changerequest.sheet.hide=Hide
 changerequest.sheet.view=View
 
-ChangeRequest.Code.ConfigurationClass_approvalStrategy=Merge Approval Strategy
+ChangeRequest.Code.ConfigurationClass_approvalStrategy=Publication Approval Strategy
 ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=The strategy used to determine if a Change Request can be published.
 ChangeRequest.Code.ConfigurationClass_changeRequestLocation=Change Request Storage Location
 ChangeRequest.Code.ConfigurationClass_changeRequestLocation.hint=Space where Change Request documents and data is stored.
@@ -199,7 +199,7 @@ changerequest.sheet.description.placeholder=Click the edit link on the right to 
 changerequest.sheet.existingChangeRequestSameChanges=Other Change Requests exist for one or several of the pages modified here:
 changerequest.sheet.checks.otherCR.title=Change Requests already exist for some of these documents
 changerequest.sheet.ready.button.title=Mark this Change Request as ready for review
-changerequest.sheet.ready.button=Ready for review
+changerequest.sheet.ready.button=Mark as ready for review
 changerequest.sheet.draft.button.title=Convert this Change Request to a draft Change Request.
 changerequest.sheet.draft.button=Convert to draft
 changerequest.sheet.review.button.title=Review the current Change Request

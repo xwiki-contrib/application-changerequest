@@ -283,7 +283,7 @@ class DelegateApproversIT
         // At this point the review button should not displayed anymore, but the merge button should
         assertFalse(changeRequestPage.isReviewButtonDisplayed());
         assertTrue(changeRequestPage.isMergeButtonDisplayed());
-        assertEquals("Ready for merging", changeRequestPage.getStatusLabel());
+        assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
 
         // Perform new changes: all reviews should now be outdated
         // Status should be back to "ready for review"
