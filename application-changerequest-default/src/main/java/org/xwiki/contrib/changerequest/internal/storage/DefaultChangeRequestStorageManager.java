@@ -215,6 +215,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         try {
             XWikiDocument document = wiki.getDocument(reference, context);
+            document.setLocale(wiki.getLocalePreference(context));
             document.setTitle(changeRequest.getTitle());
             document.setContent(changeRequest.getDescription());
             DocumentAuthors authors = document.getAuthors();
