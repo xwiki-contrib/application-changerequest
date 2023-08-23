@@ -468,6 +468,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
 
         switch (resolutionChoice) {
             case CUSTOM:
+                mergeDocumentResult = changeRequestMergeDocumentResult.getWrappedResult();
                 ArrayList<Conflict<?>> conflicts = new ArrayList<>(mergeDocumentResult.getConflicts());
                 this.mergeConflictDecisionsManager.recordConflicts(fileChange.getTargetEntity(), userReference,
                     conflicts);
