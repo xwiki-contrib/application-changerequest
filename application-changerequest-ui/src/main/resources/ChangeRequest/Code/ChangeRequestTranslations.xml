@@ -244,6 +244,10 @@ changerequest.conflict.modal.diffoption.next=Proposed Changes
 changerequest.conflict.modal.diffoption.current=Latest Publication
 changerequest.conflict.modal.diffoption.merged=Resolution: Priority to Latest Publication
 changerequest.conflict.modal.diffoption.merged_crfallback=Resolution: Priority to Proposal
+changerequest.conflict.modal.customchoices.current=published changes
+changerequest.conflict.modal.customchoices.next=current changes
+changerequest.conflict.modal.customchoices.previous=original changes
+changerequest.conflict.modal.customchoices.custom=custom changes
 
 changerequest.savemodal.approvers.edition.warning=Once a document has been published, any change to the list of approvers must be approved by the existing list of approvers before the changes impact any open review cycles. If you are looking to add or remove approvers for the changes proposed in this Change Request, please open a new Change Request with a new set of approvers. This Change Request will be automatically updated once the proposed change to the approvers has been accepted.
 changerequest.savemodal.approvers.header.title=Manage Approvers

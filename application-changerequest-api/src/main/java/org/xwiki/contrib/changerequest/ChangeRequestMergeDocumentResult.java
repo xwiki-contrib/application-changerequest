@@ -108,6 +108,16 @@ public class ChangeRequestMergeDocumentResult
     }
 
     /**
+     * @return {@code true} if the conflicts are only about content of the document.
+     * @since 1.9.4
+     */
+    public boolean hasOnlyContentConflicts()
+    {
+        int contentConflictsSize = this.wrappedResult.getConflicts(MergeDocumentResult.DocumentPart.CONTENT).size();
+        return contentConflictsSize > 0 && contentConflictsSize == this.wrappedResult.getConflictsNumber();
+    }
+
+    /**
      * @return the document title to use for displaying the result.
      */
     public String getDocumentTitle()

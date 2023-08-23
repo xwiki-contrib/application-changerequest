@@ -1013,6 +1013,21 @@ require(['jquery', 'bootstrap'], function ($) {
       });
     };
     
+    self.overrideCustomChoicesTranslations = function () {
+      if ($('#changeRequestConflictModal .custom-resolution-translations')) {
+        var choiceTranslations = {
+          'current': $('#changeRequestConflictModal .custom-resolution-translations .current').text(),
+          'next': $('#changeRequestConflictModal .custom-resolution-translations .next').text(),
+          'previous': $('#changeRequestConflictModal .custom-resolution-translations .previous').text(),
+          'custom': $('#changeRequestConflictModal .custom-resolution-translations .custom').text()
+        }
+        
+        $('select[name="conflict_decision_select"] option').each(function () {
+          $(this).text(choiceTranslations[$(this).val()]);
+        });
+      }
+    }
+    
     self.initModal = function() {
       var modal = $('#changeRequestConflictModal');
 
@@ -1026,6 +1041,7 @@ require(['jquery', 'bootstrap'], function ($) {
         $('#changeRequestConflictModal input[name=warningConflictAction]').on('change', self.radioSelect);
         $('#changeRequestConflictChangeDiff').on('click', self.requestModal);
         $('#changeRequestConflictSubmitButton').on('click', self.submitAction);
+        self.overrideCustomChoicesTranslations();
         modal.modal('show');
       }
     };
@@ -4962,6 +4978,132 @@ input#edit-title-input:focus, .edit-title-icon:hover {
     </property>
     <property>
       <name>Discussions</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>4</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>3545a82e-4123-4c21-b241-d7f5f5c5b783</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#changeRequestConflictModal #changes-info::before {
+  display: none;
+}
+#changeRequestConflictModal #changes-info::after {
+  display: none;
+}</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name>conflict</name>
     </property>
     <property>
       <parse>0</parse>

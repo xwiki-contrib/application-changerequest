@@ -61,7 +61,7 @@
       #set ($mergeDocumentCRFallback = $crMergeDocument.wrappedResultWithCRFallback)
       #set ($fileChangeType = $crMergeDocument.type)
       #set ($contentConflicts = $mergeDocument.getConflicts('CONTENT'))
-      #set ($disableCustomResolution = !$mergedDocResult.hasOnlyContentConflicts())
+      #set ($disableCustomResolution = !$crMergeDocument.hasOnlyContentConflicts())
       #if ("$!request.get('decision')" == '')
 {{html clean="false"}}
 #set ($discard = $services.template.execute('diff_macros.vm'))
@@ -74,8 +74,8 @@
     'MERGED': $mergeDocument.mergeResult,
     'MERGED_CRFALLBACK': $mergeDocumentCRFallback.mergeResult
   })
-  #set ($defaultOriginal = 'NEXT')
-  #set ($defaultRevised = 'MERGED')
+  #set ($defaultOriginal = 'CURRENT')
+  #set ($defaultRevised = 'MERGED_CRFALLBACK')
 #elseif ($fileChangeType == 'CREATION')
   #set ($versions = {
     'CURRENT': $mergeDocument.currentDocument,
@@ -155,6 +155,13 @@
                 &lt;br /&gt;
                 #if ($disableCustomResolution)
                   $services.localization.render('changerequest.conflict.modal.custom.hint.disabled')
+                #else
+                  &lt;div class="hidden custom-resolution-translations"&gt;
+                    &lt;span class="current"&gt;$services.localization.render('changerequest.conflict.modal.customchoices.current')&lt;/span&gt;
+                    &lt;span class="previous"&gt;$services.localization.render('changerequest.conflict.modal.customchoices.previous')&lt;/span&gt;
+                    &lt;span class="next"&gt;$services.localization.render('changerequest.conflict.modal.customchoices.next')&lt;/span&gt;
+                    &lt;span class="custom"&gt;$services.localization.render('changerequest.conflict.modal.customchoices.custom')&lt;/span&gt;
+                  &lt;/div&gt;
                 #end
               &lt;/div&gt;
             &lt;/div&gt;
