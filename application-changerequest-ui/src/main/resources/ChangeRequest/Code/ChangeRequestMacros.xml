@@ -340,7 +340,7 @@
     &lt;span class="content"&gt;
       $services.localization.render($localizationKey, $localizationArguments)
     &lt;/span&gt;
-    &lt;span class="date" data-date="$event.date.time" title="$escapetool.xml($datetool.format($event.date))"&gt;
+    &lt;span class="date" data-date="$event.date.time" title="$escapetool.xml($xwiki.formatDate($event.date))"&gt;
       &lt;a href="#event-$event.date.time"&gt;$services.date.displayTimeAgo($event.date)&lt;/a&gt;
     &lt;/span&gt;
     #if ($discussionClass)
