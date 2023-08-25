@@ -20,11 +20,13 @@
 package org.xwiki.contrib.changerequest;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.xwiki.diff.Conflict;
 import org.xwiki.stability.Unstable;
 import org.xwiki.store.merge.MergeDocumentResult;
 
@@ -113,7 +115,8 @@ public class ChangeRequestMergeDocumentResult
      */
     public boolean hasOnlyContentConflicts()
     {
-        int contentConflictsSize = this.wrappedResult.getConflicts(MergeDocumentResult.DocumentPart.CONTENT).size();
+        List<Conflict<?>> conflicts = this.wrappedResult.getConflicts(MergeDocumentResult.DocumentPart.CONTENT);
+        int contentConflictsSize = (conflicts != null) ? conflicts.size() : 0;
         return contentConflictsSize > 0 && contentConflictsSize == this.wrappedResult.getConflictsNumber();
     }
 
