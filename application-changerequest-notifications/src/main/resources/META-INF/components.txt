@@ -5,6 +5,7 @@ org.xwiki.contrib.changerequest.script.ChangeRequestNotificationsScriptService
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestCreatedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestDiscussionEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestFileChangeAddedEventListener
+org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestMergedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestReviewAddedEventListener
 org.xwiki.contrib.changerequest.internal.listeners.ChangeRequestStatusChangedEventListener
 org.xwiki.contrib.changerequest.internal.descriptors.ChangeRequestReviewAddedEventDescriptor

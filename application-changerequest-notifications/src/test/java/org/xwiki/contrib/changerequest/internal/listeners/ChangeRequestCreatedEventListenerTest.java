@@ -85,7 +85,7 @@ class ChangeRequestCreatedEventListenerTest
         ChangeRequest data = mock(ChangeRequest.class);
         UserReference creator = mock(UserReference.class);
         when(data.getCreator()).thenReturn(creator);
-        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, creator)).thenReturn(true);
+        when(changeRequestAutoWatchHandler.hasAutoWatchEnabled(creator)).thenReturn(true);
         FileChange fileChange = mock(FileChange.class);
         String fileChangeId = "fileChangeId";
         when(fileChange.getId()).thenReturn(fileChangeId);
@@ -99,9 +99,9 @@ class ChangeRequestCreatedEventListenerTest
             approver2,
             approver3
         ));
-        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, approver1)).thenReturn(true);
-        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, approver2)).thenReturn(false);
-        when(changeRequestAutoWatchHandler.shouldCreateWatchedEntity(data, approver3)).thenReturn(true);
+        when(changeRequestAutoWatchHandler.hasAutoWatchEnabled(approver1)).thenReturn(true);
+        when(changeRequestAutoWatchHandler.hasAutoWatchEnabled(approver2)).thenReturn(false);
+        when(changeRequestAutoWatchHandler.hasAutoWatchEnabled(approver3)).thenReturn(true);
 
         DocumentReference documentReference = mock(DocumentReference.class);
         when(data.getModifiedDocuments()).thenReturn(Collections.singleton(documentReference));

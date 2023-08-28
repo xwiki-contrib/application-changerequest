@@ -82,12 +82,12 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
             ChangeRequest changeRequest = (ChangeRequest) data;
             UserReference creator = changeRequest.getCreator();
             ChangeRequestAutoWatchHandler autoWatchHandler = this.autoWatchHandlerProvider.get();
-            if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator)) {
+            if (autoWatchHandler.hasAutoWatchEnabled(creator)) {
                 autoWatchHandler.watchChangeRequest(changeRequest, creator);
             }
             Set<UserReference> allApprovers = this.approversManagerProvider.get().getAllApprovers(changeRequest, false);
             allApprovers.forEach(userReference -> {
-                if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, userReference)) {
+                if (autoWatchHandler.hasAutoWatchEnabled(userReference)) {
                     try {
                         autoWatchHandler.watchChangeRequest(changeRequest, userReference);
                     } catch (ChangeRequestException e) {

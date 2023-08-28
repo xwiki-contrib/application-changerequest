@@ -76,13 +76,13 @@ public class ChangeRequestCreatedEventReceiver extends AbstractChangeRequestRece
             Optional<ChangeRequest> changeRequestOpt = this.changeRequestStorageManager.load(changeRequestId);
             if (changeRequestOpt.isPresent()) {
                 ChangeRequest changeRequest = changeRequestOpt.get();
-                if (this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, changeRequest.getCreator())) {
+                if (this.autoWatchHandler.hasAutoWatchEnabled(changeRequest.getCreator())) {
                     this.autoWatchHandler.watchChangeRequest(changeRequest, changeRequest.getCreator());
                 }
                 Set<UserReference> allApprovers =
                     this.approversManagerProvider.get().getAllApprovers(changeRequest, false);
                 allApprovers.forEach(userReference -> {
-                    if (autoWatchHandler.shouldCreateWatchedEntity(changeRequest, userReference)) {
+                    if (autoWatchHandler.hasAutoWatchEnabled(userReference)) {
                         try {
                             autoWatchHandler.watchChangeRequest(changeRequest, userReference);
                         } catch (ChangeRequestException e) {

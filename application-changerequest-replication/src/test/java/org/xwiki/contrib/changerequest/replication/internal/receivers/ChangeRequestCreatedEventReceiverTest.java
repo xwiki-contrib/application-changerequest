@@ -128,12 +128,12 @@ class ChangeRequestCreatedEventReceiverTest
             approver3
         ));
 
-        when(autoWatchHandler.shouldCreateWatchedEntity(changeRequest, approver1)).thenReturn(true);
-        when(autoWatchHandler.shouldCreateWatchedEntity(changeRequest, approver2)).thenReturn(false);
-        when(autoWatchHandler.shouldCreateWatchedEntity(changeRequest, approver3)).thenReturn(true);
+        when(autoWatchHandler.hasAutoWatchEnabled(approver1)).thenReturn(true);
+        when(autoWatchHandler.hasAutoWatchEnabled(approver2)).thenReturn(false);
+        when(autoWatchHandler.hasAutoWatchEnabled(approver3)).thenReturn(true);
 
         when(this.changeRequestStorageManager.load(crId)).thenReturn(Optional.of(changeRequest));
-        when(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator)).thenReturn(true);
+        when(this.autoWatchHandler.hasAutoWatchEnabled(creator)).thenReturn(true);
 
         when(this.messageReader.getMetadata(message, "FROM_SPLIT", true)).thenReturn("true");
 

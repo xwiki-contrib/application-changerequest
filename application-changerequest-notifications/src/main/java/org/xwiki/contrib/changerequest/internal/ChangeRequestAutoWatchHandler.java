@@ -68,27 +68,38 @@ public class ChangeRequestAutoWatchHandler
     private UserReferenceSerializer<DocumentReference> userReferenceSerializer;
 
     /**
-     * Check if the given change request should be automatically watched by the given user.
+     * Check if the given user has autowatch enabled.
      *
-     * @param changeRequest the change request for which to watch for changes.
      * @param userReference the user for whom to check if they should watch the change request.
-     * @return {@code true} if the creator of the change request has any autowatch value set.
+     * @return {@code true} if given user has any autowatch value set.
      */
-    public boolean shouldCreateWatchedEntity(ChangeRequest changeRequest, UserReference userReference)
+    public boolean hasAutoWatchEnabled(UserReference userReference)
     {
-        boolean result = false;
-        if (userReference != GuestUserReference.INSTANCE) {
-            DocumentReference userDoc = this.userReferenceSerializer.serialize(userReference);
-            AutomaticWatchMode automaticWatchMode = this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc);
-            result = automaticWatchMode == AutomaticWatchMode.ALL
-                || automaticWatchMode == AutomaticWatchMode.MAJOR
-                || automaticWatchMode == AutomaticWatchMode.NEW;
-        }
-        return result;
+        AutomaticWatchMode automaticWatchMode = this.getAutomaticWatchMode(userReference);
+        return automaticWatchMode == AutomaticWatchMode.ALL
+            || automaticWatchMode == AutomaticWatchMode.MAJOR
+            || automaticWatchMode == AutomaticWatchMode.NEW;
     }
 
     /**
-     * Create and register a new watch entity for the creator to automatically receive notifications on the change
+     * Retrieve the watch mode for the given user.
+     * @param userReference the user for whom to retrieve the watch mode.
+     * @return the watch mode for the user or {@link AutomaticWatchMode#NONE} if the user is guest.
+     * @since 1.10
+     */
+    public AutomaticWatchMode getAutomaticWatchMode(UserReference userReference)
+    {
+        AutomaticWatchMode automaticWatchMode = AutomaticWatchMode.NONE;
+        if (userReference != GuestUserReference.INSTANCE) {
+            DocumentReference userDoc = this.userReferenceSerializer.serialize(userReference);
+            automaticWatchMode = this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc);
+        }
+
+        return automaticWatchMode;
+    }
+
+    /**
+     * Create and register a new watch entity for the given user to automatically receive notifications on the change
      * request.
      *
      * @param changeRequest the change request for which to create a new watch entity.
@@ -98,16 +109,29 @@ public class ChangeRequestAutoWatchHandler
     public void watchChangeRequest(ChangeRequest changeRequest, UserReference userReference)
         throws ChangeRequestException
     {
-        DocumentReference userDoc = this.userReferenceSerializer.serialize(userReference);
         DocumentReference changeRequestDoc = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        this.watchDocument(changeRequestDoc, userReference);
+    }
+
+    /**
+     * Ensure that the given user watch the given location.
+     *
+     * @param documentReference the reference that the user should watch
+     * @param userReference the user for whom to add the watch
+     * @throws ChangeRequestException in case of problem for watching the document
+     * @since 1.10
+     */
+    public void watchDocument(DocumentReference documentReference, UserReference userReference)
+        throws ChangeRequestException
+    {
+        DocumentReference userDoc = this.userReferenceSerializer.serialize(userReference);
         WatchedLocationReference watchedLocationReference =
-            this.watchedEntityFactory.createWatchedLocationReference(changeRequestDoc);
+            this.watchedEntityFactory.createWatchedLocationReference(documentReference);
         try {
             this.watchedEntitiesManager.watchEntity(watchedLocationReference, userDoc);
         } catch (NotificationException e) {
             throw new ChangeRequestException(
-                String.format("Error when trying to automatically watch newly created change request [%s]",
-                    changeRequest.getId()), e);
+                String.format("Error when trying to automatically watch document [%s]", documentReference), e);
         }
     }
 }

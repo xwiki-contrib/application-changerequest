@@ -82,19 +82,19 @@ class ChangeRequestAutoWatchHandlerTest
         when(this.userReferenceSerializer.serialize(creator)).thenReturn(userDoc);
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(null);
-        assertFalse(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
+        assertFalse(this.autoWatchHandler.hasAutoWatchEnabled(creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.ALL);
-        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
+        assertTrue(this.autoWatchHandler.hasAutoWatchEnabled(creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.MAJOR);
-        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
+        assertTrue(this.autoWatchHandler.hasAutoWatchEnabled(creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.NONE);
-        assertFalse(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
+        assertFalse(this.autoWatchHandler.hasAutoWatchEnabled(creator));
 
         when(this.watchedEntitiesConfiguration.getAutomaticWatchMode(userDoc)).thenReturn(AutomaticWatchMode.NEW);
-        assertTrue(this.autoWatchHandler.shouldCreateWatchedEntity(changeRequest, creator));
+        assertTrue(this.autoWatchHandler.hasAutoWatchEnabled(creator));
     }
 
     @Test
