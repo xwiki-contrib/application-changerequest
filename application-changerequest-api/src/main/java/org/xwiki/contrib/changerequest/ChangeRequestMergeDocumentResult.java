@@ -111,7 +111,7 @@ public class ChangeRequestMergeDocumentResult
 
     /**
      * @return {@code true} if the conflicts are only about content of the document.
-     * @since 1.9.4
+     * @since 1.10
      */
     public boolean hasOnlyContentConflicts()
     {
@@ -160,7 +160,7 @@ public class ChangeRequestMergeDocumentResult
      * @return the wrapped {@link MergeDocumentResult} when this change is of type
      *       {@link FileChange.FileChangeType#EDITION} and conflicts have been solved using the version in the change
      *       request, or {@code null} in case there was no conflict
-     * @since 1.9.4
+     * @since 1.10
      */
     public MergeDocumentResult getWrappedResultWithCRFallback()
     {
@@ -172,7 +172,7 @@ public class ChangeRequestMergeDocumentResult
      * @param wrappedResultWithCRFallback the result of the merge when there was conflicts and they're solved with the
      *                                    change request version
      * @return the current instance
-     * @since 1.9.4
+     * @since 1.10
      */
     public ChangeRequestMergeDocumentResult setWrappedResultWithCRFallback(
         MergeDocumentResult wrappedResultWithCRFallback)
