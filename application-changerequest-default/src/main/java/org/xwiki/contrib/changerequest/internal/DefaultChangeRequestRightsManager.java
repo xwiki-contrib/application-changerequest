@@ -20,14 +20,18 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -40,6 +44,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.rights.ChangeRequestApproveRight;
+import org.xwiki.contrib.changerequest.rights.ChangeRequestRight;
 import org.xwiki.contrib.rights.RightsReader;
 import org.xwiki.contrib.rights.RightsWriter;
 import org.xwiki.contrib.rights.SecurityRuleAbacus;
@@ -59,7 +64,12 @@ import org.xwiki.security.authorization.RuleState;
 import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.UserReference;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.PasswordClass;
+import com.xpn.xwiki.objects.classes.PropertyClass;
 
 /**
  * Component in charge of performing right synchronization operations.
@@ -97,6 +107,9 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
 
     @Inject
     private ChangeRequestConfiguration configuration;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     @Override
     public void copyAllButViewRights(ChangeRequest originalChangeRequest, ChangeRequest targetChangeRequest)
@@ -617,5 +630,65 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
             result = this.authorizationManager.hasAccess(Right.ADMIN, userDocReference, crReference);
         }
         return result;
+    }
+
+    @Override
+    public boolean isEditWithChangeRequestAllowed(UserReference userReference, DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        boolean hasCREdit = this.authorizationManager.hasAccess(ChangeRequestRight.getRight(), userDocReference,
+            documentReference);
+        boolean result = false;
+        // if the user doesn't have CR edit right, then it's already solved.
+        if (hasCREdit) {
+            XWikiContext context = this.contextProvider.get();
+            try {
+                XWikiDocument document = context.getWiki().getDocument(documentReference, context);
+                // if it's a new document, we don't care
+                if (document.isNew()) {
+                    result = true;
+                } else {
+                    Map<DocumentReference, List<BaseObject>> objects = document.getXObjects();
+                    boolean foundOneObjectWithPassword = false;
+                    for (Map.Entry<DocumentReference, List<BaseObject>> objectsEntry : objects.entrySet()) {
+                        Optional<BaseObject> baseObjectOpt =
+                            objectsEntry.getValue().stream().filter(Objects::nonNull).findFirst();
+                        if (baseObjectOpt.isPresent() && this.isObjectContainingPassword(baseObjectOpt.get())) {
+                            foundOneObjectWithPassword = true;
+                            break;
+                        }
+                    }
+                    if (!foundOneObjectWithPassword) {
+                        result = true;
+                    }
+                }
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(String.format("Cannot load document [%s] to check if CR right should "
+                    + "be granted for user [%s]", documentReference, userDocReference), e);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isCreateWithChangeRequestAllowed(UserReference userReference, DocumentReference parentSpaceReference)
+        throws ChangeRequestException
+    {
+        DocumentReference userDocReference = this.userReferenceConverter.convert(userReference);
+        return this.authorizationManager.hasAccess(ChangeRequestRight.getRight(), userDocReference,
+            parentSpaceReference);
+    }
+
+    private boolean isObjectContainingPassword(BaseObject baseObject)
+    {
+        XWikiContext context = contextProvider.get();
+        Collection<PropertyClass> propertyClassCollection = baseObject.getXClass(context).getFieldList();
+        for (PropertyClass propertyClass : propertyClassCollection) {
+            if (propertyClass instanceof PasswordClass) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -370,7 +370,7 @@
     <property>
       <content>{{velocity}}
 #set ($crEditName = "changerequest")
-#set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
+#set ($hasCREdit = $services.changerequest.authorization.isEditWithChangeRequestAllowed($doc.getDocumentReference()))
 ## we need to also inject this in view action, because of the inplace editing mode.
 #set ($isEditOrViewAction = ($xcontext.action == 'edit' || $xcontext.action == 'view'))
 #if ($hasCREdit &amp;&amp; $isEditOrViewAction)

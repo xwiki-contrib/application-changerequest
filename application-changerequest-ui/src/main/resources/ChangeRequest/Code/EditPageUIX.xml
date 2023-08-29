@@ -293,7 +293,8 @@
 {{html clean='false'}}
 #template("xwikivars.vm")
 #set ($crEditName = "changerequest")
-#set ($hasCREdit = $services.security.authorization.isRightRegistered($crEditName) &amp;&amp; $services.security.authorization.hasAccess($crEditName, $tdoc))
+#set ($hasCREdit = $services.changerequest.authorization.isEditWithChangeRequestAllowed($doc.getDocumentReference()))
+#set ($hasCRCreate = $services.changerequest.authorization.isCreateWithChangeRequestAllowed($doc.getDocumentReference()))
 #set ($hasEdit = $services.security.authorization.hasAccess('edit', $tdoc))
 #set ($hasCreateButton = ($hasCreateSpace || $hasCreatePage))
 #set ($editURL = $doc.getURL('editcr'))
@@ -306,6 +307,8 @@
   &lt;/a&gt;
 &lt;/div&gt;
 #end
+#end
+#if (!$isReadOnly &amp;&amp; $hasCRCreate)
 #if (!$hasCreateButton)
 &lt;div class="btn-group" id="crCreate"&gt;
   &lt;a href="$createURL" role="button" title="$services.localization.render('changerequest.create.button.title')" class="btn btn-default"&gt;

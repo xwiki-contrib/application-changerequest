@@ -242,4 +242,33 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
         UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         return this.changeRequestRightsManager.isAuthorizedToSplit(currentUserReference, changeRequest);
     }
+
+    /**
+     * Check if the current user is allowed to use change request to edit the given document reference.
+     * @param documentReference the reference for which to check authorization
+     * @return {@code true} if current user is allowed to perform the edition with change request
+     * @throws ChangeRequestException in case of problem when performing the checks
+     * @since 1.10
+     */
+    public boolean isEditWithChangeRequestAllowed(DocumentReference documentReference) throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isEditWithChangeRequestAllowed(currentUserReference, documentReference);
+    }
+
+    /**
+     * Check if the current user is allowed to use change request to create a document having the given reference for
+     * parent.
+     * @param parentSpaceReference the parent space where the new document would be created
+     * @return {@code true} if current user is allowed to create a document with change request at the given place
+     * @throws ChangeRequestException in case of problem when performing the checks
+     * @since 1.10
+     */
+    public boolean isCreateWithChangeRequestAllowed(DocumentReference parentSpaceReference)
+        throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.isCreateWithChangeRequestAllowed(currentUserReference,
+            parentSpaceReference);
+    }
 }

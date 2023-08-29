@@ -201,4 +201,33 @@ public interface ChangeRequestRightsManager
     {
         return false;
     }
+
+    /**
+     * Check if the given user is allowed to use change request to edit the given document reference.
+     * @param userReference the user for whom to perform the check
+     * @param documentReference the reference for which to check authorization
+     * @return {@code true} if the given user is allowed to perform the edition with change request
+     * @throws ChangeRequestException in case of problem when performing the check
+     * @since 1.10
+     */
+    default boolean isEditWithChangeRequestAllowed(UserReference userReference, DocumentReference documentReference)
+        throws ChangeRequestException
+    {
+        return false;
+    }
+
+    /**
+     * Check if the given user is allowed to use change request to create a document having the given reference for
+     * parent.
+     * @param userReference the user for whom to perform the check
+     * @param parentSpaceReference the parent space where the new document would be created
+     * @return {@code true} if the given user is allowed to create a document with change request at the given place
+     * @throws ChangeRequestException in case of problem when performing the check
+     * @since 1.10
+     */
+    default boolean isCreateWithChangeRequestAllowed(UserReference userReference,
+        DocumentReference parentSpaceReference) throws ChangeRequestException
+    {
+        return false;
+    }
 }

@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestMergeManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
@@ -59,9 +60,12 @@ import com.xpn.xwiki.web.EditForm;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xpn.xwiki.web.XWikiResponse;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -185,6 +189,8 @@ class AddChangesChangeRequestHandlerTest
         String url = "some url";
         when(wiki.getURL(changeRequestDocReference, "view", context)).thenReturn(url);
 
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(true);
         this.handler.handle(changeRequestReference);
         verify(this.requestParameterConverter).convert(request, response);
         verify(document).clone();
@@ -210,7 +216,7 @@ class AddChangesChangeRequestHandlerTest
         when(this.requestParameterConverter.convert(request, response)).thenReturn(Optional.of(request));
         String docReference = "XWiki.Doc.Reference";
         when(request.getParameter("docReference")).thenReturn(docReference);
-        DocumentReference documentReference = mock(DocumentReference.class);
+        DocumentReference documentReference = mock(DocumentReference.class, "editedDoc");
         when(this.documentReferenceResolver.resolve(docReference)).thenReturn(documentReference);
         XWikiDocument document = mock(XWikiDocument.class);
         when(wiki.getDocument(documentReference, context)).thenReturn(document);
@@ -222,7 +228,7 @@ class AddChangesChangeRequestHandlerTest
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.storageManager.load(changeRequestId)).thenReturn(Optional.of(changeRequest));
         when(changeRequest.getId()).thenReturn(changeRequestId);
-        UserReference userReference = mock(UserReference.class);
+        UserReference userReference = mock(UserReference.class, "currentUser");
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         when(request.getParameter(AddChangesChangeRequestHandler.PREVIOUS_VERSION_PARAMETER)).thenReturn("2.1");
 
@@ -261,9 +267,18 @@ class AddChangesChangeRequestHandlerTest
         String url = "some url";
         when(wiki.getURL(changeRequestDocReference, "view", context)).thenReturn(url);
 
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(false);
+        ChangeRequestException changeRequestException =
+            assertThrows(ChangeRequestException.class, () -> this.handler.handle(changeRequestReference));
+        assertEquals("User [currentUser] is not allowed to edit the document [editedDoc] through a change request.",
+            changeRequestException.getMessage());
+
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(true);
         this.handler.handle(changeRequestReference);
 
-        verify(this.requestParameterConverter).convert(request, response);
+        verify(this.requestParameterConverter, times(2)).convert(request, response);
         verify(document).clone();
         verify(document).readFromForm(any(EditForm.class), eq(context));
         verify(changeRequest).addFileChange(expectedFileChange);

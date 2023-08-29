@@ -202,6 +202,12 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
         XWikiContext context = this.contextProvider.get();
         String serializedDocReference = request.getParameter("docReference");
         DocumentReference documentReference = this.documentReferenceResolver.resolve(serializedDocReference);
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        if (!this.changeRequestRightsManager.isEditWithChangeRequestAllowed(currentUserReference, documentReference)) {
+            throw new ChangeRequestException(
+                String.format("User [%s] is not allowed to edit the document [%s] through a change request.",
+                    currentUserReference, documentReference));
+        }
 
         XWikiDocument modifiedDocument = null;
         try {

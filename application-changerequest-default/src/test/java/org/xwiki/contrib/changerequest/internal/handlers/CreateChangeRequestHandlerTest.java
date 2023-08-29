@@ -30,6 +30,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
@@ -54,6 +56,7 @@ import com.xpn.xwiki.web.XWikiRequest;
 import com.xpn.xwiki.web.XWikiResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -95,6 +98,9 @@ class CreateChangeRequestHandlerTest
     @MockComponent
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
+    @MockComponent
+    private ChangeRequestRightsManager changeRequestRightsManager;
+
     private XWikiContext context;
     private XWikiRequest httpServletRequest;
     private XWikiResponse httpServletResponse;
@@ -126,7 +132,7 @@ class CreateChangeRequestHandlerTest
             .thenReturn(Optional.of(this.httpServletRequest));
         String serializedReference = "XWiki.SomeReference";
         when(this.httpServletRequest.getParameter("docReference")).thenReturn(serializedReference);
-        DocumentReference documentReference = mock(DocumentReference.class);
+        DocumentReference documentReference = mock(DocumentReference.class, "editedDoc");
         when(this.documentReferenceResolver.resolve(serializedReference)).thenReturn(documentReference);
         XWikiDocument modifiedDocument = mock(XWikiDocument.class);
         when(this.xWiki.getDocument(documentReference, this.context)).thenReturn(modifiedDocument);
@@ -139,7 +145,7 @@ class CreateChangeRequestHandlerTest
         when(this.httpServletRequest.getParameter("crTitle")).thenReturn(title);
         when(this.httpServletRequest.getParameter("crDescription")).thenReturn(description);
 
-        UserReference userReference = mock(UserReference.class);
+        UserReference userReference = mock(UserReference.class, "currentUser");
         when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
         String previousVersion = "3.2";
         when(this.httpServletRequest.getParameter("previousVersion")).thenReturn(previousVersion);
@@ -184,7 +190,19 @@ class CreateChangeRequestHandlerTest
         String expectedURL = "/mycr";
         when(this.xWiki.getURL(crDocReference, "view", this.context)).thenReturn(expectedURL);
 
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(false);
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(false);
+        ChangeRequestException changeRequestException =
+            assertThrows(ChangeRequestException.class, () -> this.handler.handle(null));
+        assertEquals("User [currentUser] is not allowed to edit the document [editedDoc] through a change request.",
+            changeRequestException.getMessage());
+
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(true);
         this.handler.handle(null);
+
         verify(this.storageManager).save(expectedChangeRequest);
         verify(this.observationManager)
             .notify(any(ChangeRequestCreatedEvent.class), eq(crId), eq(expectedChangeRequest));
