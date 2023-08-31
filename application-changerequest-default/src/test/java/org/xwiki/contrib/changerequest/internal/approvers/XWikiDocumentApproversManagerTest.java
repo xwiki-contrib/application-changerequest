@@ -55,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -236,8 +237,14 @@ class XWikiDocumentApproversManagerTest
         when(this.userReferenceSerializer.serialize(user2)).thenReturn("Bar");
 
         when(xobject.getOwnerDocument()).thenReturn(xWikiDocument);
+        when(xWikiDocument.isMetaDataDirty()).thenReturn(false);
         this.manager.setUsersApprovers(new LinkedHashSet<>(Arrays.asList(user1, user2)), xWikiDocument);
         verify(xobject).setLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY, "Foo,Bar");
+        verify(this.wiki, never()).saveDocument(xWikiDocument, "Save approvers.", true, this.context);
+
+        when(xWikiDocument.isMetaDataDirty()).thenReturn(true);
+        this.manager.setUsersApprovers(new LinkedHashSet<>(Arrays.asList(user1, user2)), xWikiDocument);
+        verify(xobject, times(2)).setLargeStringValue(ApproversXClassInitializer.USERS_APPROVERS_PROPERTY, "Foo,Bar");
         verify(this.wiki).saveDocument(xWikiDocument, "Save approvers.", true, this.context);
     }
 
@@ -255,8 +262,15 @@ class XWikiDocumentApproversManagerTest
         when(this.entityReferenceSerializer.serialize(group2)).thenReturn("GroupB");
 
         when(xobject.getOwnerDocument()).thenReturn(xWikiDocument);
+        when(xWikiDocument.isMetaDataDirty()).thenReturn(false);
         this.manager.setGroupsApprovers(new LinkedHashSet<>(Arrays.asList(group1, group2)), xWikiDocument);
         verify(xobject).setLargeStringValue(ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY,
+            "GroupA,GroupB");
+        verify(this.wiki, never()).saveDocument(xWikiDocument, "Save approvers.", true, this.context);
+
+        when(xWikiDocument.isMetaDataDirty()).thenReturn(true);
+        this.manager.setGroupsApprovers(new LinkedHashSet<>(Arrays.asList(group1, group2)), xWikiDocument);
+        verify(xobject, times(2)).setLargeStringValue(ApproversXClassInitializer.GROUPS_APPROVERS_PROPERTY,
             "GroupA,GroupB");
         verify(this.wiki).saveDocument(xWikiDocument, "Save approvers.", true, this.context);
     }

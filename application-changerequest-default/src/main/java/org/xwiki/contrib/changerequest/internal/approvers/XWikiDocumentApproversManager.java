@@ -120,12 +120,17 @@ public class XWikiDocumentApproversManager implements ApproversManager<XWikiDocu
 
     private void writeApproversObject(BaseObject baseObject) throws ChangeRequestException
     {
-        try {
-            XWikiContext context = this.contextProvider.get();
-            context.getWiki().saveDocument(baseObject.getOwnerDocument(), "Save approvers.", true, context);
-        } catch (XWikiException e) {
-            throw new ChangeRequestException(
-                String.format("Error while writing appprovers in document [%s]", baseObject.getOwnerDocument()), e);
+        XWikiDocument ownerDocument = baseObject.getOwnerDocument();
+        // We only perform a save is the document has been modified:
+        // it's possible that the list hasn't been modified, in which case we shouldn't perform a save.
+        if (ownerDocument.isMetaDataDirty()) {
+            try {
+                XWikiContext context = this.contextProvider.get();
+                context.getWiki().saveDocument(ownerDocument, "Save approvers.", true, context);
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(
+                    String.format("Error while writing appprovers in document [%s]", ownerDocument), e);
+            }
         }
     }
 
