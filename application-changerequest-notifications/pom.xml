@@ -25,10 +25,10 @@
   <parent>
     <groupId>org.xwiki.contrib.changerequest</groupId>
     <artifactId>application-changerequest</artifactId>
-    <version>1.10.1</version>
+    <version>1.10.2-SNAPSHOT</version>
   </parent>
   <artifactId>application-changerequest-notifications</artifactId>
-  <version>1.10.1</version>
+  <version>1.10.2-SNAPSHOT</version>
   <name>Application Change Request - Notifications</name>
   <packaging>jar</packaging>
   <properties>
