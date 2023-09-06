@@ -1981,7 +1981,7 @@ require(['CommentEditor', 'DiffSnippet', 'jquery', 'xwiki-meta'], function (Comm
   // second element is the diffBlockId
   var getEntityReferenceAndDiffBlock = function (element) {
     var diffBlockId = element.parents('.diff-container').parent().prev('.diff-header').attr('data-property-name');
-    var entityReference = element.parents('.diff-group').children('dt').first().attr('data-reference');
+    var entityReference = element.parents('dd').last().prevAll('dt').first().attr('data-reference');
     return [entityReference, diffBlockId];
   }
   
