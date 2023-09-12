@@ -24,9 +24,11 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
@@ -41,6 +43,11 @@ import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityRe
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.model.reference.SpaceReference;
+
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Internal component for managing the creation of various elements related to discussions.
@@ -68,6 +75,12 @@ public class ChangeRequestDiscussionFactory
 
     @Inject
     private MessageService messageService;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Inject
+    private Logger logger;
 
     private <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContextEntityReference
         createContextEntityReferenceFor(T reference)
@@ -102,6 +115,18 @@ public class ChangeRequestDiscussionFactory
             changeRequestId);
 
         DocumentReference crReference = this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId);
+        SpaceReference crSpaceReference = new SpaceReference(crReference.getName(),
+            crReference.getLastSpaceReference());
+        DocumentReference crHomeReference = new DocumentReference("WebHome", crSpaceReference);
+        XWikiContext context = this.contextProvider.get();
+        try {
+            XWikiDocument crDocument = context.getWiki().getDocument(crHomeReference, context);
+            configurationParameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY,
+                crDocument.getAuthors().getCreator());
+        } catch (XWikiException e) {
+            this.logger.error("Error while trying to load the CR main document [{}] in order to set the creator of "
+                + "discussion documents.", crHomeReference, e);
+        }
         configurationParameters.put("redirection", this.entityReferenceSerializer.serialize(crReference));
         return configurationParameters;
     }
