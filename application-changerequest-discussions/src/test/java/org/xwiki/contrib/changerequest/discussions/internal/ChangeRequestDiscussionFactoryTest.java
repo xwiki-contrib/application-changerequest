@@ -19,10 +19,13 @@
  */
 package org.xwiki.contrib.changerequest.discussions.internal;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionException;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
@@ -39,13 +42,20 @@ import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.MessageService;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
+import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.store.merge.MergeDocumentResult;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.user.UserReference;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -80,41 +90,75 @@ class ChangeRequestDiscussionFactoryTest
     @MockComponent
     private MessageService messageService;
 
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
+    private XWiki wiki;
+    private XWikiContext context;
+
+    @BeforeEach
+    void setup()
+    {
+        this.context = mock(XWikiContext.class);
+        this.wiki = mock(XWiki.class);
+        when(this.context.getWiki()).thenReturn(this.wiki);
+        when(this.contextProvider.get()).thenReturn(this.context);
+    }
+
     @Test
-    void createDiscussionStoreConfigurationParametersFor()
+    void createDiscussionStoreConfigurationParametersFor() throws XWikiException
     {
         String changeRequestId = "someId";
         ChangeRequestCommentReference reference = mock(ChangeRequestCommentReference.class);
         when(reference.getChangeRequestId()).thenReturn(changeRequestId);
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection",  serializedCRDoc);
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
         assertEquals(parameters, this.factory.createDiscussionStoreConfigurationParametersFor(reference));
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestReference() throws ChangeRequestDiscussionException
+    void getOrCreateContextFor_withChangeRequestReference() throws ChangeRequestDiscussionException, XWikiException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc2";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection", serializedCRDoc);
-
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
         ChangeRequestReference changeRequestReference = new ChangeRequestReference(changeRequestId);
 
         DiscussionContextEntityReference contextEntityReference =
@@ -137,20 +181,31 @@ class ChangeRequestDiscussionFactoryTest
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestCommentReference() throws ChangeRequestDiscussionException
+    void getOrCreateContextFor_withChangeRequestCommentReference()
+        throws ChangeRequestDiscussionException, XWikiException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc3";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection", serializedCRDoc);
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
 
         ChangeRequestCommentReference changeRequestReference = new ChangeRequestCommentReference(changeRequestId);
 
@@ -174,20 +229,31 @@ class ChangeRequestDiscussionFactoryTest
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestReviewsReference() throws ChangeRequestDiscussionException
+    void getOrCreateContextFor_withChangeRequestReviewsReference()
+        throws ChangeRequestDiscussionException, XWikiException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc4";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection", serializedCRDoc);
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
 
         ChangeRequestReviewsReference changeRequestReference = new ChangeRequestReviewsReference(changeRequestId);
 
@@ -211,20 +277,31 @@ class ChangeRequestDiscussionFactoryTest
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestReviewReference() throws ChangeRequestDiscussionException
+    void getOrCreateContextFor_withChangeRequestReviewReference()
+        throws ChangeRequestDiscussionException, XWikiException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc5";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection", serializedCRDoc);
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
 
         ChangeRequestReviewReference changeRequestReference =
             new ChangeRequestReviewReference("review_424", changeRequestId);
@@ -250,20 +327,31 @@ class ChangeRequestDiscussionFactoryTest
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestFileDiffReference() throws ChangeRequestDiscussionException
+    void getOrCreateContextFor_withChangeRequestFileDiffReference()
+        throws ChangeRequestDiscussionException, XWikiException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc6";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection", serializedCRDoc);
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
 
         ChangeRequestFileDiffReference changeRequestReference =
             new ChangeRequestFileDiffReference(changeRequestId, new FileDiffLocation("diff4858", "xwiki:Main.WebHome"));
@@ -290,20 +378,31 @@ class ChangeRequestDiscussionFactoryTest
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestLineDiffReference() throws ChangeRequestDiscussionException
+    void getOrCreateContextFor_withChangeRequestLineDiffReference()
+        throws ChangeRequestDiscussionException, XWikiException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
 
-        DocumentReference crDocRef = mock(DocumentReference.class);
+        DocumentReference crDocRef = new DocumentReference("xwiki", List.of("Space","CR","Data"), "crId");
         when(this.changeRequestIdDocumentReferenceResolver.resolve(changeRequestId)).thenReturn(crDocRef);
         String serializedCRDoc = "CR.Doc7";
         when(this.entityReferenceSerializer.serialize(crDocRef)).thenReturn(serializedCRDoc);
+
+        SpaceReference crSpaceReference =
+            new SpaceReference("crId", new SpaceReference("xwiki", "Space", "CR", "Data"));
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(this.wiki.getDocument(new DocumentReference("WebHome", crSpaceReference), context)).thenReturn(document);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        UserReference creator = mock(UserReference.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        when(documentAuthors.getCreator()).thenReturn(creator);
 
         DiscussionStoreConfigurationParameters parameters = new DiscussionStoreConfigurationParameters();
         parameters.put(DefaultChangeRequestDiscussionStoreConfiguration.CHANGE_REQUEST_ID_PARAMETER_KEY,
             changeRequestId);
         parameters.put("redirection", serializedCRDoc);
+        parameters.put(DiscussionStoreConfigurationParameters.CREATOR_PARAMETER_KEY, creator);
 
         FileDiffLocation fileDiffLocation = new FileDiffLocation("diff4858", "xwiki:Main.WebHome");
         LineDiffLocation lineDiffLocation = new LineDiffLocation(fileDiffLocation,
