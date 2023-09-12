@@ -210,9 +210,12 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         if (optionalLatestReview.isPresent()) {
             ChangeRequestReview previousReview = optionalLatestReview.get();
             previousReview.setLastFromAuthor(false);
-            previousReview.setValid(false);
-            previousReview.setSaved(false);
-            this.reviewStorageManager.save(previousReview);
+            // if the review is already invalidated, we don't need to do anything.
+            if (previousReview.isValid()) {
+                previousReview.setValid(false);
+                previousReview.setSaved(false);
+                this.reviewStorageManager.save(previousReview);
+            }
         }
         changeRequest.addReview(review);
         this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);

@@ -120,6 +120,7 @@ class DefaultReviewStorageManagerTest
 
         DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
         when(xWikiDocument.getAuthors()).thenReturn(documentAuthors);
+        when(xWikiDocument.isMetaDataDirty()).thenReturn(true);
         this.storageManager.save(review);
         verify(review).setId("xobject_42");
         verify(review).setSaved(true);

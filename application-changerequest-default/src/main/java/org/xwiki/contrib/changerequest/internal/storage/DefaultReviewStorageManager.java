@@ -28,6 +28,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -79,6 +80,9 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
     @Inject
     private UserReferenceConverter userReferenceConverter;
 
+    @Inject
+    private Logger logger;
+
     @Override
     public void save(ChangeRequestReview review) throws ChangeRequestException
     {
@@ -104,25 +108,37 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                     xObject = changeRequestDoc.getXObject(REVIEW_XCLASS, xObjectNumber);
                     saveComment = "Update existing review";
                 }
-                int approvedValue = (review.isApproved()) ? 1 : 0;
-                DocumentReference userDocReference = this.userReferenceConverter.convert(review.getAuthor());
-                xObject.set(APPROVED_PROPERTY, approvedValue, context);
-                xObject.set(AUTHOR_PROPERTY, userDocReference, context);
-                xObject.set(DATE_PROPERTY, review.getReviewDate(), context);
-                int validValue = (review.isValid()) ? 1 : 0;
-                xObject.set(VALID_PROPERTY, validValue, context);
-                if (review.getOriginalApprover() != null) {
-                    xObject.set(ORIGINAL_APPROVER_PROPERTY, this.userReferenceConverter.convert(
-                        review.getOriginalApprover()), context);
-                }
+                this.fillXObjectValues(xObject, review);
                 changeRequestDoc.getAuthors().setOriginalMetadataAuthor(review.getAuthor());
 
-                context.getWiki().saveDocument(changeRequestDoc, saveComment, context);
+                // Bulletproofing: ensure to not save if there's no change
+                if (changeRequestDoc.isMetaDataDirty()) {
+                    context.getWiki().saveDocument(changeRequestDoc, saveComment, context);
+                } else {
+                    this.logger.error("Trying to save a review without performing any change: [{}]",
+                        (Object) Thread.currentThread().getStackTrace());
+                }
                 review.setSaved(true);
                 review.setNew(false);
             } catch (XWikiException e) {
                 throw new ChangeRequestException("Error while saving review", e);
             }
+        }
+    }
+
+    private void fillXObjectValues(BaseObject xObject, ChangeRequestReview review)
+    {
+        XWikiContext context = contextProvider.get();
+        int approvedValue = (review.isApproved()) ? 1 : 0;
+        DocumentReference userDocReference = this.userReferenceConverter.convert(review.getAuthor());
+        xObject.set(APPROVED_PROPERTY, approvedValue, context);
+        xObject.set(AUTHOR_PROPERTY, userDocReference, context);
+        xObject.set(DATE_PROPERTY, review.getReviewDate(), context);
+        int validValue = (review.isValid()) ? 1 : 0;
+        xObject.set(VALID_PROPERTY, validValue, context);
+        if (review.getOriginalApprover() != null) {
+            xObject.set(ORIGINAL_APPROVER_PROPERTY,
+                this.userReferenceConverter.convert(review.getOriginalApprover()), context);
         }
     }
 
