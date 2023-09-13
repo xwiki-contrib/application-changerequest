@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest;
 
+import java.util.Set;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
@@ -212,5 +214,19 @@ public interface ChangeRequestManager
     default String getTitle(String changeRequestId, String fileChangeId)
     {
         return null;
+    }
+
+    /**
+     * Remove changes concerning the given reference in all change requests: change requests containing only a change
+     * related to that reference will be deleted, while change requests containing several changes will be split
+     * using {@link org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager#split(ChangeRequest, Set)}.
+     * Note that this operation is applied to any change request, including the merged ones.
+     *
+     * @param documentReference the reference for which to find change requests and perform the changes
+     * @throws ChangeRequestException in case of problem when performing the changes
+     * @since 1.11
+     */
+    default void eraseChangesFor(DocumentReference documentReference) throws ChangeRequestException
+    {
     }
 }

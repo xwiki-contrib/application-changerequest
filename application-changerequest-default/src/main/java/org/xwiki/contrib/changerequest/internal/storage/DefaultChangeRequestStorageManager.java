@@ -505,16 +505,28 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     }
 
     @Override
-    public List<ChangeRequest> split(ChangeRequest changeRequest) throws ChangeRequestException
+    public List<ChangeRequest> split(ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        return split(changeRequest, Set.of());
+    }
+
+    @Override
+    public List<ChangeRequest> split(ChangeRequest changeRequest, Set<DocumentReference> changesToIgnore)
+        throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
 
+        Set<DocumentReference> refToKeep = changeRequest.getModifiedDocuments().stream()
+                .filter(ref -> !changesToIgnore.contains(ref))
+                .collect(Collectors.toSet());
+
         // If the CR only contains a single document, the split shouldn't have any effect.
-        if (changeRequest.getModifiedDocuments().size() > 1) {
+        if (refToKeep.size() > 1) {
             this.observationManager.notify(new SplitBeginChangeRequestEvent(), changeRequest.getId(), changeRequest);
 
             // Perform the actual split
-            result.addAll(this.performFileChangeSplit(changeRequest));
+            result.addAll(this.performFileChangeSplit(changeRequest, refToKeep));
 
             // Handle the reviews
             for (ChangeRequest splittedChangeRequest : result) {
@@ -542,7 +554,8 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         return result;
     }
 
-    private List<ChangeRequest> performFileChangeSplit(ChangeRequest changeRequest) throws ChangeRequestException
+    private List<ChangeRequest> performFileChangeSplit(ChangeRequest changeRequest, Set<DocumentReference> refToKeep)
+        throws ChangeRequestException
     {
         List<ChangeRequest> result = new ArrayList<>();
         Map<DocumentReference, Deque<FileChange>> fileChanges = changeRequest.getFileChanges();
@@ -550,36 +563,39 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         // Split the change request and create the new ones with appropriate file changes
         // and handle rights right away
         for (Map.Entry<DocumentReference, Deque<FileChange>> entry : fileChanges.entrySet()) {
-            ChangeRequest splittedChangeRequest = changeRequest.cloneWithoutFileChanges();
+            if (refToKeep.contains(entry.getKey())) {
+                ChangeRequest splittedChangeRequest = changeRequest.cloneWithoutFileChanges();
 
-            FileChange lastFileChange = entry.getValue().getLast();
-            for (FileChange fileChange : entry.getValue()) {
-                FileChange.FileChangeType fileChangeType = fileChange.getType();
+                FileChange lastFileChange = entry.getValue().getLast();
+                for (FileChange fileChange : entry.getValue()) {
+                    FileChange.FileChangeType fileChangeType = fileChange.getType();
 
-                // We are handling here a specific case when a change concerns a document that has been later
-                // deleted. In theory, the CR should be created keeping same type, and then refreshed.
-                // However this might create problems because we're not handling the same way approvers of a filechange
-                // if it's a creation or an edition. See CRAPP-199 for more information.
-                // So we immediately change in such case the type to specifies it's a creation: we're acting as we're
-                // doing an automatic refresh of this filechange while splitting.
-                if (fileChange == lastFileChange && fileChangeType == FileChange.FileChangeType.EDITION
-                    && ((XWikiDocument)
-                    this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).isNew()) {
-                    fileChangeType = FileChange.FileChangeType.CREATION;
+                    // We are handling here a specific case when a change concerns a document that has been later
+                    // deleted. In theory, the CR should be created keeping same type, and then refreshed.
+                    // However this might create problems because we're not handling the same way approvers of a
+                    // filechange if it's a creation or an edition. See CRAPP-199 for more information.
+                    // So we immediately change in such case the type to specifies it's a creation: we're acting as
+                    // we're doing an automatic refresh of this filechange while splitting.
+                    if (fileChange == lastFileChange && fileChangeType == FileChange.FileChangeType.EDITION
+                        && ((XWikiDocument)
+                        this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).isNew())
+                    {
+                        fileChangeType = FileChange.FileChangeType.CREATION;
+                    }
+                    FileChange clonedFileChange = fileChange
+                        .cloneWithChangeRequestAndType(splittedChangeRequest, fileChangeType);
+                    splittedChangeRequest.addFileChange(clonedFileChange);
                 }
-                FileChange clonedFileChange = fileChange
-                    .cloneWithChangeRequestAndType(splittedChangeRequest, fileChangeType);
-                splittedChangeRequest.addFileChange(clonedFileChange);
+
+                this.save(splittedChangeRequest);
+
+                this.changeRequestRightsManager.copyAllButViewRights(changeRequest, splittedChangeRequest);
+                this.changeRequestRightsManager.copyViewRights(splittedChangeRequest, entry.getKey());
+
+                this.observationManager.notify(new ChangeRequestCreatedEvent(),
+                    splittedChangeRequest.getId(), splittedChangeRequest);
+                result.add(splittedChangeRequest);
             }
-
-            this.save(splittedChangeRequest);
-
-            this.changeRequestRightsManager.copyAllButViewRights(changeRequest, splittedChangeRequest);
-            this.changeRequestRightsManager.copyViewRights(splittedChangeRequest, entry.getKey());
-
-            this.observationManager.notify(new ChangeRequestCreatedEvent(),
-                splittedChangeRequest.getId(), splittedChangeRequest);
-            result.add(splittedChangeRequest);
         }
         return result;
     }
