@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestIDGenerator;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.job.Job;
+import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
@@ -914,6 +915,28 @@ class DefaultChangeRequestStorageManagerTest
 
         verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
             eq(List.of(changeRequest1, changeRequest2, changeRequest3, changeRequest4)));
+    }
+
+    @Test
+    void delete() throws JobException, ChangeRequestException, InterruptedException
+    {
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        DocumentReference originalCRDocRef = mock(DocumentReference.class, "originalCRDocRef");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(originalCRDocRef);
+        EntityRequest deleteRequest = mock(EntityRequest.class, "deleteRequest");
+        when(this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(originalCRDocRef)))
+            .thenReturn(deleteRequest);
+        Job deletionJob = mock(Job.class);
+        when(this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest)).thenReturn(deletionJob);
+
+        this.storageManager.delete(changeRequest);
+
+        verify(deleteRequest).setDeep(true);
+        verify(deleteRequest).setCheckRights(false);
+        verify(deleteRequest).setCheckAuthorRights(false);
+
+        verify(this.jobExecutor).execute(RefactoringJobs.DELETE, deleteRequest);
+        verify(deletionJob).join();
     }
 
     @Test

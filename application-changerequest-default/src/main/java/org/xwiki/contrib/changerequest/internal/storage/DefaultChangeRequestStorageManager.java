@@ -536,27 +536,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
             // Handle discussions last to not break the CR in case of problem there.
             this.discussionService.moveDiscussions(changeRequest, result);
-            DocumentReference changeRequestDocument =
-                this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-            EntityRequest deleteRequest =
-                this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(changeRequestDocument));
-            deleteRequest.setDeep(true);
-            deleteRequest.setCheckAuthorRights(false);
-            deleteRequest.setCheckRights(false);
-            try {
-                Job deletionJob = this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
-                deletionJob.join();
-            } catch (JobException e) {
-                throw new ChangeRequestException(
-                    String.format("Error while performing deletion of change request document [%s]",
-                        changeRequestDocument),
-                    e);
-            } catch (InterruptedException e) {
-                throw new ChangeRequestException(
-                    String.format("Deletion of change request document [%s] was interrupted",
-                        changeRequestDocument),
-                    e);
-            }
+            this.delete(changeRequest);
             this.observationManager.notify(new SplitEndChangeRequestEvent(), changeRequest.getId(), result);
         }
         return result;
@@ -694,5 +674,31 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             this.load(changeRequestsReference.getLastSpaceReference().getName()).ifPresent(result::add);
         }
         return result;
+    }
+
+    @Override
+    public void delete(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        DocumentReference changeRequestDocument =
+            this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        EntityRequest deleteRequest =
+            this.refactoringRequestFactory.createDeleteRequest(Collections.singletonList(changeRequestDocument));
+        deleteRequest.setDeep(true);
+        deleteRequest.setCheckAuthorRights(false);
+        deleteRequest.setCheckRights(false);
+        try {
+            Job deletionJob = this.jobExecutor.execute(RefactoringJobs.DELETE, deleteRequest);
+            deletionJob.join();
+        } catch (JobException e) {
+            throw new ChangeRequestException(
+                String.format("Error while performing deletion of change request document [%s]",
+                    changeRequestDocument),
+                e);
+        } catch (InterruptedException e) {
+            throw new ChangeRequestException(
+                String.format("Deletion of change request document [%s] was interrupted",
+                    changeRequestDocument),
+                e);
+        }
     }
 }

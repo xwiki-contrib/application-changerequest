@@ -230,4 +230,15 @@ public interface ChangeRequestStorageManager
     default void saveStaleDate(ChangeRequest changeRequest) throws ChangeRequestException
     {
     }
+
+    /**
+     * Delete the given change request and all related information including filechanges and discussions.
+     *
+     * @param changeRequest the change request to be deleted
+     * @throws ChangeRequestException in case of problem during the deletion
+     * @since 1.11
+     */
+    default void delete(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+    }
 }
