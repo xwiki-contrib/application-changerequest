@@ -217,7 +217,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     this.createAttachment(fileChange, fileChangeDocument, filename);
                 }
                 fileChangeDocument.setContentDirty(true);
-                wiki.saveDocument(fileChangeDocument, context);
+                wiki.saveDocument(fileChangeDocument, "Creation of the filechange", context);
                 fileChange.setSaved(true);
                 this.observationManager.notify(new FileChangeDocumentSavedEvent(), fileChange, fileChangeDocument);
             } catch (XWikiException | IOException e) {

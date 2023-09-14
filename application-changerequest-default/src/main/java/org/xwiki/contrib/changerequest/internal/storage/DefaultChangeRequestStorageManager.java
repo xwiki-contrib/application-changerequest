@@ -241,7 +241,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             for (FileChange fileChange : changeRequest.getAllFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);
             }
-            wiki.saveDocument(document, context);
+            wiki.saveDocument(document, "Creation of change request", context);
         } catch (XWikiException e) {
             throw new ChangeRequestException(
                 String.format("Error while saving the change request [%s]", changeRequest), e);
@@ -262,7 +262,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 XWikiDocument document = wiki.getDocument(reference, context);
                 BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
                 xObject.set(STALE_DATE_FIELD, changeRequest.getStaleDate(), context);
-                wiki.saveDocument(document, context);
+                wiki.saveDocument(document, "Save of stale date", context);
             } catch (XWikiException e) {
                 throw new ChangeRequestException("Error while saving the change request stale date", e);
             }

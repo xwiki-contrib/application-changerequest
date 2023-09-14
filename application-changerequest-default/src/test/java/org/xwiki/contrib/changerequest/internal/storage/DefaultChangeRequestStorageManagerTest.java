@@ -222,7 +222,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(xobject).set("status", "draft", this.context);
         verify(this.fileChangeStorageManager).save(fileChange1);
         verify(this.fileChangeStorageManager).save(fileChange2);
-        verify(this.wiki).saveDocument(document, this.context);
+        verify(this.wiki).saveDocument(document, "Creation of change request", this.context);
         verify(this.changeRequestStorageCacheManager).invalidate("id42");
     }
 
@@ -515,7 +515,7 @@ class DefaultChangeRequestStorageManagerTest
         when(changeRequest.getStaleDate()).thenReturn(date);
         this.storageManager.saveStaleDate(changeRequest);
         verify(baseObject).set(ChangeRequestXClassInitializer.STALE_DATE_FIELD, date, this.context);
-        verify(wiki).saveDocument(document, this.context);
+        verify(wiki).saveDocument(document, "Save of stale date", this.context);
     }
 
     @Test
@@ -829,9 +829,9 @@ class DefaultChangeRequestStorageManagerTest
 
         // verify save of CR (we only check the save of the document and the save of the file changes,
         // we could check all properties to be exhaustive)
-        verify(this.wiki).saveDocument(cr1Doc, this.context);
-        verify(this.wiki).saveDocument(cr2Doc, this.context);
-        verify(this.wiki).saveDocument(cr3Doc, this.context);
+        verify(this.wiki).saveDocument(cr1Doc, "Creation of change request", this.context);
+        verify(this.wiki).saveDocument(cr2Doc, "Creation of change request", this.context);
+        verify(this.wiki).saveDocument(cr3Doc, "Creation of change request", this.context);
 
         verify(this.fileChangeStorageManager).save(fileChange1Doc1Clone);
         verify(this.fileChangeStorageManager).save(fileChange2Doc1Clone);
@@ -1173,8 +1173,8 @@ class DefaultChangeRequestStorageManagerTest
 
         // verify save of CR (we only check the save of the document and the save of the file changes,
         // we could check all properties to be exhaustive)
-        verify(this.wiki).saveDocument(cr1Doc, this.context);
-        verify(this.wiki).saveDocument(cr3Doc, this.context);
+        verify(this.wiki).saveDocument(cr1Doc, "Creation of change request", this.context);
+        verify(this.wiki).saveDocument(cr3Doc, "Creation of change request", this.context);
 
         verify(this.fileChangeStorageManager).save(fileChange1Doc1Clone);
         verify(this.fileChangeStorageManager).save(fileChange2Doc1Clone);

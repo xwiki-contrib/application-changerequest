@@ -332,7 +332,7 @@ class DefaultFileChangeStorageManagerTest
 
         this.fileChangeStorageManager.save(fileChange);
         verify(fileChange).setSaved(true);
-        verify(this.xWiki).saveDocument(fileChangeDoc, this.context);
+        verify(this.xWiki).saveDocument(fileChangeDoc, "Creation of the filechange", this.context);
         verify(documentAuthors).setOriginalMetadataAuthor(author);
         verify(modifiedDoc).toXML(any(OutputStream.class), eq(true), eq(true), eq(true), eq(false), eq(this.context));
         verify(fileChangeDoc).setAttachment(any());
