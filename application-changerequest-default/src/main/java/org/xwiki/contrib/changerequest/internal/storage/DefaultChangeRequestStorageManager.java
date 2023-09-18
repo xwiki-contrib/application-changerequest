@@ -346,6 +346,8 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
                 new ChangeRequestStatus[] {ChangeRequestStatus.MERGED, oldStatus});
             this.observationManager.notify(new ChangeRequestMergeFailedEvent(), changeRequest.getId(), changeRequest);
+            this.logger.error("Merging of change request [{}] was prevented because of exception: ",
+                changeRequest.getId(), e);
         }
     }
 
