@@ -102,7 +102,9 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
                     changeRequest);
                 changeRequest.addFileChange(fileChange);
-                this.storageManager.save(changeRequest);
+                String saveComment =
+                    this.contextualLocalizationManager.getTranslationPlain("changerequest.save.newchange");
+                this.storageManager.save(changeRequest, saveComment);
                 this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
                 this.copyApprovers(fileChange);
                 this.observationManager

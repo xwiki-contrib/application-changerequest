@@ -330,6 +330,7 @@ class DefaultFileChangeStorageManagerTest
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
         when(fileChange.getTargetEntity()).thenReturn(new DocumentReference("xwiki", "Space", "Doc", Locale.FRENCH));
 
+        when(fileChangeDoc.isMetaDataDirty()).thenReturn(true);
         this.fileChangeStorageManager.save(fileChange);
         verify(fileChange).setSaved(true);
         verify(this.xWiki).saveDocument(fileChangeDoc, "Creation of the filechange", this.context);

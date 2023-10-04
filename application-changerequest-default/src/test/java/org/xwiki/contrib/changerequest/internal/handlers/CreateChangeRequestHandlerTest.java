@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
@@ -101,6 +102,9 @@ class CreateChangeRequestHandlerTest
     @MockComponent
     private ChangeRequestRightsManager changeRequestRightsManager;
 
+    @MockComponent
+    private ContextualLocalizationManager contextualLocalizationManager;
+
     private XWikiContext context;
     private XWikiRequest httpServletRequest;
     private XWikiResponse httpServletResponse;
@@ -155,6 +159,9 @@ class CreateChangeRequestHandlerTest
         when(documentArchive.loadDocument(new Version("3.2"), context)).thenReturn(previousVersionDoc);
         when(previousVersionDoc.getDate()).thenReturn(new Date(458));
 
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.creation"))
+            .thenReturn("Creation of the change request");
+
         ChangeRequest expectedChangeRequest = new ChangeRequest();
         FileChange expectedFileChange = new FileChange(expectedChangeRequest);
         expectedFileChange
@@ -183,7 +190,7 @@ class CreateChangeRequestHandlerTest
             expectedChangeRequest.setCreationDate(changeRequest.getCreationDate());
             changeRequest.setId(crId);
             return null;
-        }).when(this.storageManager).save(any());
+        }).when(this.storageManager).save(any(), eq("Creation of the change request"));
 
         DocumentReference crDocReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(expectedChangeRequest)).thenReturn(crDocReference);
@@ -203,7 +210,7 @@ class CreateChangeRequestHandlerTest
             .thenReturn(true);
         this.handler.handle(null);
 
-        verify(this.storageManager).save(expectedChangeRequest);
+        verify(this.storageManager).save(expectedChangeRequest, "Creation of the change request");
         verify(this.observationManager)
             .notify(any(ChangeRequestCreatedEvent.class), eq(crId), eq(expectedChangeRequest));
         verify(this.httpServletResponse).sendRedirect(expectedURL);

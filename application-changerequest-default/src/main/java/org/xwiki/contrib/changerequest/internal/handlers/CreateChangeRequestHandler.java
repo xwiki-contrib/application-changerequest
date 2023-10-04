@@ -87,7 +87,8 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         if (savingCheckerResult.canBeSaved()) {
             ChangeRequest changeRequest = fileChange.getChangeRequest();
             this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), "", null);
-            this.storageManager.save(changeRequest);
+            String saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.creation");
+            this.storageManager.save(changeRequest, saveComment);
             this.changeRequestRightsManager.copyViewRights(changeRequest,
                 changeRequest.getModifiedDocuments().iterator().next());
             this.copyApprovers(fileChange);

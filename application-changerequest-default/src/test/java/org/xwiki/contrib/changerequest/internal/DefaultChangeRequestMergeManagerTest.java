@@ -19,8 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
@@ -38,8 +36,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
-import org.xwiki.diff.Conflict;
-import org.xwiki.diff.ConflictDecision;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.store.merge.MergeConflictDecisionsManager;
 import org.xwiki.store.merge.MergeDocumentResult;
@@ -103,6 +100,9 @@ class DefaultChangeRequestMergeManagerTest
 
     @MockComponent
     private ChangeRequestStorageManager changeRequestStorageManager;
+
+    @MockComponent
+    private ContextualLocalizationManager contextualLocalizationManager;
 
     private XWikiContext context;
     private ChangeRequestManager changeRequestManager;
@@ -285,10 +285,12 @@ class DefaultChangeRequestMergeManagerTest
             expectedFileChange.setCreationDate(obtainedFileChange.getCreationDate());
             return null;
         });
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.fixconflict"))
+            .thenReturn("Fix conflict");
 
         assertTrue(this.crMergeManager.mergeWithConflictDecision(fileChange, resolutionChoice, null));
         verify(changeRequest).addFileChange(expectedFileChange);
-        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.changeRequestStorageManager).save(changeRequest, "Fix conflict");
         verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest);
     }
 }

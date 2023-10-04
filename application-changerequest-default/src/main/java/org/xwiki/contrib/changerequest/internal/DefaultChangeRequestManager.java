@@ -52,6 +52,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.script.service.ScriptService;
@@ -102,6 +103,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     @Inject
     private ChangeRequestTitleCacheManager titleCacheManager;
 
+    @Inject
+    private ContextualLocalizationManager localizationManager;
+
     private XarExtensionScriptService xarExtensionScriptService;
 
     @Override
@@ -123,6 +127,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         } catch (ComponentLookupException e) {
             throw new ChangeRequestException("Error when getting the merge approval strategy", e);
         }
+    }
+
+    private String getUpdateStatusSaveComment()
+    {
+        return this.localizationManager.getTranslationPlain("changerequest.save.changestatus");
     }
 
     @Override
@@ -147,7 +156,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         }
         if (update) {
             changeRequest.setStatus(newStatus);
-            this.changeRequestStorageManager.save(changeRequest);
+            this.changeRequestStorageManager.save(changeRequest, getUpdateStatusSaveComment());
             this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
                 new ChangeRequestStatus[] {status, newStatus});
         }
@@ -185,7 +194,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         ChangeRequestStatus oldStatus = changeRequest.getStatus();
         if (oldStatus != newStatus) {
             changeRequest.setStatus(newStatus);
-            this.changeRequestStorageManager.save(changeRequest);
+            this.changeRequestStorageManager.save(changeRequest, getUpdateStatusSaveComment());
             this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
                 new ChangeRequestStatus[] {oldStatus, newStatus});
             this.computeReadyForMergingStatus(changeRequest);

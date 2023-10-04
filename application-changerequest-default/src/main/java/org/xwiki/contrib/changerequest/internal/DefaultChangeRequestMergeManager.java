@@ -53,6 +53,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.Conflict;
 import org.xwiki.diff.ConflictDecision;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.store.merge.MergeConflictDecisionsManager;
@@ -108,6 +109,9 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
 
     @Inject
     private MergeCacheManager mergeCacheManager;
+
+    @Inject
+    private ContextualLocalizationManager contextualLocalizationManager;
 
     @Inject
     private Logger logger;
@@ -508,7 +512,8 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
             .setTargetEntity(targetEntity);
 
         changeRequest.addFileChange(mergeFileChange);
-        this.changeRequestStorageManager.save(changeRequest);
+        String saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.fixconflict");
+        this.changeRequestStorageManager.save(changeRequest, saveComment);
         this.changeRequestManagerProvider.get().computeReadyForMergingStatus(changeRequest);
         return true;
     }

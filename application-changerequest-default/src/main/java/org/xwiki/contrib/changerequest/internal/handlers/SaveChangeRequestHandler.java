@@ -135,10 +135,12 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
         if (this.changeRequestRightsManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)) {
             String changeType = request.getParameter(CHANGE_TYPE_PARAMETER);
 
+            String saveComment;
             if (StringUtils.equals(changeType, "settitle")) {
                 String title = request.getParameter(TITLE_PARAMETER);
                 changeRequest.setTitle(title);
-                this.storageManager.save(changeRequest);
+                saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.title");
+                this.storageManager.save(changeRequest, saveComment);
                 this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
             } else {
                 String content = getContent(request);
@@ -158,7 +160,8 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
                         "Error while loading the change request document for reading uploaded files", e);
                 }
 
-                this.storageManager.save(changeRequest);
+                saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.description");
+                this.storageManager.save(changeRequest, saveComment);
                 this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
             }
             return true;

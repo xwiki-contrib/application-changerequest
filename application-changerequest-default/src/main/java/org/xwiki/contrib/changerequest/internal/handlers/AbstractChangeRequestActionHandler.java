@@ -110,6 +110,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
     protected ChangeRequestManager changeRequestManager;
 
     @Inject
+    protected ContextualLocalizationManager contextualLocalizationManager;
+
+    @Inject
     private RequestParameterConverter requestParameterConverter;
 
     @Inject
@@ -130,9 +133,6 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private ChangeRequestConfiguration configuration;
-
-    @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
 
     protected HttpServletRequest prepareRequest() throws ChangeRequestException
     {

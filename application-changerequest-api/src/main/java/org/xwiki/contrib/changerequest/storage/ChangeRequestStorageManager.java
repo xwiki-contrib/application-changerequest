@@ -49,6 +49,18 @@ public interface ChangeRequestStorageManager
     void save(ChangeRequest changeRequest) throws ChangeRequestException;
 
     /**
+     * Save the given change request and all the related {@link org.xwiki.contrib.changerequest.FileChange}.
+     * @param changeRequest the change request to save.
+     * @param saveComment the comment to use for saving the change request document.
+     * @throws ChangeRequestException in case of problem during the save.
+     * @since 1.12
+     */
+    default void save(ChangeRequest changeRequest, String saveComment) throws ChangeRequestException
+    {
+        save(changeRequest);
+    }
+
+    /**
      * Load a change request based on the given identifier.
      *
      * @param changeRequestId the id of a change request to find.

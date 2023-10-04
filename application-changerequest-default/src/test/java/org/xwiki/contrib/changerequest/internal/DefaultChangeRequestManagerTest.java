@@ -46,6 +46,7 @@ import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.extension.xar.script.XarExtensionScriptService;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
@@ -130,6 +131,9 @@ class DefaultChangeRequestManagerTest
     @MockComponent
     private ChangeRequestMergeManager changeRequestMergeManager;
 
+    @MockComponent
+    private ContextualLocalizationManager contextualLocalizationManager;
+
     private XarExtensionScriptService xarExtensionScriptService;
 
     private XWikiContext context;
@@ -147,6 +151,8 @@ class DefaultChangeRequestManagerTest
     {
         this.context = mock(XWikiContext.class);
         when(this.contextProvider.get()).thenReturn(this.context);
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.changestatus")).thenReturn(
+            "Update status");
     }
 
     @Test
@@ -192,7 +198,7 @@ class DefaultChangeRequestManagerTest
         when(changeRequest.getId()).thenReturn("someId");
         this.manager.computeReadyForMergingStatus(changeRequest);
         verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_MERGING);
-        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.changeRequestStorageManager).save(changeRequest, "Update status");
         verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
             eq(new ChangeRequestStatus[] {
                 ChangeRequestStatus.READY_FOR_REVIEW, ChangeRequestStatus.READY_FOR_MERGING }));
@@ -201,7 +207,7 @@ class DefaultChangeRequestManagerTest
         when(strategy.canBeMerged(changeRequest)).thenReturn(false);
         this.manager.computeReadyForMergingStatus(changeRequest);
         verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
-        verify(this.changeRequestStorageManager, times(2)).save(changeRequest);
+        verify(this.changeRequestStorageManager, times(2)).save(changeRequest, "Update status");
         verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
             eq(new ChangeRequestStatus[] {
                 ChangeRequestStatus.READY_FOR_MERGING, ChangeRequestStatus.READY_FOR_REVIEW }));
@@ -222,7 +228,7 @@ class DefaultChangeRequestManagerTest
         this.manager.updateStatus(changeRequest, ChangeRequestStatus.READY_FOR_REVIEW);
 
         verify(changeRequest).setStatus(ChangeRequestStatus.READY_FOR_REVIEW);
-        verify(this.changeRequestStorageManager).save(changeRequest);
+        verify(this.changeRequestStorageManager).save(changeRequest, "Update status");
         verify(this.observationManager).notify(any(ChangeRequestStatusChangedEvent.class), eq("someId"),
             eq(new ChangeRequestStatus[] {ChangeRequestStatus.DRAFT, ChangeRequestStatus.READY_FOR_REVIEW}));
     }
