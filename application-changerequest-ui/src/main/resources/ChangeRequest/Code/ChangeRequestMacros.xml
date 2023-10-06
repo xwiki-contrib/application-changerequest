@@ -328,6 +328,9 @@
   #elseif ($event.type == 'changerequest.updated')
     #set($icon = 'pencil')
     #set ($localizationArguments = [$userArgument])
+  #elseif ($event.type == 'changerequest.stale')
+    #set($icon = 'clock')
+    #set ($localizationArguments = [$userArgument])
   #else
     #set ($localizationArguments = [$userArgument])
   #end
