@@ -498,17 +498,20 @@
       &lt;/div&gt;&lt;!-- End otherCR panel body --&gt;
      &lt;/div&gt;&lt;!-- End otherCR panel --&gt;
       #end
-       #if ($changeRequest.status == "READY_FOR_REVIEW")
-         #set ($statusPanelClass = "panel-info")
+       #if ($changeRequest.status == 'READY_FOR_REVIEW')
+         #set ($statusPanelClass = 'panel-info')
          #set ($statusIcon = $checkIconSuccess)
-       #elseif ($changeRequest.status == "DRAFT")
-         #set ($statusPanelClass = "panel-warning")
+       #elseif ($changeRequest.status == 'DRAFT')
+         #set ($statusPanelClass = 'panel-warning')
          #set ($statusIcon = $checkIconProblem)
-       #elseif ($changeRequest.status == "READY_FOR_MERGING")
-         #set ($statusPanelClass = "panel-success")
+       #elseif ($changeRequest.status == 'READY_FOR_MERGING')
+         #set ($statusPanelClass = 'panel-success')
          #set ($statusIcon = $checkIconSuccess)
-       #elseif ($changeRequest.status == "CLOSED")
-         #set ($statusPanelClass = "panel-danger")
+       #elseif (!$changeRequest.status.open)
+         #set ($statusPanelClass = 'panel-danger')
+         #set ($statusIcon = $checkIconProblem)
+       #else
+         #set ($statusPanelClass = 'panel-default')
          #set ($statusIcon = $checkIconProblem)
        #end
        &lt;div class="panel check-panel-status $statusPanelClass"&gt;
@@ -522,12 +525,12 @@
         &lt;div id="statusPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingStatusPanel"&gt;
           &lt;div class="panel-body"&gt;
             &lt;div class="explanation"&gt;
-            #if ($changeRequest.status == "READY_FOR_REVIEW" || $changeRequest.status == "READY_FOR_MERGING")
+            #if ($changeRequest.status == 'READY_FOR_REVIEW' || $changeRequest.status == 'READY_FOR_MERGING')
               $services.localization.render('changerequest.sheet.checks.status.ready.explanation')
-            #elseif ($changeRequest.status == "DRAFT")
-              &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.draft.explanation')
-            #elseif ($changeRequest.status == "CLOSED")
-              &lt;div class="explanation"&gt;$services.localization.render('changerequest.sheet.checks.status.closed.explanation')
+            #elseif ($changeRequest.status == 'DRAFT')
+              $services.localization.render('changerequest.sheet.checks.status.draft.explanation')
+            #elseif (!$changeRequest.status.open)
+              $services.localization.render('changerequest.sheet.checks.status.closed.explanation')
             #end
             &lt;/div&gt;
           &lt;/div&gt;
