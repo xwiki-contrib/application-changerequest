@@ -511,7 +511,9 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
             .setModifiedDocument(mergeDocumentResult.getMergeResult())
             .setTargetEntity(targetEntity);
 
-        changeRequest.addFileChange(mergeFileChange);
+        changeRequest
+            .addFileChange(mergeFileChange)
+            .updateDate();
         String saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.fixconflict");
         this.changeRequestStorageManager.save(changeRequest, saveComment);
         this.changeRequestManagerProvider.get().computeReadyForMergingStatus(changeRequest);

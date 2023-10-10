@@ -188,6 +188,7 @@ class CreateChangeRequestHandlerTest
             Date creationDate = allFileChanges.get(0).getCreationDate();
             expectedFileChange.setCreationDate(creationDate);
             expectedChangeRequest.setCreationDate(changeRequest.getCreationDate());
+            expectedChangeRequest.setUpdateDate(changeRequest.getUpdateDate());
             changeRequest.setId(crId);
             return null;
         }).when(this.storageManager).save(any(), eq("Creation of the change request"));

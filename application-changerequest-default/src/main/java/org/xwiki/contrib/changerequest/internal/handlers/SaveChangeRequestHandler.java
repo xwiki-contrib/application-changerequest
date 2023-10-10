@@ -138,13 +138,17 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
             String saveComment;
             if (StringUtils.equals(changeType, "settitle")) {
                 String title = request.getParameter(TITLE_PARAMETER);
-                changeRequest.setTitle(title);
+                changeRequest
+                    .setTitle(title)
+                    .updateDate();
                 saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.title");
                 this.storageManager.save(changeRequest, saveComment);
                 this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
             } else {
                 String content = getContent(request);
-                changeRequest.setDescription(content);
+                changeRequest
+                    .setDescription(content)
+                    .updateDate();
 
                 EditForm editForm = this.prepareForm(request);
                 DocumentReference documentReference =

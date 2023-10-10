@@ -185,7 +185,7 @@ class AddChangesChangeRequestHandlerTest
         when(changeRequest.addFileChange(any())).then(invocationOnMock -> {
             FileChange fileChange = invocationOnMock.getArgument(0);
             expectedFileChange.setCreationDate(fileChange.getCreationDate());
-            return null;
+            return changeRequest;
         });
         when(this.changeRequestRightsManager.isViewAccessConsistent(changeRequest, documentReference)).thenReturn(true);
         DocumentReference changeRequestDocReference = mock(DocumentReference.class);
@@ -211,6 +211,7 @@ class AddChangesChangeRequestHandlerTest
         verify(this.observationManager)
             .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(changeRequestId), eq(expectedFileChange));
         verify(response).sendRedirect(url);
+        verify(changeRequest).updateDate();
     }
 
     @Test
@@ -270,7 +271,7 @@ class AddChangesChangeRequestHandlerTest
         when(changeRequest.addFileChange(any())).then(invocationOnMock -> {
             FileChange fileChange = invocationOnMock.getArgument(0);
             expectedFileChange.setCreationDate(fileChange.getCreationDate());
-            return null;
+            return changeRequest;
         });
         DocumentReference changeRequestDocReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
@@ -300,5 +301,6 @@ class AddChangesChangeRequestHandlerTest
         verify(this.observationManager)
             .notify(any(ChangeRequestFileChangeAddedEvent.class), eq(changeRequestId), eq(expectedFileChange));
         verify(response).sendRedirect(url);
+        verify(changeRequest).updateDate();
     }
 }

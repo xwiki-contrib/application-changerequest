@@ -52,6 +52,7 @@ public class ChangeRequest
     private String description;
     private UserReference creator;
     private Date creationDate;
+    private Date updateDate;
     private ChangeRequestStatus status;
     private final Map<DocumentReference, Deque<FileChange>> fileChanges;
     private Set<UserReference> authors;
@@ -64,6 +65,7 @@ public class ChangeRequest
     public ChangeRequest()
     {
         this.creationDate = new Date();
+        this.updateDate = new Date();
         this.status = ChangeRequestStatus.DRAFT;
         this.fileChanges = new LinkedHashMap<>();
         this.authors = new HashSet<>();
@@ -426,10 +428,45 @@ public class ChangeRequest
      * Note that this method should never be used externally, the value stored here won't be saved.
      *
      * @param staleDate the date when the change request has been notified as staled, or {@code null}.
+     * @return the current instance
      */
-    public void setStaleDate(Date staleDate)
+    public ChangeRequest setStaleDate(Date staleDate)
     {
         this.staleDate = staleDate;
+        return this;
+    }
+
+    /**
+     * The date of latest update might be related to some changes that are not stored directly in the change request
+     * instance: e.g. a discussion update is still an update of the change request.
+     * @return the date of latest update performed on that change request
+     * @since 1.12
+     */
+    public Date getUpdateDate()
+    {
+        return updateDate;
+    }
+
+    /**
+     * @param updateDate the date of latest update
+     * @return the current instance
+     * @see #getUpdateDate()
+     * @since 1.12
+     */
+    public ChangeRequest setUpdateDate(Date updateDate)
+    {
+        this.updateDate = updateDate;
+        return this;
+    }
+
+    /**
+     * Set the update date to now.
+     * @since 1.12
+     * @see #getUpdateDate()
+     */
+    public void updateDate()
+    {
+        this.updateDate = new Date();
     }
 
     /**
@@ -445,7 +482,6 @@ public class ChangeRequest
             .setTitle(this.title)
             .setStatus(this.status)
             .setCreator(this.creator)
-            .setCreationDate(new Date())
             .setDescription(this.description)
             .setAuthors(this.authors);
     }
@@ -469,6 +505,7 @@ public class ChangeRequest
             .append(description, that.description)
             .append(creator, that.creator)
             .append(creationDate, that.creationDate)
+            .append(updateDate, that.updateDate)
             .append(status, that.status)
             .append(fileChanges, that.fileChanges)
             .append(reviews, that.reviews)
@@ -484,6 +521,7 @@ public class ChangeRequest
             .append(description)
             .append(creator)
             .append(creationDate)
+            .append(updateDate)
             .append(status)
             .append(fileChanges)
             .append(reviews)
@@ -499,6 +537,7 @@ public class ChangeRequest
             .append("description", description)
             .append("creator", creator)
             .append("creationDate", creationDate)
+            .append("updateDate", updateDate)
             .append("status", status)
             .append("fileChanges", fileChanges)
             .append("review", reviews)

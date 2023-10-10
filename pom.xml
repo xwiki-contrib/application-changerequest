@@ -84,6 +84,23 @@
         <artifactId>revapi-maven-plugin</artifactId>
         <configuration>
           <analysisConfiguration>
+            <revapi.differences>
+              <differences>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.returnTypeChanged</code>
+                  <old>method void org.xwiki.contrib.changerequest.ChangeRequest::setStaleDate(java.util.Date)</old>
+                  <new>method org.xwiki.contrib.changerequest.ChangeRequest org.xwiki.contrib.changerequest.ChangeRequest::setStaleDate(java.util.Date)</new>
+                  <justification>Not a real breakage.</justification>
+                </item>
+                <item>
+                  <ignore>true</ignore>
+                  <code>java.method.addedToInterface</code>
+                  <new>method void org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager::save(org.xwiki.contrib.changerequest.ChangeRequest, java.lang.String) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
+                  <justification>This is now the standard API for saving that needs to be implemented.</justification>
+                </item>
+              </differences>
+            </revapi.differences>
           </analysisConfiguration>
         </configuration>
       </plugin>

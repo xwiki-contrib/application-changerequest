@@ -290,6 +290,7 @@ class DefaultChangeRequestStorageManagerTest
 
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(document.getCreationDate()).thenReturn(new Date(42));
+        when(document.getDate()).thenReturn(new Date(85));
 
         changeRequest.addFileChange(fileChange1)
             .addFileChange(fileChange2)
@@ -299,7 +300,8 @@ class DefaultChangeRequestStorageManagerTest
             .setCreator(userReference)
             .setTitle(title)
             .setDescription(description)
-            .setCreationDate(new Date(42));
+            .setCreationDate(new Date(42))
+            .setUpdateDate(new Date(85));
         assertEquals(Optional.of(changeRequest), this.storageManager.load(id));
         verify(this.changeRequestStorageCacheManager, times(3)).getChangeRequest(id);
     }
@@ -365,13 +367,16 @@ class DefaultChangeRequestStorageManagerTest
 
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(doc2.getCreationDate()).thenReturn(new Date(42));
+        when(doc2.getDate()).thenReturn(new Date(43));
+
         ChangeRequest cr2 = new ChangeRequest();
         cr2.setId("Space2")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreator(userReference)
             .setTitle(title)
             .setDescription(description)
-            .setCreationDate(new Date(42));
+            .setCreationDate(new Date(42))
+            .setUpdateDate(new Date(43));
 
         // ref3
         XWikiDocument doc3 = mock(XWikiDocument.class);
@@ -390,13 +395,16 @@ class DefaultChangeRequestStorageManagerTest
 
         when(xobject2.getStringValue("status")).thenReturn("draft");
         when(doc3.getCreationDate()).thenReturn(new Date(16));
+        when(doc3.getDate()).thenReturn(new Date(17));
+
         ChangeRequest cr3 = new ChangeRequest();
         cr3.setId("Space3")
             .setStatus(ChangeRequestStatus.DRAFT)
             .setCreator(userReference2)
             .setTitle(title2)
             .setDescription(description2)
-            .setCreationDate(new Date(16));
+            .setCreationDate(new Date(16))
+            .setUpdateDate(new Date(17));
 
         assertEquals(Arrays.asList(cr2, cr3), this.storageManager.findChangeRequestTargeting(targetReference));
         verify(query).bindValue("reference", "Foo.MyPage");
@@ -463,13 +471,16 @@ class DefaultChangeRequestStorageManagerTest
 
         when(xobject.getStringValue("status")).thenReturn("merged");
         when(doc2.getCreationDate()).thenReturn(new Date(42));
+        when(doc2.getDate()).thenReturn(new Date(34));
+
         ChangeRequest cr2 = new ChangeRequest();
         cr2.setId("Space2")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreator(userReference)
             .setTitle(title)
             .setDescription(description)
-            .setCreationDate(new Date(42));
+            .setCreationDate(new Date(42))
+            .setUpdateDate(new Date(34));
 
         // ref3
         XWikiDocument doc3 = mock(XWikiDocument.class);
@@ -488,13 +499,16 @@ class DefaultChangeRequestStorageManagerTest
 
         when(xobject2.getStringValue("status")).thenReturn("draft");
         when(doc3.getCreationDate()).thenReturn(new Date(16));
+        when(doc3.getDate()).thenReturn(new Date(18));
+
         ChangeRequest cr3 = new ChangeRequest();
         cr3.setId("Space3")
             .setStatus(ChangeRequestStatus.DRAFT)
             .setCreator(userReference2)
             .setTitle(title2)
             .setDescription(description2)
-            .setCreationDate(new Date(16));
+            .setCreationDate(new Date(16))
+            .setUpdateDate(new Date(18));
 
         assertEquals(Arrays.asList(cr2, cr3), this.storageManager.findChangeRequestTargeting(targetReference));
         verify(query).bindValue("reference", "%Foo.MySpace%");

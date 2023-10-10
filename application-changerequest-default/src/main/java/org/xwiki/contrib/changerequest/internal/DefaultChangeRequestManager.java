@@ -155,7 +155,9 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             update = true;
         }
         if (update) {
-            changeRequest.setStatus(newStatus);
+            changeRequest
+                .setStatus(newStatus)
+                .updateDate();
             this.changeRequestStorageManager.save(changeRequest, getUpdateStatusSaveComment());
             this.observationManager.notify(new ChangeRequestStatusChangedEvent(), changeRequest.getId(),
                 new ChangeRequestStatus[] {status, newStatus});
@@ -227,7 +229,11 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
                 this.reviewStorageManager.save(previousReview);
             }
         }
-        changeRequest.addReview(review);
+        changeRequest
+            .addReview(review)
+            .updateDate();
+        // In theory this should never be needed with the default storage as it already update the CR document.
+        this.changeRequestStorageManager.save(changeRequest, "changerequest.save.addReview");
         this.observationManager.notify(new ChangeRequestReviewAddedEvent(), changeRequest.getId(), review);
         this.computeReadyForMergingStatus(changeRequest);
         return review;

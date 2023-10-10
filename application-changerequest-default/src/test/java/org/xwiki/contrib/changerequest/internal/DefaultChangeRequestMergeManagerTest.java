@@ -283,7 +283,7 @@ class DefaultChangeRequestMergeManagerTest
         when(changeRequest.addFileChange(any())).then(invocationOnMock -> {
             FileChange obtainedFileChange = invocationOnMock.getArgument(0);
             expectedFileChange.setCreationDate(obtainedFileChange.getCreationDate());
-            return null;
+            return changeRequest;
         });
         when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.fixconflict"))
             .thenReturn("Fix conflict");
@@ -292,5 +292,6 @@ class DefaultChangeRequestMergeManagerTest
         verify(changeRequest).addFileChange(expectedFileChange);
         verify(this.changeRequestStorageManager).save(changeRequest, "Fix conflict");
         verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest);
+        verify(changeRequest).updateDate();
     }
 }

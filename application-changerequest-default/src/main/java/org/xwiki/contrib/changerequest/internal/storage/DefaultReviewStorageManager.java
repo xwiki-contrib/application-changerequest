@@ -95,6 +95,7 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
             try {
                 XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
                 BaseObject xObject;
+                // FIXME: use localization
                 String saveComment = "Add new review";
                 if (StringUtils.isEmpty(review.getId())) {
                     int xObjectNumber = changeRequestDoc.createXObject(REVIEW_XCLASS, context);
