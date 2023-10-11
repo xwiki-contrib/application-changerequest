@@ -2166,17 +2166,19 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     var messageId = $(message).attr('data-reference');
     if (cssClass == 'review') {
       var discussionElement = $('.discussion.review[data-reference=' + otherId +']');
+    } else if (cssClass == 'difftab') {
+      var discussionElement = otherId;
     } else {
       var discussionElement = $('.discussion.'+cssClass+'[data-message-reference="'+messageId+'"]');
     }
     var diffBlock = $(message).parent('.discussion').find('.diff-block-metadata');
     if (discussionElement &amp;&amp; discussionElement.find('.message[data-reference="' + messageId+ '"]').length == 0) {
-      if (diffBlock.length &gt; 0) {
+      if (diffBlock.length &gt; 0 &amp;&amp; cssClass != 'difftab') {
         newBlock = diffBlock.clone();
         discussionElement.append(newBlock);
         newBlock.removeClass('hidden');
       }
-      discussionElement.append($(message));
+      discussionElement.append($(message).clone());
     }
   };
   
@@ -2291,12 +2293,18 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var placeLineDiffDiscussion = function (discussion) {
     var reference = discussion.attr('data-reference');
     var existingLine = $('.discussion-line[data-reference="'+reference+'"]');
+    var existingLineDiscussion;
     if (!existingLine.length) {
       insertLineDiffDiscussion(discussion);
+    } else {
+      existingLineDiscussion = existingLine.find('.discussion');
     }
     
-    discussion.clone().find('.message').each(function (index, message) {
+    discussion.find('.message').each(function (index, message) {
       placeMessage('diff', '', message);
+      if (existingLineDiscussion) {
+        placeMessage('difftab', existingLineDiscussion, message);
+      }
     });
   }
   
