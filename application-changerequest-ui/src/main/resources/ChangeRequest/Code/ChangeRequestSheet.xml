@@ -2923,7 +2923,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       <code>'use strict';
 require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEditor'], function ($, xm, DiscussionHandler, CommentEditor) {
   var initReply = function () {
-    $('.message .reply-button:visible').not('.reply-initialized').one('click', function (event) {
+    $('.message .reply-button').not('#discussions .reply-button').not('.reply-initialized').not('.reply-initialized').one('click', function (event) {
       var changeRequestId = $(this).parents('.cr-main-div').attr('data-changerequest-id');
       var message = $(this).parents('.message');
       var discussion = message.parents('.discussion');
@@ -2940,7 +2940,7 @@ require(['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler', 'CommentEdito
       });
       editor.requestEditor(event.target);
     });
-    $('.message .reply-button:visible').not('.reply-initialized').addClass('reply-initialized');
+    $('.message .reply-button').not('#discussions .reply-button').not('.reply-initialized').addClass('reply-initialized');
   };
   
   var initialize = function () {
