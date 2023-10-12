@@ -28,6 +28,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
+import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.discussion.DiscussionEditor;
 import org.xwiki.stability.Unstable;
 import org.xwiki.test.ui.po.BaseElement;
@@ -124,8 +125,9 @@ public class DescriptionPane extends BaseElement
      * @param size the number of expected events.
      * @throws AssertionError if the number of events retrieved is higher than the expected number
      * @throws TimeoutException if after 5 reloads the number of events is still not reached.
+     * @return a new instance of DescriptionPane.
      */
-    public void waitUntilEventsSize(int size)
+    public DescriptionPane waitUntilEventsSize(int size)
     {
         int maxLoop = 20;
         int loop = 0;
@@ -163,6 +165,7 @@ public class DescriptionPane extends BaseElement
                         + "Latest reload URL: [%s]",
                     latestSize, size, maxLoop, reloadUrl));
         }
+        return new ChangeRequestPage().openDescription();
     }
 
     private WebElement getCommentsContainer()

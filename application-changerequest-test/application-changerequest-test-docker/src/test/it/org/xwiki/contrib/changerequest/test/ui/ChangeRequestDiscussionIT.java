@@ -77,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 class ChangeRequestDiscussionIT
 {
-    private static final String TEST_USER_PREFIX = "CRAddChangesIT";
+    private static final String TEST_USER_PREFIX = "CRDiscussionIT";
     private static final String CR_USER = TEST_USER_PREFIX + "CRUser";
     private static final String CR_CREATOR = TEST_USER_PREFIX  + "CRCreator";
 

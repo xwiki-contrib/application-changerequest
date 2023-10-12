@@ -91,4 +91,10 @@ public class AllIT
     class NestedChangeRequestDiscussionIT extends ChangeRequestDiscussionIT
     {
     }
+
+    @Nested
+    @DisplayName("Test Stale Change Request feature")
+    class NestedStaleChangeRequestIT extends StaleChangeRequestIT
+    {
+    }
 }
