@@ -63,6 +63,7 @@ public class DiscussionEditor extends BaseElement
     public void clickSave()
     {
         getDriver().findElementWithoutWaiting(this.container, By.className("comment-button")).click();
+        this.waitForNotificationSuccessMessage("Message submitted with success.");
     }
 
     /**

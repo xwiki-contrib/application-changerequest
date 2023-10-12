@@ -38,7 +38,10 @@ import org.xwiki.contrib.changerequest.test.po.discussion.DiffMessageElement;
 import org.xwiki.contrib.changerequest.test.po.discussion.DiscussionEditor;
 import org.xwiki.contrib.changerequest.test.po.discussion.MessageElement;
 import org.xwiki.contrib.changerequest.test.po.discussion.ReviewDiscussion;
+import org.xwiki.contrib.changerequest.test.po.filechanges.ChangeRequestEntityDiff;
+import org.xwiki.contrib.changerequest.test.po.filechanges.EntityDiffCoordinate;
 import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
+import org.xwiki.contrib.changerequest.test.po.filechanges.LineChange;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewContainer;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
@@ -48,8 +51,6 @@ import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.diff.EntityDiff;
 import org.xwiki.test.ui.po.editor.ObjectEditPage;
 import org.xwiki.test.ui.po.editor.ObjectEditPane;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
-import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -160,21 +161,39 @@ class ChangeRequestDiscussionIT
         assertFalse(message.isOutdated());
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        EntityDiff entityDiff = fileChangesPane.getEntityDiff(serializedReference, "XWiki.StyleSheetExtension[0]");
+        ChangeRequestEntityDiff entityDiff =
+            fileChangesPane.getEntityDiff(serializedReference, "XWiki.StyleSheetExtension[0]");
         List<String> diff = entityDiff.getDiff("Code");
         assertEquals(List.of(
             "@@ -1,1 +1,1 @@",
             "-.customClass { color: <del>r</del>e<del>d</del>; }",
             "+.customClass { color: <ins>blu</ins>e; }"
         ), diff);
+        assertFalse(entityDiff.hasMessages());
 
-        discussionEditor = fileChangesPane.clickAddingDiffComment(serializedReference, "XWiki.StyleSheetExtension[0]",
-            "Code", 1, FileChangesPane.LineType.DELETION);
+        discussionEditor = entityDiff.clickAddingDiffComment("Code", 1, LineChange.REMOVED);
         discussionEditor.setContent("This is a diff comment");
         beforeComment = new Date();
         discussionEditor.clickSave();
         changeRequestPage.waitForTimelineRefresh();
         afterComment = new Date();
+
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(1, entityDiff.countMessages());
+
+        Map<EntityDiffCoordinate, List<MessageElement>> allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+
+        EntityDiffCoordinate expectedCoordinate = new EntityDiffCoordinate("code", LineChange.REMOVED, 1);
+        List<MessageElement> messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(1, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("This is a diff comment", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
 
         descriptionPane = changeRequestPage.openDescription();
         descriptionPane.waitUntilEventsSize(3);
@@ -226,6 +245,24 @@ class ChangeRequestDiscussionIT
         fileChangesPane = changeRequestPage.openFileChanges();
         assertTrue(fileChangesPane.isDiffOutdated(serializedReference));
 
+        entityDiff = fileChangesPane.getEntityDiff(serializedReference, "XWiki.StyleSheetExtension[0]");
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(1, entityDiff.countMessages());
+
+        allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+
+        expectedCoordinate = new EntityDiffCoordinate("code", LineChange.REMOVED, 1);
+        messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(1, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("This is a diff comment", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+
         changeRequestPage =
             fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference)
                 .clickRefresh(false);
@@ -249,6 +286,7 @@ class ChangeRequestDiscussionIT
         descriptionPane.waitUntilEventsSize(5);
 
         fileChangesPane = changeRequestPage.openFileChanges();
+
         entityDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
         assertEquals(List.of(
             "@@ -1,1 +1,1 @@",
@@ -261,13 +299,50 @@ class ChangeRequestDiscussionIT
         changeRequestPage = new ChangeRequestPage();
 
         fileChangesPane = changeRequestPage.openFileChanges();
-        discussionEditor = fileChangesPane.clickAddingDiffComment(serializedReference, "Page properties",
-            "Content", 1, FileChangesPane.LineType.ADDITION);
+        entityDiff = fileChangesPane.getEntityDiff(serializedReference, "XWiki.StyleSheetExtension[0]");
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(1, entityDiff.countMessages());
+
+        allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+
+        expectedCoordinate = new EntityDiffCoordinate("code", LineChange.REMOVED, 1);
+        messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(1, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("This is a diff comment", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+
+        entityDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
+        assertFalse(entityDiff.hasMessages());
+
+        discussionEditor = entityDiff.clickAddingDiffComment("Content", 1, LineChange.ADDED);
         discussionEditor.setContent("A new diff comment from CRUser");
         beforeComment = new Date();
         discussionEditor.clickSave();
         changeRequestPage.waitForTimelineRefresh();
         afterComment = new Date();
+
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(1, entityDiff.countMessages());
+
+        allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+
+        expectedCoordinate = new EntityDiffCoordinate("content", LineChange.ADDED, 1);
+        messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(1, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("A new diff comment from CRUser", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_USER, message.getAuthor());
 
         descriptionPane = changeRequestPage.openDescription();
         descriptionPane.waitUntilEventsSize(6);
@@ -437,6 +512,31 @@ class ChangeRequestDiscussionIT
         changeRequestPage.waitForTimelineRefresh();
 
         fileChangesPane = changeRequestPage.openFileChanges();
+        entityDiff = fileChangesPane.getEntityDiff(serializedReference, "XWiki.StyleSheetExtension[0]");
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(2, entityDiff.countMessages());
+
+        allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+
+        expectedCoordinate = new EntityDiffCoordinate("code", LineChange.REMOVED, 1);
+        messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(2, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("This is a diff comment", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+
+        message = messageElements.get(1);
+        assertEquals("Replying to the first diff message", message.getContent());
+        assertTrue(message.isExpanded());
+        assertTrue(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_USER, message.getAuthor());
+
         afterComment = new Date();
 
         fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference).clickEdit();
@@ -535,6 +635,82 @@ class ChangeRequestDiscussionIT
         message.clickExpand();
         assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
         assertEquals("Replying to an outdated diff message", message.getContent());
+        messageDate = message.getDate();
+        assertTrue(beforeComment.before(messageDate) && afterComment.after(messageDate));
+        assertTrue(message.isAnswer());
+
+        fileChangesPane = changeRequestPage.openFileChanges();
+        entityDiff = fileChangesPane.getEntityDiff(serializedReference, "XWiki.StyleSheetExtension[0]");
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(2, entityDiff.countMessages());
+
+        allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+
+        expectedCoordinate = new EntityDiffCoordinate("code", LineChange.REMOVED, 1);
+        messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(2, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("This is a diff comment", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+
+        message = messageElements.get(1);
+        assertEquals("Replying to the first diff message", message.getContent());
+        assertTrue(message.isExpanded());
+        assertTrue(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_USER, message.getAuthor());
+
+        // Replying in diff
+        beforeComment = new Date();
+        discussionEditor = message.clickReply();
+        discussionEditor.setContent("Replying inside diff view");
+        discussionEditor.clickSave();
+        changeRequestPage.waitForTimelineRefresh();
+        afterComment = new Date();
+
+        assertTrue(entityDiff.hasMessages());
+        assertEquals(3, entityDiff.countMessages());
+
+        allMessages = entityDiff.getAllMessages();
+        assertEquals(1, allMessages.size());
+        messageElements = allMessages.get(expectedCoordinate);
+        assertEquals(3, messageElements.size());
+
+        message = messageElements.get(0);
+        assertEquals("This is a diff comment", message.getContent());
+        assertTrue(message.isExpanded());
+        assertFalse(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+
+        message = messageElements.get(1);
+        assertEquals("Replying to the first diff message", message.getContent());
+        assertTrue(message.isExpanded());
+        assertTrue(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_USER, message.getAuthor());
+
+        message = messageElements.get(2);
+        assertEquals("Replying inside diff view", message.getContent());
+        assertTrue(message.isExpanded());
+        assertTrue(message.isAnswer());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+
+        descriptionPane = changeRequestPage.openDescription();
+        event = descriptionPane.getEvents().get(13);
+
+        assertEquals("changerequest.discussions", event.getEventType());
+        message = event.getMessage();
+        assertTrue(message.isExpanded());
+        assertFalse(message.isOutdated());
+        assertEquals("xwiki:XWiki." + CR_CREATOR, message.getAuthor());
+        assertEquals("Replying inside diff view", message.getContent());
         messageDate = message.getDate();
         assertTrue(beforeComment.before(messageDate) && afterComment.after(messageDate));
         assertTrue(message.isAnswer());

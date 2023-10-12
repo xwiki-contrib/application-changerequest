@@ -34,7 +34,7 @@ import org.openqa.selenium.WebElement;
 public class DiffMessageElement extends MessageElement
 {
     private static final String DIFF_REFERENCE_TITLE = "diff-reference-title";
-    private WebElement diffBlockContainer;
+    private final WebElement diffBlockContainer;
 
     /**
      * Default constructor.

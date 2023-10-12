@@ -1792,7 +1792,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
       var data = form.serialize();
       $(document).trigger('xwiki:actions:cancel');
       $.post(url, data).done(function (data) {
-        notification.replace(new XWiki.widgets.Notification('Message submitted with success.','success'));
+        notification.replace(new XWiki.widgets.Notification('Message submitted with success.','done'));
         $(document).trigger('xwiki:changerequest:refreshTimeline');
         DiscussionHandler.retrieveMessage(data);
         self.editorDiv.remove();
@@ -2310,7 +2310,6 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   
   var placeAllDiscussions = function () {
     $('#discussions .discussion').each(placeDiscussions);
-    $('#timeline-loading').addClass('hidden');
     $(document).trigger('xwiki:dom:updated', {'elements': $('#discussions .discussion').toArray()});
   };
   
@@ -3177,7 +3176,6 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
   var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
   
   var refreshTimeline = function() {
-    $('#timeline-loading').removeClass('hidden');
     var data = {
       form_token: xm.form_token,
       changerequest: changeRequestId,
@@ -3189,13 +3187,16 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       timelineHolder.append(data);
       $(document).trigger('xwiki:changerequest:refreshComments');
       $(document).trigger('xwiki:dom:updated', {'elements': timelineHolder.toArray()});
+      $('#timeline-loading').addClass('hidden');
     }).fail(function (data) {
        console.error("Error while trying to refresh the timeline: " + data);
        console.log(data);
+       $('#timeline-loading').addClass('hidden');
     });
   }
   
   $(document).on('xwiki:changerequest:refreshTimeline', function () {
+    $('#timeline-loading').removeClass('hidden');
     setTimeout(refreshTimeline, 1000);
   });
 });</code>
@@ -4154,13 +4155,18 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <code>require(['jquery'], function ($) {
+
+  var initializeAllDetailsSwitch = function() {
+    initializeDiffReferenceDetailsSwitch();
+    $(document).on('xwiki:dom:updated', initializeDiffReferenceDetailsSwitch);
+  };
   var initializeDiffReferenceDetailsSwitch = function() {
-    $('.diff-reference-details-switch').on('click', function () {
+    $('.diff-reference-details-switch').not('#discussions .diff-reference-details-switch').not('.augmented-switch').on('click', function () {
       $(this).siblings('.diff-reference-details').toggleClass('hidden');
     });
+    $('.diff-reference-details-switch').not('#discussions .diff-reference-details-switch').addClass('augmented-switch');
   };
-  
-  $(document).on('xwiki:dom:updated', initializeDiffReferenceDetailsSwitch);
+  (XWiki.isInitialized &amp;&amp; initializeAllDetailsSwitch()) || $(document).on('xwiki:dom:loaded', initializeAllDetailsSwitch);
 });</code>
     </property>
     <property>
