@@ -307,6 +307,11 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         mergeConfiguration.setProvidedVersionsModifiables(false);
         MergeDocumentResult mergeDocumentResult =
             mergeManager.mergeDocument(previousDoc, nextDoc, xwikiCurrentDoc, mergeConfiguration);
+        // We never want to merge the author so let's display an accurate author in diff
+        mergeDocumentResult
+            .getMergeResult()
+            .getAuthors()
+            .setOriginalMetadataAuthor(fileChange.getAuthor());
         ChangeRequestMergeDocumentResult result = new ChangeRequestMergeDocumentResult(mergeDocumentResult,
             fileChange,
             previousDoc.getVersion(),
@@ -317,6 +322,11 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
             mergeConfiguration.setConflictFallbackVersion(MergeConfiguration.ConflictFallbackVersion.NEXT);
             MergeDocumentResult mergeDocumentResultWithCRFallback =
                 mergeManager.mergeDocument(previousDoc, nextDoc, xwikiCurrentDoc, mergeConfiguration);
+            // We never want to merge the author so let's display an accurate author in diff
+            mergeDocumentResultWithCRFallback
+                .getMergeResult()
+                .getAuthors()
+                .setOriginalMetadataAuthor(fileChange.getAuthor());
             result.setWrappedResultWithCRFallback(mergeDocumentResultWithCRFallback);
         }
 
