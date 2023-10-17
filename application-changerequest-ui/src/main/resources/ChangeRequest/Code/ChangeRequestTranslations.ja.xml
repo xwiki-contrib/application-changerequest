@@ -65,7 +65,6 @@ changerequest.sheet.markready.button=レビューの準備完了
 changerequest.sheet.markready.button.title=この変更リクエストをレビュー待機中に設定
 changerequest.sheet.markdraft.button=下書きに変換
 changerequest.sheet.markdraft.button.title=この変更リクエストを作業中に設定
-changerequest.livetable.doc.title=タイトル
 changerequest.edit.button.value=編集
 changerequest.edit.button.title=変更リクエストで編集
 changerequest.create.button.value=作成

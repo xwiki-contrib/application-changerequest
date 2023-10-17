@@ -68,7 +68,6 @@ changerequest.sheet.markready.button=Bereit zur Überprüfung
 changerequest.sheet.markready.button.title=Diese Änderungsanforderung zur Überprüfung markieren
 changerequest.sheet.markdraft.button=In Entwurf konvertieren
 changerequest.sheet.markdraft.button.title=Diese Änderungsanforderung als "in Bearbeitung" kennzeichnen. Dadurch wird eine formale Überprüfung und Veröffentlichung verhindert.
-changerequest.livetable.doc.title=Titel
 changerequest.edit.button.value=Bearbeiten
 changerequest.edit.button.title=Bearbeiten mit Änderungsanforderung
 changerequest.create.button.value=Erstellen

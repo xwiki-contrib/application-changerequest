@@ -68,7 +68,6 @@ changerequest.sheet.markready.button=Prêt à être vérifié
 changerequest.sheet.markready.button.title=Marquer cette demande de modification comme Prêt à être vérifié
 changerequest.sheet.markdraft.button=Basculer en brouillon
 changerequest.sheet.markdraft.button.title=Marquer cette demande de modification comme En cours. Cette action empêchera toute relecture et publication.
-changerequest.livetable.doc.title=Titre
 changerequest.edit.button.value=Modifier
 changerequest.edit.button.title=Modifier via une demande
 changerequest.create.button.value=Créer
