@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.replication.internal.listeners;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -36,8 +35,10 @@ import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeReque
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationContext;
 import org.xwiki.contrib.replication.ReplicationException;
+import org.xwiki.contrib.replication.entity.DocumentReplicationController;
 import org.xwiki.contrib.replication.entity.DocumentReplicationLevel;
-import org.xwiki.contrib.replication.entity.DocumentReplicationSender;
+import org.xwiki.contrib.replication.entity.DocumentReplicationSenderMessageBuilder;
+import org.xwiki.contrib.replication.entity.EntityReplicationBuilders;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -70,7 +71,10 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     private ReplicationContext replicationContext;
 
     @Inject
-    private Provider<DocumentReplicationSender> documentReplicationSenderProvider;
+    private Provider<EntityReplicationBuilders> entityReplicationBuildersProvider;
+
+    @Inject
+    private Provider<DocumentReplicationController> documentReplicationControllerProvider;
 
     @Inject
     private Provider<ChangeRequestStorageManager> changeRequestStorageManagerProvider;
@@ -136,13 +140,23 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     {
         try {
             DocumentReference originalReference = getDocumentReference(event, dataDocumentReference);
-            ChangeRequestReplicationSenderMessage message =
-                this.componentManager.getInstance(ChangeRequestReplicationSenderMessage.class, messageHint);
-            message.initialize(event, dataDocumentReference);
-            this.documentReplicationSenderProvider.get().send(metadata -> message,
-                originalReference, DocumentReplicationLevel.ALL, Collections.emptyMap(), null);
-        } catch (ComponentLookupException e) {
-            this.logger.error("Error when looking for replication component message", e);
+            DocumentReplicationSenderMessageBuilder documentReplicationSenderMessageBuilder =
+                this.entityReplicationBuildersProvider.get()
+                    .documentMessageBuilder((builder, level, readonly, extraMetadata) ->
+                    {
+                        try {
+                            ChangeRequestReplicationSenderMessage message = this.componentManager
+                                .getInstance(ChangeRequestReplicationSenderMessage.class, messageHint);
+                            message.initialize(event, dataDocumentReference);
+                            return message;
+                        } catch (ComponentLookupException e) {
+                            throw new ReplicationException(
+                                String .format("Error when looking for replication component message with hint [%s]",
+                                    messageHint), e);
+                        }
+                    }, originalReference)
+                    .minimumLevel(DocumentReplicationLevel.ALL);
+            this.documentReplicationControllerProvider.get().send(documentReplicationSenderMessageBuilder);
         } catch (ReplicationException e) {
             this.logger.error("Error while sending the replication message for document [{}]",
                 dataDocumentReference, e);
