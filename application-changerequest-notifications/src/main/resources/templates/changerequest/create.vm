@@ -52,8 +52,7 @@
     ### Content
     ###
     #define($content)
-        #set ($crReference = $changeRequestReferences.get($event))
-        #set ($document = $xwiki.getDocument($crReference))
+        #set ($document = $xwiki.getDocument($compositeEvent.document))
     <div class="notification-page">
         ## Here, we have 2 choices:
         ## 1 - Render the title with "plain/1.0" syntax, and use $escapetool.xml() to make sure we don't inject HTML tags

@@ -107,7 +107,7 @@ class ChangeRequestCreatedEventListenerTest
         when(data.getModifiedDocuments()).thenReturn(Collections.singleton(documentReference));
 
         XWikiDocument document = mock(XWikiDocument.class);
-        when(this.documentAccessBridge.getTranslatedDocumentInstance(documentReference)).thenReturn(document);
+        when(this.changeRequestRecordableEventNotifier.getChangeRequestDocument(source)).thenReturn(document);
 
         when(observationContext.isIn(any(SplitBeginChangeRequestEvent.class))).thenReturn(true);
 

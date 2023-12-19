@@ -100,8 +100,7 @@ public class ChangeRequestCreatedEventListener extends AbstractChangeRequestEven
                     }
                 }
             });
-            DocumentModelBridge documentInstance = this.documentAccessBridge.getTranslatedDocumentInstance(
-                changeRequest.getModifiedDocuments().iterator().next());
+            DocumentModelBridge documentInstance = this.getChangeRequestDocument(changeRequestId);
             ChangeRequestCreatedRecordableEvent recordableEvent =
                 new ChangeRequestCreatedRecordableEvent(changeRequestId,
                     changeRequest.getAllFileChanges().iterator().next().getId());
