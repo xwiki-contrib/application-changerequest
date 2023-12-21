@@ -27,24 +27,60 @@
 #set ($smallIcon = $eventDescriptor.eventTypeIcon)
 
 #foreach($event in $compositeEvent.events)
+    ## Backward compatibility mechanism: before 1.13 events were sent with the modified doc as data, not the CR doc
+    ## so we cannot rely on the event.document all the time to display properly the info.
+    #set ($isEventDocCRDoc = true)
+    #set ($crReference = $changeRequestReferences.get($event))
+    #set ($crDocument = $xwiki.getDocument($crReference))
+    #if ($event.parameters)
+        #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+        #set ($changeRequestId = $event.parameters.get('changerequest.id'))
+
+        #if ($event.document == $crReference)
+            ## If the reference is the same than the document sent: we're in newer version, we need to access the CR
+            #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
+            ## For some reason the CR cannot be accessed (might be deleted). We cannot guess info anymore.
+            #if ($changeRequestOpt.isEmpty())
+                #set ($modifiedDocument = $NULL)
+            #else
+                #set ($changeRequest = $changeRequestOpt.get())
+                #set ($fileChangeOpt = $changeRequest.getFileChangeById($fileChangeId))
+                #if ($fileChangeOpt.isEmpty())
+                    #set ($modifiedDocument = $NULL)
+                #else
+                    #set ($modifiedDocument = $xwiki.getDocument($fileChangeOpt.get().targetEntity))
+                #end
+            #end
+        #else
+            ## If the reference is not the same we are before 1.13 so the modified doc was sent as data.
+            #set ($modifiedDocument = $xwiki.getDocument($event.document))
+        #end
+    #else
+        ## If there's no event parameters we assume the event was sent with the modified document
+        #set ($modifiedDocument = $xwiki.getDocument($event.document))
+    #end
+
     #define ($concernedDocument)
         <div class="changerequest-impacted-page">
             #set ($title = $NULL)
             #if ($event.parameters)
-                #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
-                #set ($changeRequestId = $event.parameters.get('changerequest.id'))
                 #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
             #end
-            #set ($document = $xwiki.getDocument($event.document))
-            #if ("$!title" == '')
-                #set ($title = $document.displayTitle)
-            #end
-            <a href="$!escapetool.xml($document.getURL())">$escapetool.xml($title)</a>
-            ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
-            ## to actually know where the request comes from.
 
-            #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
-                <span class="text-muted">($services.wiki.getById($event.document.wikiReference.name).prettyName)</span>
+            #if ($modifiedDocument)
+                #if ("$!title" == '')
+                    #set ($title = $modifiedDocument.displayTitle)
+                #end
+                <a href="$!escapetool.xml($modifiedDocument.getURL())">$escapetool.xml($title)</a>
+                ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+                ## to actually know where the request comes from.
+                #set ($modifiedDocumentRef = $modifiedDocument.documentReference)
+
+                #if ($xcontext.getContext().getOriginalWikiId() != $modifiedDocumentRef.wikiReference.name)
+                    <span class="text-muted">($services.wiki.getById($modifiedDocumentRef.wikiReference.name).prettyName)</span>
+                #end
+            #else
+                $services.localization.render('notifications.events.unknownDocument')
             #end
         </div>
     #end
@@ -52,7 +88,6 @@
     ### Content
     ###
     #define($content)
-        #set ($document = $xwiki.getDocument($compositeEvent.document))
     <div class="notification-page">
         ## Here, we have 2 choices:
         ## 1 - Render the title with "plain/1.0" syntax, and use $escapetool.xml() to make sure we don't inject HTML tags
@@ -68,11 +103,11 @@
         ##   the HTML renderer meanwhile they are trimmed when rendered with the plain text renderer.
         ##
         ## * It's consistent with the way the title is displayed in the page itself (using html, see: `titlevars.vm`).
-      <a href="$!escapetool.xml($document.getURL())">$document.displayTitle</a>
+      <a href="$!escapetool.xml($crDocument.getURL())">$crDocument.displayTitle</a>
         ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
         ## to actually know where the request comes from.
         #if ($xcontext.getContext().getOriginalWikiId() != $crReference.wikiReference.name)
-          <span class="text-muted">($services.wiki.getById($crReference.wikiReference.name).prettyName)</span>
+            <span class="text-muted">($services.wiki.getById($crReference.wikiReference.name).prettyName)</span>
         #end
     </div>
     <div class="notification-description">
