@@ -1,0 +1,266 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="ko">
+  <web>ChangeRequest.Code</web>
+  <name>ChangeRequestTranslations</name>
+  <language>ko</language>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>1</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ChangeRequestTranslations</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>changerequest.docextra.title=변경 요청
+changerequest.homepage.title=변경 요청
+changerequest.application.label=변경 요청
+changerequest.picker.placeholder=이 변경 요청 의 이름을 입력하세요
+changerequest.editor.button.save=변경 요청 으로 저장
+changerequest.createascr.button=요청 생성
+changerequest.savemodal.header.title=변경 요청 으로 저장
+changerequest.savemodal.header.hint=신규 또는 기존 변경 요청 에 변경 사항을 저장하려면 몇 가지 정보를 제공하십시오 .
+changerequest.savemodal.create.heading=새 변경 요청 생성
+changerequest.savemodal.create.input.title=변경 요청 제목
+changerequest.savemodal.create.input.title.placeholder=제안된 변경 사항을 나타내는 제목
+changerequest.savemodal.create.input.description=변경 요청 에 대한 설명
+changerequest.savemodal.create.input.draft=변경 요청을 초안으로 표시 (공식적인 검토 및 게시 방지)
+changerequest.savemodal.edit.heading=기존 변경 요청 에 변경 사항 추가
+changerequest.savemodal.edit.input.selector=기존 변경 요청 선택
+changerequest.sheet.merge.button=게시
+changerequest.sheet.merge.button.title=요청된 변경 사항 게시
+changerequest.sheet.rebase.button=콘텐츠 새로 고침
+changerequest.sheet.rebase.button.title=게시된 문서의 최신 버전 내용으로 이 변경 요청을 새로 고칩니다(제안된 모든 변경 사항은 유지됩니다).
+changerequest.sheet.rebase.confirm=이 작업을 수행하면 모든 리뷰가 무효화됩니다. 계속하시겠습니까?
+changerequest.sheet.editapprovers.button=승인자 편집
+changerequest.sheet.pagechanges=페이지에서 요청된 변경 사항:
+changerequest.sheet.alldifftitle=모든 변경사항
+changerequest.sheet.difftitle={0}의 변경사항
+changerequest.sheet.difftitle.EDITION={0} 에디션
+changerequest.sheet.difftitle.DELETION={0} 삭제
+changerequest.sheet.difftitle.CREATION={0} 생성
+changerequest.sheet.difftitle.NO_CHANGE=변경사항이 없는 {0} 에디션
+changerequest.sheet.markready.button=검토 준비 완료
+changerequest.sheet.markready.button.title=이 변경 요청을 검토 준비됨으로 표시
+changerequest.sheet.markdraft.button=초안으로 변환
+changerequest.sheet.markdraft.button.title=이 변경 요청을 진행 중인 작업으로 표시하세요. 이렇게 하면 공식적인 검토 및 출판이 방지됩니다 .
+changerequest.edit.button.value=편집하다
+changerequest.edit.button.title=변경 요청 으로 편집
+changerequest.create.button.value=만들다
+changerequest.create.button.title=변경 요청 으로 생성
+changerequest.delete.nested.message=변경 요청 기능 에서는 중첩된 페이지 삭제가 지원되지 않습니다 . "하위 항목에 영향"을 선택한 경우 변경 요청을 사용하여 이 작업을 수행할 수 없습니다.
+changerequest.delete.button.disabled=변경 요청 기능을 사용하여 페이지와 모든 하위 항목을 함께 삭제할 수 없습니다 . 변경 요청 기능을 사용 하고 이 페이지만 삭제하려면 "자녀에게 영향" 확인란을 선택 취소하세요.
+changerequest.sheet.tab.description.title=설명
+changerequest.sheet.tab.reviews.title=리뷰
+changerequest.sheet.tab.filechanges.title=제안된 변경 사항
+changerequest.sheet.tab.checks.title=체크 무늬
+changerequest.sheet.tab.checks.conflicts.noconflict.title=충돌이 발견되지 않았습니다
+changerequest.sheet.tab.checks.conflicts.title={0}개의 충돌이 발견되었습니다
+changerequest.sheet.tab.checks.conflicts.noconflict.body=표시할 충돌이 없습니다.
+changerequest.sheet.tab.checks.conflicts.body=제안된 변경사항에서 {0}개의 충돌이 발견되었습니다. 수정하려면 {1}제안된 변경사항 탭{2}을 확인하세요.
+changerequest.sheet.tab.checks.conflicts.needsrefresh.title=해결되지 않은 문서 충돌이 발견되었습니다.
+changerequest.sheet.tab.checks.conflicts.needsrefresh.body=해결되지 않은 문서 충돌이 발견되었습니다. 이는 삭제된 문서 또는 버전과 관련이 있을 수 있습니다. {0}제안된 변경사항 탭{1}을 확인하고 문서 콘텐츠를 새로 고치세요.
+changerequest.sheet.fixconflict.button=충돌 수정
+changerequest.sheet.tab.review.approvers.title=승인자
+changerequest.sheet.tab.review.approvers.noapprover=이 변경 요청 에 대한 승인자가 명시적으로 정의되지 않았습니다 . 승인자는 전적으로 승인 권한을 기반으로 합니다.
+changerequest.sheet.tab.review.approvers.approverslist=이 변경 요청 승인자 :
+changerequest.sheet.tab.review.title.approved={0}에 의해 승인됨
+changerequest.sheet.tab.review.title.notapproved={0}님이 변경을 요청했습니다
+changerequest.sheet.tab.review.title.approved.onbehalf={1}을(를) 대신하여 {0}에 의해 승인됨
+changerequest.sheet.tab.review.title.notapproved.onbehalf={1}을(를) 대신하여 {0}이(가) 변경을 요청했습니다
+changerequest.sheet.tab.review.title.outdated=시대에 뒤쳐진
+changerequest.sheet.tab.review.title.outdated.title=이 리뷰 는 더 이상 유효하지 않으며 리뷰 워크플로 에서 무시됩니다 .
+changerequest.sheet.tab.review.button.markinvalid=무효화
+changerequest.sheet.tab.review.button.markinvalid.title=이 리뷰를 오래된 것으로 표시
+changerequest.sheet.tab.review.button.markvalid=복원하다
+changerequest.sheet.tab.review.button.markvalid.title=이 리뷰를 유효한 것으로 다시 한 번 표시하세요
+changerequest.sheet.tab.review.button.add=새로운 리뷰
+changerequest.sheet.tab.checks.approvalStrategy.title=승인 전략
+changerequest.sheet.tab.checks.approvalStrategy.body.cannotBeLoaded=승인 전략을 로드할 수 없습니다.
+changerequest.sheet.checks.button=출판 준비가 안 됨
+changerequest.sheet.checks.button.title=필수 조건이 충족되지 않았습니다. 문서를 게시하기 전에 수정해야 할 사항을 보려면 클릭하세요.
+changerequest.sheet.checks.status.ready.explanation=이 변경 요청을 검토 할 준비가 되었습니다 .
+changerequest.sheet.checks.status.draft.explanation=이 변경 요청은 초안(작업 진행 중)으로 표시되었으며 작성자가 " 검토 준비 완료 "로 표시하기로 결정한 경우에만 검토하고 게시할 수 있습니다.
+changerequest.sheet.checks.status.closed.explanation=이 변경 요청은 취소/종료되었으므로 현재 상태에서는 편집하거나 검토할 수 없습니다.
+changerequest.sheet.close.button=닫다
+changerequest.sheet.close.button.title=변경 요청을 삭제하지 않고 닫거나 취소합니다 .
+changerequest.sheet.open.button=열려 있는
+changerequest.sheet.open.button.title=변경 요청을 다시 열고 상태를 " 검토 준비 완료 "로 설정합니다.
+changerequest.sheet.open_draft.button=초안으로 열기
+changerequest.sheet.open_draft.button.title=변경 요청을 다시 열고 상태를 "초안"으로 설정합니다.
+changerequest.filechange.type.EDITION=편집
+changerequest.filechange.type.DELETION=삭제
+changerequest.filechange.type.CREATION=창조
+changerequest.filechange.type.NO_CHANGE=변경 없음
+changerequest.livetable.filechange.doc.location=대상 위치
+changerequest.livetable.filechange.doc.title=제안된 제목
+changerequest.livetable.filechange.filechange_type=변경 유형
+changerequest.livetable.filechange.filechange_author=변경 작성자
+changerequest.livetable.filechange.filechange_version=임시 버전
+changerequest.livetable.filechange.filechange_documentVersion=게시된 버전
+changerequest.livetable.filechange._actions=행위
+changerequest.sheet.tab.approvers.title=승인자
+changerequest.sheet.hide=숨다
+changerequest.sheet.view=보다
+ChangeRequest.Code.ConfigurationClass_approvalStrategy=출판 승인 전략
+ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=변경 요청을 게시할 수 있는지 결정하는 데 사용되는 전략입니다 .
+ChangeRequest.Code.ConfigurationClass_changeRequestLocation=변경 요청 저장 위치
+ChangeRequest.Code.ConfigurationClass_changeRequestLocation.hint=변경 요청 문서 및 데이터가 저장되는 공간 입니다.
+ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale=오래된 변경 요청 시간 초과
+ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale.hint=변경 요청이 "stale" 상태로 유지되는 것이 허용되는 일수입니다. 이 기간이 경과하면 시스템은 상태를 "closed"로 변경하고 관련 알림을 발행합니다. 경과된 시간은 변경 요청이 생성되거나 업데이트된 시점(타임아웃에 대한 생성 날짜 사용 참조) 또는 변경 요청이 "stale" 상태로 설정된 시점(변경 요청 시간 제한 열기 참조)부터 계산됩니다. 기능을 비활성화하려면 값을 0으로 설정합니다.
+ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale=공개 변경 요청 시간 초과
+ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale.hint=변경 요청이 "열린" 상태로 유지될 수 있는 일수 입니다. 이 기간이 경과되면 시스템은 상태를 "stale"로 변경하고 관련 알림을 발행합니다. 경과 시간은 변경 요청이 마지막으로 수정된 시간이나 변경 요청이 생성된 시간부터 계산됩니다. 어느 것이 적용되는지 확인하려면 "시간 초과에 생성 날짜 사용" 필드를 참조하세요. 기능을 비활성화하려면 값을 0으로 설정하십시오.
+ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations=시간 초과에 생성 날짜 사용
+ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations.hint=예를 선택하면 생성 날짜가 오래된 변경 요청을 검색하는 데만 사용된다는 의미입니다 . 아니요를 선택하면 변경 요청 의 마지막 활동이 사용됩니다.
+ChangeRequest.Code.ConfigurationClass_schedulerContextUser=예약된 작업 사용자
+ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=이 사용자는 지정된 일정에 따라 변경 요청을 "오래됨" 또는 "닫힘"으로 자동 설정할 때 작성자로 사용됩니다 . 이 작업과 관련된 알림도 이 사용자에 의해 발행됩니다. 사용자를 지정하지 않으면 확장을 설치한 사용자가 사용됩니다.
+ChangeRequest.Code.ConfigurationClass_mergeUser=출판 사용자
+ChangeRequest.Code.ConfigurationClass_mergeUser.hint=사용자가 지정된 경우 변경 요청을 게시할 때 이 사용자가 항상 사용됩니다. 이 사용자는 적절한 권한을 가지고 있어야 합니다. 사용자를 지정하지 않은 경우 사용자가 게시 버튼을 클릭하면 게시가 수행됩니다.
+ChangeRequest.Code.ConfigurationClass_delegateEnabled=위임 승인자 활성화
+ChangeRequest.Code.ConfigurationClass_delegateEnabled.hint=활성화된 경우 대리인 승인 메커니즘의 사용을 허용합니다. 대리인은 문서의 명시적 승인자를 대신하여 검토를 수행할 수 있는 사용자입니다.
+ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=대리자 계산에 사용할 사용자 속성
+ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=위임 승인자를 자동으로 계산할 때 고려해야 하는 사용자 프로필의 필드를 지정하려면 이 옵션을 사용합니다. 목록이 비어 있으면 대리인을 수동으로 설정해야 합니다.
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=작성자가 자신이 작성한 변경 요청을 검토하지 못하도록 방지
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=이 옵션을 선택하면 작성자는 자신이 작성한 변경 요청을 검토 할 수 없습니다 .
+ChangeRequest.Code.ConfigurationClass_minimumApprovers=최소 명시적 승인자 수
+ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=변경 요청 에 필요한 최소 승인자 수를 정의합니다 . 0은 최소값이 없음을 의미합니다.
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=렌더링된 Diff 보기 활성화
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=활성화되면 페이지 변경 사항의 실제 렌더링과의 차이점을 볼 수 있습니다. 
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=렌더링된 diff에 사용할 보안 정책
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=기본 정책은 가장 안전하지만 스크립트가 기본 문서 시트의 일부인 경우에도 모든 스크립트가 렌더링되지 않도록 합니다. 이 자세는 다른 접근법 중 하나를 선택하여 완화할 수 있습니다.
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers=승인권한이 있는 승인자만 승인
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=체크 시 승인자로 제안된 사용자에 대한 승인 권한이 있는지 체계적으로 검증합니다.
+changerequest.diffRender.name.default=기본 정책
+changerequest.diffRender.description.default=렌더링된 diff에 대한 가장 안전한 정책: 스크립트가 실행되지 않도록 합니다.
+changerequest.diffRender.name.guestright=게스트 작성자 권한 정책
+changerequest.diffRender.description.guestright=이 정책은 게스트 사용자 권한을 사용하여 페이지를 렌더링합니다. 마치 게스트가 작성자인 것처럼 변경 사항이 렌더링됩니다.
+changerequest.diffRender.name.authorright=저자 권한 정책 변경
+changerequest.diffRender.description.authorright=이 정책은 변경을 제안하는 사용자의 권한을 사용하여 페이지를 렌더링합니다. 작성자에게 스크립트 권한이 있는 경우 이 정책을 사용하면 게시되지 않은 스크립트가 실행될 수 있으므로 주의해서 사용하세요.
+changerequest.diff.rendered.warningNotExact=이는 문서가 게시된 후 렌더링되는 방식에 대한 대략적인 것입니다. 보안상의 이유로 리치 콘텐츠의 렌더링이 제한되거나 사용 불가능할 수 있습니다. 리치 콘텐츠는 매크로에 표시되는 경우가 많으므로 이 보기에서는 이러한 콘텐츠 요소가 차단될 가능성이 높습니다. JavaScript를 사용하거나 특정 사용자 정보에 액세스하는 매크로는 특히 민감합니다.
+changerequest.moreactions.manageapprovers=승인자 관리
+changerequest.moreactions.deletionrequest=삭제 요청
+changerequest.moreactions.splitcr=이 변경 요청 분할
+changerequest.moreactions.splitcr.confirm=이 변경 요청을 분할하시겠습니까 ? 수정된 각 문서에 대해 새 변경 요청을 생성하고 현재 변경 요청을 삭제합니다 . 이 작업은 되돌릴 수 없으며 들어오는 링크가 끊어질 수 있습니다.
+ChangeRequest.Code.ApproversClass_usersApprovers=승인할 수 있는 사용자
+ChangeRequest.Code.ApproversClass_usersApprovers_hint=이 문서에 대한 모든 변경 사항을 승인할 수 있는 Wiki 사용자입니다.
+ChangeRequest.Code.ApproversClass_groupsApprovers=승인할 수 있는 그룹
+ChangeRequest.Code.ApproversClass_groupsApprovers_hint=이 문서에 대한 모든 변경 사항을 승인할 수 있는 Wiki 사용자 그룹입니다.
+ChangeRequest.Code.ApproversClass_manualEdition=수동으로 편집됨
+ChangeRequest.Code.ApproversClass_manualEdition_hint=새 변경 사항이 게시될 때 승인자가 자동으로 동기화되지 않도록 하려면 이 확인란을 선택하세요.
+changerequest.timeline.changerequest.create={0}님이 다음에 대한 변경사항을 포함하여 이 변경 요청을 작성했습니다.&lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.create.fromSplit={0}님이 다음 에 대한 기존 변경 요청을 분할하여 이 변경 요청을 작성했습니다.&lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.filechange.added={0}님이 다음에 대한 새로운 변경 사항을 추가했습니다.&lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.status.modified={0}님이 변경 요청 상태를 {1}에서 {2}(으)로 변경했습니다
+changerequest.timeline.changerequest.review.added.approval={0}님이 새로운 승인 검토를 추가했습니다
+changerequest.timeline.changerequest.review.added.requestchanges={0}님 이 변경을 요청하는 새 리뷰를 추가했습니다
+changerequest.timeline.changerequest.review.added.approval.delegate={0}이 (가) {1}을(를) 대신하여 새 승인 검토를 추가했습니다
+changerequest.timeline.changerequest.review.added.requestchanges.delegate={0} 님이 {1}님을 대신하여 변경을 요청하는 새 리뷰를 추가했습니다
+changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0}님이 {1}새 일반 댓글{2}을 추가했습니다
+changerequest.timeline.changerequest.discussions.LINE_DIFF={0}님이 {1}새 문서 댓글{2}을 추가했습니다
+changerequest.timeline.changerequest.discussions.REVIEW={0}님이 {1}새 리뷰 댓글{2}을 추가했습니다
+changerequest.timeline.changerequest.updated={0}님이 변경 요청 의 설명이나 제목을 편집했습니다
+changerequest.timeline.changerequest.stale={0} 님 이 변경 요청을 오래된 것으로 표시했습니다
+changerequest.timeline.changerequest.rebased.all={0}이(가) 전체 변경 요청 의 내용을 새로 고쳤습니다
+changerequest.timeline.changerequest.rebased.filechange={0}님이 다음에 대한 변경 사항을 새로 고쳤습니다.&lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.timeline.changerequest.rebased.conflictFixing={0}님이 다음에 대한 충돌을 수정했습니다.&lt;a href="{1}"&gt;{2}&lt;/a&gt;
+changerequest.sheet.description.placeholder=설명을 제공하려면 오른쪽의 편집 링크를 클릭하세요.
+changerequest.sheet.existingChangeRequestSameChanges=여기에서 수정된 페이지 중 하나 또는 여러 개에 대해 다른 변경 요청이 존재합니다:
+changerequest.sheet.checks.otherCR.title=이 문서 중 일부에 대한 변경 요청이 이미 존재합니다
+changerequest.sheet.ready.button.title=이 변경 요청을 검토 준비됨으로 표시
+changerequest.sheet.ready.button=검토 준비 완료로 표시
+changerequest.sheet.draft.button.title=이 변경 요청을 초안 변경 요청 으로 변환합니다 .
+changerequest.sheet.draft.button=초안으로 변환
+changerequest.sheet.review.button.title=현재 변경 요청 검토
+changerequest.sheet.review.button=검토
+changerequest.sheet.diff.conflictLabel=갈등
+changerequest.sheet.diff.conflictLabel.title=일부 변경 사항은 이 문서의 최신 게시 버전과 충돌합니다. 이 콘텐츠를 게시된 문서에 병합하려면 먼저 충돌을 해결해야 합니다.
+changerequest.sheet.message.outdated=시대에 뒤쳐진
+changerequest.sheet.message.outdated.title=이 메시지는 오래되었습니다. 메시지가 언급된 문서 내용이 게시된 이후 변경되었습니다.
+changerequest.sheet.diff.outdated=시대에 뒤쳐진
+changerequest.sheet.diff.outdated.title=이 변경 요청이 작성된 이후 이 문서의 게시된 버전이 변경되었습니다 . 이 보기에는 변경 요청이 새로 고쳐질 때까지 게시된 버전과 관련된 변경 사항이 표시되지 않습니다 .
+changerequest.sheet.diff.nochange=변경 없음
+changerequest.sheet.diff.approverLabel=승인자
+changerequest.sheet.diff.approverLabel.title=귀하는 이 문서의 승인자로 지명되었습니다. 그러나 이 변경 요청을 검토하는 동안 귀하가 승인자인 문서를 뒷받침하는 다른 문서 변경 사항을 승인/거부해야 할 수도 있습니다. 귀하의 승인은 전체 변경 요청 에 적용됩니다 .
+changerequest.sheet.diff.delegateApproverLabel=위임 승인자
+changerequest.sheet.diff.delegateApproverLabel.title=귀하는 이 문서의 승인 대리인입니다. 그러나 이 변경 요청을 검토하는 동안 귀하는 승인을 위임한 문서를 지원하는 다른 문서 변경 사항을 승인/거부해야 할 수도 있습니다. 귀하의 승인은 전체 변경 요청 에 적용됩니다 .
+changerequest.sheet.diff.detailsButton=세부 정보보기
+changerequest.sheet.diff.details.location.metadata=페이지 속성
+changerequest.sheet.diff.details.location.attachment=첨부 파일의 속성 {0}
+changerequest.sheet.diff.details.location.xobject=객체 {0}의 속성
+changerequest.sheet.diff.details.location.xclass=클래스 {0}의 속성
+changerequest.sheet.diff.details.propertyName=속성 이름: {0}
+changerequest.sheet.message.collapse.button.title=메시지를 축소하려면 클릭하세요.
+changerequest.sheet.message.expand.button.title=메시지를 확장하려면 클릭하세요.
+changerequest.sheet.message.reply.button.title=이 메시지에 답장하기
+changerequest.sheet.message.reply.button=회신하다
+changerequest.minimumApprovers.warning=이 문서에 대한 최소 명시적 승인자 수가 충족되지 않았습니다.
+changerequest.conflict.modal.title=충돌 해결
+changerequest.conflict.modal.description=이 인터페이스를 사용하면 게시된 문서와 자동으로 병합할 수 없는 콘텐츠를 수동으로 해결할 수 있습니다. 결과를 선택하기 전에 문서 버전 간을 탐색할 수 있습니다.
+changerequest.conflict.modal.description.EDITION=수정하려는 페이지가 이 변경 요청이 작성된 이후 문서의 동일한 부분에서 수정되었기 때문에 이 문서는 충돌합니다. 게시된 변경 사항을 이 변경 요청 의 콘텐츠로 재정의하거나 게시된 문서가 제안된 변경 사항을 재정의하도록 할 수 있습니다. 또는 문서의 두 버전 모두에서 정보를 캡처하도록 콘텐츠를 수동으로 정의할 수 있습니다.
+changerequest.conflict.modal.description.CREATION=이 변경 요청을 제출하는 동안 작성하려는 페이지가 생성되었기 때문에 이 문서는 충돌합니다 . 변경 사항을 게시하거나 게시된 버전을 사용할 수 있습니다.
+changerequest.conflict.modal.recommended=추천
+changerequest.conflict.modal.options.keepcr.title=제안된 변경사항 유지
+changerequest.conflict.modal.options.keepcr.description=게시된 문서를 제안된 변경 사항으로 덮어쓰고 충돌이 없는 부분을 병합합니다
+changerequest.conflict.modal.options.keeppublished.title=게시된 버전 유지
+changerequest.conflict.modal.options.keeppublished.description=제안된 변경 사항을 폐기하고 충돌이 없는 경우 병합합니다
+changerequest.conflict.modal.custom.hint.disabled=이 옵션은 비활성화되어 있습니다. 사용자 정의 해결 방법으로 처리할 수 없는 문서의 일부에서 충돌이 발생했습니다.
+changerequest.conflict.modal.diffoption.previous=원본 문서(기준)
+changerequest.conflict.modal.diffoption.next=제안된 변경 사항
+changerequest.conflict.modal.diffoption.current=최신 출판물
+changerequest.conflict.modal.diffoption.merged=해결방법: 최신 출판물 우선
+changerequest.conflict.modal.diffoption.merged_crfallback=결의 : 제안 우선순위
+changerequest.conflict.modal.customchoices.current=게시된 변경사항
+changerequest.conflict.modal.customchoices.next=현재 변경 사항
+changerequest.conflict.modal.customchoices.previous=원래 변경사항
+changerequest.conflict.modal.customchoices.custom=맞춤 변경사항
+changerequest.savemodal.approvers.edition.warning=문서가 게시되면 승인자 목록에 대한 모든 변경 사항은 변경 사항이 공개 검토 주기에 영향을 미치기 전에 기존 승인자 목록의 승인을 받아야 합니다. 이 변경 요청 에 제안된 변경 사항에 대해 승인자를 추가하거나 제거하려면 새로운 승인자 세트가 포함된 새 변경 요청을 개설하십시오 . 이 변경 요청은 승인자에게 제안된 변경 사항이 승인되면 자동으로 업데이트됩니다.
+changerequest.savemodal.approvers.header.title=승인자 관리
+changerequest.savemodal.approvers.header.hint=이 문서의 변경 사항을 검토 할 수 있는 사용자 및/또는 그룹 목록을 지정합니다 . 이러한 사용자는 변경 요청 과 함께 검토를 위해 제출됩니다 .
+changerequest.savemodal.approvers.heading=승인자
+changerequest.savemodal.approvers.users=승인할 수 있는 사용자
+changerequest.savemodal.approvers.groups=승인할 수 있는 그룹
+changerequest.savemodal.approvers.minimumUsers.hint=최소 {0}명의 사용자를 선택해야 합니다.
+changerequest.savemodal.error.missingChangerequest=새 변경 요청 제목을 입력하거나 기존 변경 요청을 선택하십시오 .
+changerequest.savemodal.error.minimumApprovers=최소 {0}명의 승인자를 선택해야 합니다.
+changerequest.savemodal.error.approversLackRight=선택한 승인자 중 일부 또는 전체가 이 문서에 대한 보기 권한이 없습니다.
+changerequest.savemodal.error.otherError=이 변경 요청을 저장할 수 없습니다. 새 변경 요청을 작성하거나 다른 변경 요청 에 변경 사항을 추가해 보십시오 . 다음 오류가 발생했습니다:
+changerequest.sheet.message.reply.header={1}을(를) 보낸 {0}의 메시지에 답장하세요.
+changerequest.sheet.message.reply.link.title=이전 메시지로 이동하려면 클릭하세요.
+changerequest.livetable.approvers.reviews.performed=검토 수행됨
+changerequest.livetable.approvers.reviews.alreadyReviewed=이미 검토됨
+changerequest.review.modal.title=이 변경 요청을 검토하세요
+changerequest.review.modal.selectApprover.title=다음을 대신하여 검토:
+changerequest.review.modal.selectApprover.hint=귀하가 대신하여 이 검토를 수행하는 사용자를 선택하십시오 .
+changerequest.review.modal.selectApprover.themselves=직접 검토하세요
+changerequest.review.modal.choice.approve=이 변경 요청 승인
+changerequest.review.modal.choice.requestChanges=변경 요청
+changerequest.review.modal.comment.label=의견 제공
+changerequest.review.modal.warningConflict=검토 하려는 문서 중 하나 이상이 문서의 게시된 버전과 충돌합니다. 충돌을 관리하는 과정에서 문서를 새로 고치거나 수정하면 검토가 무효화 됩니다 .
+changerequest.review.modal.warningReview=귀하는 이미 이 변경 요청을 검토했습니다 . 이 검토로 인해 귀하의 기존 응답이 무효화됩니다.
+changerequest.review.modal.warningReview.onBehalf=이 변경 요청 에 대한 유효한 검토가 이미 존재합니다. {0}에 의해 또는 그를 대신하여 수행되었습니다. 이 검토로 인해 기존 응답이 무효화됩니다.
+</content>
+  </xwikidoc>
