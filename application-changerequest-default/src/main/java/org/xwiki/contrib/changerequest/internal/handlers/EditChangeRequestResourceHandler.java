@@ -183,10 +183,11 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
             editedDocument = getEditedDocument(context);
         } else {
             editedDocument = modifiedDocument.clone();
-            // Ensure to have the modified attachment in the temporary session manager so that they can be retrieved.
-            // FIXME: It's not very clean as we never clean up the temporary attachments...
-            this.handleAttachments(editedDocument);
         }
+        // Ensure to have the modified attachment in the temporary session manager so that they can be retrieved.
+        // FIXME: It's not very clean as we never clean up the temporary attachments...
+        this.handleAttachments(editedDocument);
+        context.put("doc", editedDocument);
 
         // We always force the lock in change request edition, since the goal is to create a change request:
         // we don't want to get warnings about another edition session already existing.
@@ -285,7 +286,6 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         // We have to clone the context document because it is cached and the changes we are going to make are valid
         // only for the duration of the current request.
         doc = doc.clone();
-        context.put("doc", doc);
 
         EditForm editForm = (EditForm) context.getForm();
         doc.readDocMetaFromForm(editForm, context);
