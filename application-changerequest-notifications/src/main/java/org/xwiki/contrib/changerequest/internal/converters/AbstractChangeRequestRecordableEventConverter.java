@@ -66,7 +66,7 @@ public abstract class AbstractChangeRequestRecordableEventConverter<T extends Ab
     public Event convert(RecordableEvent recordableEvent, String source, Object data) throws Exception
     {
         Event result = this.defaultConverter.convert(recordableEvent, source, data);
-        Map<String, String> parameters = new HashMap<>(result.getParameters());
+        Map<String, Object> parameters = new HashMap<>(result.getCustom());
 
         T crEvent = (T) recordableEvent;
         parameters.put(CHANGE_REQUEST_ID_PARAMETER_KEY, crEvent.getChangeRequestId());
@@ -78,7 +78,7 @@ public abstract class AbstractChangeRequestRecordableEventConverter<T extends Ab
         result.setGroupId(crEvent.getEventName());
         parameters.putAll(this.getSpecificParameters(crEvent));
 
-        result.setParameters(parameters);
+        result.setCustom(parameters);
         return result;
     }
 

@@ -67,10 +67,10 @@ class ChangeRequestFileChangeAddedRecordableEventConverterTest
         when(recordableEvent.getChangeRequestId()).thenReturn(crId);
         when(recordableEvent.getEventName()).thenReturn(eventName);
 
-        Map<String, String> originalEventParameters = Collections.singletonMap("Foo", "42");
-        when(event.getParameters()).thenReturn(originalEventParameters);
+        Map<String, Object> originalEventParameters = Collections.singletonMap("Foo", "42");
+        when(event.getCustom()).thenReturn(originalEventParameters);
 
-        Map<String, String> expectedParameters = new HashMap<>(originalEventParameters);
+        Map<String, Object> expectedParameters = new HashMap<>(originalEventParameters);
         expectedParameters.put(ChangeRequestFileChangeAddedRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY, crId);
 
         String fileChangeId = "fileChangeid548";
@@ -80,6 +80,6 @@ class ChangeRequestFileChangeAddedRecordableEventConverterTest
         assertSame(event, this.converter.convert(recordableEvent, source, data));
         verify(event).setType(eventName);
         verify(event).setGroupId(eventName);
-        verify(event).setParameters(expectedParameters);
+        verify(event).setCustom(expectedParameters);
     }
 }

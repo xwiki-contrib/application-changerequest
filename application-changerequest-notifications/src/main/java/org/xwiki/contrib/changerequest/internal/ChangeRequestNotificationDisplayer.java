@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -29,19 +30,14 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
-import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
-import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestUpdatedRecordableEvent;
-import org.xwiki.contrib.changerequest.notifications.events.DocumentModifiedInChangeRequestEvent;
 import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
 import org.xwiki.eventstream.Event;
 import org.xwiki.model.reference.DocumentReference;
@@ -72,9 +68,6 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     private static final String EVENT_TYPE_PREFIX = "changerequest.";
 
     @Inject
-    private NotificationDisplayer defaultNotificationDisplayer;
-
-    @Inject
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
@@ -83,18 +76,15 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     @Inject
     private ScriptContextManager scriptContextManager;
 
-    @Inject
-    private Logger logger;
-
     private Map<Event, DocumentReference> getChangeRequestReferences(CompositeEvent compositeEvent)
         throws NotificationException
     {
         Map<Event, DocumentReference> result = new HashMap<>();
         for (Event event : compositeEvent.getEvents()) {
-            Map<String, String> parameters = event.getParameters();
+            Map<String, Object> parameters = event.getCustom();
             if (parameters.containsKey(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY)) {
-                String crId =
-                    parameters.get(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY);
+                String crId = (String) parameters
+                    .get(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY);
                 // We don't load the change request on purpose here:
                 // we still want it to be resolved even if it has been deleted, so that the notifications are displayed.
                 ChangeRequest changeRequest = new ChangeRequest();
@@ -112,41 +102,25 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     }
 
     @Override
-    public Block renderNotification(CompositeEvent compositeEvent) throws NotificationException
+    public Block renderNotification(CompositeEvent originalCompositeEvent) throws NotificationException
     {
         Block result = new GroupBlock();
-        String eventType = compositeEvent.getType();
-        boolean shouldFallback = !eventType.contains(EVENT_TYPE_PREFIX);
-        Map<Event, DocumentReference> changeRequestReferences = null;
-        try {
-            changeRequestReferences = this.getChangeRequestReferences(compositeEvent);
-        } catch (NotificationException e) {
-            logger.warn("Error while trying to get change request references: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            shouldFallback = true;
-        }
-        if (shouldFallback) {
-            result = this.defaultNotificationDisplayer.renderNotification(compositeEvent);
-        } else {
-            ScriptContext scriptContext = scriptContextManager.getScriptContext();
+        List<CompositeEvent> compositeEvents = this.splitEvents(originalCompositeEvent);
+        ScriptContext scriptContext = scriptContextManager.getScriptContext();
 
-            if (eventType.contains(EVENT_TYPE_PREFIX)) {
-                eventType = eventType.substring(EVENT_TYPE_PREFIX.length());
-            }
+        for (CompositeEvent compositeEvent : compositeEvents) {
+            Map<Event, DocumentReference> changeRequestReferences = this.getChangeRequestReferences(compositeEvent);
+            String templateName = getTemplateName(compositeEvent.getType());
+            scriptContext.setAttribute(EVENT_BINDING_NAME, compositeEvent, ScriptContext.ENGINE_SCOPE);
+            scriptContext.setAttribute(CHANGE_REQUEST_REFERENCES_BINDING_NAME, changeRequestReferences,
+                ScriptContext.ENGINE_SCOPE);
 
-            String templateName = String.format(TEMPLATE_PATH, eventType);
             try {
-                scriptContext.setAttribute(EVENT_BINDING_NAME, compositeEvent, ScriptContext.ENGINE_SCOPE);
-                scriptContext.setAttribute(CHANGE_REQUEST_REFERENCES_BINDING_NAME, changeRequestReferences,
-                    ScriptContext.ENGINE_SCOPE);
-
                 Template template = templateManager.getTemplate(templateName);
                 if (template != null) {
                     result.addChildren(templateManager.execute(template).getChildren());
                 } else {
-                    logger.warn("Cannot find template [{}] the notification display will fallback on "
-                            + "default displayer.", templateName);
-                    result = this.defaultNotificationDisplayer.renderNotification(compositeEvent);
+                    throw new NotificationException(String.format("Cannot find template [%s]", templateName));
                 }
             } catch (Exception e) {
                 throw new NotificationException("Failed to render the notification.", e);
@@ -154,6 +128,31 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
                 scriptContext.removeAttribute(EVENT_BINDING_NAME, ScriptContext.ENGINE_SCOPE);
                 scriptContext.removeAttribute(CHANGE_REQUEST_REFERENCES_BINDING_NAME, ScriptContext.ENGINE_SCOPE);
             }
+        }
+        return result;
+    }
+
+    private String getTemplateName(String eventType)
+    {
+        String eventName = eventType;
+        if (eventName.contains(EVENT_TYPE_PREFIX)) {
+            eventName = eventName.substring(EVENT_TYPE_PREFIX.length());
+        }
+
+        return String.format(TEMPLATE_PATH, eventName);
+    }
+
+    private List<CompositeEvent> splitEvents(CompositeEvent compositeEvent)
+    {
+        List<CompositeEvent> result;
+        // We never want the create event to be grouped together.
+        if (compositeEvent.getType().equals(ChangeRequestCreatedRecordableEvent.EVENT_NAME)) {
+            result = new ArrayList<>();
+            for (Event event : compositeEvent.getEvents()) {
+                result.add(new CompositeEvent(event));
+            }
+        } else {
+            result = List.of(compositeEvent);
         }
         return result;
     }
@@ -166,9 +165,6 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
             ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME,
             ChangeRequestReviewAddedRecordableEvent.EVENT_NAME,
             ChangeRequestStatusChangedRecordableEvent.EVENT_NAME,
-            DocumentModifiedInChangeRequestEvent.EVENT_NAME,
-            ChangeRequestDiscussionRecordableEvent.EVENT_NAME,
-            ChangeRequestUpdatedRecordableEvent.EVENT_NAME,
             StaleChangeRequestRecordableEvent.EVENT_NAME,
             ChangeRequestRebasedRecordableEvent.EVENT_NAME
         );
