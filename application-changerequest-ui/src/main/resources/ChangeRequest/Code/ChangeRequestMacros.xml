@@ -215,15 +215,27 @@
   #if ($event.type == 'changerequest.document.modified')
     #set ($skip = true)
   #elseif ($event.type == 'changerequest.create')
+    ## Backward compatibility mechanism: before 1.13 events were sent with the modified doc as data, not the CR doc
+    ## so we cannot rely on the event.document all the time to display properly the info.
+    #set ($eventDoc = $event.document)
     #set ($actualDoc = $xwiki.getDocument($event.document))
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+    #if ($actualDoc == $doc)
+      #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequest, $fileChangeId))
+      #if ($fileChangeOpt.isPresent())
+        #set ($eventDoc = $fileChangeOpt.get().targetEntity)
+        #set ($actualDoc = $xwiki.getDocument($eventDoc))
+      #else
+        #set ($skip = true)
+      #end
+    #end
     #if ("$!fileChangeId" != '')
       #set ($title = $services.changerequest.getPageTitle($changeRequest.id, $fileChangeId))
     #end
     #if ("$!title" == '')
       #set ($title = $actualDoc.displayTitle)
     #end
-    #set ($localizationArguments = [$userArgument, $xwiki.getURL($event.document), $escapetool.xml($title)])
+    #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $escapetool.xml($title)])
     #set ($icon = 'space')
   #elseif ($event.type == 'changerequest.filechange.added')
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
