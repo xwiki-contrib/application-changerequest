@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +63,7 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
 {
     private static final String EVENT_BINDING_NAME = "compositeEvent";
     private static final String CHANGE_REQUEST_REFERENCES_BINDING_NAME = "changeRequestReferences";
-    private static final String TEMPLATE_PATH = "changerequest/%s.vm";
+    private static final String TEMPLATE_PATH = "changerequest/alert/%s.vm";
     private static final String EVENT_TYPE_PREFIX = "changerequest.";
 
     @Inject
@@ -75,6 +74,9 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
 
     @Inject
     private ScriptContextManager scriptContextManager;
+
+    @Inject
+    private ChangeRequestGroupingStrategy groupingStrategy;
 
     private Map<Event, DocumentReference> getChangeRequestReferences(CompositeEvent compositeEvent)
         throws NotificationException
@@ -105,7 +107,7 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     public Block renderNotification(CompositeEvent originalCompositeEvent) throws NotificationException
     {
         Block result = new GroupBlock();
-        List<CompositeEvent> compositeEvents = this.splitEvents(originalCompositeEvent);
+        List<CompositeEvent> compositeEvents = this.groupingStrategy.groupEvents(originalCompositeEvent);
         ScriptContext scriptContext = scriptContextManager.getScriptContext();
 
         for (CompositeEvent compositeEvent : compositeEvents) {
@@ -140,21 +142,6 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
         }
 
         return String.format(TEMPLATE_PATH, eventName);
-    }
-
-    private List<CompositeEvent> splitEvents(CompositeEvent compositeEvent)
-    {
-        List<CompositeEvent> result;
-        // We never want the create event to be grouped together.
-        if (compositeEvent.getType().equals(ChangeRequestCreatedRecordableEvent.EVENT_NAME)) {
-            result = new ArrayList<>();
-            for (Event event : compositeEvent.getEvents()) {
-                result.add(new CompositeEvent(event));
-            }
-        } else {
-            result = List.of(compositeEvent);
-        }
-        return result;
     }
 
     @Override

@@ -69,6 +69,9 @@ class ChangeRequestNotificationDisplayerTest
     @MockComponent
     private ScriptContextManager scriptContextManager;
 
+    @MockComponent
+    private ChangeRequestGroupingStrategy groupingStrategy;
+
     @Test
     void renderNotification() throws Exception
     {
@@ -79,6 +82,7 @@ class ChangeRequestNotificationDisplayerTest
         Event event3 = mock(Event.class, "event3");
 
         when(compositeEvent.getEvents()).thenReturn(List.of(event1, event2, event3));
+        when(this.groupingStrategy.groupEvents(compositeEvent)).thenReturn(List.of(compositeEvent));
 
         String cr1 = "cr1";
         String cr2 = "cr2";
@@ -107,7 +111,7 @@ class ChangeRequestNotificationDisplayerTest
         );
 
         Template template = mock(Template.class);
-        when(this.templateManager.getTemplate("changerequest/filechange.added.vm")).thenReturn(template);
+        when(this.templateManager.getTemplate("changerequest/alert/filechange.added.vm")).thenReturn(template);
 
         XDOM xdom = mock(XDOM.class);
         Block block = mock(Block.class);
@@ -161,7 +165,7 @@ class ChangeRequestNotificationDisplayerTest
         });
 
         Template template = mock(Template.class);
-        when(this.templateManager.getTemplate("changerequest/create.vm")).thenReturn(template);
+        when(this.templateManager.getTemplate("changerequest/alert/create.vm")).thenReturn(template);
 
         XDOM xdom = mock(XDOM.class);
         Block block = mock(Block.class);
@@ -174,6 +178,9 @@ class ChangeRequestNotificationDisplayerTest
         CompositeEvent compositeEvent1 = new CompositeEvent(event1);
         CompositeEvent compositeEvent2 = new CompositeEvent(event2);
         CompositeEvent compositeEvent3 = new CompositeEvent(event3);
+
+        when(this.groupingStrategy.groupEvents(compositeEvent))
+            .thenReturn(List.of(compositeEvent1, compositeEvent2, compositeEvent3));
 
         GroupBlock groupBlock = new GroupBlock();
         groupBlock.addChildren(List.of(block, block, block));

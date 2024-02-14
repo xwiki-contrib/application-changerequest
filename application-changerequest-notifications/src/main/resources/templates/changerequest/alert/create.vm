@@ -1,0 +1,72 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#template('changerequest/alert/macros.vm')
+
+#macro (getCreateConcernedDocument $event)
+    #_getCREventModifiedDocument($event $modifiedDocument)
+<div class="changerequest-impacted-page">
+    #set ($title = $NULL)
+    #if ($event.parameters)
+        #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+        #set ($changeRequestId = $event.parameters.get('changerequest.id'))
+        #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
+    #end
+
+    #if ($modifiedDocument)
+        #if ("$!title" == '')
+            #set ($title = $modifiedDocument.displayTitle)
+        #end
+        <a href="$!escapetool.xml($modifiedDocument.getURL())">$escapetool.xml($title)</a>
+    #else
+        $services.localization.render('notifications.events.unknownDocument')
+    #end
+</div>
+#end
+
+###
+### Icons
+###
+#set ($eventDescriptor = $services.eventstream.getDescriptorForEventType($compositeEvent.type, $xcontext.isMainWiki()))
+#set ($mainIcon = $eventDescriptor.applicationIcon)
+#set ($smallIcon = $eventDescriptor.eventTypeIcon)
+
+## For create we never group the events.
+#set ($event = $compositeEvent.events.get(0))
+#define($content)
+<div class="notification-page">
+  #_getCRDocument($event $crDocument)
+  <a href="$!escapetool.xml($crDocument.getURL())">$crDocument.displayTitle</a>
+    ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+    ## to actually know where the request comes from.
+    #_getCRReference($event $crReference)
+    #if ($xcontext.getContext().getOriginalWikiId() != $crReference.wikiReference.name)
+        <span class="text-muted">($services.wiki.getById($crReference.wikiReference.name).prettyName)</span>
+    #end
+</div>
+<div class="notification-description">
+    $services.localization.render("changerequest.notifications.create.description",
+            ["#displayNotificationEventUser($event.user, false)", "#getCreateConcernedDocument($event)"])
+  <div><small class="text-muted">$escapetool.xml($services.date.displayTimeAgo($compositeEvent.dates.get(0)))</small></div>
+</div>
+#end
+###
+### Display
+###
+#displayNotificationEventSkeleton($mainIcon, $smallIcon, $content, "")
