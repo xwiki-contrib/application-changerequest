@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import javax.script.ScriptContext;
 
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -35,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.script.ChangeRequestNotificationsScriptService;
 import org.xwiki.contrib.changerequest.script.ChangeRequestScriptService;
 import org.xwiki.diff.display.UnifiedDiffBlock;
@@ -83,6 +85,7 @@ import static org.mockito.Mockito.when;
 class NotificationAlertPageTest extends PageTest
 {
     private static final DocumentReference USER_REFERENCE = new DocumentReference("xwiki", "XWiki", "User");
+    private static final DocumentReference USER_REFERENCE_2 = new DocumentReference("xwiki", "XWiki", "User2");
 
     private static final String TEMPLATE_PATH = "changerequest/alert/%s.vm";
     private static final String NOTIF_APPLI_NAME = "Change Request";
@@ -136,6 +139,10 @@ class NotificationAlertPageTest extends PageTest
         when(this.localizationScriptService.render(NOTIF_APPLI_NAME)).thenReturn("CR APPLI");
 
         when(this.oldcore.getMockRightService().hasProgrammingRights(this.context)).thenReturn(true);
+
+        // Mock the user's name.
+        when(this.oldcore.getSpyXWiki().getPlainUserName(USER_REFERENCE, this.context)).thenReturn("First & Name");
+        when(this.oldcore.getSpyXWiki().getPlainUserName(USER_REFERENCE_2, this.context)).thenReturn("User2");
     }
 
     @Test
@@ -175,8 +182,6 @@ class NotificationAlertPageTest extends PageTest
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent.setDate(testDate);
         testEvent.setUser(USER_REFERENCE);
-        // Mock the user's name.
-        when(this.oldcore.getSpyXWiki().getPlainUserName(USER_REFERENCE, this.context)).thenReturn("First & Name");
         testEvent.setDocument(crDocReference);
 
         String docTitle = "Modified doc title";
@@ -223,6 +228,134 @@ class NotificationAlertPageTest extends PageTest
             + "\n"
             + "          </div>\n"
             + "      </div>";
+        assertEquals(expectedResult, result.trim());
+
+        // Before 1.13 events were sent with the modified doc as data, not the CR doc
+        testEvent.setDocument(modifiedDocReference);
+        assertEquals(expectedResult, result.trim());
+    }
+
+    @Test
+    void fileChangeAddedNotificationTemplate() throws Exception
+    {
+        String fileChangeId = "fileChangeId";
+        String changeRequestId = "changeRequestId";
+
+        String fileChangeId2 = "fileChangeId2";
+        String changeRequestId2 = "changeRequestId2";
+
+        DocumentReference crDocReference = new DocumentReference("xwiki", "ChangeRequest", "CR1");
+        XWikiDocument crDoc = new XWikiDocument(crDocReference);
+        crDoc.setTitle("CR 1");
+        crDoc.setSyntax(Syntax.XWIKI_2_1);
+        this.oldcore.getSpyXWiki().saveDocument(crDoc, this.context);
+
+        DocumentReference crDocReference2 = new DocumentReference("xwiki", "ChangeRequest", "CR2");
+        XWikiDocument crDoc2 = new XWikiDocument(crDocReference2);
+        crDoc2.setTitle("CR 2");
+        crDoc2.setSyntax(Syntax.XWIKI_2_1);
+        this.oldcore.getSpyXWiki().saveDocument(crDoc2, this.context);
+
+        DocumentReference modifiedDocReference = new DocumentReference("xwiki", "Space", "ModifiedDoc");
+        XWikiDocument modifiedDoc = new XWikiDocument(modifiedDocReference);
+        modifiedDoc.setTitle("Modified document");
+        modifiedDoc.setSyntax(Syntax.XWIKI_2_1);
+        this.oldcore.getSpyXWiki().saveDocument(modifiedDoc, this.context);
+
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(this.changeRequestScriptService.getChangeRequest(changeRequestId)).thenReturn(Optional.of(changeRequest));
+        FileChange fileChange = mock(FileChange.class);
+        when(changeRequest.getFileChangeById(fileChangeId)).thenReturn(Optional.of(fileChange));
+        when(fileChange.getTargetEntity()).thenReturn(modifiedDocReference);
+
+        ChangeRequest changeRequest2 = mock(ChangeRequest.class);
+        when(this.changeRequestScriptService.getChangeRequest(changeRequestId2))
+            .thenReturn(Optional.of(changeRequest2));
+        FileChange fileChange2 = mock(FileChange.class);
+        when(changeRequest2.getFileChangeById(fileChangeId2)).thenReturn(Optional.of(fileChange2));
+        when(fileChange2.getTargetEntity()).thenReturn(modifiedDocReference);
+
+        Event testEvent1 = new DefaultEvent();
+        testEvent1.setApplication(NOTIF_APPLI_NAME);
+        testEvent1.setType(ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME);
+        testEvent1.setCustom(Map.of(
+            CR_ID_PARAM_KEY, changeRequestId,
+            FILECHANGE_ID_PARAM_KEY, fileChangeId
+        ));
+        // Mock date formatting to avoid issues with timezones.
+        Date testDate = new Date(12);
+        when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
+        testEvent1.setDate(testDate);
+        testEvent1.setUser(USER_REFERENCE);
+        testEvent1.setDocument(crDocReference);
+
+        Event testEvent2 = new DefaultEvent();
+        testEvent2.setApplication(NOTIF_APPLI_NAME);
+        testEvent2.setType(ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME);
+        testEvent2.setCustom(Map.of(
+            CR_ID_PARAM_KEY, changeRequestId2,
+            FILECHANGE_ID_PARAM_KEY, fileChangeId2
+        ));
+        // Mock date formatting to avoid issues with timezones.
+        Date testDate2 = new Date(58);
+        when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few hours ago");
+        testEvent1.setDate(testDate2);
+        testEvent1.setUser(USER_REFERENCE_2);
+        testEvent1.setDocument(crDocReference);
+
+        String docTitle = "Modified doc title";
+        when(this.changeRequestScriptService.getPageTitle(changeRequestId, fileChangeId)).thenReturn(docTitle);
+        String docTitle2 = "Modified doc title 2";
+        when(this.changeRequestScriptService.getPageTitle(changeRequestId2, fileChangeId2)).thenReturn(docTitle2);
+
+        this.context.setOriginalWikiId("xwiki");
+        when(this.localizationScriptService.render(
+            eq("changerequest.notifications.create.description"),
+            any(Collection.class)))
+            .then(invocationOnMock -> {
+                List<String> parameters = invocationOnMock.getArgument(1);
+                assertEquals(2, parameters.size());
+
+                return String.format("Change request created by %s for %s", parameters.get(0), parameters.get(1));
+            });
+
+        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        compositeEvent.add(testEvent2, 0);
+        Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference);
+        this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
+        this.scriptContext.setAttribute("compositeEvent", compositeEvent, ScriptContext.ENGINE_SCOPE);
+
+        String result = this.templateManager.render(String.format(TEMPLATE_PATH, "filechange.added"));
+        String expectedResult = "<div class=\"clearfix row\">\n"
+            + "    <div class=\"col-xs-3 notification-icon\">\n"
+            + "      <div class=\"img-thumbnail\">\n"
+            + "        Icon Branch\n"
+            + "      </div>\n"
+            + "          </div>\n"
+            + "    <div class=\"col-xs-9 notification-content\">\n"
+            + "      <div class=\"notification-page\">\n"
+            + "                <a href=\"/xwiki/bin/view/ChangeRequest/CR1\">CR 1</a>\n"
+            + "                    </div>\n"
+            + "<div class=\"notification-description\">\n"
+            + "    Change request created by             "
+            + "<span class=\"notification-event-user\" data-xwiki-lightbox=\"false\">\n"
+            + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"First &#38; Name\"/>"
+            + "User  </span> for                         \n"
+            + "                                                                                                        "
+            + "<div class=\"changerequest-impacted-page\">\n"
+            + "            \n"
+            + "                    <a href=\"/xwiki/bin/view/Space/ModifiedDoc\">Modified doc title</a>\n"
+            + "    </div>\n"
+            + "\n"
+            + "  <div><small class=\"text-muted\">A few minutes ago</small></div>\n"
+            + "</div>\n"
+            + "\n"
+            + "          </div>\n"
+            + "      </div>";
+        assertEquals(expectedResult, result.trim());
+
+        // Before 1.13 events were sent with the modified doc as data, not the CR doc
+        testEvent1.setDocument(modifiedDocReference);
         assertEquals(expectedResult, result.trim());
     }
 }

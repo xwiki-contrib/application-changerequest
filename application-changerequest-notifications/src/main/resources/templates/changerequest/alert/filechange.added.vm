@@ -62,9 +62,8 @@
                 #if ("$!description" == '')
                     #set ($description = $event.type)
                 #end
-                #set ($eventDescriptor = $services.eventstream.getDescriptorForEventType($compositeEvent.type, $xcontext.isMainWiki()))
                 <td>#displayNotificationEventUser($event.user)</td>
-                <td class="description">$services.icon.renderHTML($eventDescriptor.eventTypeIcon) $escapetool.xml($description)</td>
+                <td class="description">$services.icon.renderHTML($smallIcon) $escapetool.xml($description)</td>
                 <td class="text-right text-muted">#if($diffUrl!='')<a href="$escapetool.xml($diffUrl)">#end$escapetool.xml($xwiki.formatDate($event.date))#if($diffUrl!='')</a>#end</td>
             </tr>
             #end
