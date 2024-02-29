@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.changerequest.replication.internal.listeners;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -29,9 +28,11 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreated
 import org.xwiki.contrib.changerequest.replication.internal.messages.ChangeRequestReplicationSenderMessage;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.replication.ReplicationContext;
+import org.xwiki.contrib.replication.entity.DocumentReplicationController;
 import org.xwiki.contrib.replication.entity.DocumentReplicationLevel;
-import org.xwiki.contrib.replication.entity.DocumentReplicationSender;
-import org.xwiki.contrib.replication.entity.ReplicationSenderMessageProducer;
+import org.xwiki.contrib.replication.entity.DocumentReplicationSenderMessageBuilder;
+import org.xwiki.contrib.replication.entity.EntityReplicationBuilders;
+import org.xwiki.contrib.replication.entity.EntityReplicationSenderMessageBuilderProducer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
@@ -47,8 +48,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -66,7 +65,10 @@ class ChangeRequestCreatedListenerTest
     private ChangeRequestCreatedListener listener;
 
     @MockComponent
-    private DocumentReplicationSender documentReplicationSender;
+    private EntityReplicationBuilders entityReplicationBuilders;
+
+    @MockComponent
+    private DocumentReplicationController documentReplicationController;
 
     @MockComponent
     private RemoteObservationManagerContext remoteObservationManagerContext;
@@ -107,34 +109,41 @@ class ChangeRequestCreatedListenerTest
 
         when(this.replicationContext.isReplicationMessage()).thenReturn(true);
         this.listener.onEvent(event, null, data);
-        verifyNoInteractions(this.documentReplicationSender);
+        verifyNoInteractions(this.documentReplicationController);
 
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(true);
         when(this.replicationContext.isReplicationMessage()).thenReturn(false);
         this.listener.onEvent(event, null, data);
-        verifyNoInteractions(this.documentReplicationSender);
+        verifyNoInteractions(this.documentReplicationController);
 
         when(this.remoteObservationManagerContext.isRemoteState()).thenReturn(false);
 
         ChangeRequestReplicationSenderMessage senderMessage =
             componentManager.registerMockComponent(ChangeRequestReplicationSenderMessage.class, expectedHint);
 
-
         ChangeRequest changeRequest = mock(ChangeRequest.class);
         when(this.changeRequestStorageManager.load(crId)).thenReturn(Optional.of(changeRequest));
         DocumentReference crDocReference = mock(DocumentReference.class, "crDoc");
 
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(crDocReference);
-        doAnswer(invocationOnMock -> {
-            ReplicationSenderMessageProducer producer = invocationOnMock.getArgument(0);
-            assertEquals(senderMessage, producer.produce(null));
-            return null;
-        }).when(this.documentReplicationSender)
-            .send(any(), eq(crDocReference), eq(DocumentReplicationLevel.ALL), eq(Collections.emptyMap()), isNull());
+
+        DocumentReplicationSenderMessageBuilder messageBuilder1 = mock(DocumentReplicationSenderMessageBuilder.class,
+            "beforeLevel");
+        DocumentReplicationSenderMessageBuilder messageBuilder2 = mock(DocumentReplicationSenderMessageBuilder.class,
+            "afterLevel");
+        when(this.entityReplicationBuilders.documentMessageBuilder(
+            any(EntityReplicationSenderMessageBuilderProducer.class),
+            eq(crDocReference))
+        ).then(invocationOnMock -> {
+            EntityReplicationSenderMessageBuilderProducer producer = invocationOnMock.getArgument(0);
+            producer.produce(null, null, null, null);
+            return messageBuilder1;
+        });
+        when(messageBuilder1.minimumLevel(DocumentReplicationLevel.ALL)).thenReturn(messageBuilder2);
 
         this.listener.onEvent(event, null, data);
         verify(senderMessage).initialize(event, dataDocRef);
-        verify(this.documentReplicationSender).send(any(), eq(crDocReference), eq(DocumentReplicationLevel.ALL),
-            eq(Collections.emptyMap()), isNull());
+        verify(messageBuilder1).minimumLevel(DocumentReplicationLevel.ALL);
+        verify(this.documentReplicationController).send(messageBuilder2);
     }
 }
