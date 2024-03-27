@@ -54,6 +54,9 @@
     #define($details)
         #define($rows)
             #foreach($event in $compositeEvent.events)
+                #set ($crReference = $NULL)
+                #set ($document = $NULL)
+                #_getCRReference($event $crReference)
                 #_getCRDocument($event $document)
                 ## Diff URL
                 #set ($diffUrl = $xwiki.getURL($crReference, 'view'))

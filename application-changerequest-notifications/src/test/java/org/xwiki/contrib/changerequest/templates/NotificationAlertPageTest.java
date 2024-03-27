@@ -129,14 +129,10 @@ class NotificationAlertPageTest extends PageTest
             this.changeRequestScriptService);
         this.oldcore.getMocker().registerComponent(ScriptService.class, "wiki", this.wikiManagerScriptService);
 
-        RecordableEventDescriptor recordableEventDescriptor = mock(RecordableEventDescriptor.class);
-        when(this.eventStreamScriptService
-            .getDescriptorForEventType(ChangeRequestCreatedRecordableEvent.EVENT_NAME, true))
-            .thenReturn(recordableEventDescriptor);
-        when(recordableEventDescriptor.getApplicationName()).thenReturn(NOTIF_APPLI_NAME);
-        when(recordableEventDescriptor.getApplicationIcon()).thenReturn(DESCRIPTOR_ICON);
+
         when(this.iconManagerScriptService.renderHTML(DESCRIPTOR_ICON)).thenReturn("Icon Branch");
         when(this.localizationScriptService.render(NOTIF_APPLI_NAME)).thenReturn("CR APPLI");
+        when(this.localizationScriptService.render("notifications.macro.showEventDetails")).thenReturn("Show details");
 
         when(this.oldcore.getMockRightService().hasProgrammingRights(this.context)).thenReturn(true);
 
@@ -148,6 +144,13 @@ class NotificationAlertPageTest extends PageTest
     @Test
     void createNotificationTemplate() throws Exception
     {
+        RecordableEventDescriptor recordableEventDescriptor = mock(RecordableEventDescriptor.class);
+        when(this.eventStreamScriptService
+            .getDescriptorForEventType(ChangeRequestCreatedRecordableEvent.EVENT_NAME, true))
+            .thenReturn(recordableEventDescriptor);
+        when(recordableEventDescriptor.getApplicationName()).thenReturn(NOTIF_APPLI_NAME);
+        when(recordableEventDescriptor.getApplicationIcon()).thenReturn(DESCRIPTOR_ICON);
+
         String fileChangeId = "fileChangeId";
         String changeRequestId = "changeRequestId";
 
@@ -238,6 +241,14 @@ class NotificationAlertPageTest extends PageTest
     @Test
     void fileChangeAddedNotificationTemplate() throws Exception
     {
+        RecordableEventDescriptor recordableEventDescriptor = mock(RecordableEventDescriptor.class);
+        when(this.eventStreamScriptService
+            .getDescriptorForEventType(ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME, true))
+            .thenReturn(recordableEventDescriptor);
+        when(recordableEventDescriptor.getApplicationName()).thenReturn(NOTIF_APPLI_NAME);
+        when(recordableEventDescriptor.getApplicationIcon()).thenReturn(DESCRIPTOR_ICON);
+        when(recordableEventDescriptor.getEventTypeIcon()).thenReturn(DESCRIPTOR_ICON);
+
         String fileChangeId = "fileChangeId";
         String changeRequestId = "changeRequestId";
 
@@ -282,8 +293,7 @@ class NotificationAlertPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId,
             FILECHANGE_ID_PARAM_KEY, fileChangeId
         ));
-        // Mock date formatting to avoid issues with timezones.
-        Date testDate = new Date(12);
+        Date testDate = new Date(1212121);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -296,12 +306,11 @@ class NotificationAlertPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId2,
             FILECHANGE_ID_PARAM_KEY, fileChangeId2
         ));
-        // Mock date formatting to avoid issues with timezones.
-        Date testDate2 = new Date(58);
-        when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few hours ago");
-        testEvent1.setDate(testDate2);
-        testEvent1.setUser(USER_REFERENCE_2);
-        testEvent1.setDocument(crDocReference);
+        Date testDate2 = new Date(5858558);
+        when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
+        testEvent2.setDate(testDate2);
+        testEvent2.setUser(USER_REFERENCE_2);
+        testEvent2.setDocument(crDocReference2);
 
         String docTitle = "Modified doc title";
         when(this.changeRequestScriptService.getPageTitle(changeRequestId, fileChangeId)).thenReturn(docTitle);
@@ -310,18 +319,28 @@ class NotificationAlertPageTest extends PageTest
 
         this.context.setOriginalWikiId("xwiki");
         when(this.localizationScriptService.render(
-            eq("changerequest.notifications.create.description"),
+            eq("notifications.events.changerequest.filechange.added.description.by.users"),
             any(Collection.class)))
             .then(invocationOnMock -> {
                 List<String> parameters = invocationOnMock.getArgument(1);
-                assertEquals(2, parameters.size());
+                assertEquals(1, parameters.size());
 
-                return String.format("Change request created by %s for %s", parameters.get(0), parameters.get(1));
+                return String.format("Change request filechange added by %s", parameters.get(0));
+            });
+
+        when(this.localizationScriptService.render(
+            eq("changerequest.notifications.filechange.added.description"),
+            any(Collection.class)))
+            .then(invocationOnMock -> {
+                List<String> parameters = invocationOnMock.getArgument(1);
+                assertEquals(1, parameters.size());
+
+                return String.format("File change %s was added", parameters.get(0));
             });
 
         CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
-        Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference);
+        Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
         this.scriptContext.setAttribute("compositeEvent", compositeEvent, ScriptContext.ENGINE_SCOPE);
 
@@ -331,26 +350,57 @@ class NotificationAlertPageTest extends PageTest
             + "      <div class=\"img-thumbnail\">\n"
             + "        Icon Branch\n"
             + "      </div>\n"
+            + "              <div class=\"img-thumbnail img-circle small\">\n"
+            + "          Icon Branch\n"
+            + "        </div>\n"
             + "          </div>\n"
             + "    <div class=\"col-xs-9 notification-content\">\n"
-            + "      <div class=\"notification-page\">\n"
-            + "                <a href=\"/xwiki/bin/view/ChangeRequest/CR1\">CR 1</a>\n"
-            + "                    </div>\n"
-            + "<div class=\"notification-description\">\n"
-            + "    Change request created by             "
-            + "<span class=\"notification-event-user\" data-xwiki-lightbox=\"false\">\n"
+            + "          <div class=\"notification-page\">\n"
+            + "                                        <a href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
+            + "Modified doc title 2</a>\n"
+            + "                        </div>\n"
+            + "    <div class=\"notification-description\">\n"
+            + "            <div>\n"
+            + "            Change request filechange added by 2\n"
+            + "        </div>\n"
+            + "        <div>\n"
+            + "                        <span class=\"notification-event-user\" data-xwiki-lightbox=\"false\">\n"
+            + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"User2\"/>  </span> "
+            + "           <span class=\"notification-event-user\" data-xwiki-lightbox=\"false\">\n"
             + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"First &#38; Name\"/>"
-            + "User  </span> for                         \n"
-            + "                                                                                                        "
-            + "<div class=\"changerequest-impacted-page\">\n"
-            + "            \n"
-            + "                    <a href=\"/xwiki/bin/view/Space/ModifiedDoc\">Modified doc title</a>\n"
-            + "    </div>\n"
-            + "\n"
-            + "  <div><small class=\"text-muted\">A few minutes ago</small></div>\n"
+            + "  </span>        </div>\n"
+            + "        <div><small class=\"text-muted\">A few hours ago</small></div>\n"
             + "</div>\n"
-            + "\n"
+            + "    \n"
+            + "            <button class=\"btn btn-xs toggle-notification-event-details\" type=\"submit\">\n"
+            + "        <span class=\"fa fa-ellipsis-h\"></span>\n"
+            + "        <span class=\"sr-only\">Show details</span>\n"
+            + "      </button>\n"
             + "          </div>\n"
+            + "                          <div class=\"col-xs-12 clearfix\">\n"
+            + "  <table class=\"notification-event-details\">\n"
+            + "                                                                                            <tr>\n"
+            + "                                                <td>            <span class=\"notification-event-user\""
+            + " data-xwiki-lightbox=\"false\">\n"
+            + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"User2\"/>User2  </span>"
+            + "</td>\n"
+            + "                <td class=\"description\">Icon Branch File change CR 2 was added</td>\n"
+            + "                <td class=\"text-right text-muted\"><a href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
+            + "1970/01/01 02:37</a></td>\n"
+            + "            </tr>\n"
+            + "                                                                                        <tr>\n"
+            + "                                                <td>            <span class=\"notification-event-user\""
+            + " data-xwiki-lightbox=\"false\">\n"
+            + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"First &#38; Name\"/>"
+            + "User  </span></td>\n"
+            + "                <td class=\"description\">Icon Branch File change CR 1 was added</td>\n"
+            + "                <td class=\"text-right text-muted\"><a href=\"/xwiki/bin/view/ChangeRequest/CR1\">"
+            + "1970/01/01 01:20</a></td>\n"
+            + "            </tr>\n"
+            + "                    \n"
+            + "  </table>\n"
+            + "</div>\n"
+            + "    \n"
             + "      </div>";
         assertEquals(expectedResult, result.trim());
 
