@@ -23,7 +23,7 @@
     ###
     ### Link to the Page
     ###
-    #displayFileChangeNotificationPage($compositeEvent.events.get(0))
+    #displayCRNotificationPage($compositeEvent)
     ###
     ### Description, users and date
     ###
@@ -44,7 +44,7 @@
             #set ($modifiedDocument = $NULL)
             #_getCRDocument($event $modifiedDocument)
             #set ($diffUrl = $xwiki.getURL($modifiedDocument, 'view', "viewer=changes&rev2=${event.documentVersion}"))
-            #set ($description = $services.localization.render("changerequest.notifications.filechange.added.description", ["$modifiedDocument.displayTitle"]))
+            #set ($description = $services.localization.render("changerequest.notifications.stale.description"))
             #if ("$!description" == '')
                 #set ($description = $event.type)
             #end

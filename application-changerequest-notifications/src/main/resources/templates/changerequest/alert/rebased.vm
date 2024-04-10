@@ -20,7 +20,7 @@
 #template('changerequest/alert/macros.vm')
 
 ## Same macro as displayNotificationEvent except for displaying the details.
-#macro(_displayRebaseEvent $compositeEvent)
+#macro(_displayRebasedEvent $compositeEvent)
     ###
     ### Icons
     ###
@@ -37,7 +37,7 @@
     ### Details
     ###
     #define($details)
-        #_displayRebaseEventDetails($compositeEvent)
+        #_displayRebasedEventDetails($compositeEvent)
     #end
     ###
     ### Display
@@ -45,7 +45,7 @@
     #displayNotificationEventSkeleton($mainIcon, $smallIcon, $content, $details)
 #end
 
-#macro(_displayRebaseEventDetails $compositeEvent)
+#macro(_displayRebasedEventDetails $compositeEvent)
     #set ($compositeEventType = $compositeEvent.type)
     #define($rows)
         #foreach($event in $compositeEvent.events)
@@ -72,4 +72,4 @@
     #displayNotificationEventDetailsSkeletons($events.size(), $rows)
 #end
 
-#_displayRebaseEvent($compositeEvent)
+#_displayRebasedEvent($compositeEvent)

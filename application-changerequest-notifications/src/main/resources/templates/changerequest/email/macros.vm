@@ -19,3 +19,28 @@
 ## ---------------------------------------------------------------------------
 #template('changerequest/macros.vm')
 #template('notification/email/macros.vm')
+
+#macro(displayFileChangeNotificationPage $event)
+    #_getCREventModifiedDocument($event)
+    #set ($title = $NULL)
+    #if ($event.parameters)
+        #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+        #set ($changeRequestId = $event.parameters.get('changerequest.id'))
+        #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
+    #end
+<div>
+    #if ($modifiedDocument)
+    #if ("$!title" == '')
+        #set ($title = $modifiedDocument.displayTitle)
+    #end
+    #link($modifiedDocument.getURL(), $title)
+#else
+        $services.localization.render('notifications.events.unknownDocument')
+    #end
+</div>
+#end
+
+#macro(displayCRNotificationPage $compositeEvent)
+    #set ($document = $xwiki.getDocument($compositeEvent.document))
+    #link($document.getURL(), $document.displayTitle)
+#end

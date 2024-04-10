@@ -20,7 +20,6 @@
 package org.xwiki.contrib.changerequest.internal;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +29,6 @@ import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.changerequest.ChangeRequest;
-import org.xwiki.contrib.changerequest.internal.converters.AbstractChangeRequestRecordableEventConverter;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
@@ -40,7 +37,6 @@ import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusC
 import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
 import org.xwiki.eventstream.Event;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.notifications.CompositeEvent;
 import org.xwiki.notifications.NotificationException;
 import org.xwiki.notifications.notifiers.NotificationDisplayer;
@@ -59,15 +55,12 @@ import org.xwiki.template.TemplateManager;
 @Component
 @Named("changerequest")
 @Singleton
-public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
+public class ChangeRequestNotificationDisplayer extends AbstractChangeRequestNotificationRenderer
+    implements NotificationDisplayer
 {
     private static final String EVENT_BINDING_NAME = "compositeEvent";
-    private static final String CHANGE_REQUEST_REFERENCES_BINDING_NAME = "changeRequestReferences";
     private static final String TEMPLATE_PATH = "changerequest/alert/%s.vm";
     private static final String EVENT_TYPE_PREFIX = "changerequest.";
-
-    @Inject
-    private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
     @Inject
     private TemplateManager templateManager;
@@ -78,31 +71,6 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
     @Inject
     private ChangeRequestGroupingStrategy groupingStrategy;
 
-    private Map<Event, DocumentReference> getChangeRequestReferences(CompositeEvent compositeEvent)
-        throws NotificationException
-    {
-        Map<Event, DocumentReference> result = new HashMap<>();
-        for (Event event : compositeEvent.getEvents()) {
-            Map<String, Object> parameters = event.getCustom();
-            if (parameters.containsKey(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY)) {
-                String crId = (String) parameters
-                    .get(AbstractChangeRequestRecordableEventConverter.CHANGE_REQUEST_ID_PARAMETER_KEY);
-                // We don't load the change request on purpose here:
-                // we still want it to be resolved even if it has been deleted, so that the notifications are displayed.
-                ChangeRequest changeRequest = new ChangeRequest();
-                changeRequest.setId(crId);
-                DocumentReference changeRequestDocReference =
-                    this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
-                result.put(event, changeRequestDocReference);
-            } else {
-                throw new NotificationException(
-                    String.format("The event [%s] did not have the appropriate parameter to retrieve "
-                        + "the change request.", event.getId()));
-            }
-        }
-        return result;
-    }
-
     @Override
     public Block renderNotification(CompositeEvent originalCompositeEvent) throws NotificationException
     {
@@ -111,7 +79,7 @@ public class ChangeRequestNotificationDisplayer implements NotificationDisplayer
         ScriptContext scriptContext = scriptContextManager.getScriptContext();
 
         for (CompositeEvent compositeEvent : compositeEvents) {
-            Map<Event, DocumentReference> changeRequestReferences = this.getChangeRequestReferences(compositeEvent);
+            Map<Event, DocumentReference> changeRequestReferences = getChangeRequestReferences(compositeEvent);
             String templateName = getTemplateName(compositeEvent.getType());
             scriptContext.setAttribute(EVENT_BINDING_NAME, compositeEvent, ScriptContext.ENGINE_SCOPE);
             scriptContext.setAttribute(CHANGE_REQUEST_REFERENCES_BINDING_NAME, changeRequestReferences,

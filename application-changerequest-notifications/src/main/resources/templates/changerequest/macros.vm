@@ -66,3 +66,9 @@
     #end
     #setVariable("$return" $modifiedDocument)
 #end
+
+#macro (displayEventStatus $status)
+    #set ($lowerCaseStatus = $stringtool.lowerCase($status))
+    #set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
+$stringtool.lowerCase($translation)
+#end

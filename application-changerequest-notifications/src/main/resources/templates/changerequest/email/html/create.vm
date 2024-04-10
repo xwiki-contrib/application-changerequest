@@ -20,33 +20,22 @@
 #template('changerequest/email/macros.vm')
 
 #macro(displayCRNotificationRightCell $compositeEvent)
+    ## For create we never group the events.
+    #set ($event = $compositeEvent.events.get(0))
     ###
     ### Link to the Page
     ###
-    #displayCRNotificationPage($compositeEvent)
+    #displayFileChangeNotificationPage($event)
     ###
     ### Description, users and date
     ###
-    #displayCRNotificationDescription($compositeEvent)
+    #displayCRNotificationDescription($event)
     #displayNotificationDate($compositeEvent)
 #end
 
 #macro (displayCRNotificationDescription $event)
     $services.localization.render("changerequest.notifications.create.description",
-    ["#displayNotificationEventUser($event.user, false)", "#getCreateConcernedDocument($event)"])
+    ["#displayNotificationEventUser($event.user, false)", "#displayFileChangeNotificationPage($event)"])
 #end
 
-#macro(displayCRNotificationPage $event)
-#_getCREventModifiedDocument($event)
-<div>
-    <div style="background-color: #f5f5f5; color: #777777; padding: 4px 8px; border-radius: 7px; font-size: 8px;">
-        #template('hierarchy_macros.vm')
-      #hierarchy($modifiedDocument.documentReference, {'id': 'hierarchy', 'limit': 5, 'treeNavigation': false, 'plain': true})
-    </div>
-    ## See `#displayNotificationEvent()` in `templates/notification/macros.vm` to understand why we don't use escape
-    ## tools to display the title.
-    #link($modifiedDocument.getURL(), $modifiedDocument.displayTitle)
-</div>
-#end
-
-#displayNotificationSkeleton("#displayNotificationLeftCell($event)", "##displayCRNotificationRightCell($event)")
+#displayNotificationSkeleton("#displayNotificationLeftCell($event)", "#displayCRNotificationRightCell($event)")

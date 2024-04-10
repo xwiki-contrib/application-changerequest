@@ -23,7 +23,7 @@
     ###
     ### Link to the Page
     ###
-    #displayFileChangeNotificationPage($compositeEvent.events.get(0))
+    #displayCRNotificationPage($compositeEvent)
     ###
     ### Description, users and date
     ###
@@ -41,12 +41,14 @@
     #if ("$!services.notification.preferences.getDiffType($emailUser)" != 'NOTHING')
     <table width="100%" style="margin: 5px 0; font-size: 0.8em; border-top: 1px dashed #e8e8e8">
         #foreach ($event in $compositeEvent.events)
-            #set ($modifiedDocument = $NULL)
-            #_getCRDocument($event $modifiedDocument)
-            #set ($diffUrl = $xwiki.getURL($modifiedDocument, 'view', "viewer=changes&rev2=${event.documentVersion}"))
-            #set ($description = $services.localization.render("changerequest.notifications.filechange.added.description", ["$modifiedDocument.displayTitle"]))
-            #if ("$!description" == '')
-                #set ($description = $event.type)
+            #set ($diffUrl = $xwiki.getURL($event.document, 'view', "viewer=changes&rev2=${event.documentVersion}"))
+            #if ($event.parameters && $event.parameters.get('changerequest.review.originalApprover'))
+                #set ($originalApprover = $event.parameters.get('changerequest.review.originalApprover'))
+            #end
+            #if ($originalApprover)
+                #set ($description = $services.localization.render("notifications.events.${event.type}.delegate.description", ["#displayEmailNotificationEventUser($originalApprover)"]))
+            #else
+                #set ($description = $services.localization.render("notifications.events.${event.type}.description"))
             #end
             <tr style="vertical-align: top;">
                 <td width="33%" style="overflow: hidden;">#displayEmailNotificationEventUser($event.user)</td>

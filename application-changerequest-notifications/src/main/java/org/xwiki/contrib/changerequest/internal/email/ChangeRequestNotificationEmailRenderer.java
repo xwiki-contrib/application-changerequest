@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.internal.AbstractChangeRequestNotificationRenderer;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestGroupingStrategy;
 import org.xwiki.notifications.CompositeEvent;
 import org.xwiki.notifications.NotificationException;
@@ -47,15 +48,12 @@ import org.xwiki.template.TemplateManager;
     "org.xwiki.contrib.wordnotification.internal.notification.RemovedWordsRecordableEvent"
 })
 @Singleton
-public class ChangeRequestNotificationEmailRenderer implements NotificationEmailRenderer
+public class ChangeRequestNotificationEmailRenderer extends AbstractChangeRequestNotificationRenderer
+    implements NotificationEmailRenderer
 {
     private static final String TEMPLATES_PATH = "changerequest/email/";
-    private static final String CHANGE_REQUEST_REFERENCES_BINDING_NAME = "changeRequestReferences";
     private static final String PLAIN_TEMPLATE = TEMPLATES_PATH + "plain/%s.vm";
     private static final String HTML_TEMPLATE = TEMPLATES_PATH + "html/%s.vm";
-    private static final String EVENT_BINDING_NAME = "compositeEvent";
-    private static final String IS_REMOVAL_BINDING_NAME = "isRemoval";
-
     @Inject
     private EmailTemplateRenderer emailTemplateRenderer;
 
@@ -71,7 +69,7 @@ public class ChangeRequestNotificationEmailRenderer implements NotificationEmail
         GroupBlock groupBlock = new GroupBlock();
         for (CompositeEvent compositeEvent : this.groupingStrategy.groupEvents(event)) {
             groupBlock.addChild(this.emailTemplateRenderer.executeTemplate(compositeEvent, userId, template, syntax,
-                Map.of()
+                Map.of(CHANGE_REQUEST_REFERENCES_BINDING_NAME, getChangeRequestReferences(event))
             ));
         }
         return groupBlock;
