@@ -1,0 +1,50 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#template('changerequest/macros.vm')
+## We indent the file using comments to avoid blank spaces in the output.
+#macro(displayPlainTextDatesAndDiffLink $event)
+#**#$xwiki.formatDate($event.date)
+#**##if ($event.document)
+#*  *#$services.localization.render('notifications.email.seeChanges', [$xwiki.getURL($event.document, 'view', "viewer=changes&rev2=${event.documentVersion}")])
+#**##end
+#end
+#macro(displayFileChangeNotificationPagePlain $event)
+#**##set ($modifiedDocument = $NULL)
+#**##_getCREventModifiedDocument($event $modifiedDocument)
+#**##set ($title = $NULL)
+#**##if ($event.parameters)
+#*  *##set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+#*  *##set ($changeRequestId = $event.parameters.get('changerequest.id'))
+#*  *##set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
+#**##end
+#**##if ($modifiedDocument)
+#*  *##if ("$!title" == '')
+#*    *##set ($title = $modifiedDocument.displayTitle)
+#*  *##end
+#*  *#[$title]($modifiedDocument.getURL())
+#**##else
+#*  *#$services.localization.render('notifications.events.unknownDocument')
+#**##end
+#end
+#macro(displayCR $event)
+#**##set ($crReference = $changeRequestReferences.get($event))
+#**##set ($document = $xwiki.getDocument($crReference))
+#**#[$document.displayTitle]($document.getURL())
+#end

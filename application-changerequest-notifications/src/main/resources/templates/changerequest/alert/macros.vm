@@ -1,0 +1,53 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#template('changerequest/macros.vm')
+
+#macro (_displayWikiDocumentInfo $compositeEvent)
+    ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+    ## to actually know where the request comes from.
+    #if ($xcontext.getContext().getOriginalWikiId() != $compositeEvent.document.wikiReference.name)
+    <span class="text-muted">($services.wiki.getById($compositeEvent.document.wikiReference.name).prettyName)</span>
+    #end
+#end
+
+#macro (_displayEventDescription $compositeEvent)
+<div class="notification-description">
+    #if ($compositeEvent.users.size() == 1)
+        $services.localization.render("notifications.events.${compositeEvent.type}.description.by.1user", ["#displayNotificationEventUsers($compositeEvent.users, true, false)"])
+    #else
+        <div>
+            $services.localization.render("notifications.events.${compositeEvent.type}.description.by.users", [$compositeEvent.users.size()])
+        </div>
+        <div>
+            #displayNotificationEventUsers($compositeEvent.users, true, true)
+        </div>
+    #end
+    <div><small class="text-muted">$escapetool.xml($services.date.displayTimeAgo($compositeEvent.dates.get(0)))</small></div>
+</div>
+#end
+
+#macro (_displayEventContent $compositeEvent)
+#set ($document = $xwiki.getDocument($compositeEvent.document))
+<div class="notification-page">
+    <a href="$!escapetool.xml($document.getURL())">$document.displayTitle</a>
+    #_displayWikiDocumentInfo($compositeEvent)
+</div>
+#_displayEventDescription($compositeEvent)
+#end

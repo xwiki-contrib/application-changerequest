@@ -1,0 +1,82 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#template('changerequest/alert/macros.vm')
+
+## Same macro as displayNotificationEvent except for displaying the details.
+#macro(displayFileChangeAddedEvent $compositeEvent)
+    ###
+    ### Icons
+    ###
+    #set ($eventDescriptor = $services.eventstream.getDescriptorForEventType($compositeEvent.type, $xcontext.isMainWiki()))
+    #set ($mainIcon = $eventDescriptor.applicationIcon)
+    #set ($smallIcon = $eventDescriptor.eventTypeIcon)
+    ###
+    ### Content
+    ###
+    #define($content)
+        #set ($document = $xwiki.getDocument($compositeEvent.document))
+    <div class="notification-page">
+        #set ($title = $NULL)
+        #set ($event = $compositeEvent.events.get(0))
+        #if ($event.parameters)
+            #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+            #set ($changeRequestId = $event.parameters.get('changerequest.id'))
+            #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
+        #end
+        #if ("$!title" == '')
+            #set ($title = $document.displayTitle)
+        #end
+        <a href="$!escapetool.xml($document.getURL())">$escapetool.xml($title)</a>
+        #_displayWikiDocumentInfo($compositeEvent)
+    </div>
+    #_displayEventDescription($compositeEvent)
+    #end
+    ###
+    ### Details
+    ###
+    #define($details)
+        #define($rows)
+            #foreach($event in $compositeEvent.events)
+                #set ($crReference = $NULL)
+                #set ($document = $NULL)
+                #_getCRReference($event $crReference)
+                #_getCRDocument($event $document)
+                ## Diff URL
+                #set ($diffUrl = $xwiki.getURL($crReference, 'view'))
+            <tr>
+                #set ($description = $services.localization.render("changerequest.notifications.filechange.added.description", ["$document.displayTitle"]))
+                #if ("$!description" == '')
+                    #set ($description = $event.type)
+                #end
+                <td>#displayNotificationEventUser($event.user)</td>
+                <td class="description">$services.icon.renderHTML($smallIcon) $escapetool.xml($description)</td>
+                <td class="text-right text-muted">#if($diffUrl!='')<a href="$escapetool.xml($diffUrl)">#end$escapetool.xml($xwiki.formatDate($event.date))#if($diffUrl!='')</a>#end</td>
+            </tr>
+            #end
+        #end
+        #displayNotificationEventDetailsSkeletons($events.size(), $rows)
+    #end
+    ###
+    ### Display
+    ###
+    #displayNotificationEventSkeleton($mainIcon, $smallIcon, $content, $details)
+#end
+
+#displayFileChangeAddedEvent($compositeEvent)
