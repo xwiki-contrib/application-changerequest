@@ -17,30 +17,10 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#template('changerequest/macros.vm')
-#template('notification/email/macros.vm')
-
-#macro(displayFileChangeNotificationPage $event)
-    #_getCREventModifiedDocument($event)
-    #set ($title = $NULL)
-    #if ($event.parameters)
-        #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
-        #set ($changeRequestId = $event.parameters.get('changerequest.id'))
-        #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
-    #end
-<div>
-    #if ($modifiedDocument)
-    #if ("$!title" == '')
-        #set ($title = $modifiedDocument.displayTitle)
-    #end
-    #link($modifiedDocument.getURL(), $title)
-#else
-        $services.localization.render('notifications.events.unknownDocument')
-    #end
-</div>
-#end
-
-#macro(displayCRNotificationPage $compositeEvent)
-    #set ($document = $xwiki.getDocument($compositeEvent.document))
-    #link($document.getURL(), $document.displayTitle)
-#end
+### Default plain text template for emails
+### Indention is missing because we don't want it to be displayed in the email)
+#template('changerequest/email/plain/macros.vm')
+#set ($app  = $services.localization.render($event.events.get(0).application))
+$app: #displayCR($event.events.get(0))
+$services.localization.render("changerequest.notifications.create.description", ["#displayNotificationEventUsers($event.users, false)", "#displayFileChangeNotificationPagePlain($event.events.get(0))"])
+#displayPlainTextDatesAndDiffLink($event.events.get(0))

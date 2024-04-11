@@ -17,7 +17,7 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#template('changerequest/email/macros.vm')
+#template('changerequest/email/html/macros.vm')
 
 #macro(displayCRNotificationRightCell $compositeEvent)
     ###
@@ -42,8 +42,9 @@
     <table width="100%" style="margin: 5px 0; font-size: 0.8em; border-top: 1px dashed #e8e8e8">
         #foreach ($event in $compositeEvent.events)
             #set ($diffUrl = $xwiki.getURL($event.document, 'view', "viewer=changes&rev2=${event.documentVersion}"))
-            #if ($event.parameters && $event.parameters.get('changerequest.review.originalApprover'))
-                #set ($originalApprover = $event.parameters.get('changerequest.review.originalApprover'))
+            #set ($originalApprover = $NULL)
+            #if ($event.parameters && $event.custom.get('changerequest.review.originalApprover'))
+                #set ($originalApprover = $event.custom.get('changerequest.review.originalApprover'))
             #end
             #if ($originalApprover)
                 #set ($description = $services.localization.render("notifications.events.${event.type}.delegate.description", ["#displayEmailNotificationEventUser($originalApprover)"]))
@@ -52,7 +53,7 @@
             #end
             <tr style="vertical-align: top;">
                 <td width="33%" style="overflow: hidden;">#displayEmailNotificationEventUser($event.user)</td>
-                <td width="45%">$escapetool.xml($description)</td>
+                <td width="45%">$description</td>
                 <td>
                     #if ($diffUrl!='')
                         #link($diffUrl, $escapetool.xml($xwiki.formatDate($event.date)))

@@ -57,7 +57,6 @@ import org.xwiki.template.script.TemplateScriptService;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
-import org.xwiki.wiki.script.WikiManagerScriptService;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 
@@ -105,9 +104,6 @@ class NotificationEmailHtmlPageTest extends PageTest
     @Mock
     private IconManagerScriptService iconManagerScriptService;
 
-    @Mock
-    private WikiManagerScriptService wikiManagerScriptService;
-
     private TemplateManager templateManager;
 
     private ScriptContext scriptContext;
@@ -124,14 +120,9 @@ class NotificationEmailHtmlPageTest extends PageTest
         this.oldcore.getMocker().registerComponent(ScriptService.class, "icon", this.iconManagerScriptService);
         this.oldcore.getMocker().registerComponent(ScriptService.class, "changerequest",
             this.changeRequestScriptService);
-        this.oldcore.getMocker().registerComponent(ScriptService.class, "wiki", this.wikiManagerScriptService);
-
 
         when(this.iconManagerScriptService.renderHTML(DESCRIPTOR_ICON)).thenReturn("Icon Branch");
         when(this.localizationScriptService.render(NOTIF_APPLI_NAME)).thenReturn("CR APPLI");
-        when(this.localizationScriptService.render("notifications.macro.showEventDetails")).thenReturn("Show details");
-
-        when(this.oldcore.getMockRightService().hasProgrammingRights(this.context)).thenReturn(true);
 
         // Mock the user's name.
         when(this.oldcore.getSpyXWiki().getPlainUserName(USER_REFERENCE, this.context)).thenReturn("First & Name");
@@ -207,17 +198,15 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
-            + "                                                    \n"
-            + "                                            <div>\n"
-            + "              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
+            + "                                        <div>\n"
+            + "          <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/ChangeRequest/CR1\">Modified doc title</a>\n"
             + "</div>\n"
-            + "                    Change request created by             <span class=\"notification-event-user\" "
-            + "data-xwiki-lightbox=\"false\">\n"
-            + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"First &#38; Name\"/>"
-            + "User  </span> for                         \n"
-            + "                                            <div>\n"
-            + "              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
+            + "                    Change request created by             "
+            + "<span class=\"notification-event-user\" data-xwiki-lightbox=\"false\">\n"
+            + "    <img src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" "
+            + "alt=\"First &#38; Name\"/>User  </span> for             <div>\n"
+            + "          <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/ChangeRequest/CR1\">Modified doc title</a>\n"
             + "</div>\n"
             + "\n"
@@ -353,52 +342,50 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
-            + "                                                \n"
-            + "                                                                                                       "
-            + "         <div>\n"
-            + "              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
+            + "                                    <div>\n"
+            + "          <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/Space/ModifiedDoc\">Modified doc title 2</a>\n"
             + "</div>\n"
             + "                      <div>\n"
             + "      Change request filechange added by 2\n"
             + "    </div>\n"
             + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
-            + "style=\"vertical-align: middle;\"/>\n"
-            + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
-            + "style=\"vertical-align: middle;\"/>\n"
+            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" "
+            + "height=\"16\" style=\"vertical-align: middle;\"/>\n"
+            + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" "
+            + "height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "             </div>\n"
             + "        <div>\n"
             + "    <small style=\"color: #777777; font-size: 0.8em;\">\n"
             + "      A few hours ago\n"
             + "    </small>\n"
             + "  </div>\n"
-            + "                                <table width=\"100%\" style=\"margin: 5px 0; font-size: 0.8em; "
-            + "border-top: 1px dashed #e8e8e8\">\n"
-            + "                                                        <tr style=\"vertical-align: top;\">\n"
-            + "                <td width=\"33%\" style=\"overflow: hidden;\">        <img src=\"cid:User2.jpg\" "
-            + "alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
+            + "                                <table width=\"100%\" style=\"margin: 5px 0; "
+            + "font-size: 0.8em; border-top: 1px dashed #e8e8e8\">\n"
+            + "                                            <tr style=\"vertical-align: top;\">\n"
+            + "                <td width=\"33%\" style=\"overflow: hidden;\">        "
+            + "<img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/XWiki/User2\">User2</a>\n"
             + "</td>\n"
             + "                <td width=\"45%\">File change CR 2 was added</td>\n"
             + "                <td>\n"
-            + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
-            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">"
-            + "1970/01/01 02:37</a>\n"
+            + "                                              "
+            + "<a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
+            + "href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">1970/01/01 02:37</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
-            + "                                                        <tr style=\"vertical-align: top;\">\n"
-            + "                <td width=\"33%\" style=\"overflow: hidden;\">        <img src=\"cid:User.jpg\" "
-            + "alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
+            + "                                            <tr style=\"vertical-align: top;\">\n"
+            + "                <td width=\"33%\" style=\"overflow: hidden;\">        "
+            + "<img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/XWiki/User\">First & Name</a>\n"
             + "</td>\n"
             + "                <td width=\"45%\">File change CR 1 was added</td>\n"
             + "                <td>\n"
-            + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
-            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">"
-            + "1970/01/01 01:20</a>\n"
+            + "                                              "
+            + "<a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
+            + "href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">1970/01/01 01:20</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "            </table>\n"
@@ -623,7 +610,8 @@ class NotificationEmailHtmlPageTest extends PageTest
         testEvent2.setApplication(NOTIF_APPLI_NAME);
         testEvent2.setType(ChangeRequestReviewAddedRecordableEvent.EVENT_NAME);
         testEvent2.setCustom(Map.of(
-            CR_ID_PARAM_KEY, changeRequestId2
+            CR_ID_PARAM_KEY, changeRequestId2,
+            "changerequest.review.originalApprover", USER_REFERENCE
         ));
         Date testDate2 = new Date(5858558);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
@@ -646,6 +634,13 @@ class NotificationEmailHtmlPageTest extends PageTest
         when(this.localizationScriptService.render(
             eq("notifications.events.changerequest.review.added.description")))
             .then(invocationOnMock -> "added a review");
+        when(this.localizationScriptService.render(
+            eq("notifications.events.changerequest.review.added.delegate.description"), any(Collection.class)))
+            .then(invocationOnMock -> {
+                List<String> parameters = invocationOnMock.getArgument(1);
+                assertEquals(1, parameters.size());
+                return String.format("added a review on behalf of %s", parameters.get(0));
+            });
 
         CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
@@ -679,13 +674,18 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "  </div>\n"
             + "                                <table width=\"100%\" style=\"margin: 5px 0; font-size: 0.8em; "
             + "border-top: 1px dashed #e8e8e8\">\n"
-            + "                                                        <tr style=\"vertical-align: top;\">\n"
-            + "                <td width=\"33%\" style=\"overflow: hidden;\">        <img src=\"cid:User2.jpg\" "
-            + "alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
+            + "                                                                    "
+            + "<tr style=\"vertical-align: top;\">\n"
+            + "                <td width=\"33%\" style=\"overflow: hidden;\">        "
+            + "<img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/XWiki/User2\">User2</a>\n"
             + "</td>\n"
-            + "                <td width=\"45%\">added a review</td>\n"
+            + "                <td width=\"45%\">added a review on behalf of         "
+            + "<img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
+            + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
+            + "href=\"/xwiki/bin/view/XWiki/User\">First & Name</a>\n"
+            + "</td>\n"
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
             + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">"
@@ -693,8 +693,8 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                                    </td>\n"
             + "            </tr>\n"
             + "                                                        <tr style=\"vertical-align: top;\">\n"
-            + "                <td width=\"33%\" style=\"overflow: hidden;\">        <img src=\"cid:User.jpg\" "
-            + "alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
+            + "                <td width=\"33%\" style=\"overflow: hidden;\">        "
+            + "<img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/XWiki/User\">First & Name</a>\n"
             + "</td>\n"
@@ -818,8 +818,8 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "      Change request has been marked stale by 2\n"
             + "    </div>\n"
             + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\""
-            + " style=\"vertical-align: middle;\"/>\n"
+            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "style=\"vertical-align: middle;\"/>\n"
             + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
             + "             </div>\n"
@@ -830,7 +830,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "  </div>\n"
             + "                                <table width=\"100%\" style=\"margin: 5px 0; font-size: 0.8em; "
             + "border-top: 1px dashed #e8e8e8\">\n"
-            + "                                                        <tr style=\"vertical-align: top;\">\n"
+            + "                                            <tr style=\"vertical-align: top;\">\n"
             + "                <td width=\"33%\" style=\"overflow: hidden;\">        <img src=\"cid:User2.jpg\" "
             + "alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
@@ -843,7 +843,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "1970/01/01 02:37</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
-            + "                                                        <tr style=\"vertical-align: top;\">\n"
+            + "                                            <tr style=\"vertical-align: top;\">\n"
             + "                <td width=\"33%\" style=\"overflow: hidden;\">        <img src=\"cid:User.jpg\" "
             + "alt=\"U\" width=\"16\" height=\"16\" style=\"vertical-align: middle;\"/>\n"
             + "     <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "

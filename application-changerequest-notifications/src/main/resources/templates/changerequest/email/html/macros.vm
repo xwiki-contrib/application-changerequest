@@ -17,24 +17,30 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#template('changerequest/email/html/macros.vm')
-
-#macro(displayCRNotificationRightCell $compositeEvent)
-    ## For create we never group the events.
-    #set ($event = $compositeEvent.events.get(0))
-    ###
-    ### Link to the Page
-    ###
-    #displayFileChangeNotificationPage($event)
-    ###
-    ### Description, users and date
-    ###
-    #displayCRNotificationDescription($event)
-    #displayNotificationDate($compositeEvent)
+#template('changerequest/macros.vm')
+#template('notification/email/macros.vm')
+#macro(displayFileChangeNotificationPage $event)
+    #set ($modifiedDocument = $NULL)
+    #_getCREventModifiedDocument($event $modifiedDocument)
+    #set ($title = $NULL)
+    #if ($event.parameters)
+        #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+        #set ($changeRequestId = $event.parameters.get('changerequest.id'))
+        #set ($title = $services.changerequest.getPageTitle($changeRequestId, $fileChangeId))
+    #end
+<div>
+#if ($modifiedDocument)
+    #if ("$!title" == '')
+        #set ($title = $modifiedDocument.displayTitle)
+    #end
+    #link($modifiedDocument.getURL(), $title)
+#else
+    $services.localization.render('notifications.events.unknownDocument')
+#end
+</div>
 #end
 
-#macro (displayCRNotificationDescription $event)
-    $services.localization.render("changerequest.notifications.create.description", ["#displayNotificationEventUser($event.user, false)", "#displayFileChangeNotificationPage($event)"])
+#macro(displayCRNotificationPage $compositeEvent)
+    #set ($document = $xwiki.getDocument($compositeEvent.document))
+    #link($document.getURL(), $document.displayTitle)
 #end
-
-#displayNotificationSkeleton("#displayNotificationLeftCell($event)", "#displayCRNotificationRightCell($event)")

@@ -84,8 +84,9 @@
             ## Diff URL
             #set ($diffUrl = $xwiki.getURL($event.document, 'view', "viewer=changes&rev2=${event.documentVersion}"))
             <tr>
-                #if ($event.parameters && $event.parameters.get('changerequest.review.originalApprover'))
-                    #set ($originalApprover = $event.parameters.get('changerequest.review.originalApprover'))
+                #set ($originalApprover = $NULL)
+                #if ($event.parameters && $event.custom.get('changerequest.review.originalApprover'))
+                    #set ($originalApprover = $event.custom.get('changerequest.review.originalApprover'))
                 #end
                 #if ($originalApprover)
                     #set ($description = $services.localization.render("notifications.events.${event.type}.delegate.description", ["#displayUser($originalApprover, {'useInlineHTML': true})"]))

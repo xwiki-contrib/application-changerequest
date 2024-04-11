@@ -17,24 +17,24 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#template('changerequest/email/html/macros.vm')
+### Default plain text template for emails
+### Indention is missing because we don't want it to be displayed in the email)
+#template('changerequest/email/plain/macros.vm')
+#set ($app  = $services.localization.render($event.events.get(0).application))
+$app: #displayCR($event.events.get(0))
+#foreach ($ev in $event.events)
 
-#macro(displayCRNotificationRightCell $compositeEvent)
-    ## For create we never group the events.
-    #set ($event = $compositeEvent.events.get(0))
-    ###
-    ### Link to the Page
-    ###
-    #displayFileChangeNotificationPage($event)
-    ###
-    ### Description, users and date
-    ###
-    #displayCRNotificationDescription($event)
-    #displayNotificationDate($compositeEvent)
+#set ($modifiedDocument = $NULL)
+#set($originalApprover = $NULL)
+#_getCRDocument($ev $modifiedDocument)
+#if ($ev.parameters && $ev.custom.get('changerequest.review.originalApprover'))
+#set ($originalApprover = $ev.custom.get('changerequest.review.originalApprover'))
 #end
-
-#macro (displayCRNotificationDescription $event)
-    $services.localization.render("changerequest.notifications.create.description", ["#displayNotificationEventUser($event.user, false)", "#displayFileChangeNotificationPage($event)"])
+#if ($originalApprover)
+#set ($description = $services.localization.render("notifications.events.${ev.type}.delegate.description", ["$xwiki.getPlainUserName($originalApprover)"]))
+#else
+#set ($description = $services.localization.render("notifications.events.${ev.type}.description"))
 #end
-
-#displayNotificationSkeleton("#displayNotificationLeftCell($event)", "#displayCRNotificationRightCell($event)")
+$xwiki.getPlainUserName($ev.user) $description
+#displayPlainTextDatesAndDiffLink($ev)
+#end

@@ -18,57 +18,53 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 #template('notification/macros.vm')
-
+## We indent the file using comments to avoid blank spaces in the output, in particular in plain text notifications.
 #macro (_getCRReference $event $return)
-    #set ($crReference = $NULL)
-    #set ($crReference = $changeRequestReferences.get($event))
-    #setVariable("$return" $crReference)
+#**##set ($crReference = $NULL)
+#**##set ($crReference = $changeRequestReferences.get($event))
+#**##setVariable("$return" $crReference)
 #end
-
 #macro (_getCRDocument $event $return)
-    #_getCRReference($event $crReference)
-    #set ($crDocument = $NULL)
-    #set ($crDocument = $xwiki.getDocument($crReference))
-    #setVariable("$return" $crDocument)
+#**##_getCRReference($event $crReference)
+#**##set ($crDocument = $NULL)
+#**##set ($crDocument = $xwiki.getDocument($crReference))
+#**##setVariable("$return" $crDocument)
 #end
-
 #macro (_getCREventModifiedDocument $event $return)
-    ## Backward compatibility mechanism: before 1.13 events were sent with the modified doc as data, not the CR doc
-    ## so we cannot rely on the event.document all the time to display properly the info.
-    #set ($modifiedDocument = $NULL)
-    #_getCRReference($event $crReference)
-    #if ($event.parameters)
-        #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
-        #set ($changeRequestId = $event.parameters.get('changerequest.id'))
-
-        #if ($event.document == $crReference)
-            ## If the reference is the same than the document sent: we're in newer version, we need to access the CR
-            #set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
-            ## For some reason the CR cannot be accessed (might be deleted). We cannot guess info anymore.
-            #if ($changeRequestOpt.isEmpty())
-                #set ($modifiedDocument = $NULL)
-            #else
-                #set ($changeRequest = $changeRequestOpt.get())
-                #set ($fileChangeOpt = $changeRequest.getFileChangeById($fileChangeId))
-                #if ($fileChangeOpt.isEmpty())
-                    #set ($modifiedDocument = $NULL)
-                #else
-                    #set ($modifiedDocument = $xwiki.getDocument($fileChangeOpt.get().targetEntity))
-                #end
-            #end
-        #else
-            ## If the reference is not the same we are before 1.13 so the modified doc was sent as data.
-            #set ($modifiedDocument = $xwiki.getDocument($event.document))
-        #end
-    #else
-        ## If there's no event parameters we assume the event was sent with the modified document
-        #set ($modifiedDocument = $xwiki.getDocument($event.document))
-    #end
-    #setVariable("$return" $modifiedDocument)
+## Backward compatibility mechanism: before 1.13 events were sent with the modified doc as data, not the CR doc
+## so we cannot rely on the event.document all the time to display properly the info.
+#**##set ($modifiedDocument = $NULL)
+#**##_getCRReference($event $crReference)
+#**##if ($event.parameters)
+#*  *##set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
+#*  *##set ($changeRequestId = $event.parameters.get('changerequest.id'))
+#*  *##if ($event.document == $crReference)
+#*  *### If the reference is the same than the document sent: we're in newer version, we need to access the CR
+#*    *##set ($changeRequestOpt = $services.changerequest.getChangeRequest($changeRequestId))
+#*    *### For some reason the CR cannot be accessed (might be deleted). We cannot guess info anymore.
+#*    *##if ($changeRequestOpt.isEmpty())
+#*      *##set ($modifiedDocument = $NULL)
+#*    *##else
+#*      *##set ($changeRequest = $changeRequestOpt.get())
+#*      *##set ($fileChangeOpt = $changeRequest.getFileChangeById($fileChangeId))
+#*      *##if ($fileChangeOpt.isEmpty())
+#*        *##set ($modifiedDocument = $NULL)
+#*      *##else
+#*        *##set ($modifiedDocument = $xwiki.getDocument($fileChangeOpt.get().targetEntity))
+#*      *##end
+#*    *##end
+#*  *##else
+#*    *### If the reference is not the same we are before 1.13 so the modified doc was sent as data.
+#*    *##set ($modifiedDocument = $xwiki.getDocument($event.document))
+#*  *##end
+#**##else
+#*  *### If there's no event parameters we assume the event was sent with the modified document
+#*  *##set ($modifiedDocument = $xwiki.getDocument($event.document))
+#**##end
+#**##setVariable("$return" $modifiedDocument)
 #end
-
 #macro (displayEventStatus $status)
-    #set ($lowerCaseStatus = $stringtool.lowerCase($status))
-    #set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
+#**##set ($lowerCaseStatus = $stringtool.lowerCase($status))
+#**##set ($translation = $services.localization.render("ChangeRequest.Code.ChangeRequestClass_status_$lowerCaseStatus"))
 $stringtool.lowerCase($translation)
 #end
