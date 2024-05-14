@@ -139,19 +139,24 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         chain.handleNext(reference);
     }
 
-    private void handleAttachments(XWikiDocument modifiedDoc) throws ResourceReferenceHandlerException
+    private void handleAttachments(XWikiDocument modifiedDoc) throws ResourceReferenceHandlerException, XWikiException
     {
+        XWikiContext context = this.contextProvider.get();
         DocumentReference reference = modifiedDoc.getDocumentReference();
         for (XWikiAttachment attachment : modifiedDoc.getAttachmentList()) {
+            attachment.loadAttachmentContent(context);
             XWikiAttachment clonedAttachment = attachment.clone();
-            // Ensure to not delete the file related to the attachment when it's removed from temporary attachments
-            clonedAttachment.getAttachment_content().setContentDirty(false);
-            try {
-                this.temporaryAttachmentSessionsManager.temporarilyAttach(clonedAttachment, reference);
-            } catch (TemporaryAttachmentException e) {
-                throw new ResourceReferenceHandlerException(String.format("Error while temporary attaching attachment "
-                    + "[%s] to document [%s]", clonedAttachment.getFilename(), reference),
-                    e);
+            if (clonedAttachment.getAttachment_content() != null) {
+                // Ensure to not delete the file related to the attachment when it's removed from temporary attachments
+                clonedAttachment.getAttachment_content().setContentDirty(false);
+                try {
+                    this.temporaryAttachmentSessionsManager.temporarilyAttach(clonedAttachment, reference);
+                } catch (TemporaryAttachmentException e) {
+                    throw new ResourceReferenceHandlerException(
+                        String.format("Error while temporary attaching attachment "
+                            + "[%s] to document [%s]", clonedAttachment.getFilename(), reference),
+                        e);
+                }
             }
         }
     }
