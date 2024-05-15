@@ -163,6 +163,7 @@ class NotificationEmailPlainPageTest extends PageTest
 
         // Mock date formatting to avoid issues with timezones.
         Date testDate = new Date(1125544855);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         testEvent.setDate(testDate);
         testEvent.setUser(USER_REFERENCE);
         testEvent.setDocument(crDocReference);
@@ -181,7 +182,7 @@ class NotificationEmailPlainPageTest extends PageTest
             return String.format("Change request created by %s for %s", parameters.get(0), parameters.get(1));
         });
 
-        this.scriptContext.setAttribute("event", new CompositeEvent(testEvent), ScriptContext.ENGINE_SCOPE);
+        this.scriptContext.setAttribute("event", new OrderedUserCompositeEvent(testEvent), ScriptContext.ENGINE_SCOPE);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent, crDocReference);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
 
@@ -189,7 +190,8 @@ class NotificationEmailPlainPageTest extends PageTest
         String expectedResult = "CR APPLI: [CR 1](/xwiki/bin/view/ChangeRequest/CR1)\n"
             + "Change request created by First & Name for [Modified doc title](/xwiki/bin/view/Space/ModifiedDoc)\n"
             + "\n"
-            + "1970/01/14 01:39\n"
+            + serializedDate
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR1?viewer=changes&rev2=1.1";
         assertEquals(expectedResult, result.trim());
 
@@ -251,6 +253,7 @@ class NotificationEmailPlainPageTest extends PageTest
             FILECHANGE_ID_PARAM_KEY, fileChangeId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
         testEvent1.setDocument(crDocReference);
@@ -264,6 +267,7 @@ class NotificationEmailPlainPageTest extends PageTest
             FILECHANGE_ID_PARAM_KEY, fileChangeId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
         testEvent2.setDocument(crDocReference2);
@@ -295,7 +299,7 @@ class NotificationEmailPlainPageTest extends PageTest
                 return String.format("File change %s was added", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -305,11 +309,13 @@ class NotificationEmailPlainPageTest extends PageTest
         String expectedResult = "CR APPLI: [Modified doc title 2](/xwiki/bin/view/Space/ModifiedDoc)\n"
             + "\n"
             + "User2 File change CR 2 was added\n"
-            + "1970/01/01 02:37\n"
+            + serializedDate2
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR2?viewer=changes&rev2=1.1\n"
             + "\n"
             + "First & Name File change CR 1 was added\n"
-            + "1970/01/01 01:20\n"
+            + serializedDate
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR1?viewer=changes&rev2=1.1";
         assertEquals(expectedResult, result.trim());
 
@@ -362,6 +368,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
         testEvent1.setDocument(crDocReference);
@@ -374,6 +381,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
         testEvent2.setDocument(crDocReference2);
@@ -400,7 +408,7 @@ class NotificationEmailPlainPageTest extends PageTest
                 return String.format("CR %s was rebased", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -410,11 +418,13 @@ class NotificationEmailPlainPageTest extends PageTest
         String expectedResult = "CR APPLI: [CR 2](/xwiki/bin/view/ChangeRequest/CR2)\n"
             + "\n"
             + "User2 CR CR 2 was rebased\n"
-            + "1970/01/01 02:37\n"
+            + serializedDate2
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR2?viewer=changes&rev2=1.1\n"
             + "\n"
             + "First & Name CR CR 1 was rebased\n"
-            + "1970/01/01 01:20\n"
+            + serializedDate
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR1?viewer=changes&rev2=1.1";
         assertEquals(expectedResult, result.trim());
 
@@ -467,6 +477,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
         testEvent1.setDocument(crDocReference);
@@ -480,6 +491,7 @@ class NotificationEmailPlainPageTest extends PageTest
             "changerequest.review.originalApprover", USER_REFERENCE
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
         testEvent2.setDocument(crDocReference2);
@@ -507,7 +519,7 @@ class NotificationEmailPlainPageTest extends PageTest
                 return String.format("added a review on behalf of %s", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -517,11 +529,13 @@ class NotificationEmailPlainPageTest extends PageTest
         String expectedResult = "CR APPLI: [CR 2](/xwiki/bin/view/ChangeRequest/CR2)\n"
             + "\n"
             + "User2 added a review on behalf of First & Name\n"
-            + "1970/01/01 02:37\n"
+            + serializedDate2
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR2?viewer=changes&rev2=1.1\n"
             + "\n"
             + "First & Name added a review\n"
-            + "1970/01/01 01:20\n"
+            + serializedDate
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR1?viewer=changes&rev2=1.1";
         assertEquals(expectedResult, result.trim());
 
@@ -574,6 +588,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
         testEvent1.setDocument(crDocReference);
@@ -586,6 +601,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
         testEvent2.setDocument(crDocReference2);
@@ -606,7 +622,7 @@ class NotificationEmailPlainPageTest extends PageTest
                 return String.format("Change request has been marked stale by %s", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -616,11 +632,13 @@ class NotificationEmailPlainPageTest extends PageTest
         String expectedResult = "CR APPLI: [CR 2](/xwiki/bin/view/ChangeRequest/CR2)\n"
             + "\n"
             + "User2 CR is stale\n"
-            + "1970/01/01 02:37\n"
+            + serializedDate2
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR2?viewer=changes&rev2=1.1\n"
             + "\n"
             + "First & Name CR is stale\n"
-            + "1970/01/01 01:20\n"
+            + serializedDate
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR1?viewer=changes&rev2=1.1";
         assertEquals(expectedResult, result.trim());
 
@@ -675,6 +693,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_STATUS_NEW_PARAM_KEY, ChangeRequestStatus.READY_FOR_MERGING
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
         testEvent1.setDocument(crDocReference);
@@ -689,6 +708,7 @@ class NotificationEmailPlainPageTest extends PageTest
             CR_STATUS_NEW_PARAM_KEY, ChangeRequestStatus.CLOSED
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
         testEvent2.setDocument(crDocReference2);
@@ -718,7 +738,7 @@ class NotificationEmailPlainPageTest extends PageTest
         when(this.localizationScriptService.render(startsWith("ChangeRequest.Code.ChangeRequestClass_status_")))
             .then(invocationOnMock -> String.format("Status %s", invocationOnMock.getArgument(0).toString()));
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -731,14 +751,16 @@ class NotificationEmailPlainPageTest extends PageTest
             + "changerequest.code.changerequestclass_status_ready_for_review\n"
             + " to status changerequest.code.changerequestclass_status_closed\n"
             + "\n"
-            + "1970/01/01 02:37\n"
+            + serializedDate2
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR2?viewer=changes&rev2=1.1\n"
             + "\n"
             + "First & Name Change request status modified from "
             + "status changerequest.code.changerequestclass_status_draft\n"
             + " to status changerequest.code.changerequestclass_status_ready_for_merging\n"
             + "\n"
-            + "1970/01/01 01:20\n"
+            + serializedDate
+            + "\n"
             + "Changes: /xwiki/bin/view/ChangeRequest/CR1?viewer=changes&rev2=1.1";
         assertEquals(expectedResult, result.trim());
 

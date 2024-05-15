@@ -188,7 +188,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             return String.format("Change request created by %s for %s", parameters.get(0), parameters.get(1));
         });
 
-        this.scriptContext.setAttribute("event", new CompositeEvent(testEvent), ScriptContext.ENGINE_SCOPE);
+        this.scriptContext.setAttribute("event", new OrderedUserCompositeEvent(testEvent), ScriptContext.ENGINE_SCOPE);
 
         String result = this.templateManager.render(String.format(TEMPLATE_PATH, "create"));
         String expectedResult = "<table width=\"100%\">\n"
@@ -282,6 +282,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             FILECHANGE_ID_PARAM_KEY, fileChangeId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -296,6 +297,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             FILECHANGE_ID_PARAM_KEY, fileChangeId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -328,7 +330,7 @@ class NotificationEmailHtmlPageTest extends PageTest
                 return String.format("File change %s was added", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -372,7 +374,9 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              "
             + "<a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
-            + "href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">1970/01/01 02:37</a>\n"
+            + "href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">"
+            + serializedDate2
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "                                            <tr style=\"vertical-align: top;\">\n"
@@ -385,7 +389,9 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              "
             + "<a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
-            + "href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">1970/01/01 01:20</a>\n"
+            + "href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">"
+            + serializedDate
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "            </table>\n"
@@ -447,6 +453,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -459,6 +466,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -485,7 +493,7 @@ class NotificationEmailHtmlPageTest extends PageTest
                 return String.format("CR %s was rebased", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -526,7 +534,9 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td width=\"45%\">CR CR 2 was rebased</td>\n"
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
-            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2\">1970/01/01 02:37</a>\n"
+            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
+            + serializedDate2
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "                                            <tr style=\"vertical-align: top;\">\n"
@@ -538,7 +548,9 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td width=\"45%\">CR CR 1 was rebased</td>\n"
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
-            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR1\">1970/01/01 01:20</a>\n"
+            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR1\">"
+            + serializedDate
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "            </table>\n"
@@ -600,6 +612,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -614,6 +627,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             "changerequest.review.originalApprover", USER_REFERENCE
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -642,7 +656,7 @@ class NotificationEmailHtmlPageTest extends PageTest
                 return String.format("added a review on behalf of %s", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -689,7 +703,8 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
             + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">"
-            + "1970/01/01 02:37</a>\n"
+            + serializedDate2
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "                                                        <tr style=\"vertical-align: top;\">\n"
@@ -702,7 +717,8 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
             + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">"
-            + "1970/01/01 01:20</a>\n"
+            + serializedDate
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "            </table>\n"
@@ -764,6 +780,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -777,6 +794,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -798,7 +816,7 @@ class NotificationEmailHtmlPageTest extends PageTest
                 return String.format("Change request has been marked stale by %s", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -840,7 +858,8 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
             + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">"
-            + "1970/01/01 02:37</a>\n"
+            + serializedDate2
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "                                            <tr style=\"vertical-align: top;\">\n"
@@ -853,7 +872,8 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
             + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">"
-            + "1970/01/01 01:20</a>\n"
+            + serializedDate
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "            </table>\n"
@@ -917,6 +937,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_STATUS_NEW_PARAM_KEY, ChangeRequestStatus.READY_FOR_MERGING
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -932,6 +953,7 @@ class NotificationEmailHtmlPageTest extends PageTest
             CR_STATUS_NEW_PARAM_KEY, ChangeRequestStatus.CLOSED
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -962,7 +984,7 @@ class NotificationEmailHtmlPageTest extends PageTest
         when(this.localizationScriptService.render(startsWith("ChangeRequest.Code.ChangeRequestClass_status_")))
             .then(invocationOnMock -> String.format("Status %s", invocationOnMock.getArgument(0).toString()));
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -1006,7 +1028,9 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "</td>\n"
             + "                <td>\n"
             + "                                              <a color=\"#0088CC\" style=\"color: #0088CC; "
-            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2\">1970/01/01 02:37</a>\n"
+            + "text-decoration: none;\" href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
+            + serializedDate2
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "                                            <tr style=\"vertical-align: top;\">\n"
@@ -1022,7 +1046,9 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "                <td>\n"
             + "                                              "
             + "<a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
-            + "href=\"/xwiki/bin/view/ChangeRequest/CR1\">1970/01/01 01:20</a>\n"
+            + "href=\"/xwiki/bin/view/ChangeRequest/CR1\">"
+            + serializedDate
+            + "</a>\n"
             + "                                    </td>\n"
             + "            </tr>\n"
             + "            </table>\n"

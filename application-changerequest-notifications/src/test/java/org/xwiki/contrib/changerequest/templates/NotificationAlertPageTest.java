@@ -199,7 +199,8 @@ class NotificationAlertPageTest extends PageTest
 
         Map<Event, DocumentReference> crReferences = Map.of(testEvent, crDocReference);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
-        this.scriptContext.setAttribute("compositeEvent", new CompositeEvent(testEvent), ScriptContext.ENGINE_SCOPE);
+        this.scriptContext
+            .setAttribute("compositeEvent", new OrderedUserCompositeEvent(testEvent), ScriptContext.ENGINE_SCOPE);
 
         String result = this.templateManager.render(String.format(TEMPLATE_PATH, "create"));
         String expectedResult = "<div class=\"clearfix row\">\n"
@@ -289,6 +290,7 @@ class NotificationAlertPageTest extends PageTest
             FILECHANGE_ID_PARAM_KEY, fileChangeId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -302,6 +304,7 @@ class NotificationAlertPageTest extends PageTest
             FILECHANGE_ID_PARAM_KEY, fileChangeId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -333,7 +336,7 @@ class NotificationAlertPageTest extends PageTest
                 return String.format("File change %s was added", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -381,7 +384,8 @@ class NotificationAlertPageTest extends PageTest
             + "</td>\n"
             + "                <td class=\"description\">Icon Branch File change CR 2 was added</td>\n"
             + "                <td class=\"text-right text-muted\"><a href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
-            + "1970/01/01 02:37</a></td>\n"
+            + serializedDate2
+            + "</a></td>\n"
             + "            </tr>\n"
             + "                                                                        <tr>\n"
             + "                                                <td>            <span class=\"notification-event-user\""
@@ -390,7 +394,8 @@ class NotificationAlertPageTest extends PageTest
             + "User  </span></td>\n"
             + "                <td class=\"description\">Icon Branch File change CR 1 was added</td>\n"
             + "                <td class=\"text-right text-muted\"><a href=\"/xwiki/bin/view/ChangeRequest/CR1\">"
-            + "1970/01/01 01:20</a></td>\n"
+            + serializedDate
+            + "</a></td>\n"
             + "            </tr>\n"
             + "                    \n"
             + "  </table>\n"
@@ -451,6 +456,7 @@ class NotificationAlertPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -463,6 +469,7 @@ class NotificationAlertPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId2
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -489,7 +496,7 @@ class NotificationAlertPageTest extends PageTest
                 return String.format("CR %s was rebased", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -534,7 +541,8 @@ class NotificationAlertPageTest extends PageTest
             + "</span></td>\n"
             + "              <td class=\"description\">Icon Branch CR CR 2 was rebased</td>\n"
             + "              <td class=\"text-right text-muted\"><a href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
-            + "1970/01/01 02:37</a></td>\n"
+            + serializedDate2
+            + "</a></td>\n"
             + "            </tr>\n"
             + "                                                                                    <tr>\n"
             + "                                              <td>            <span class=\"notification-event-user\" "
@@ -543,7 +551,8 @@ class NotificationAlertPageTest extends PageTest
             + "User  </span></td>\n"
             + "              <td class=\"description\">Icon Branch CR CR 1 was rebased</td>\n"
             + "              <td class=\"text-right text-muted\"><a href=\"/xwiki/bin/view/ChangeRequest/CR1\">"
-            + "1970/01/01 01:20</a></td>\n"
+            + serializedDate
+            + "</a></td>\n"
             + "            </tr>\n"
             + "                        \n"
             + "  </table>\n"
@@ -604,6 +613,7 @@ class NotificationAlertPageTest extends PageTest
             CR_ID_PARAM_KEY, changeRequestId
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -618,6 +628,7 @@ class NotificationAlertPageTest extends PageTest
             "changerequest.review.originalApprover", USER_REFERENCE
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -646,7 +657,7 @@ class NotificationAlertPageTest extends PageTest
                 return String.format("added a review on behalf of %s", parameters.get(0));
             });
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -695,7 +706,9 @@ class NotificationAlertPageTest extends PageTest
             + "              <td class=\"description\">Icon Branch added a review on behalf of                                                                       <span class=\"user\" data-reference=\"xwiki:XWiki.User\"><img class=\"user-avatar\" src=\"/xwiki/bin/skin/skins/flamingo/icons/xwiki/noavatar.png\" alt=\"First &#38; Name\" /><a class=\"user-name\" href=\"/xwiki/bin/view/XWiki/User\">First &#38; Name</a></span>\n"
             + "</td>\n"
             + "              <td class=\"text-right text-muted\">"
-            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">1970/01/01 02:37</a></td>\n"
+            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR2?viewer=changes&#38;rev2=1.1\">"
+            + serializedDate2
+            + "</a></td>\n"
             + "            </tr>\n"
             + "                                <tr>\n"
             + "                                                                              <td>            "
@@ -704,7 +717,9 @@ class NotificationAlertPageTest extends PageTest
             + "User  </span></td>\n"
             + "              <td class=\"description\">Icon Branch added a review</td>\n"
             + "              <td class=\"text-right text-muted\">"
-            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">1970/01/01 01:20</a></td>\n"
+            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR1?viewer=changes&#38;rev2=1.1\">"
+            + serializedDate
+            + "</a></td>\n"
             + "            </tr>\n"
             + "            \n"
             + "  </table>\n"
@@ -789,7 +804,7 @@ class NotificationAlertPageTest extends PageTest
             eq("changerequest.notifications.stale.description")))
             .then(invocationOnMock -> "CR is stale");
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -892,6 +907,7 @@ class NotificationAlertPageTest extends PageTest
             CR_STATUS_NEW_PARAM_KEY, ChangeRequestStatus.READY_FOR_MERGING
         ));
         Date testDate = new Date(1212121);
+        String serializedDate = this.xwiki.formatDate(testDate, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate)).thenReturn("A few minutes ago");
         testEvent1.setDate(testDate);
         testEvent1.setUser(USER_REFERENCE);
@@ -907,6 +923,7 @@ class NotificationAlertPageTest extends PageTest
             CR_STATUS_NEW_PARAM_KEY, ChangeRequestStatus.CLOSED
         ));
         Date testDate2 = new Date(5858558);
+        String serializedDate2 = this.xwiki.formatDate(testDate2, null, this.context);
         when(this.dateScriptService.displayTimeAgo(testDate2)).thenReturn("A few hours ago");
         testEvent2.setDate(testDate2);
         testEvent2.setUser(USER_REFERENCE_2);
@@ -937,7 +954,7 @@ class NotificationAlertPageTest extends PageTest
         when(this.localizationScriptService.render(startsWith("ChangeRequest.Code.ChangeRequestClass_status_")))
             .then(invocationOnMock -> String.format("Status %s", invocationOnMock.getArgument(0).toString()));
 
-        CompositeEvent compositeEvent = new CompositeEvent(testEvent1);
+        CompositeEvent compositeEvent = new OrderedUserCompositeEvent(testEvent1);
         compositeEvent.add(testEvent2, 0);
         Map<Event, DocumentReference> crReferences = Map.of(testEvent1, crDocReference, testEvent2, crDocReference2);
         this.scriptContext.setAttribute("changeRequestReferences", crReferences, ScriptContext.ENGINE_SCOPE);
@@ -987,7 +1004,9 @@ class NotificationAlertPageTest extends PageTest
             + " to status changerequest.code.changerequestclass_status_closed\n"
             + "</td>\n"
             + "              <td class=\"text-right text-muted\">"
-            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR2\">1970/01/01 02:37</a></td>\n"
+            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR2\">"
+            + serializedDate2
+            + "</a></td>\n"
             + "            </tr>\n"
             + "                                <tr>\n"
             + "                                              <td>            "
@@ -999,7 +1018,9 @@ class NotificationAlertPageTest extends PageTest
             + " to status changerequest.code.changerequestclass_status_ready_for_merging\n"
             + "</td>\n"
             + "              <td class=\"text-right text-muted\">"
-            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR1\">1970/01/01 01:20</a></td>\n"
+            + "<a href=\"/xwiki/bin/view/ChangeRequest/CR1\">"
+            + serializedDate
+            + "</a></td>\n"
             + "            </tr>\n"
             + "            \n"
             + "  </table>\n"
