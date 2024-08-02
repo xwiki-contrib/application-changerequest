@@ -29,10 +29,7 @@ import org.xwiki.contrib.changerequest.test.po.ExtendedViewPage;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
 import org.xwiki.test.ui.po.editor.WikiEditPage;
-
-import liquibase.pro.packaged.D;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

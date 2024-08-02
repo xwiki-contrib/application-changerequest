@@ -66,7 +66,8 @@ public class ChangeRequestDiscussionDiffUtils
      * @version $Id$
      * @since 1.5
      */
-    private static class UnifiedDiffBlockDeserializer extends JsonDeserializer<UnifiedDiffBlock<String, Character>>
+    private static final class UnifiedDiffBlockDeserializer extends
+        JsonDeserializer<UnifiedDiffBlock<String, Character>>
     {
         @Override
         public UnifiedDiffBlock<String, Character> deserialize(JsonParser jsonParser,
@@ -94,7 +95,8 @@ public class ChangeRequestDiscussionDiffUtils
      * @version $Id$
      * @since 1.5
      */
-    private static class UnifiedDiffElementDeserializer extends JsonDeserializer<UnifiedDiffElement<String, Character>>
+    private static final class UnifiedDiffElementDeserializer extends
+        JsonDeserializer<UnifiedDiffElement<String, Character>>
     {
         @Override
         public UnifiedDiffElement<String, Character> deserialize(JsonParser jsonParser,
@@ -128,7 +130,7 @@ public class ChangeRequestDiscussionDiffUtils
      * @version $Id$
      * @since 1.5
      */
-    private static class InlineDiffChunkElementDeserializer extends JsonDeserializer<InlineDiffChunk<Character>>
+    private static final class InlineDiffChunkElementDeserializer extends JsonDeserializer<InlineDiffChunk<Character>>
     {
         @Override
         public InlineDiffChunk<Character> deserialize(JsonParser jsonParser,
