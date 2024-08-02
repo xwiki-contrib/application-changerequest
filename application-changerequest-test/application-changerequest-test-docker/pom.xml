@@ -97,6 +97,19 @@
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- We want inplace editing to be available for testing. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-edit-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-edit-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <testSourceDirectory>src/test/it</testSourceDirectory>

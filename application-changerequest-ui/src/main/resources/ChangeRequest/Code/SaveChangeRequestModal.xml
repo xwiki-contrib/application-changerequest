@@ -389,8 +389,7 @@
       } else {
         form = $('#save_changerequest').parents('form');
       }
-      
-      var urlParams = new URLSearchParams(window.location.search);
+
       if (fromChangeRequest) {
         actionURL = saveConfig.addChangesURL.replace("__CR__", fromChangeRequest);
       } else if (isNewCR) {
@@ -492,14 +491,12 @@
           }
           var data =  {form: form[0], continue: true};
         }
-        $(document).one('xwiki:actions:beforeSave', function (event) {
-          if (!event.isPropagationStopped()) {
-            saveCrButton.trigger('xwiki:actions:save', data);
-          } else {
-              rollbackForm();
-          }
-        });
         saveCrButton.trigger(beforeSaveEvent, data);
+        if (!beforeSaveEvent.isPropagationStopped()) {
+          saveCrButton.trigger('xwiki:actions:save', data);
+        } else {
+          rollbackForm();
+        }
       }
       $(document).on('xwiki:document:saveFailed', function (event, data) {
         rollbackForm();

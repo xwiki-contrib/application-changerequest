@@ -26,6 +26,7 @@ import java.util.Locale;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.xwiki.ckeditor.test.po.CKEditor;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedEditPage;
@@ -34,6 +35,7 @@ import org.xwiki.contrib.changerequest.test.po.description.DescriptionPane;
 import org.xwiki.contrib.changerequest.test.po.description.TimelineEvent;
 import org.xwiki.contrib.changerequest.test.po.filechanges.FileChangesPane;
 import org.xwiki.contrib.changerequest.test.po.filechanges.FilechangesLiveDataElement;
+import org.xwiki.edit.test.po.InplaceEditablePage;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
@@ -67,11 +69,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ChangeRequestEditionIT
 {
     private static final String CR_EDITOR = "ChangeRequestEditionIT_Editor";
+    private static final String CR_EDITOR_WYSIWYG = "ChangeRequestEditionIT_EditorWysiwyg";
 
     @BeforeAll
     void beforeAll(TestUtils testUtils)
     {
+        testUtils.loginAsSuperAdmin();
         testUtils.createUser(CR_EDITOR, CR_EDITOR, null);
+        testUtils.createUser(CR_EDITOR_WYSIWYG, CR_EDITOR_WYSIWYG, null);
+        testUtils.updateObject("XWiki", CR_EDITOR_WYSIWYG, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
     }
 
     @Test
@@ -202,5 +208,39 @@ public class ChangeRequestEditionIT
             testUtils.setWikiPreference("languages", "en");
             testUtils.setWikiPreference("multilingual", "false");
         }
+    }
+
+    /**
+     * Check that inplace editing a page and saving a change request works.
+     * This test aims at ensuring CRAPP-347 is properly fixed.
+     */
+    @Test
+    @Order(3)
+    void inplaceEditing(TestUtils testUtils, TestReference testReference)
+    {
+        String serializedReference = testReference.getLocalDocumentReference().toString();
+        testUtils.loginAsSuperAdmin();
+        testUtils.createPage(testReference, "Some content", "");
+
+        testUtils.login(CR_EDITOR_WYSIWYG, CR_EDITOR_WYSIWYG);
+        testUtils.gotoPage(testReference);
+        InplaceEditablePage inplaceEditablePage = new InplaceEditablePage();
+        inplaceEditablePage.editInplace();
+        CKEditor editor = new CKEditor("content");
+        ExtendedEditPage<CKEditor> extendedEditPage = new ExtendedEditPage<>(editor);
+        inplaceEditablePage.setDocumentTitle("New title");
+        ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
+        changeRequestSaveModal.setChangeRequestTitle("Test inplace editing");
+        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
+
+        FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
+
+        DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(serializedReference);
+        assertEquals("(2 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
+
+        EntityDiff contentDiff = fileChangesPane.getEntityDiff(serializedReference, "Page properties");
+        List<String> content = contentDiff.getDiff("Title");
+        assertEquals(2, content.size());
+        assertEquals("+New title", content.get(1));
     }
 }
