@@ -70,9 +70,8 @@ public class ChangeRequestAddChangesIT
     void beforeAll(TestUtils setup)
     {
         setup.loginAsSuperAdmin();
-        setup.createUser(CR_USER, CR_USER, null);
+        setup.createUser(CR_USER, CR_USER, null, "editor", "Wysiwyg", "usertype", "Advanced");
         setup.setGlobalRights("", CR_USER, "crapprove", true);
-        setup.updateObject("XWiki", CR_USER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
     }
 
     /**
@@ -145,7 +144,9 @@ public class ChangeRequestAddChangesIT
         testUtils.login(CR_USER, CR_USER);
         testUtils.gotoPage(testReference);
         ExtendedViewPage extendedViewPage = new ExtendedViewPage();
-        ExtendedEditPage<CKEditor> extendedEditPage = extendedViewPage.clickStandardEdit(true);
+        extendedViewPage.editWYSIWYG();
+        CKEditor editor = new CKEditor("content");
+        ExtendedEditPage<CKEditor> extendedEditPage = new ExtendedEditPage<>(editor);
 
         extendedEditPage.getWrappedEditor().getRichTextArea().setContent("Some content in the new page");
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
@@ -164,7 +165,9 @@ public class ChangeRequestAddChangesIT
 
         testUtils.gotoPage(testReference);
         extendedViewPage = new ExtendedViewPage();
-        extendedEditPage = extendedViewPage.clickStandardEdit(true);
+        extendedViewPage.editWYSIWYG();
+        editor = new CKEditor("content");
+        extendedEditPage = new ExtendedEditPage<>(editor);
 
         extendedEditPage.getWrappedEditor().getRichTextArea().setContent("Some other content");
         changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
