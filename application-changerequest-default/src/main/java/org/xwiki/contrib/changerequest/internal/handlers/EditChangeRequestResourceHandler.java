@@ -127,9 +127,10 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
             // we need to call that only after the documents are prepared though to avoid getting blocked by the
             // security checks.
             context.setAction("edit");
+            String template = Utils.getPage(context.getRequest(), "changerequest/editcr");
             // We are directly relying on Utils#parseTemplate because we want the plugin manager to properly
             // handle the javascript placeholders and it avoids duplicating code.
-            Utils.parseTemplate("changerequest/editcr", true, context);
+            Utils.parseTemplate(template, true, context);
         } catch (XWikiException e) {
             throw new ResourceReferenceHandlerException("Error when parsing editcr template.", e);
         } catch (ChangeRequestException e) {

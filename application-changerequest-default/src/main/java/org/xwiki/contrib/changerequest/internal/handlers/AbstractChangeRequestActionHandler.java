@@ -245,6 +245,7 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
             }
 
             modifiedDocument.readFromForm(editForm, context);
+            modifiedDocument.readAddedUpdatedAndRemovedObjectsFromForm(editForm, context);
             if (modifiedDocument.getDefaultLocale() == Locale.ROOT) {
                 modifiedDocument.setDefaultLocale(context.getWiki().getLocalePreference(context));
             }

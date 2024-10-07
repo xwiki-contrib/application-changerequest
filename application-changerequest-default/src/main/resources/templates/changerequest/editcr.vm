@@ -22,4 +22,5 @@
 ##
 ## Check if the edit action requires a confirmation.
 ##
+#set ($discard = $xwiki.jsrx.use('templates/changerequest/editors.js', {'defer': false}))
 #template('edit.vm')
