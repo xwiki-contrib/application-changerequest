@@ -194,7 +194,7 @@ class NotificationEmailHtmlPageTest extends PageTest
         String expectedResult = "<table width=\"100%\">\n"
             + "    <tr>\n"
             + "                        <td width=\"25%\" style=\"width: 25%; vertical-align: top;\" valign=\"top\">\n"
-            + "            <strong>Change Request</strong>\n"
+            + "              <strong>CR APPLI</strong>\n"
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
@@ -311,7 +311,12 @@ class NotificationEmailHtmlPageTest extends PageTest
 
         this.context.setOriginalWikiId("xwiki");
         when(this.localizationScriptService.render(
-            eq("notifications.events.changerequest.filechange.added.description.by.users"),
+            eq(List.of(
+                "changerequest.filechange.added.description.by.users",
+                "notifications.events.changerequest.filechange.added.description.by.users",
+                "changerequest.filechange.added.description",
+                "notifications.events.changerequest.filechange.added.description"
+            )),
             any(Collection.class)))
             .then(invocationOnMock -> {
                 List<String> parameters = invocationOnMock.getArgument(1);
@@ -340,7 +345,7 @@ class NotificationEmailHtmlPageTest extends PageTest
         String expectedResult = "<table width=\"100%\">\n"
             + "    <tr>\n"
             + "                        <td width=\"25%\" style=\"width: 25%; vertical-align: top;\" valign=\"top\">\n"
-            + "            <strong>Change Request</strong>\n"
+            + "              <strong>CR APPLI</strong>\n"
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
@@ -349,14 +354,14 @@ class NotificationEmailHtmlPageTest extends PageTest
             + "href=\"/xwiki/bin/view/Space/ModifiedDoc\">Modified doc title 2</a>\n"
             + "</div>\n"
             + "                      <div>\n"
-            + "      Change request filechange added by 2\n"
-            + "    </div>\n"
-            + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" "
-            + "height=\"16\" style=\"vertical-align: middle;\"/>\n"
-            + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" "
-            + "height=\"16\" style=\"vertical-align: middle;\"/>\n"
-            + "             </div>\n"
+            + "        Change request filechange added by 2\n"
+            + "  </div>\n"
+            + "  <div>\n"
+            + "                                <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "style=\"vertical-align: middle;\"/>\n"
+            + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "style=\"vertical-align: middle;\"/>\n"
+            + "               </div>\n"
             + "        <div>\n"
             + "    <small style=\"color: #777777; font-size: 0.8em;\">\n"
             + "      A few hours ago\n"
@@ -474,7 +479,12 @@ class NotificationEmailHtmlPageTest extends PageTest
 
         this.context.setOriginalWikiId("xwiki");
         when(this.localizationScriptService.render(
-            eq("notifications.events.changerequest.rebased.description.by.users"),
+            eq(List.of(
+                "changerequest.rebased.description.by.users",
+                "notifications.events.changerequest.rebased.description.by.users",
+                "changerequest.rebased.description",
+                "notifications.events.changerequest.rebased.description"
+            )),
             any(Collection.class)))
             .then(invocationOnMock -> {
                 List<String> parameters = invocationOnMock.getArgument(1);
@@ -503,21 +513,21 @@ class NotificationEmailHtmlPageTest extends PageTest
         String expectedResult = "<table width=\"100%\">\n"
             + "    <tr>\n"
             + "                        <td width=\"25%\" style=\"width: 25%; vertical-align: top;\" valign=\"top\">\n"
-            + "            <strong>Change Request</strong>\n"
+            + "              <strong>CR APPLI</strong>\n"
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
             + "                              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/ChangeRequest/CR2\">CR 2</a>\n"
             + "                      <div>\n"
-            + "      Change request rebased by 2\n"
-            + "    </div>\n"
-            + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "        Change request rebased by 2\n"
+            + "  </div>\n"
+            + "  <div>\n"
+            + "                                <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
             + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
-            + "             </div>\n"
+            + "               </div>\n"
             + "        <div>\n"
             + "    <small style=\"color: #777777; font-size: 0.8em;\">\n"
             + "      A few hours ago\n"
@@ -636,7 +646,12 @@ class NotificationEmailHtmlPageTest extends PageTest
 
         this.context.setOriginalWikiId("xwiki");
         when(this.localizationScriptService.render(
-            eq("notifications.events.changerequest.review.added.description.by.users"),
+            eq(List.of(
+                "changerequest.review.added.description.by.users",
+                "notifications.events.changerequest.review.added.description.by.users",
+                "changerequest.review.added.description",
+                "notifications.events.changerequest.review.added.description"
+            )),
             any(Collection.class)))
             .then(invocationOnMock -> {
                 List<String> parameters = invocationOnMock.getArgument(1);
@@ -666,21 +681,21 @@ class NotificationEmailHtmlPageTest extends PageTest
         String expectedResult = "<table width=\"100%\">\n"
             + "    <tr>\n"
             + "                        <td width=\"25%\" style=\"width: 25%; vertical-align: top;\" valign=\"top\">\n"
-            + "            <strong>Change Request</strong>\n"
+            + "              <strong>CR APPLI</strong>\n"
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
             + "                              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/ChangeRequest/CR2\">CR 2</a>\n"
             + "                      <div>\n"
-            + "      Change request review added by 2\n"
-            + "    </div>\n"
-            + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "        Change request review added by 2\n"
+            + "  </div>\n"
+            + "  <div>\n"
+            + "                                <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
             + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
-            + "             </div>\n"
+            + "               </div>\n"
             + "        <div>\n"
             + "    <small style=\"color: #777777; font-size: 0.8em;\">\n"
             + "      A few hours ago\n"
@@ -807,7 +822,12 @@ class NotificationEmailHtmlPageTest extends PageTest
             .then(invocationOnMock -> "CR is stale");
 
         when(this.localizationScriptService.render(
-            eq("notifications.events.changerequest.stale.description.by.users"),
+            eq(List.of(
+                "changerequest.stale.description.by.users",
+                "notifications.events.changerequest.stale.description.by.users",
+                "changerequest.stale.description",
+                "notifications.events.changerequest.stale.description"
+            )),
             any(Collection.class)))
             .then(invocationOnMock -> {
                 List<String> parameters = invocationOnMock.getArgument(1);
@@ -826,21 +846,21 @@ class NotificationEmailHtmlPageTest extends PageTest
         String expectedResult = "<table width=\"100%\">\n"
             + "    <tr>\n"
             + "                        <td width=\"25%\" style=\"width: 25%; vertical-align: top;\" valign=\"top\">\n"
-            + "            <strong>Change Request</strong>\n"
+            + "              <strong>CR APPLI</strong>\n"
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
             + "                              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/ChangeRequest/CR2\">CR 2</a>\n"
             + "                      <div>\n"
-            + "      Change request has been marked stale by 2\n"
-            + "    </div>\n"
-            + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "        Change request has been marked stale by 2\n"
+            + "  </div>\n"
+            + "  <div>\n"
+            + "                                <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
             + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
-            + "             </div>\n"
+            + "               </div>\n"
             + "        <div>\n"
             + "    <small style=\"color: #777777; font-size: 0.8em;\">\n"
             + "      A few hours ago\n"
@@ -962,7 +982,12 @@ class NotificationEmailHtmlPageTest extends PageTest
 
         this.context.setOriginalWikiId("xwiki");
         when(this.localizationScriptService.render(
-            eq("notifications.events.changerequest.status.modified.description.by.users"),
+            eq(List.of(
+                "changerequest.status.modified.description.by.users",
+                "notifications.events.changerequest.status.modified.description.by.users",
+                "changerequest.status.modified.description",
+                "notifications.events.changerequest.status.modified.description"
+            )),
             any(Collection.class)))
             .then(invocationOnMock -> {
                 List<String> parameters = invocationOnMock.getArgument(1);
@@ -994,21 +1019,21 @@ class NotificationEmailHtmlPageTest extends PageTest
         String expectedResult = "<table width=\"100%\">\n"
             + "    <tr>\n"
             + "                        <td width=\"25%\" style=\"width: 25%; vertical-align: top;\" valign=\"top\">\n"
-            + "            <strong>Change Request</strong>\n"
+            + "              <strong>CR APPLI</strong>\n"
             + "\n"
             + "      </td>\n"
             + "                        <td style=\"vertical-align: top;\" valign=\"top\">\n"
             + "                              <a color=\"#0088CC\" style=\"color: #0088CC; text-decoration: none;\" "
             + "href=\"/xwiki/bin/view/ChangeRequest/CR2\">CR 2</a>\n"
             + "                      <div>\n"
-            + "      Change request status modified by 2\n"
-            + "    </div>\n"
-            + "    <div>\n"
-            + "                            <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
+            + "        Change request status modified by 2\n"
+            + "  </div>\n"
+            + "  <div>\n"
+            + "                                <img src=\"cid:User2.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
             + "                           <img src=\"cid:User.jpg\" alt=\"U\" width=\"16\" height=\"16\" "
             + "style=\"vertical-align: middle;\"/>\n"
-            + "             </div>\n"
+            + "               </div>\n"
             + "        <div>\n"
             + "    <small style=\"color: #777777; font-size: 0.8em;\">\n"
             + "      A few hours ago\n"
