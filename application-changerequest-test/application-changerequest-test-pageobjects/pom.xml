@@ -23,12 +23,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <version>1.15.1-SNAPSHOT</version>
+    <version>1.15.1</version>
     <groupId>org.xwiki.contrib.changerequest</groupId>
     <artifactId>application-changerequest-test</artifactId>
   </parent>
   <artifactId>application-changerequest-test-pageobjects</artifactId>
-  <version>1.15.1-SNAPSHOT</version>
+  <version>1.15.1</version>
   <name>Application Change Request - Test - Page Objects</name>
   <description>Page Objects for the tests of the Change Request application.</description>
   <dependencies>
