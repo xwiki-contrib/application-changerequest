@@ -39,6 +39,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       }
       XWiki.currentDocument.isGetURLOverridden = true;
     }
+    $('#tmEditObject').attr('href', XWiki.currentDocument.getURL('editcr', 'editor=object', ''));
+    $('#tmEditClass').hide();
+    $('#tmEditInline').hide();
     xm.refreshVersion = function () {
       console.warn("Refresh version is overridden in this editor.");
     }
