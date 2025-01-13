@@ -26,7 +26,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
       action = 'editcr';
     }
     if (editExistingCR) {
-      queryString = (queryString || '') + "&changerequest=" + urlParams.get('changerequest');
+      queryString = (queryString || '') + "&realtime=false&changerequest=" + urlParams.get('changerequest');
     }
     return overriddenMethod(action, queryString, fragment);
   };

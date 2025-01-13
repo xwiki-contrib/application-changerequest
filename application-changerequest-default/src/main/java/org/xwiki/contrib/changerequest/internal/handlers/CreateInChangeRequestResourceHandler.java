@@ -377,6 +377,8 @@ public class CreateInChangeRequestResourceHandler extends AbstractResourceRefere
         if (actionOnCreate == ActionOnCreate.SAVE_AND_VIEW) {
             // Add the CSRF token because we redirect to save action.
             redirectParams += "&form_token=" + Util.encodeURI(this.csrfToken.getToken(), null);
+        } else {
+            redirectParams += "&realtime=false";
         }
 
         return redirectParams;

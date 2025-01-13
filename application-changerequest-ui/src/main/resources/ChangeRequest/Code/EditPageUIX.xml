@@ -297,7 +297,7 @@
 #set ($hasCRCreate = $services.changerequest.authorization.isCreateWithChangeRequestAllowed($doc.getDocumentReference()))
 #set ($hasEdit = $services.security.authorization.hasAccess('edit', $tdoc))
 #set ($hasCreateButton = ($hasCreateSpace || $hasCreatePage))
-#set ($editURL = $doc.getURL('editcr'))
+#set ($editURL = $doc.getURL('editcr', 'realtime=false'))
 #set ($createURL = $doc.getURL('createcr'))
 #if (!$isReadOnly &amp;&amp; $hasCREdit)
 #if (!$hasEdit)
