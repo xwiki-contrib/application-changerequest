@@ -57,7 +57,7 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <discussions.version>2.5.2</discussions.version>
+    <discussions.version>2.5.3</discussions.version>
     <rights-api.version>2.3</rights-api.version>
     <replication.version>2.2.0</replication.version>
   </properties>
