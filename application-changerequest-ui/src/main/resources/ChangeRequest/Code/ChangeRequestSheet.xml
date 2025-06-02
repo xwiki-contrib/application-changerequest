@@ -90,6 +90,7 @@
 &lt;div class="cr-main-div" data-changerequest-id="$escapetool.xml($changeRequestId)"&gt;
   &lt;div id="discussions" class="hidden"&gt;
   #foreach ($changeRequestDiscussion in $allDiscussions)
+    #try ('discussionError')
     #set ($reference = $changeRequestDiscussion.reference)
     ## TODO: handle pagination
     #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 100))
@@ -104,6 +105,13 @@
         #displayMessage($message $changeRequest)
       #end
     &lt;/div&gt;
+    #end
+    #if ("$!discussionError" != '')
+    &lt;div class="hidden"&gt;
+      &lt;span class="reference"&gt;$reference&lt;/span&gt;
+      &lt;span class="stacktrace"&gt;$discussionError&lt;/span&gt;
+    &lt;/div&gt;
+    #end
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
   &lt;div id="timeline-loading" class="loading hidden"&gt;&lt;/div&gt;
