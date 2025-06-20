@@ -295,12 +295,17 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
             try {
                 XWikiDocument document = wiki.getDocument(reference, context);
-                BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context);
-                xObject.set(STALE_DATE_FIELD, changeRequest.getStaleDate(), context);
+                BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, false, context);
+                if (xObject != null) {
+                    xObject.set(STALE_DATE_FIELD, changeRequest.getStaleDate(), context);
 
-                // Don't perform the save if the document hasn't changed.
-                if (document.isMetaDataDirty()) {
-                    wiki.saveDocument(document, "Save of stale date", context);
+                    // Don't perform the save if the document hasn't changed.
+                    if (document.isMetaDataDirty()) {
+                        wiki.saveDocument(document, "Save of stale date", context);
+                    }
+                } else {
+                    throw new ChangeRequestException(String.format("No change request xobject found in [%s]",
+                        reference));
                 }
             } catch (XWikiException e) {
                 throw new ChangeRequestException("Error while saving the change request stale date", e);

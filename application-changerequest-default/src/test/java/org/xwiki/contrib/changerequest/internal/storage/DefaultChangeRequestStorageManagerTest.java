@@ -530,7 +530,7 @@ class DefaultChangeRequestStorageManagerTest
         XWikiDocument document = mock(XWikiDocument.class);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
         BaseObject baseObject = mock(BaseObject.class);
-        when(document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, context))
+        when(document.getXObject(CHANGE_REQUEST_XCLASS, 0, false, context))
             .thenReturn(baseObject);
         Date date = new Date(845);
         when(changeRequest.getStaleDate()).thenReturn(date);
