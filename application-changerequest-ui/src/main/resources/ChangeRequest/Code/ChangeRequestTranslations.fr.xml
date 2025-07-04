@@ -36,11 +36,11 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>changerequest.docextra.title=Demandes de modification
+  <content>changerequest.docextra.title=Demandes de modifications
 changerequest.homepage.title=Demandes de modification
 changerequest.application.label=Demande de modification
 changerequest.picker.placeholder=Saisissez un nom pour cette demande de modification
-changerequest.editor.button.save=Enregistrer comme Demande de modification
+changerequest.editor.button.save=Enregistrer comme demande de modification
 changerequest.createascr.button=Demande de création
 changerequest.savemodal.header.title=Enregistrer comme demande de modification
 changerequest.savemodal.header.hint=Fournis des précisions pour enregistrer vos modifications dans une demande de révision nouvelle ou existante.
@@ -262,7 +262,7 @@ changerequest.review.modal.choice.approve=Approuver la demande de modification
 changerequest.review.modal.choice.requestChanges=Demander des modifications
 changerequest.review.modal.comment.label=Renseignez un commentaire
 changerequest.review.modal.warningConflict=Au moins un des documents que vous allez vérifier est en conflit avec la version publiée de ce document. Votre vérification sera invalidée si le document est rafraîchi ou modifié lors du processus de résolution des conflits.
-changerequest.review.modal.warningReview=Vous avez déjà vérifié cette demande de modification, une nouvelle vérification invalidera la vérification précédente.
-changerequest.review.modal.warningReview.onBehalf=Une révision de cette demande de modification a déjà été effectuée par ou au nom de {0}, cette nouvelle révision invalidera la précédente.
+changerequest.review.modal.warningReview=Vous avez déjà vérifié cette demande de modification. Cette vérification va invalider votre réponse existante.
+changerequest.review.modal.warningReview.onBehalf=Une vérification valide de cette demande de modification existe déjà. Elle a été effectuée par ou au nom de {0}. Cette nouvelle révision invalidera la précédente.
 </content>
 </xwikidoc>
