@@ -27,6 +27,12 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.internal.AbstractChangeRequestNotificationRenderer;
 import org.xwiki.contrib.changerequest.internal.ChangeRequestGroupingStrategy;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestStatusChangedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.StaleChangeRequestRecordableEvent;
 import org.xwiki.notifications.CompositeEvent;
 import org.xwiki.notifications.NotificationException;
 import org.xwiki.notifications.notifiers.email.NotificationEmailRenderer;
@@ -42,10 +48,14 @@ import org.xwiki.template.TemplateManager;
  * @version $Id$
  * @since 1.14
  */
-// We need several hints since we use same component for both events.
+// We need several hints since we use same component for all events.
 @Component(hints = {
-    "org.xwiki.contrib.wordnotification.internal.notification.MentionedWordsRecordableEvent",
-    "org.xwiki.contrib.wordnotification.internal.notification.RemovedWordsRecordableEvent"
+    ChangeRequestCreatedRecordableEvent.EVENT_NAME,
+    ChangeRequestFileChangeAddedRecordableEvent.EVENT_NAME,
+    ChangeRequestReviewAddedRecordableEvent.EVENT_NAME,
+    ChangeRequestStatusChangedRecordableEvent.EVENT_NAME,
+    StaleChangeRequestRecordableEvent.EVENT_NAME,
+    ChangeRequestRebasedRecordableEvent.EVENT_NAME
 })
 @Singleton
 public class ChangeRequestNotificationEmailRenderer extends AbstractChangeRequestNotificationRenderer
@@ -54,6 +64,8 @@ public class ChangeRequestNotificationEmailRenderer extends AbstractChangeReques
     private static final String TEMPLATES_PATH = "changerequest/email/";
     private static final String PLAIN_TEMPLATE = TEMPLATES_PATH + "plain/%s.vm";
     private static final String HTML_TEMPLATE = TEMPLATES_PATH + "html/%s.vm";
+    private static final String EVENT_TYPE_PREFIX = "changerequest.";
+
     @Inject
     private EmailTemplateRenderer emailTemplateRenderer;
 
@@ -78,7 +90,7 @@ public class ChangeRequestNotificationEmailRenderer extends AbstractChangeReques
     @Override
     public String renderHTML(CompositeEvent compositeEvent, String userId) throws NotificationException
     {
-        Template template = this.templateManager.getTemplate(HTML_TEMPLATE);
+        Template template = this.templateManager.getTemplate(getTemplateName(HTML_TEMPLATE, compositeEvent));
         Block block = executeTemplate(compositeEvent, userId, template, Syntax.XHTML_1_0);
         return emailTemplateRenderer.renderHTML(block);
     }
@@ -86,9 +98,19 @@ public class ChangeRequestNotificationEmailRenderer extends AbstractChangeReques
     @Override
     public String renderPlainText(CompositeEvent compositeEvent, String userId) throws NotificationException
     {
-        Template template = this.templateManager.getTemplate(PLAIN_TEMPLATE);
+        Template template = this.templateManager.getTemplate(getTemplateName(PLAIN_TEMPLATE, compositeEvent));
         Block block = executeTemplate(compositeEvent, userId, template, Syntax.PLAIN_1_0);
         return emailTemplateRenderer.renderPlainText(block);
+    }
+
+    private String getTemplateName(String templatePath, CompositeEvent compositeEvent)
+    {
+        String eventName = compositeEvent.getType();
+        if (eventName.contains(EVENT_TYPE_PREFIX)) {
+            eventName = eventName.substring(EVENT_TYPE_PREFIX.length());
+        }
+
+        return String.format(templatePath, eventName);
     }
 
     @Override
