@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
+<xwikidoc version="1.6" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestSheet</name>
   <language/>
@@ -90,28 +90,28 @@
 &lt;div class="cr-main-div" data-changerequest-id="$escapetool.xml($changeRequestId)"&gt;
   &lt;div id="discussions" class="hidden"&gt;
   #foreach ($changeRequestDiscussion in $allDiscussions)
-    #try ('discussionError')
     #set ($reference = $changeRequestDiscussion.reference)
     ## TODO: handle pagination
     #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 100))
     #set ($dataAttributes = $NULL)
     #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
+    #try ("discussionError")
     #set ($diffBlockMetadata = $services.changerequest.discussion.getDiffBlockMetadata($changeRequestDiscussion.discussion))
+    #end
     &lt;div class="discussion" ${dataAttributes} &gt;
       #if ($diffBlockMetadata)
         #displayDiffBlockMetadata($diffBlockMetadata)
+      #end
+      #if ($discussionError != '')
+      &lt;div&gt;
+        &lt;span class="reference"&gt;$reference&lt;/span&gt;
+        &lt;span class="stacktrace"&gt;$discussionError&lt;/span&gt;
+      &lt;/div&gt;
       #end
       #foreach ($message in $messages)
         #displayMessage($message $changeRequest)
       #end
     &lt;/div&gt;
-    #end
-    #if ("$!discussionError" != '')
-    &lt;div class="hidden"&gt;
-      &lt;span class="reference"&gt;$reference&lt;/span&gt;
-      &lt;span class="stacktrace"&gt;$discussionError&lt;/span&gt;
-    &lt;/div&gt;
-    #end
   #end
   &lt;/div&gt;&lt;!-- End discussions --&gt;
   &lt;div id="timeline-loading" class="loading hidden"&gt;&lt;/div&gt;
@@ -3695,8 +3695,14 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     var currentElement = trLineElement;
     for (i = CONTEXT_SIZE; i &gt; 0; i--) {
       var prevElement = currentElement.prev('tr');
+      // If the previous line displays an editor we just ignore it.
+      if (prevElement.hasClass('discussion-line')) {
+        currentElement = prevElement;
+        i++;
+        continue;
+      }
       // If the line contains "diff-line-meta" then it's the first one and we should ignore it.
-      if (prevElement.length &gt; 0 &amp;&amp; prevElement.has('td.diff-line-meta').length == 0) {
+      if (prevElement.length &gt; 0 &amp;&amp; prevElement.has('td.diff-line-meta').length == 0 &amp;&amp; prevElement.has('td.diff-line').length &gt; 0) {
         diffElements.unshift(buildDiffElement(prevElement));
         currentElement = prevElement;
       } else {
@@ -5176,7 +5182,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -5338,7 +5344,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -5601,7 +5607,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
