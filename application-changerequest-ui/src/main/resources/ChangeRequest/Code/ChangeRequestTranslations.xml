@@ -203,6 +203,7 @@ changerequest.sheet.ready.button=Mark as ready for review
 changerequest.sheet.draft.button.title=Convert this Change Request to a draft Change Request.
 changerequest.sheet.draft.button=Convert to draft
 changerequest.sheet.review.button.title=Review the current Change Request
+changerequest.sheet.review.button.disabled.title=You are not allowed to review the current Change Request.
 changerequest.sheet.review.button=Review
 changerequest.sheet.diff.conflictLabel=conflicts
 changerequest.sheet.diff.conflictLabel.title=Some changes are in conflict with the latest published version of this document. Conflicts must be resolved before this content can be merged into the published document.

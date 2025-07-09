@@ -5444,6 +5444,10 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 #set ($status = $changeRequest.status)
 #set ($canBeMerged = $services.changerequest.canBeMerged($changeRequest))
 #set ($canBeReviewed = ($services.changerequest.authorization.isAuthorizedToReview($changeRequest) || $services.changerequest.authorization.isAuthorizedToReviewAsDelegate($changeRequest)))
+#if (!$canBeReviewed)
+  #set ($reasonForNotBeingAuthorizedToReview = $services.changerequest.authorization.getReasonForNotBeingAllowedToReview($changeRequest))
+  #set ($reasonForNotBeingAuthorizedToReview = $services.localization.render($reasonForNotBeingAuthorizedToReview))
+#end
 #set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
 #set ($hasConflict = $services.changerequest.merge.hasConflict($changeRequest))
 #set ($isAlreadyReviewed = $services.changerequest.review.alreadyReviewed($changeRequest))
@@ -5482,7 +5486,12 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 {{html}}
 &lt;div class="btn-group" id="changeRequestButtons"&gt;
   #if (!$canBeMerged)
-    &lt;button title="$services.localization.render('changerequest.sheet.review.button.title')" class="btn $reviewClassName #if(!$canBeReviewed)disabled#end" id="addReview"&gt;
+    #if ($canBeReviewed)
+      #set ($reviewButtonTitle = $services.localization.render('changerequest.sheet.review.button.title'))
+    #else
+      #set ($reviewButtonTitle = "$services.localization.render('changerequest.sheet.review.button.disabled.title') $reasonForNotBeingAuthorizedToReview")
+    #end
+    &lt;button title="$reviewButtonTitle" class="btn $reviewClassName #if(!$canBeReviewed)disabled#end" id="addReview"&gt;
       $services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.review.button')
     &lt;/button&gt;
   #else

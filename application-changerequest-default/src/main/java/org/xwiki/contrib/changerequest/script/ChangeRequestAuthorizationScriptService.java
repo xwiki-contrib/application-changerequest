@@ -131,6 +131,19 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
     }
 
     /**
+     * Get the reason why the current user is not authorized to review the given change request.
+     * @param changeRequest the change request about to be reviewed.
+     * @return the translation key of the reason why the user cannot review.
+     * @throws ChangeRequestException in case of problem when checking if an user is an approver.
+     * @since 1.17
+     */
+    public String getReasonForNotBeingAllowedToReview(ChangeRequest changeRequest) throws ChangeRequestException
+    {
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        return this.changeRequestRightsManager.getReasonForNotBeingAllowedToReview(currentUserReference, changeRequest);
+    }
+
+    /**
      * Check if the current user is authorized to perform a review on behalf of the original approver, on the given
      * change request.
      * This should only returns {@code true} if the delegate approver mechanism is enabled, the original approver is an

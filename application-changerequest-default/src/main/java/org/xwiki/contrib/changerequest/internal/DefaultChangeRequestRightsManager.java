@@ -555,6 +555,21 @@ public class DefaultChangeRequestRightsManager implements ChangeRequestRightsMan
     }
 
     @Override
+    public String getReasonForNotBeingAllowedToReview(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        String result;
+        if (!this.changeRequestApproversManager.isApprover(userReference, changeRequest, false)) {
+            result = "changerequest.notallowedtoreview.notapprover";
+        } else if (this.configuration.preventAuthorToReview() && changeRequest.getAuthors().contains(userReference)) {
+            result = "changerequest.notallowedtoreview.author";
+        } else {
+            result = "changerequest.notallowedtoreview.unknown";
+        }
+        return result;
+    }
+
+    @Override
     public boolean isAuthorizedToReviewOnBehalf(UserReference userReference, ChangeRequest changeRequest,
         UserReference originalApprover) throws ChangeRequestException
     {

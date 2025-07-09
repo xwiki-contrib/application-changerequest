@@ -119,6 +119,23 @@ public interface ChangeRequestRightsManager
         throws ChangeRequestException;
 
     /**
+     * Compute the reason why a user is not allowed to review and return a translation key to be used to display that
+     * reason. The parameters and the logic should be the same as in
+     * {@link #isAuthorizedToReview(UserReference, ChangeRequest)}. Note that this method should be called only if
+     * the authorization returns {@code false} as it won't check again the result, it's just try to find a reason.
+     * @param userReference the user for which to check authorizations.
+     * @param changeRequest the change request to review.
+     * @return a translation key explaining the reason why it's not allowed
+     * @throws ChangeRequestException in case of problem when checking if a user is an approver.
+     * @since 1.17
+     */
+    default String getReasonForNotBeingAllowedToReview(UserReference userReference, ChangeRequest changeRequest)
+        throws ChangeRequestException
+    {
+        return "";
+    }
+
+    /**
      * Check if the given user is authorized to perform a review on behalf of the original approver, on the given change
      * request.
      * This should only returns {@code true} if the delegate approver mechanism is enabled, the original approver is an
