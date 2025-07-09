@@ -195,6 +195,7 @@ changerequest.sheet.ready.button=Marcar como pronto para revisão
 changerequest.sheet.draft.button.title=Converta esta solicitação de mudança em um rascunho de solicitação de mudança.
 changerequest.sheet.draft.button=Converter em rascunho
 changerequest.sheet.review.button.title=Revise a solicitação de mudança atual
+### Missing: changerequest.sheet.review.button.disabled.title=You are not allowed to review the current Change Request.
 changerequest.sheet.review.button=Análise
 changerequest.sheet.diff.conflictLabel=conflitos
 changerequest.sheet.diff.conflictLabel.title=Algumas alterações estão em conflito com a última versão publicada deste documento. Os conflitos devem ser resolvidos antes que este conteúdo possa ser incorporado ao documento publicado.
