@@ -20,7 +20,6 @@
 package org.xwiki.contrib.changerequest.discussions.internal;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,6 +33,7 @@ import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionExcept
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.discussions.references.AbstractChangeRequestDiscussionContextReference;
 import org.xwiki.contrib.discussions.DiscussionContextService;
+import org.xwiki.contrib.discussions.DiscussionException;
 import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.MessageService;
 import org.xwiki.contrib.discussions.domain.Discussion;
@@ -144,19 +144,18 @@ public class ChangeRequestDiscussionFactory
         throws ChangeRequestDiscussionException
     {
         DiscussionContextEntityReference contextEntityReference = this.createContextEntityReferenceFor(reference);
-        Optional<DiscussionContext> discussionContext = this.discussionContextService.getOrCreate(
-            ChangeRequestDiscussionService.APPLICATION_HINT,
-            this.discussionReferenceUtils.getTitleTranslation(
-                ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX, reference),
-            this.discussionReferenceUtils.getDescriptionTranslation(
-                ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX, reference),
-            contextEntityReference,
-            createDiscussionStoreConfigurationParametersFor(reference));
-        if (discussionContext.isPresent()) {
-            return discussionContext.get();
-        } else {
+        try {
+            return this.discussionContextService.getOrCreate(
+                ChangeRequestDiscussionService.APPLICATION_HINT,
+                this.discussionReferenceUtils.getTitleTranslation(
+                    ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX, reference),
+                this.discussionReferenceUtils.getDescriptionTranslation(
+                    ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX, reference),
+                contextEntityReference,
+                createDiscussionStoreConfigurationParametersFor(reference));
+        } catch (DiscussionException e) {
             throw new ChangeRequestDiscussionException(
-                String.format("Error while getting or creating discussion context for reference [%s]", reference));
+                String.format("Error while getting or creating discussion context for reference [%s]", reference), e);
         }
     }
 
@@ -168,7 +167,7 @@ public class ChangeRequestDiscussionFactory
      * @param newReference the reference to use for discussion store parameters.
      */
     public void copyMessages(Discussion originalDiscussion, Discussion newDiscussion,
-        AbstractChangeRequestDiscussionContextReference newReference)
+        AbstractChangeRequestDiscussionContextReference newReference) throws ChangeRequestDiscussionException
     {
         long limit = this.messageService.countByDiscussion(originalDiscussion);
         for (int offset = 0; offset < limit; offset += 100) {
@@ -182,15 +181,20 @@ public class ChangeRequestDiscussionFactory
     }
 
     private void copyMessage(Message message, Discussion newDiscussion,
-        AbstractChangeRequestDiscussionContextReference newReference)
+        AbstractChangeRequestDiscussionContextReference newReference) throws ChangeRequestDiscussionException
     {
         DiscussionStoreConfigurationParameters storeConfigurationParameters =
             this.createDiscussionStoreConfigurationParametersFor(newReference);
-        this.messageService.create(
-            message.getContent(),
-            message.getSyntax(),
-            newDiscussion.getReference(),
-            message.getActorReference(),
-            storeConfigurationParameters);
+        try {
+            this.messageService.create(
+                message.getContent(),
+                message.getSyntax(),
+                newDiscussion.getReference(),
+                message.getActorReference(),
+                storeConfigurationParameters);
+        } catch (DiscussionException e) {
+            throw new ChangeRequestDiscussionException(String.format("Error while creating message for discussion "
+                + "[%s]", newDiscussion.getReference()), e);
+        }
     }
 }

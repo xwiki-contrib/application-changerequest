@@ -38,6 +38,7 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestRevie
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.DiscussionContextService;
+import org.xwiki.contrib.discussions.DiscussionException;
 import org.xwiki.contrib.discussions.DiscussionStoreConfigurationParameters;
 import org.xwiki.contrib.discussions.MessageService;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
@@ -135,7 +136,8 @@ class ChangeRequestDiscussionFactoryTest
     }
 
     @Test
-    void getOrCreateContextFor_withChangeRequestReference() throws ChangeRequestDiscussionException, XWikiException
+    void getOrCreateContextFor_withChangeRequestReference()
+        throws ChangeRequestDiscussionException, XWikiException, DiscussionException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
@@ -175,14 +177,14 @@ class ChangeRequestDiscussionFactoryTest
             "desc42",
             contextEntityReference,
             parameters
-        )).thenReturn(Optional.of(expectedContext));
+        )).thenReturn(expectedContext);
 
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
     @Test
     void getOrCreateContextFor_withChangeRequestCommentReference()
-        throws ChangeRequestDiscussionException, XWikiException
+        throws ChangeRequestDiscussionException, XWikiException, DiscussionException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
@@ -223,14 +225,14 @@ class ChangeRequestDiscussionFactoryTest
             "desc42",
             contextEntityReference,
             parameters
-        )).thenReturn(Optional.of(expectedContext));
+        )).thenReturn(expectedContext);
 
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
     @Test
     void getOrCreateContextFor_withChangeRequestReviewsReference()
-        throws ChangeRequestDiscussionException, XWikiException
+        throws ChangeRequestDiscussionException, XWikiException, DiscussionException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
@@ -271,14 +273,14 @@ class ChangeRequestDiscussionFactoryTest
             "desc42",
             contextEntityReference,
             parameters
-        )).thenReturn(Optional.of(expectedContext));
+        )).thenReturn(expectedContext);
 
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
     @Test
     void getOrCreateContextFor_withChangeRequestReviewReference()
-        throws ChangeRequestDiscussionException, XWikiException
+        throws ChangeRequestDiscussionException, XWikiException, DiscussionException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
@@ -321,14 +323,14 @@ class ChangeRequestDiscussionFactoryTest
             "desc42",
             contextEntityReference,
             parameters
-        )).thenReturn(Optional.of(expectedContext));
+        )).thenReturn(expectedContext);
 
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
     @Test
     void getOrCreateContextFor_withChangeRequestFileDiffReference()
-        throws ChangeRequestDiscussionException, XWikiException
+        throws ChangeRequestDiscussionException, XWikiException, DiscussionException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
@@ -372,14 +374,14 @@ class ChangeRequestDiscussionFactoryTest
             "desc42",
             contextEntityReference,
             parameters
-        )).thenReturn(Optional.of(expectedContext));
+        )).thenReturn(expectedContext);
 
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }
 
     @Test
     void getOrCreateContextFor_withChangeRequestLineDiffReference()
-        throws ChangeRequestDiscussionException, XWikiException
+        throws ChangeRequestDiscussionException, XWikiException, DiscussionException
     {
         String changeRequestId = "crId42";
         String prefix = ChangeRequestDiscussionReferenceUtils.DISCUSSION_CONTEXT_TRANSLATION_PREFIX;
@@ -432,7 +434,7 @@ class ChangeRequestDiscussionFactoryTest
             "desc42",
             contextEntityReference,
             parameters
-        )).thenReturn(Optional.of(expectedContext));
+        )).thenReturn(expectedContext);
 
         assertSame(expectedContext, this.factory.getOrCreateContextFor(changeRequestReference));
     }

@@ -48,6 +48,7 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestRevie
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
 import org.xwiki.contrib.discussions.DiscussionContextService;
+import org.xwiki.contrib.discussions.DiscussionException;
 import org.xwiki.contrib.discussions.DiscussionService;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
@@ -130,20 +131,19 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     {
         List<DiscussionContext> contextList = this.getContextListFor(reference);
 
-        Optional<Discussion> discussionOptional = this.discussionService.getOrCreate(
-            ChangeRequestDiscussionService.APPLICATION_HINT,
-            this.discussionReferenceUtils.getTitleTranslation(
-                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
-            this.discussionReferenceUtils.getDescriptionTranslation(
-                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
-            contextList.stream().map(DiscussionContext::getReference).collect(Collectors.toList()),
-            this.changeRequestDiscussionFactory.createDiscussionStoreConfigurationParametersFor(reference)
-        );
-        if (discussionOptional.isPresent()) {
-            return discussionOptional.get();
-        } else {
+        try {
+            return this.discussionService.getOrCreate(
+                ChangeRequestDiscussionService.APPLICATION_HINT,
+                this.discussionReferenceUtils.getTitleTranslation(
+                    ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+                this.discussionReferenceUtils.getDescriptionTranslation(
+                    ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+                contextList.stream().map(DiscussionContext::getReference).collect(Collectors.toList()),
+                this.changeRequestDiscussionFactory.createDiscussionStoreConfigurationParametersFor(reference)
+            );
+        } catch (DiscussionException e) {
             throw new ChangeRequestDiscussionException(
-                String.format("Error while getting or creating discussion for reference [%s]", reference));
+                String.format("Error while getting or creating discussion for reference [%s]", reference), e);
         }
     }
 
@@ -162,23 +162,22 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                     String.format("Discussion already exists for reference [%s].", reference));
             }
         }
-        Optional<Discussion> discussionOptional = this.discussionService.create(
-            ChangeRequestDiscussionService.APPLICATION_HINT,
-            this.discussionReferenceUtils.getTitleTranslation(
-                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
-            this.discussionReferenceUtils.getDescriptionTranslation(
-                ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
-            null,
-            this.changeRequestDiscussionFactory.createDiscussionStoreConfigurationParametersFor(reference));
-        if (discussionOptional.isPresent()) {
-            Discussion discussion = discussionOptional.get();
+        try {
+            Discussion discussion = this.discussionService.create(
+                ChangeRequestDiscussionService.APPLICATION_HINT,
+                this.discussionReferenceUtils.getTitleTranslation(
+                    ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+                this.discussionReferenceUtils.getDescriptionTranslation(
+                    ChangeRequestDiscussionReferenceUtils.DISCUSSION_TRANSLATION_PREFIX, reference),
+                null,
+                this.changeRequestDiscussionFactory.createDiscussionStoreConfigurationParametersFor(reference));
             for (DiscussionContext discussionContext : contextList) {
                 this.discussionContextService.link(discussionContext, discussion);
             }
             return discussion;
-        } else {
+        } catch (DiscussionException e) {
             throw new ChangeRequestDiscussionException(
-                String.format("Error while creating discussion for reference [%s]", reference));
+                String.format("Error while creating discussion for reference [%s]", reference), e);
         }
     }
 
