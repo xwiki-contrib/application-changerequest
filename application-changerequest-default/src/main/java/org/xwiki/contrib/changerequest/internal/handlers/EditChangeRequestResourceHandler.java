@@ -190,6 +190,7 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
         } else {
             editedDocument = modifiedDocument.clone();
         }
+        editedDocument.setRestricted(false);
         // Ensure to have the modified attachment in the temporary session manager so that they can be retrieved.
         // FIXME: It's not very clean as we never clean up the temporary attachments...
         this.handleAttachments(editedDocument);
