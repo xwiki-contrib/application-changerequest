@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="ChangeRequest.Code.SaveChangeRequestModal" locale="">
+<xwikidoc version="1.6" reference="ChangeRequest.Code.SaveChangeRequestModal" locale="">
   <web>ChangeRequest.Code</web>
   <name>SaveChangeRequestModal</name>
   <language/>
@@ -103,29 +103,35 @@
     #end
     &lt;div class="panel #if($isApproversEdition)panel-primary #else panel-default#end"&gt;
       &lt;div class="panel-heading" role="tab" id="approversHeading"&gt;
-        &lt;h4 class="panel-title"&gt;$services.localization.render('changerequest.savemodal.approvers.heading')&lt;/h4&gt;
+        &lt;h4 class="panel-title"&gt;
+          &lt;a role="button" data-toggle="collapse" href="#approversSelectionContainer" aria-expanded="true" aria-controls="approversSelectionContainer"&gt;
+            $services.localization.render('changerequest.savemodal.approvers.heading')
+          &lt;/a&gt;
+        &lt;/h4&gt;
       &lt;/div&gt;&lt;!-- End panel heading --&gt;
-      &lt;div id="approversSelection" data-minimumApprovers="$escapetool.xml($minimumApprovers)" class="panel-body" role="tabpanel" aria-labelledby="approversHeading"&gt;
-        #if ($hasApprovalMinimum)
-        &lt;div class="xHint"&gt;
-          $services.localization.render('changerequest.savemodal.approvers.minimumUsers.hint', ["$minimumApprovers"])
-        &lt;/div&gt;
-        #end
-        &lt;div class="form-group"&gt;
-          &lt;label for="ChangeRequest.Code.ApproversClass_${approversXObject.number}_usersApprovers"&gt;$services.localization.render('changerequest.savemodal.approvers.users')&lt;/label&gt;
-          #stripHTMLMacro($usersApproversInput)
-        &lt;/div&gt;
-        &lt;div class="form-group"&gt;
-          &lt;label for="ChangeRequest.Code.ApproversClass_${approversXObject.number}_groupsApprovers"&gt;$services.localization.render('changerequest.savemodal.approvers.groups')&lt;/label&gt;
-          #stripHTMLMacro($groupsApproversInput)
-        &lt;/div&gt;
-        #if ($shouldAddXObject)
-          &lt;input type="hidden" name="addedObjects" value="ChangeRequest.Code.ApproversClass_$approversXObject.number" /&gt;
-        #end
-        #if ($request.get('explicitDocInfo') == 1)
-          $fileChangeDocInfo
-        #end
-      &lt;/div&gt;&lt;!-- End panel body --&gt;
+      &lt;div id="approversSelectionContainer" class="panel-collapse collapse" role="tabpanel" aria-labelledby="approversHeading"&gt;
+        &lt;div id="approversSelection" data-minimumApprovers="$escapetool.xml($minimumApprovers)" class="panel-body"&gt;
+          #if ($hasApprovalMinimum)
+          &lt;div class="xHint"&gt;
+            $services.localization.render('changerequest.savemodal.approvers.minimumUsers.hint', ["$minimumApprovers"])
+          &lt;/div&gt;
+          #end
+          &lt;div class="form-group"&gt;
+            &lt;label for="ChangeRequest.Code.ApproversClass_${approversXObject.number}_usersApprovers"&gt;$services.localization.render('changerequest.savemodal.approvers.users')&lt;/label&gt;
+            #stripHTMLMacro($usersApproversInput)
+          &lt;/div&gt;
+          &lt;div class="form-group"&gt;
+            &lt;label for="ChangeRequest.Code.ApproversClass_${approversXObject.number}_groupsApprovers"&gt;$services.localization.render('changerequest.savemodal.approvers.groups')&lt;/label&gt;
+            #stripHTMLMacro($groupsApproversInput)
+          &lt;/div&gt;
+          #if ($shouldAddXObject)
+            &lt;input type="hidden" name="addedObjects" value="ChangeRequest.Code.ApproversClass_$approversXObject.number" /&gt;
+          #end
+          #if ($request.get('explicitDocInfo') == 1)
+            $fileChangeDocInfo
+          #end
+        &lt;/div&gt;&lt;!-- End panel body --&gt;
+      &lt;/div&gt;
     &lt;/div&gt;&lt;!-- End panel --&gt;
   #end
 #end
@@ -154,7 +160,7 @@
   "outputOnlyHtml": true
 })
 #define ($otherChangeRequestLT)
-&lt;div class="panel panel-info check-panel-other-cr"&gt;
+&lt;div class="panel panel-default check-panel-other-cr"&gt;
   &lt;div class="panel-heading" role="tab" id="headingOtherCRPanel"&gt;
     &lt;h4 class="panel-title"&gt;
       &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
@@ -193,7 +199,7 @@
           #if ($isApproversEdition)
             $approversPanel
           #end
-          &lt;div class="panel panel-default"&gt;
+          &lt;div class="panel panel-success"&gt;
             &lt;div class="panel-heading" role="tab" id="newChangeRequestHeading"&gt;
                &lt;h4 class="panel-title"&gt;
                   &lt;a role="button" data-toggle="collapse" data-parent="#changeRequestChoiceGroup" href="#newChangeRequest" aria-expanded="true" aria-controls="newChangeRequest"&gt;
@@ -215,7 +221,7 @@
             &lt;/div&gt;&lt;!-- End panel body --&gt;
            &lt;/div&gt;&lt;!-- End panel collapse --&gt;
           &lt;/div&gt;&lt;!-- End panel --&gt;
-          &lt;div class="panel panel-default"&gt;
+          &lt;div class="panel panel-info"&gt;
             &lt;div class="panel-heading" role="tab" id="addToExistingChangeRequestHeading"&gt;
                &lt;h4 class="panel-title"&gt;
                   &lt;a role="button" data-toggle="collapse" data-parent="#changeRequestChoiceGroup" href="#addToExistingChangeRequest" aria-expanded="false" aria-controls="addToExistingChangeRequest"&gt;
@@ -230,10 +236,10 @@
               &lt;/div&gt;&lt;!-- End panel body --&gt;
            &lt;/div&gt;&lt;!-- End panel collapse --&gt;
           &lt;/div&gt;&lt;!-- End panel --&gt;
-          #if (!$isApproversEdition &amp;&amp; ($setApprovers || $hasApprovalMinimum))
-            $approversPanel
-          #end
         &lt;/div&gt;&lt;!-- End panel group --&gt;
+        #if (!$isApproversEdition &amp;&amp; ($setApprovers || $hasApprovalMinimum))
+          $approversPanel
+        #end
         &lt;div id="form-validation-error"&gt;
           &lt;div id="missingChangeRequest" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.missingChangerequest')&lt;/div&gt;
           &lt;div id="minimumApprovers" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.minimumApprovers', ["$minimumApprovers"])&lt;/div&gt;
@@ -771,6 +777,9 @@
     <property>
       <code>#crTitle {
   width: 100%;
+}
+#changeRequestChoiceGroup {
+  margin-bottom: 3em;
 }</code>
     </property>
     <property>
