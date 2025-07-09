@@ -21,7 +21,6 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -117,16 +116,11 @@ public class ReviewChangeRequestHandler extends AbstractChangeRequestActionHandl
 
         String errorMessage = "Error when creating the review message.";
         try {
-            Optional<Message> messageOptional = this.discussionMessageRequestCreator.createMessage(request);
-            if (messageOptional.isPresent()) {
-                Message message = messageOptional.get();
-                Discussion discussion = message.getDiscussion();
-                DiscussionContext reviewDiscussionContext = this.changeRequestDiscussionService
-                    .getOrCreateDiscussionContextFor(changeRequestReviewReference);
-                this.discussionContextService.link(reviewDiscussionContext, discussion);
-            } else {
-                throw new ChangeRequestException(errorMessage);
-            }
+            Message message = this.discussionMessageRequestCreator.createMessage(request);
+            Discussion discussion = message.getDiscussion();
+            DiscussionContext reviewDiscussionContext = this.changeRequestDiscussionService
+                .getOrCreateDiscussionContextFor(changeRequestReviewReference);
+            this.discussionContextService.link(reviewDiscussionContext, discussion);
         } catch (DiscussionServerException e) {
             throw new ChangeRequestException(errorMessage, e);
         }
