@@ -195,6 +195,7 @@ changerequest.sheet.ready.button=검토 준비 완료로 표시
 changerequest.sheet.draft.button.title=이 변경 요청을 초안 변경 요청 으로 변환합니다 .
 changerequest.sheet.draft.button=초안으로 변환
 changerequest.sheet.review.button.title=현재 변경 요청 검토
+### Missing: changerequest.sheet.review.button.disabled.title=You are not allowed to review the current Change Request.
 changerequest.sheet.review.button=검토
 changerequest.sheet.diff.conflictLabel=갈등
 changerequest.sheet.diff.conflictLabel.title=일부 변경 사항은 이 문서의 최신 게시 버전과 충돌합니다. 이 콘텐츠를 게시된 문서에 병합하려면 먼저 충돌을 해결해야 합니다.
