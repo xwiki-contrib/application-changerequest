@@ -197,6 +197,7 @@ changerequest.sheet.ready.button=Als zur Überprüfung bereit markieren
 changerequest.sheet.draft.button.title=Diese Änderungsanforderung zum Entwurf konvertieren.
 changerequest.sheet.draft.button=Zum Entwurf konvertieren
 changerequest.sheet.review.button.title=Die aktuelle Änderungsanforderung überprüfen
+### Missing: changerequest.sheet.review.button.disabled.title=You are not allowed to review the current Change Request.
 changerequest.sheet.review.button=Überprüfen
 changerequest.sheet.diff.conflictLabel=Konflikte
 changerequest.sheet.diff.conflictLabel.title=Einige Änderungen stehen in Konflikt mit der letzten veröffentlichten Version dieses Dokuments. Die Konflikte müssen gelöst werden, bevor dieser Inhalt in das veröffentlichte Dokument eingefügt werden kann.
