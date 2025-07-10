@@ -21,19 +21,13 @@ package org.xwiki.contrib.changerequest.internal.approvers;
 
 import java.util.Arrays;
 
-import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.AbstractMandatoryClassInitializer;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
 /**
@@ -45,7 +39,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Component
 @Singleton
 @Named("ChangeRequest.Code.ApproversClass")
-public class ApproversXClassInitializer implements MandatoryDocumentInitializer
+public class ApproversXClassInitializer extends AbstractMandatoryClassInitializer
 {
     /**
      * Reference of approvers xclass.
@@ -73,32 +67,19 @@ public class ApproversXClassInitializer implements MandatoryDocumentInitializer
      */
     public static final Character SEPARATOR_CHARACTER = ',';
 
-    @Inject
-    private Provider<XWikiContext> contextProvider;
-
-    @Override
-    public EntityReference getDocumentReference()
+    /**
+     * Default constructor.
+     */
+    public ApproversXClassInitializer()
     {
-        return new DocumentReference(APPROVERS_XCLASS, this.contextProvider.get().getWikiReference());
+        super(APPROVERS_XCLASS);
     }
 
     @Override
-    public boolean updateDocument(XWikiDocument document)
+    protected void createClass(BaseClass xClass)
     {
-        boolean result = false;
-
-        if (document.isNew()) {
-            document.setHidden(true);
-            DocumentReference userReference = this.contextProvider.get().getUserReference();
-            document.setCreatorReference(userReference);
-            document.setAuthorReference(userReference);
-            result = true;
-        }
-        BaseClass xClass = document.getXClass();
-        result |= xClass.addUsersField(USERS_APPROVERS_PROPERTY, USERS_APPROVERS_PROPERTY);
-        result |= xClass.addGroupsField(GROUPS_APPROVERS_PROPERTY, GROUPS_APPROVERS_PROPERTY);
-        result |= xClass.addBooleanField(MANUAL_EDITION_PROPERTY, MANUAL_EDITION_PROPERTY, "checkbox", false);
-
-        return result;
+        xClass.addUsersField(USERS_APPROVERS_PROPERTY, USERS_APPROVERS_PROPERTY);
+        xClass.addGroupsField(GROUPS_APPROVERS_PROPERTY, GROUPS_APPROVERS_PROPERTY);
+        xClass.addBooleanField(MANUAL_EDITION_PROPERTY, MANUAL_EDITION_PROPERTY, "checkbox", false);
     }
 }

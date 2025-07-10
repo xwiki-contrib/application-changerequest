@@ -23,20 +23,14 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.FileChange;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.AbstractMandatoryClassInitializer;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
 /**
@@ -48,7 +42,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Component
 @Singleton
 @Named("ChangeRequest.Code.FileChangeClass")
-public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
+public class FileChangeXClassInitializer extends AbstractMandatoryClassInitializer
 {
     /**
      * Reference of the xclass.
@@ -72,47 +66,31 @@ public class FileChangeXClassInitializer implements MandatoryDocumentInitializer
     static final String AUTHOR_PROPERTY = "author";
     static final String CREATION_DATE_PROPERTY = "creationDate";
 
-    @Inject
-    private Provider<XWikiContext> contextProvider;
-
-    @Override
-    public EntityReference getDocumentReference()
+    /**
+     * Default constructor.
+     */
+    public FileChangeXClassInitializer()
     {
-        return new DocumentReference(FILECHANGE_XCLASS, this.contextProvider.get().getWikiReference());
+        super(FILECHANGE_XCLASS);
     }
 
     @Override
-    public boolean updateDocument(XWikiDocument document)
+    protected void createClass(BaseClass xClass)
     {
-        boolean result = false;
-
-        if (document.isNew()) {
-            document.setHidden(true);
-            DocumentReference userReference = this.contextProvider.get().getUserReference();
-            document.setCreatorReference(userReference);
-            document.setAuthorReference(userReference);
-            result = true;
-        }
-
-        BaseClass xClass = document.getXClass();
-        result |= xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
-        result |= xClass.addDateField(CREATION_DATE_PROPERTY, CREATION_DATE_PROPERTY);
-        result |= xClass.addTextField(FILENAME_PROPERTY, FILENAME_PROPERTY, 30);
-        result |= xClass.addTextField(PREVIOUS_VERSION_PROPERTY, PREVIOUS_VERSION_PROPERTY, 30);
-        result |= xClass
+        xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
+        xClass.addDateField(CREATION_DATE_PROPERTY, CREATION_DATE_PROPERTY);
+        xClass.addTextField(FILENAME_PROPERTY, FILENAME_PROPERTY, 30);
+        xClass.addTextField(PREVIOUS_VERSION_PROPERTY, PREVIOUS_VERSION_PROPERTY, 30);
+        xClass
             .addDateField(PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY, PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY);
-        result |= xClass.addTextField(PREVIOUS_PUBLISHED_VERSION_PROPERTY, PREVIOUS_PUBLISHED_VERSION_PROPERTY, 30);
-        result |= xClass.addTextField(VERSION_PROPERTY, VERSION_PROPERTY, 30);
-        result |= xClass.addPageField(REFERENCE_PROPERTY, REFERENCE_PROPERTY, 1);
-        result |= xClass.addTextField(REFERENCE_LOCALE_PROPERTY, REFERENCE_LOCALE_PROPERTY, 10);
-        result |= xClass.addStaticListField(TYPE_PROPERTY, TYPE_PROPERTY,
+        xClass.addTextField(PREVIOUS_PUBLISHED_VERSION_PROPERTY, PREVIOUS_PUBLISHED_VERSION_PROPERTY, 30);
+        xClass.addTextField(VERSION_PROPERTY, VERSION_PROPERTY, 30);
+        xClass.addPageField(REFERENCE_PROPERTY, REFERENCE_PROPERTY, 1);
+        xClass.addTextField(REFERENCE_LOCALE_PROPERTY, REFERENCE_LOCALE_PROPERTY, 10);
+        xClass.addStaticListField(TYPE_PROPERTY, TYPE_PROPERTY,
             Arrays.stream(FileChange.FileChangeType.values())
                 .map(value -> value.name().toLowerCase(Locale.ROOT))
                 .collect(Collectors.joining()));
-        result |= xClass.addTextField(CHANGE_REQUEST_ID, CHANGE_REQUEST_ID, 100);
-
-        return result;
+        xClass.addTextField(CHANGE_REQUEST_ID, CHANGE_REQUEST_ID, 100);
     }
-
-
 }

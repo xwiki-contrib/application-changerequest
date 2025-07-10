@@ -19,19 +19,13 @@
  */
 package org.xwiki.contrib.changerequest.internal.storage;
 
-import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.AbstractMandatoryClassInitializer;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
 /**
@@ -43,7 +37,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Component
 @Singleton
 @Named("ChangeRequest.Code.ChangeRequestReviewClass")
-public class ReviewXClassInitializer implements MandatoryDocumentInitializer
+public class ReviewXClassInitializer extends AbstractMandatoryClassInitializer
 {
     /**
      * Reference of the review xclass.
@@ -57,34 +51,21 @@ public class ReviewXClassInitializer implements MandatoryDocumentInitializer
     static final String VALID_PROPERTY = "valid";
     static final String ORIGINAL_APPROVER_PROPERTY = "originalApprover";
 
-    @Inject
-    private Provider<XWikiContext> contextProvider;
-
-    @Override
-    public EntityReference getDocumentReference()
+    /**
+     * Default constructor.
+     */
+    public ReviewXClassInitializer()
     {
-        return new DocumentReference(REVIEW_XCLASS, this.contextProvider.get().getWikiReference());
+        super(REVIEW_XCLASS);
     }
 
     @Override
-    public boolean updateDocument(XWikiDocument document)
+    protected void createClass(BaseClass xClass)
     {
-        boolean result = false;
-        if (document.isNew()) {
-            document.setHidden(true);
-            DocumentReference userReference = this.contextProvider.get().getUserReference();
-            document.setCreatorReference(userReference);
-            document.setAuthorReference(userReference);
-            result = true;
-        }
-        BaseClass xClass = document.getXClass();
-        result |= xClass.addBooleanField(APPROVED_PROPERTY, APPROVED_PROPERTY);
-        result |= xClass.addBooleanField(VALID_PROPERTY, VALID_PROPERTY);
-        result |= xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
-        result |= xClass.addDateField(DATE_PROPERTY, DATE_PROPERTY);
-        result |= xClass.addUsersField(ORIGINAL_APPROVER_PROPERTY, ORIGINAL_APPROVER_PROPERTY);
-
-
-        return result;
+        xClass.addBooleanField(APPROVED_PROPERTY, APPROVED_PROPERTY);
+        xClass.addBooleanField(VALID_PROPERTY, VALID_PROPERTY);
+        xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
+        xClass.addDateField(DATE_PROPERTY, DATE_PROPERTY);
+        xClass.addUsersField(ORIGINAL_APPROVER_PROPERTY, ORIGINAL_APPROVER_PROPERTY);
     }
 }

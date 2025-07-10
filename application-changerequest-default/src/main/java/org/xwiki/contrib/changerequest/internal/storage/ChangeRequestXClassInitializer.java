@@ -26,20 +26,15 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReference;
-import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.sheet.SheetBinder;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
+import com.xpn.xwiki.doc.AbstractMandatoryClassInitializer;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
 /**
@@ -51,7 +46,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Component
 @Singleton
 @Named("ChangeRequest.Code.ChangeRequestClass")
-public class ChangeRequestXClassInitializer implements MandatoryDocumentInitializer
+public class ChangeRequestXClassInitializer extends AbstractMandatoryClassInitializer
 {
     /**
      * Default location for change request code.
@@ -69,51 +64,40 @@ public class ChangeRequestXClassInitializer implements MandatoryDocumentInitiali
     static final String AUTHORS_FIELD = "authors";
     static final String STALE_DATE_FIELD = "staleDate";
 
-    private static final LocalDocumentReference CLASS_SHEET_BINDING_XCLASS =
-        new LocalDocumentReference("XWiki", "ClassSheetBinding");
-
     private static final LocalDocumentReference SHEET_REFERENCE =
         new LocalDocumentReference(CHANGE_REQUEST_SPACE, "ChangeRequestSheet");
 
+    /**
+     * Used to bind a class to a document sheet.
+     */
     @Inject
-    private Provider<XWikiContext> contextProvider;
+    @Named("class")
+    protected SheetBinder classSheetBinder;
 
-    @Inject
-    private EntityReferenceSerializer<String> entityReferenceSerializer;
-
-    @Override
-    public EntityReference getDocumentReference()
+    /**
+     * Default constructor.
+     */
+    public ChangeRequestXClassInitializer()
     {
-        return new DocumentReference(CHANGE_REQUEST_XCLASS, this.contextProvider.get().getWikiReference());
+        super(CHANGE_REQUEST_XCLASS);
     }
 
     @Override
-    public boolean updateDocument(XWikiDocument document)
+    protected void createClass(BaseClass xclass)
     {
-        boolean result = false;
-        if (document.isNew()) {
-            XWikiContext context = contextProvider.get();
-            BaseObject xObject = document.getXObject(CLASS_SHEET_BINDING_XCLASS, true, context);
-            xObject.setStringValue("sheet", this.entityReferenceSerializer.serialize(SHEET_REFERENCE));
-            document.setHidden(true);
-
-            DocumentReference userReference = context.getUserReference();
-            document.setCreatorReference(userReference);
-            document.setAuthorReference(userReference);
-            result = true;
-        }
-
-        BaseClass xClass = document.getXClass();
-        result |= xClass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
+        xclass.addStaticListField(STATUS_FIELD, STATUS_FIELD,
             Arrays.stream(ChangeRequestStatus.values())
                 .map(item -> item.toString().toLowerCase(Locale.ROOT))
                 .collect(Collectors.joining("|")),
             ChangeRequestStatus.DRAFT.name().toLowerCase(Locale.ROOT));
+        xclass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
+        xclass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
+        xclass.addDateField(STALE_DATE_FIELD, STALE_DATE_FIELD);
+    }
 
-        result |= xClass.addPageField(CHANGED_DOCUMENTS_FIELD, CHANGED_DOCUMENTS_FIELD, 1, true);
-        result |= xClass.addUsersField(AUTHORS_FIELD, AUTHORS_FIELD, true);
-        result |= xClass.addDateField(STALE_DATE_FIELD, STALE_DATE_FIELD);
-
-        return result;
+    @Override
+    protected boolean updateDocumentSheet(XWikiDocument document)
+    {
+        return this.classSheetBinder.bind(document, SHEET_REFERENCE);
     }
 }

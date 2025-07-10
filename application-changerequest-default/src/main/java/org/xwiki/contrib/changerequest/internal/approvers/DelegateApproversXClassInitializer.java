@@ -21,19 +21,13 @@ package org.xwiki.contrib.changerequest.internal.approvers;
 
 import java.util.Arrays;
 
-import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.MandatoryDocumentInitializer;
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.AbstractMandatoryClassInitializer;
 import com.xpn.xwiki.objects.classes.BaseClass;
 
 /**
@@ -45,7 +39,7 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Component
 @Singleton
 @Named("ChangeRequest.Code.DelegateApproversClass")
-public class DelegateApproversXClassInitializer implements MandatoryDocumentInitializer
+public class DelegateApproversXClassInitializer extends AbstractMandatoryClassInitializer
 {
     /**
      * Reference of the delegate approver xclass document.
@@ -58,30 +52,17 @@ public class DelegateApproversXClassInitializer implements MandatoryDocumentInit
      */
     public static final String DELEGATED_USERS_PROPERTY = "delegatedUsers";
 
-    @Inject
-    private Provider<XWikiContext> contextProvider;
-
-    @Override
-    public EntityReference getDocumentReference()
+    /**
+     * Default constructor.
+     */
+    public DelegateApproversXClassInitializer()
     {
-        return new DocumentReference(DELEGATE_APPROVERS_XCLASS, this.contextProvider.get().getWikiReference());
+        super(DELEGATE_APPROVERS_XCLASS);
     }
 
     @Override
-    public boolean updateDocument(XWikiDocument document)
+    protected void createClass(BaseClass xClass)
     {
-        boolean result = false;
-
-        if (document.isNew()) {
-            document.setHidden(true);
-            DocumentReference userReference = this.contextProvider.get().getUserReference();
-            document.setCreatorReference(userReference);
-            document.setAuthorReference(userReference);
-            result = true;
-        }
-        BaseClass xClass = document.getXClass();
-        result |= xClass.addUsersField(DELEGATED_USERS_PROPERTY, DELEGATED_USERS_PROPERTY);
-
-        return result;
+        xClass.addUsersField(DELEGATED_USERS_PROPERTY, DELEGATED_USERS_PROPERTY);
     }
 }
