@@ -30,6 +30,7 @@ import javax.script.ScriptContext;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
+import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestDiscussionRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestFileChangeAddedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestRebasedRecordableEvent;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestReviewAddedRecordableEvent;
@@ -121,7 +122,8 @@ public class ChangeRequestNotificationDisplayer extends AbstractChangeRequestNot
             ChangeRequestReviewAddedRecordableEvent.EVENT_NAME,
             ChangeRequestStatusChangedRecordableEvent.EVENT_NAME,
             StaleChangeRequestRecordableEvent.EVENT_NAME,
-            ChangeRequestRebasedRecordableEvent.EVENT_NAME
+            ChangeRequestRebasedRecordableEvent.EVENT_NAME,
+            ChangeRequestDiscussionRecordableEvent.EVENT_NAME
         );
     }
 }

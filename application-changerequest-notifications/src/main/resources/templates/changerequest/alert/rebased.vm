@@ -55,7 +55,7 @@
                 #set ($crReference = $changeRequestReferences.get($event))
                 #set ($document = $xwiki.getDocument($crReference))
                 ## Diff URL
-                #set ($diffUrl = $xwiki.getURL($crReference, 'view'))
+                #set ($diffUrl = "$xwiki.getURL($crReference, 'view')#event-$event.date.time")
             <tr>
                 #set ($description = $services.localization.render("changerequest.notifications.rebased.description", ["$document.displayTitle"]))
                 #if ("$!description" == '')

@@ -53,7 +53,7 @@
             #set ($newStatus = $event.parameters.get('changerequest.status.new'))
             #set ($document = $xwiki.getDocument($crReference))
             ## Diff URL
-            #set ($diffUrl = $xwiki.getURL($crReference, 'view'))
+            #set ($diffUrl = "$xwiki.getURL($crReference, 'view')#event-$event.date.time")
             <tr>
                 #set ($description = $services.localization.render("changerequest.notifications.status.modified.description", ["#displayEventStatus($oldStatus)", "#displayEventStatus($newStatus)"]))
                 #if ("$!description" == '')

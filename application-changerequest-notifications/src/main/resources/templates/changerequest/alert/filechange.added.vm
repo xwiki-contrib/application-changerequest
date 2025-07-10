@@ -59,7 +59,7 @@
                 #_getCRReference($event $crReference)
                 #_getCRDocument($event $document)
                 ## Diff URL
-                #set ($diffUrl = $xwiki.getURL($crReference, 'view'))
+                #set ($diffUrl = "$xwiki.getURL($crReference, 'view')#event-$event.date.time")
             <tr>
                 #set ($description = $services.localization.render("changerequest.notifications.filechange.added.description", ["$document.displayTitle"]))
                 #if ("$!description" == '')
