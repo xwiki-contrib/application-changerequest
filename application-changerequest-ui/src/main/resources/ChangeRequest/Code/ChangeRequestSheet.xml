@@ -92,7 +92,7 @@
   #foreach ($changeRequestDiscussion in $allDiscussions)
     #set ($reference = $changeRequestDiscussion.reference)
     ## TODO: handle pagination
-    #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 100))
+    #set ($messages = $services.discussions.getMessagesByDiscussion($changeRequestDiscussion.discussion, 0, 1000))
     #set ($dataAttributes = $NULL)
     #set ($discard = "#getDiscussionDataAttributes($changeRequestDiscussion.discussion, $dataAttributes)")
     #try ("discussionError")
@@ -151,12 +151,7 @@
         #displayDescription()
       &lt;/div&gt;&lt;!-- End description --&gt;
       &lt;div id="timeline-content"&gt;
-        &lt;ul class="timeline"&gt;
-        #set ($eventSearchResult = $services.changerequest.notifications.getChangeRequestEvents($changeRequestId, 0, 100))
-        #foreach ($event in $eventSearchResult.stream().iterator())
-          #displayEvent($event $changeRequest)
-        #end
-        &lt;/ul&gt;
+        #displayAllEvents($changeRequest.id)
       &lt;/div&gt;&lt;!-- End timeline --&gt;
       &lt;div id="discussion-comments"&gt;
         #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
