@@ -101,6 +101,11 @@
       $escapetool.xml($services.localization.render('changerequest.savemodal.approvers.edition.warning'))
     &lt;/div&gt;
     #end
+    #if ($isApproversEdition || $hasApprovalMinimum)
+      #set ($approversCollapseClass = 'panel-collapse collapse in')
+    #else
+      #set ($approversCollapseClass = 'panel-collapse collapse')
+    #end
     &lt;div class="panel #if($isApproversEdition)panel-primary #else panel-default#end"&gt;
       &lt;div class="panel-heading" role="tab" id="approversHeading"&gt;
         &lt;h4 class="panel-title"&gt;
@@ -109,7 +114,7 @@
           &lt;/a&gt;
         &lt;/h4&gt;
       &lt;/div&gt;&lt;!-- End panel heading --&gt;
-      &lt;div id="approversSelectionContainer" class="panel-collapse collapse" role="tabpanel" aria-labelledby="approversHeading"&gt;
+      &lt;div id="approversSelectionContainer" class="$approversCollapseClass" role="tabpanel" aria-labelledby="approversHeading"&gt;
         &lt;div id="approversSelection" data-minimumApprovers="$escapetool.xml($minimumApprovers)" class="panel-body"&gt;
           #if ($hasApprovalMinimum)
           &lt;div class="xHint"&gt;
