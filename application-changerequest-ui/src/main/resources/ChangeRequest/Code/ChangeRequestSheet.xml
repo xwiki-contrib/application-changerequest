@@ -3448,6 +3448,16 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     tabPanel.addClass('loading').load(renderedDiffPageUrl, data, function() {
       tabPanel.removeClass('loading');
       $(document).trigger('xwiki:dom:updated', {'elements': tabPanel.toArray()});
+      $.post(renderedDiffPageUrl, {
+        form_token: xm.form_token,
+        changerequest: changeRequestId,
+        outputSyntax: 'plain',
+        filechangeId: filechangeId,
+        action: 'cleanTemp'
+      }).fail(function(data) {
+        console.error('Error while performing request to clean up data');
+        console.debug(data);
+      });
     });
   };
   

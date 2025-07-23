@@ -97,6 +97,10 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
         String result = "";
         Optional<String> renderedDiff = this.diffCacheManager.getRenderedDiff(fileChange);
         if (renderedDiff.isPresent()) {
+            if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
+                this.handleAttachments((XWikiDocument)
+                    this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange));
+            }
             result = renderedDiff.get();
         } else {
             XWikiDocument modifiedDoc;
@@ -148,6 +152,17 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
         return result;
     }
 
+    @Override
+    public void cleanupTemporaryAttachments(FileChange fileChange) throws ChangeRequestException
+    {
+        if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
+            XWikiDocument modifiedDoc =
+                (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+            this.temporaryAttachmentSessionsManagerProvider.get()
+                .removeUploadedAttachments(modifiedDoc.getDocumentReference());
+        }
+    }
+
     private void handleAttachments(XWikiDocument modifiedDoc)
     {
         TemporaryAttachmentSessionsManager temporaryAttachmentSessionsManager =
@@ -160,10 +175,9 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
             try {
                 temporaryAttachmentSessionsManager.temporarilyAttach(clonedAttachment, reference);
             } catch (TemporaryAttachmentException e) {
-                this.logger.error("Error while temporary attaching attachment [{}] to document [{}]: [{}]",
+                this.logger.error("Error while temporary attaching attachment [{}] to document [{}]",
                     clonedAttachment.getFilename(),
-                    reference,
-                    ExceptionUtils.getRootCauseMessage(e));
+                    reference, e);
             }
         }
     }

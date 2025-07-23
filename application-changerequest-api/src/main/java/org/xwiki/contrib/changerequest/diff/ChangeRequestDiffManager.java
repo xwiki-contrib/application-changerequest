@@ -35,11 +35,24 @@ import org.xwiki.stability.Unstable;
 public interface ChangeRequestDiffManager
 {
     /**
-     * Compute the html diff for the given file change.
+     * Compute the html diff for the given file change. Note that temporary attachments are added to the document
+     * referenced by the filechange and they need to be clean up once the diff is displayed,
+     * using {@link #cleanupTemporaryAttachments(FileChange)}.
      *
      * @param fileChange the file change for which to compute an html diff.
      * @return a diff ready to be displayed
      * @throws ChangeRequestException in case of problem for rendering the documents or computing the diff.
      */
     String getHtmlDiff(FileChange fileChange) throws ChangeRequestException;
+
+    /**
+     * Cleanup any temporary attachments that were added for displaying the HTML diff.
+     *
+     * @param fileChange the filechange for which the temporary attachments were added
+     * @throws ChangeRequestException in case of problem for getting filechange information.
+     * @since 1.18
+     */
+    default void cleanupTemporaryAttachments(FileChange fileChange) throws ChangeRequestException
+    {
+    }
 }

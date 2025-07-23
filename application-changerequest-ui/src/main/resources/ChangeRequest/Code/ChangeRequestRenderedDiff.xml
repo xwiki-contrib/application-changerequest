@@ -37,27 +37,32 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
-#if ($request.get('action') == 'htmlDiff' &amp;&amp; "$!request.get('changerequest')" != "" &amp;&amp; "$!request.get('filechangeId')" != "")
+#if ("$!request.get('changerequest')" != "" &amp;&amp; "$!request.get('filechangeId')" != "")
   #if ($services.csrf.isTokenValid($request.get('form_token')) &amp;&amp; $services.changerequest.isRenderedDiffEnabled())
     #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
     #if ($changeRequestOpt.isPresent())
       #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequestOpt.get(), $request.get('filechangeId')))
       #if ($fileChangeOpt.isPresent())
         #set ($fileChange = $fileChangeOpt.get())
-        #set ($htmlDiff = $services.changerequest.getHtmlDiff($fileChange))
-        #if ($htmlDiff == '')
-          &lt;div class="infomessage"&gt;
-            $escapetool.xml($services.localization.render('web.history.changes.noChanges'))
-          &lt;/div&gt;
-        #elseif ("$!htmlDiff" == '')
-          &lt;div class="errormessage"&gt;
-            $escapetool.xml($services.localization.render('web.history.changes.failedToCompute'))
-          &lt;/div&gt;
-        #else
-          &lt;div class="alert alert-warning"&gt;
-            $escapetool.xml($services.localization.render('changerequest.diff.rendered.warningNotExact'))
-          &lt;/div&gt;
-          ${services.rendering.escape($htmlDiff, 'xwiki/2.1')}
+        #if ($request.get('action') == 'htmlDiff')
+          #set ($htmlDiff = $services.changerequest.getHtmlDiff($fileChange))
+          #if ($htmlDiff == '')
+            &lt;div class="infomessage"&gt;
+              $escapetool.xml($services.localization.render('web.history.changes.noChanges'))
+            &lt;/div&gt;
+          #elseif ("$!htmlDiff" == '')
+            &lt;div class="errormessage"&gt;
+              $escapetool.xml($services.localization.render('web.history.changes.failedToCompute'))
+            &lt;/div&gt;
+          #else
+            &lt;div class="alert alert-warning"&gt;
+              $escapetool.xml($services.localization.render('changerequest.diff.rendered.warningNotExact'))
+            &lt;/div&gt;
+            ${services.rendering.escape($htmlDiff, 'xwiki/2.1')}
+          #end
+        #elseif ($request.get('action') == 'cleanTemp')
+          #set ($discard = $services.changerequest.cleanupDiffAttachments($fileChange))
+          Cleanup ok.
         #end
       #else
         #set ($discard = $response.sendError(404, "Cannot find file change"))

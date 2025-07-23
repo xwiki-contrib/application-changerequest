@@ -545,6 +545,7 @@ public class ChangeRequestScriptService implements ScriptService
      * Get the html diff for the given file change.
      * Note that this throws an exception if the configuration doesn't enable it.
      *
+     *
      * @param fileChange the file change for which to get an html diff.
      * @return the html diff ready to be displayed.
      * @throws ChangeRequestException in case of problem to compute the diff.
@@ -559,6 +560,18 @@ public class ChangeRequestScriptService implements ScriptService
         } else {
             throw new ChangeRequestException("The rendered diff view is not enabled.");
         }
+    }
+
+    /**
+     * Clean up the temporary attachments added as part of the diff computation.
+     * @param fileChange the filechange for which temporary attachments were added.
+     * @throws ChangeRequestException in case of problem to get the filechange information.
+     * @see ChangeRequestDiffManager#cleanupTemporaryAttachments(FileChange)
+     * @since 1.18
+     */
+    public void cleanupDiffAttachments(FileChange fileChange) throws ChangeRequestException
+    {
+        this.diffManagerProvider.get().cleanupTemporaryAttachments(fileChange);
     }
 
     /**
