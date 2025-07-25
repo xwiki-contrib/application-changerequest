@@ -156,16 +156,26 @@
         'id': 'save_changerequest',
         'value': saveConfig.saveButtonTranslation
       });
+      // We cannot rely on sending the minorEdit value because the form value is changed in
+      // actionButtons.js depending if it's save and continue or save and view...
+      let minorChange = $("&lt;input&gt;", {
+        'type': 'hidden',
+        'name': 'isMinorChange',
+        'id': 'isMinorChange',
+        'value': (saveConfig.wasMinorEdit) ? 1 : 0
+      });
       
       var buttonAdded = false;
       var inplaceEditing;
       if ($('.bottombuttons').length &gt; 0) {
         $('.bottombuttons .buttons').prepend(button);
+        $('.bottombuttons .buttons').prepend(minorChange);
         buttonAdded = true;
         inplaceEditing = false;
       } else if ($('.inplace-editing-buttons').length &gt; 0) {
         button.data('inplaceediting', true);
         $('.inplace-editing-buttons .buttons').prepend(button);
+        $('.inplace-editing-buttons .buttons').prepend(minorChange);
         buttonAdded = true;
         inplaceEditing = true;
       }
@@ -193,11 +203,17 @@
           });
         }
       });
+      $('#minorEdit').on('change', function() {
+        $('#isMinorChange').val($(this).prop('checked') ? 1 : 0);
+      });
       
       var hasEditRight = saveConfig.hasEditRight;
       // hide minor edit and autosave capabilities
       if (!hasEditRight || editExistingCR) {
-        $('.meta-minorEdit').remove();
+        if (saveConfig.wasMinorEdit) {
+          $('#minorEdit').prop('checked', true);
+        }
+        $('.realtime-allow-label').remove();
         $('#autosaveControl').remove();
         $('input[name=action_save]').parent().remove();
         $('input[name=action_cancel]').off('click');
@@ -389,7 +405,12 @@
   #if ($request.get('changerequest'))
     #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
     #if ($changeRequestOpt.isPresent())
-      #set ($changeRequestDocReference = $services.changerequest.getChangeRequestDocumentReference($changeRequestOpt.get()))
+      #set ($changeRequest = $changeRequestOpt.get())
+      #set ($latestFileChangeOpt = $changeRequest.getLatestFileChangeFor($doc.getDocumentReferenceWithLocale()))
+      #if ($latestFileChangeOpt.isPresent())
+        #set ($discard = $changeRequestSaveConfig.put('wasMinorEdit', $latestFileChangeOpt.get().isMinorChange()))
+      #end
+      #set ($changeRequestDocReference = $services.changerequest.getChangeRequestDocumentReference($changeRequest))
       #set ($discard = $changeRequestSaveConfig.put('changeRequestURL', $xwiki.getDocument($changeRequestDocReference).getURL()))
     #end
   #end

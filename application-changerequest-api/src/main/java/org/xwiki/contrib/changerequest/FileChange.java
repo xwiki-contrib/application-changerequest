@@ -84,6 +84,7 @@ public class FileChange
     private DocumentModelBridge modifiedDocument;
     private boolean saved;
     private final FileChangeType type;
+    private boolean minorChange;
 
     /**
      * Creates a new file change edition related to the given change request.
@@ -321,6 +322,27 @@ public class FileChange
     }
 
     /**
+     * @return {@code true} if this should be merged as a minor edition, {@code false} if it should be merged as
+     * major edition.
+     * @since 1.18
+     */
+    public boolean isMinorChange()
+    {
+        return minorChange;
+    }
+
+    /**
+     * @param minorChange {@code true} if this should be merged as a minor edition, {@code false} if it should be
+     *                    merged as major edition.
+     * @return the current instance.
+     */
+    public FileChange setMinorChange(boolean minorChange)
+    {
+        this.minorChange = minorChange;
+        return this;
+    }
+
+    /**
      * Clone the current file change with all data, except the id (see {@link #getId()}).
      * Note that the {@link #isSaved()} flag returns false for the created element of the clone.
      *
@@ -351,7 +373,8 @@ public class FileChange
             .setModifiedDocument(this.modifiedDocument)
             .setTargetEntity(this.targetEntity)
             .setPreviousPublishedVersion(this.previousPublishedVersion, this.previousPublishedVersionDate)
-            .setPreviousVersion(this.previousVersion);
+            .setPreviousVersion(this.previousVersion)
+            .setMinorChange(this.minorChange);
     }
 
     /**
@@ -390,6 +413,7 @@ public class FileChange
             .append(modifiedDocument, that.modifiedDocument)
             .append(version, that.version)
             .append(type, that.type)
+            .append(minorChange, that.minorChange)
             .isEquals();
     }
 
@@ -407,6 +431,7 @@ public class FileChange
             .append(modifiedDocument)
             .append(version)
             .append(type)
+            .append(minorChange)
             .toHashCode();
     }
 
@@ -425,6 +450,7 @@ public class FileChange
             .append("modifiedDocument", modifiedDocument)
             .append("saved", saved)
             .append("type", type)
+            .append("minorChange", minorChange)
             .toString();
     }
 }

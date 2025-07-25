@@ -155,6 +155,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         String title = request.getParameter("crTitle");
         String description = request.getParameter("crDescription");
         boolean isDraft = "1".equals(request.getParameter("crDraft"));
+        boolean isMinorEdit = "1".equals(request.getParameter("isMinorChange"));
 
         UserReference currentUser = this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         ChangeRequest changeRequest = new ChangeRequest();
@@ -188,7 +189,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         }
         FileChange fileChange =
             getFileChange(changeRequest, fileChangeType, documentReference, modifiedDocument, previousVersion,
-                previousVersionDate);
+                previousVersionDate, isMinorEdit);
 
         changeRequest
             .setTitle(title)
@@ -207,7 +208,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
 
     private FileChange getFileChange(ChangeRequest changeRequest, FileChange.FileChangeType fileChangeType,
         DocumentReference documentReference, XWikiDocument modifiedDocument, String requestPreviousVersion,
-        Date previousVersionDate)
+        Date previousVersionDate, boolean minorEdit)
         throws ChangeRequestException
     {
         FileChange fileChange = new FileChange(changeRequest, fileChangeType);
@@ -240,7 +241,8 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
                 fileChange
                     .setPreviousVersion(requestPreviousVersion)
                     .setPreviousPublishedVersion(requestPreviousVersion, previousVersionDate)
-                    .setModifiedDocument(modifiedDocument);
+                    .setModifiedDocument(modifiedDocument)
+                    .setMinorChange(minorEdit);
                 fileChangeVersion = this.fileChangeVersionManager
                     .getNextFileChangeVersion(fileChange.getPreviousVersion(), false);
                 break;

@@ -169,7 +169,7 @@
 
 {{liveData
   id="changerequest-filechanges"
-  properties="changerequest,filechange_type,doc.title,doc.location,filechange_author,filechange_version,filechange_documentVersion,_actions"
+  properties="changerequest,filechange_type,doc.title,doc.location,filechange_author,filechange_version,filechange_documentVersion,filechange_minorChange,_actions"
   source="liveTable"
   sourceParameters="resultPage=ChangeRequest.Code.FileChangeLiveTable&amp;translationPrefix=changerequest.livetable.filechange."
   filters="changerequest=$changeRequest.id"
@@ -206,6 +206,10 @@
       },
       {
         "id": "filechange_documentVersion",
+        "editable": false
+      },
+      {
+        "id": "filechange_minorChange",
         "editable": false
       }
     ],

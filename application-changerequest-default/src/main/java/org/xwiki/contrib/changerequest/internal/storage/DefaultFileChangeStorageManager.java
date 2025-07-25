@@ -32,6 +32,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
@@ -74,6 +75,7 @@ import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassI
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.CREATION_DATE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILECHANGE_XCLASS;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.FILENAME_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.MINOR_CHANGE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_DATE_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_PUBLISHED_VERSION_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.FileChangeXClassInitializer.PREVIOUS_VERSION_PROPERTY;
@@ -272,6 +274,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         fileChangeObject.set(REFERENCE_LOCALE_PROPERTY, locale, context);
         fileChangeObject.set(TYPE_PROPERTY, fileChange.getType().name().toLowerCase(), context);
         fileChangeObject.set(CHANGE_REQUEST_ID, fileChange.getChangeRequest().getId(), context);
+        fileChangeObject.set(MINOR_CHANGE_PROPERTY, (fileChange.isMinorChange() ? 1 : 0), context);
     }
 
     @Override
@@ -343,6 +346,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         DocumentReference documentReference =
             this.documentReferenceResolver.resolve(fileChangeObject.getStringValue(REFERENCE_PROPERTY));
         String localeString = fileChangeObject.getStringValue(REFERENCE_LOCALE_PROPERTY);
+        boolean minorChange = StringUtils.equals(fileChangeObject.getStringValue(MINOR_CHANGE_PROPERTY), "1");
         Locale locale = LocaleUtils.toLocale(localeString);
         documentReference = new DocumentReference(documentReference, locale);
 
@@ -354,6 +358,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             .setVersion(version)
             .setCreationDate(creationDate)
             .setAuthor(author)
+            .setMinorChange(minorChange)
             .setSaved(true);
     }
 
@@ -608,7 +613,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
                 document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
-                wiki.saveDocument(document, getMergeSaveMessage(fileChange), context);
+                wiki.saveDocument(document, getMergeSaveMessage(fileChange), fileChange.isMinorChange(), context);
             }
         } catch (XWikiException e) {
             throw new ChangeRequestException(

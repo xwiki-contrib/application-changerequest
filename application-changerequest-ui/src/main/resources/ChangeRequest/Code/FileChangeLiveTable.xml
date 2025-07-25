@@ -85,7 +85,8 @@ Technical page for getting livetable data for change request file changes.
           'doc_title': "#displayFileChangeTitle($lastFileChange, true)",
           'doc_isNew': "$concernedDoc.isNew()",
           'doc_wiki': $docReference.wikiReference.name,
-          'filechange_locale': $docReference.locale
+          'filechange_locale': $docReference.locale,
+          'filechange_minorChange': $lastFileChange.isMinorChange
         })
         #if (($lastFileChange.type == 'EDITION' || $lastFileChange.type == 'CREATION') &amp;&amp; $hasCREdit)
           #set ($discard = $row.put('doc_hasedit', true))

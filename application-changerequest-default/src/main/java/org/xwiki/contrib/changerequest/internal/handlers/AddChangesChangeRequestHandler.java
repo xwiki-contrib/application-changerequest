@@ -179,6 +179,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
         previousFileChange = changeRequest.getLatestFileChangeFor(documentReference);
         previousVersion = request.getParameter(PREVIOUS_VERSION_PARAMETER);
+        boolean isMinorEdit = "1".equals(request.getParameter("isMinorChange"));
         XWikiContext context = this.contextProvider.get();
         XWikiDocument previousDoc;
         try {
@@ -193,7 +194,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
         if (previousFileChange.isPresent()) {
             if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
-                previousFileChange.get(), modifiedDocument))
+                previousFileChange.get(), modifiedDocument, isMinorEdit))
             {
                 fileChange = null;
             }
@@ -212,7 +213,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     .setVersion(fileChangeVersion)
                     .setPreviousVersion(previousVersion)
                     .setPreviousPublishedVersion(previousVersion, previousDoc.getDate())
-                    .setModifiedDocument(modifiedDocument);
+                    .setModifiedDocument(modifiedDocument)
+                    .setMinorChange(isMinorEdit);
             }
         }
         return fileChange;
@@ -249,7 +251,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
             .setModifiedDocument(modifiedDocument);
         if (previousFileChange.isPresent()) {
             if (!this.addChangeToExistingFileChange(request, changeRequest, fileChange,
-                previousFileChange.get(), modifiedDocument))
+                previousFileChange.get(), modifiedDocument, false))
             {
                 fileChange = null;
             }
@@ -262,7 +264,7 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
     }
 
     private boolean addChangeToExistingFileChange(HttpServletRequest request, ChangeRequest changeRequest,
-        FileChange currentFileChange, FileChange latestFileChange, XWikiDocument modifiedDocument)
+        FileChange currentFileChange, FileChange latestFileChange, XWikiDocument modifiedDocument, boolean isMinorEdit)
         throws ChangeRequestException, IOException
     {
         boolean result = false;
@@ -279,7 +281,8 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                     .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
                     .setPreviousVersion(previousVersion)
                     .setVersion(fileChangeVersion)
-                    .setModifiedDocument(mergeDocumentResult.getMergeResult());
+                    .setModifiedDocument(mergeDocumentResult.getMergeResult())
+                    .setMinorChange(isMinorEdit);
                 result = true;
             } else {
                 this.reportError(HttpStatus.SC_CONFLICT, "changerequest.save.error.conflict");

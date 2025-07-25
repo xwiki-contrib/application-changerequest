@@ -65,6 +65,7 @@ public class FileChangeXClassInitializer extends AbstractMandatoryClassInitializ
     static final String TYPE_PROPERTY = "type";
     static final String AUTHOR_PROPERTY = "author";
     static final String CREATION_DATE_PROPERTY = "creationDate";
+    static final String MINOR_CHANGE_PROPERTY = "minorChange";
 
     /**
      * Default constructor.
@@ -92,5 +93,6 @@ public class FileChangeXClassInitializer extends AbstractMandatoryClassInitializ
                 .map(value -> value.name().toLowerCase(Locale.ROOT))
                 .collect(Collectors.joining()));
         xClass.addTextField(CHANGE_REQUEST_ID, CHANGE_REQUEST_ID, 100);
+        xClass.addBooleanField(MINOR_CHANGE_PROPERTY, MINOR_CHANGE_PROPERTY, "checkbox", false);
     }
 }

@@ -573,7 +573,7 @@ class DefaultFileChangeStorageManagerTest
             .thenReturn(SAVE_MESSAGE);
 
         this.fileChangeStorageManager.merge(fileChange);
-        verify(this.xWiki).saveDocument(currentDocument, SAVE_MESSAGE, this.context);
+        verify(this.xWiki).saveDocument(currentDocument, SAVE_MESSAGE, false, this.context);
         verify(documentAuthors).setOriginalMetadataAuthor(author);
     }
 
