@@ -122,6 +122,7 @@ changerequest.livetable.filechange.filechange_type=Änderungstyp
 changerequest.livetable.filechange.filechange_author=Autor der Änderung
 changerequest.livetable.filechange.filechange_version=Vorläufige Version
 changerequest.livetable.filechange.filechange_documentVersion=Veröffentlichte Version
+changerequest.livetable.filechange.filechange_minorChange=Kleine Änderung
 changerequest.livetable.filechange._actions=Aktionen
 changerequest.sheet.tab.approvers.title=Genehmiger
 changerequest.sheet.hide=Verstecken
