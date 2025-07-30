@@ -202,6 +202,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference documentReference = mock(DocumentReference.class);
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(documentReference);
         XWikiDocument document = mock(XWikiDocument.class);
+        when(document.clone()).thenReturn(document);
         when(this.wiki.getDocument(documentReference, this.context)).thenReturn(document);
         when(document.isNew()).thenReturn(true);
         DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
@@ -231,6 +232,7 @@ class DefaultChangeRequestStorageManagerTest
         verify(this.fileChangeStorageManager).save(fileChange2);
         verify(this.wiki).saveDocument(document, "Creation of change request", this.context);
         verify(this.changeRequestStorageCacheManager).invalidate("id42");
+        verify(document).clone();
     }
 
     @Test
@@ -681,6 +683,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr1Ref = mock(DocumentReference.class, "cr1Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest1)).thenReturn(cr1Ref);
         XWikiDocument cr1Doc = mock(XWikiDocument.class, "cr1Doc");
+        when(cr1Doc.clone()).thenReturn(cr1Doc);
         when(this.wiki.getDocument(cr1Ref, this.context)).thenReturn(cr1Doc);
         DocumentAuthors cr1Authors = mock(DocumentAuthors.class, "cr1Authors");
         when(cr1Doc.getAuthors()).thenReturn(cr1Authors);
@@ -700,6 +703,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr2Ref = mock(DocumentReference.class, "cr2Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest2)).thenReturn(cr2Ref);
         XWikiDocument cr2Doc = mock(XWikiDocument.class, "cr2Doc");
+        when(cr2Doc.clone()).thenReturn(cr2Doc);
         when(this.wiki.getDocument(cr2Ref, this.context)).thenReturn(cr2Doc);
         DocumentAuthors cr2Authors = mock(DocumentAuthors.class, "cr2Authors");
         when(cr2Doc.getAuthors()).thenReturn(cr2Authors);
@@ -719,6 +723,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr3Ref = mock(DocumentReference.class, "cr3Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest3)).thenReturn(cr3Ref);
         XWikiDocument cr3Doc = mock(XWikiDocument.class, "cr3Doc");
+        when(cr3Doc.clone()).thenReturn(cr3Doc);
         when(this.wiki.getDocument(cr3Ref, this.context)).thenReturn(cr3Doc);
         DocumentAuthors cr3Authors = mock(DocumentAuthors.class, "cr3Authors");
         when(cr3Doc.getAuthors()).thenReturn(cr3Authors);
@@ -738,6 +743,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr4Ref = mock(DocumentReference.class, "cr4Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest4)).thenReturn(cr4Ref);
         XWikiDocument cr4Doc = mock(XWikiDocument.class, "cr4Doc");
+        when(cr4Doc.clone()).thenReturn(cr4Doc);
         when(this.wiki.getDocument(cr4Ref, this.context)).thenReturn(cr4Doc);
         DocumentAuthors cr4Authors = mock(DocumentAuthors.class, "cr4Authors");
         when(cr4Doc.getAuthors()).thenReturn(cr4Authors);
@@ -944,6 +950,10 @@ class DefaultChangeRequestStorageManagerTest
 
         verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
             eq(List.of(changeRequest1, changeRequest2, changeRequest3, changeRequest4)));
+        verify(cr1Doc).clone();
+        verify(cr2Doc).clone();
+        verify(cr3Doc).clone();
+        verify(cr4Doc).clone();
     }
 
     @Test
@@ -1063,6 +1073,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr1Ref = mock(DocumentReference.class, "cr1Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest1)).thenReturn(cr1Ref);
         XWikiDocument cr1Doc = mock(XWikiDocument.class, "cr1Doc");
+        when(cr1Doc.clone()).thenReturn(cr1Doc);
         when(this.wiki.getDocument(cr1Ref, this.context)).thenReturn(cr1Doc);
         DocumentAuthors cr1Authors = mock(DocumentAuthors.class, "cr1Authors");
         when(cr1Doc.getAuthors()).thenReturn(cr1Authors);
@@ -1082,6 +1093,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr3Ref = mock(DocumentReference.class, "cr3Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest3)).thenReturn(cr3Ref);
         XWikiDocument cr3Doc = mock(XWikiDocument.class, "cr3Doc");
+        when(cr3Doc.clone()).thenReturn(cr3Doc);
         when(this.wiki.getDocument(cr3Ref, this.context)).thenReturn(cr3Doc);
         DocumentAuthors cr3Authors = mock(DocumentAuthors.class, "cr3Authors");
         when(cr3Doc.getAuthors()).thenReturn(cr3Authors);
@@ -1101,6 +1113,7 @@ class DefaultChangeRequestStorageManagerTest
         DocumentReference cr4Ref = mock(DocumentReference.class, "cr4Ref");
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest4)).thenReturn(cr4Ref);
         XWikiDocument cr4Doc = mock(XWikiDocument.class, "cr4Doc");
+        when(cr4Doc.clone()).thenReturn(cr4Doc);
         when(this.wiki.getDocument(cr4Ref, this.context)).thenReturn(cr4Doc);
         DocumentAuthors cr4Authors = mock(DocumentAuthors.class, "cr4Authors");
         when(cr4Doc.getAuthors()).thenReturn(cr4Authors);
@@ -1271,6 +1284,9 @@ class DefaultChangeRequestStorageManagerTest
 
         verify(this.observationManager).notify(any(SplitEndChangeRequestEvent.class), eq(changeRequestId),
             eq(List.of(changeRequest1, changeRequest3, changeRequest4)));
+        verify(cr1Doc).clone();
+        verify(cr3Doc).clone();
+        verify(cr4Doc).clone();
     }
 
     @Test

@@ -49,6 +49,7 @@ import com.xpn.xwiki.objects.BaseObject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -99,6 +100,7 @@ class DefaultReviewStorageManagerTest
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocRef);
 
         XWikiDocument xWikiDocument = mock(XWikiDocument.class);
+        when(xWikiDocument.clone()).thenReturn(xWikiDocument);
         XWiki xWiki = mock(XWiki.class);
         when(this.context.getWiki()).thenReturn(xWiki);
         when(xWiki.getDocument(changeRequestDocRef, this.context)).thenReturn(xWikiDocument);
@@ -140,6 +142,7 @@ class DefaultReviewStorageManagerTest
         verify(xWikiDocument).createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context);
         verify(xWiki).saveDocument(xWikiDocument, "Update existing review", this.context);
         verify(baseObject).set(ReviewXClassInitializer.VALID_PROPERTY, 0, this.context);
+        verify(xWikiDocument, times(2)).clone();
     }
 
     @Test

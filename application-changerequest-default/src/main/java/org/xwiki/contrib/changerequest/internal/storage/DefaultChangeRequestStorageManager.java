@@ -220,7 +220,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         }
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
         try {
-            XWikiDocument document = wiki.getDocument(reference, context);
+            XWikiDocument document = wiki.getDocument(reference, context).clone();
             this.prepareChangeRequestDocument(changeRequest, document);
             for (FileChange fileChange : changeRequest.getAllFileChanges()) {
                 this.fileChangeStorageManager.save(fileChange);

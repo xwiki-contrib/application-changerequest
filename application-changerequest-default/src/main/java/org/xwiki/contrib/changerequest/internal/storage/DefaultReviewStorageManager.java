@@ -93,7 +93,8 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
 
             XWikiContext context = contextProvider.get();
             try {
-                XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
+                XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context)
+                    .clone();
                 BaseObject xObject;
                 // FIXME: use localization
                 String saveComment = "Add new review";
