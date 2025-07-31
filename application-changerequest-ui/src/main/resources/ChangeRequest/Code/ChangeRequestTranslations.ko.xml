@@ -122,6 +122,7 @@ changerequest.livetable.filechange.filechange_type=변경 유형
 changerequest.livetable.filechange.filechange_author=변경 작성자
 changerequest.livetable.filechange.filechange_version=임시 버전
 changerequest.livetable.filechange.filechange_documentVersion=게시된 버전
+### Missing: changerequest.livetable.filechange.filechange_minorChange=Minor change
 changerequest.livetable.filechange._actions=행위
 changerequest.sheet.tab.approvers.title=승인자
 changerequest.sheet.hide=숨다
