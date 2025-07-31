@@ -194,7 +194,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
 
                 String filename = this.getFileChangeFileName(fileChangeId);
                 XWikiDocument fileChangeDocument = this.getFileChangeStorageDocument(fileChange.getChangeRequest(),
-                    fileChange.getTargetEntity());
+                    fileChange.getTargetEntity()).clone();
                 fileChangeDocument.setHidden(true);
 
                 // Notify about the filechange about to be saved, before the modified document is attached and the
@@ -611,7 +611,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     String.format("Cannot merge the file change [%s] since it has conflicts.", fileChange));
             }
             if (mergeDocumentResult.isModified()) {
-                XWikiDocument document = (XWikiDocument) mergeDocumentResult.getMergeResult();
+                XWikiDocument document = ((XWikiDocument) mergeDocumentResult.getMergeResult()).clone();
                 document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
                 wiki.saveDocument(document, getMergeSaveMessage(fileChange), fileChange.isMinorChange(), context);
             }

@@ -299,6 +299,7 @@ class DefaultFileChangeStorageManagerTest
         DocumentReference fileStorageDocRef = new DocumentReference("5:xwiki5:Space3:Doc2:fr",
             changeRequestDocReference.getLastSpaceReference());
         XWikiDocument fileChangeDoc = mock(XWikiDocument.class);
+        when(fileChangeDoc.clone()).thenReturn(fileChangeDoc);
         when(this.xWiki.getDocument(fileStorageDocRef, this.context)).thenReturn(fileChangeDoc);
         when(fileChangeDoc.isNew()).thenReturn(true);
         DocumentAuthors fileChangeAuthors = mock(DocumentAuthors.class);
@@ -350,6 +351,7 @@ class DefaultFileChangeStorageManagerTest
         verify(fileChangeObj)
             .set(FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY, Locale.FRENCH, this.context);
         verify(modifiedDoc).setRCSVersion(new Version("3.3"));
+        verify(fileChangeDoc).clone();
     }
 
     @Test
@@ -559,6 +561,7 @@ class DefaultFileChangeStorageManagerTest
 
         when(mergeDocumentResult.isModified()).thenReturn(true);
         when(mergeDocumentResult.getMergeResult()).thenReturn(currentDocument);
+        when(currentDocument.clone()).thenReturn(currentDocument);
         DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
         when(currentDocument.getAuthors()).thenReturn(documentAuthors);
 
@@ -575,6 +578,7 @@ class DefaultFileChangeStorageManagerTest
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(currentDocument, SAVE_MESSAGE, false, this.context);
         verify(documentAuthors).setOriginalMetadataAuthor(author);
+        verify(currentDocument).clone();
     }
 
     @Test
