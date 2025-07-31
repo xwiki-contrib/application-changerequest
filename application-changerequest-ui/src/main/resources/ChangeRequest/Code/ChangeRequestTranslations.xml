@@ -69,9 +69,9 @@ changerequest.sheet.markready.button.title=Mark this Change Request as ready for
 changerequest.sheet.markdraft.button=Convert to Draft
 changerequest.sheet.markdraft.button.title=Mark this Change Request as work in progress. This will prevent formal review and publication.
 
-changerequest.edit.button.value=Edit
+changerequest.edit.button.value=Edit with Change Request
 changerequest.edit.button.title=Edit with Change Request
-changerequest.create.button.value=Create
+changerequest.create.button.value=Create with Change Request
 changerequest.create.button.title=Create with Change Request
 changerequest.delete.nested.message=Nested page deletion is not supported by the Change Request function. You will not be able to use Change Requests to perform this action if you select the "Affect children".
 changerequest.delete.button.disabled=A page cannot be deleted together with all its children using the Change Request function. Uncheck the "Affect children" box to use the Change Request function and only delete this page.
