@@ -122,6 +122,7 @@ changerequest.livetable.filechange.filechange_type=変更の種類
 changerequest.livetable.filechange.filechange_author=最新の変更の著者
 changerequest.livetable.filechange.filechange_version=バージョン
 changerequest.livetable.filechange.filechange_documentVersion=公開済のドキュメントのバージョン
+### Missing: changerequest.livetable.filechange.filechange_minorChange=Minor change
 changerequest.livetable.filechange._actions=アクション
 changerequest.sheet.tab.approvers.title=承認者
 ### Missing: changerequest.sheet.hide=Hide

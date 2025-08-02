@@ -1,0 +1,268 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="zh_CN">
+  <web>ChangeRequest.Code</web>
+  <name>ChangeRequestTranslations</name>
+  <language>zh_CN</language>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>1</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ChangeRequestTranslations</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>changerequest.docextra.title=变更请求
+changerequest.homepage.title=变更请求
+changerequest.application.label=变更请求
+changerequest.picker.placeholder=为此次变更请求输入一个名称
+changerequest.editor.button.save=保存为变更请求
+changerequest.createascr.button=请求创建
+changerequest.savemodal.header.title=保存为变更请求
+changerequest.savemodal.header.hint=为保存您在新的或现有变更请求中的更改，请提供一些信息。
+changerequest.savemodal.create.heading=创建新的变更请求
+changerequest.savemodal.create.input.title=变更请求标题
+changerequest.savemodal.create.input.title.placeholder=代表建议变更的标题
+changerequest.savemodal.create.input.description=变更请求描述
+changerequest.savemodal.create.input.draft=将变更请求标记为草稿（防止正式审核和发布）
+changerequest.savemodal.edit.heading=向现有变更请求添加更改
+changerequest.savemodal.edit.input.selector=选择一个现有的变更请求
+changerequest.sheet.merge.button=发布
+changerequest.sheet.merge.button.title=发布请求的更改
+changerequest.sheet.rebase.button=刷新内容
+changerequest.sheet.rebase.button.title=使用最新发布的文档版本内容刷新此变更请求（所有建议的更改都将保留）。
+changerequest.sheet.rebase.confirm=此操作将使所有评审失效，您确定要继续吗？
+changerequest.sheet.editapprovers.button=编辑批准者
+changerequest.sheet.pagechanges=页面中请求的更改：
+changerequest.sheet.alldifftitle=所有变更
+changerequest.sheet.difftitle={0}的变化
+changerequest.sheet.difftitle.EDITION={0}的版本
+changerequest.sheet.difftitle.DELETION=删除{0}
+changerequest.sheet.difftitle.CREATION=创建{0}
+changerequest.sheet.difftitle.NO_CHANGE=未对{0}进行编辑
+changerequest.sheet.markready.button=准备审核
+changerequest.sheet.markready.button.title=将此变更请求标记为准备审核
+changerequest.sheet.markdraft.button=转为草稿
+changerequest.sheet.markdraft.button.title=将此变更请求标记为进行中。这将阻止正式审核和发布。
+changerequest.edit.button.value=使用变更请求编辑
+changerequest.edit.button.title=使用变更请求编辑
+changerequest.create.button.value=使用变更请求创建
+changerequest.create.button.title=使用变更请求创建
+changerequest.delete.nested.message=嵌套页面删除不受变更请求功能支持。如果您选择“影响子页面”，则无法使用变更请求执行此操作。
+changerequest.delete.button.disabled=使用变更请求功能无法将页面及其所有子页面一起删除。取消勾选“影响子页面”框，使用变更请求功能仅删除此页面。
+changerequest.sheet.tab.description.title=描述
+changerequest.sheet.tab.reviews.title=评论
+changerequest.sheet.tab.filechanges.title=建议变更
+changerequest.sheet.tab.checks.title=检查
+changerequest.sheet.tab.checks.conflicts.noconflict.title=未发现冲突
+changerequest.sheet.tab.checks.conflicts.title={0} 发现冲突
+changerequest.sheet.tab.checks.conflicts.noconflict.body=没有冲突需要显示。
+changerequest.sheet.tab.checks.conflicts.body=在建议的变更中发现了{0}个冲突。请检查{1}建议变更{2}标签来修复它们。
+changerequest.sheet.tab.checks.conflicts.needsrefresh.title=发现了一个未解决的文档冲突。
+changerequest.sheet.tab.checks.conflicts.needsrefresh.body=发现了一个未解决的文档冲突。这可能与已删除的文档或版本有关，请检查{0}建议的更改{1}选项卡并刷新文档内容。
+changerequest.sheet.fixconflict.button=修复冲突
+changerequest.sheet.tab.review.approvers.title=批准人
+changerequest.sheet.tab.review.approvers.noapprover=此变更请求尚未明确定义审批人。审批人将完全基于审批权限。
+changerequest.sheet.tab.review.approvers.approverslist=此变更请求的审批人：
+changerequest.sheet.tab.review.title.approved=由{0}批准
+changerequest.sheet.tab.review.title.notapproved={0}请求变更
+changerequest.sheet.tab.review.title.approved.onbehalf=由{0}代表{1}批准
+changerequest.sheet.tab.review.title.notapproved.onbehalf={0}代表{1}提出的变更请求
+changerequest.sheet.tab.review.title.outdated=过时的
+changerequest.sheet.tab.review.title.outdated.title=此评审不再有效，评审工作流将忽略它。
+changerequest.sheet.tab.review.button.markinvalid=使无效
+changerequest.sheet.tab.review.button.markinvalid.title=将此评审标记为过时
+changerequest.sheet.tab.review.button.markvalid=恢复
+changerequest.sheet.tab.review.button.markvalid.title=再次将此评审标记为有效
+changerequest.sheet.tab.review.button.add=新评审
+changerequest.sheet.tab.checks.approvalStrategy.title=审批策略
+changerequest.sheet.tab.checks.approvalStrategy.body.cannotBeLoaded=审批策略无法加载。
+changerequest.sheet.checks.button=尚未准备好发布
+changerequest.sheet.checks.button.title=未满足必要条件。点击查看在文档发布前需要修正的内容。
+changerequest.sheet.checks.status.ready.explanation=此变更请求已准备好进行审核。
+changerequest.sheet.checks.status.draft.explanation=此变更请求已被标记为草稿（进行中），只有当作者决定将其标记为“准备审查”时才能进行审查和发布。
+changerequest.sheet.checks.status.closed.explanation=此变更请求已被取消/关闭，在当前状态下无法编辑或审查。
+changerequest.sheet.close.button=关闭
+changerequest.sheet.close.button.title=不删除即关闭/取消变更请求。
+changerequest.sheet.open.button=打开
+changerequest.sheet.open.button.title=重新打开变更请求并将其状态设置为"准备审查"。
+changerequest.sheet.open_draft.button=作为草稿打开
+changerequest.sheet.open_draft.button.title=重新打开变更请求并将其状态设置为“草稿”。
+changerequest.filechange.type.EDITION=版
+changerequest.filechange.type.DELETION=删除
+changerequest.filechange.type.CREATION=创建
+changerequest.filechange.type.NO_CHANGE=无变化
+changerequest.livetable.filechange.doc.location=目标位置
+changerequest.livetable.filechange.doc.title=建议标题
+changerequest.livetable.filechange.filechange_type=变更类型
+changerequest.livetable.filechange.filechange_author=变更请求作者
+changerequest.livetable.filechange.filechange_version=临时版本
+changerequest.livetable.filechange.filechange_documentVersion=已发布版本
+changerequest.livetable.filechange.filechange_minorChange=小修改
+changerequest.livetable.filechange._actions=操作
+changerequest.sheet.tab.approvers.title=审批人
+changerequest.sheet.hide=隐藏
+changerequest.sheet.view=查看
+ChangeRequest.Code.ConfigurationClass_approvalStrategy=发布审批策略
+ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=用于确定是否可以发布变更请求的策略。
+ChangeRequest.Code.ConfigurationClass_changeRequestLocation=变更请求存储位置
+ChangeRequest.Code.ConfigurationClass_changeRequestLocation.hint=存储变更请求文档和数据的区域。
+ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale=过期变更请求超时
+ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale.hint=允许变更请求保持"过期"状态的天数。一旦该时间段过去，系统将状态更改为"关闭"并发送相关通知。经过的时间是从变更请求创建或更新时计算（见使用创建时间作为超时），或从变更请求被设置为"过期"状态时计算（见打开变更请求超时）。将值设置为 0 以禁用该功能。
+ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale=打开变更请求超时
+ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale.hint=允许变更请求保持"打开"状态的天数。一旦该时间段过去，系统将状态更改为"过时"并发送相关通知。经过的时间是从变更请求最后修改的时间计算，还是从变更请求创建的时间计算，请参考"使用创建日期来计算超时"字段来确定。将值设置为 0 以禁用该功能。
+ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations=使用创建日期来处理超时
+ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations.hint=选择“是”表示仅使用创建日期来检测过期的变更请求。选择“否”表示将使用变更请求的最后活动时间。
+ChangeRequest.Code.ConfigurationClass_schedulerContextUser=计划任务用户
+ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=此用户将在自动将变更请求设置为"过时"或"已关闭"时用作作者。与这些操作相关的通知也将由此用户发出。如果未指定用户，则使用安装扩展的用户。
+ChangeRequest.Code.ConfigurationClass_mergeUser=发布用户
+ChangeRequest.Code.ConfigurationClass_mergeUser.hint=如果指定了用户，则在发布变更请求时始终使用此用户。此用户应具有适当的权限。如果未指定用户，则由点击发布按钮的用户执行发布。
+ChangeRequest.Code.ConfigurationClass_delegateEnabled=启用代理审批人
+ChangeRequest.Code.ConfigurationClass_delegateEnabled.hint=如果启用，允许使用代理审批机制。代理是允许代表文档的明确审批人进行审核的用户。
+ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=用于计算代理的用户属性
+ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=使用此功能指定在自动计算代理审批人时应考虑的用户资料字段。如果列表为空，则代理需要手动设置。
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=防止作者审查他们创建的变更请求
+ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=如果选中，作者将不允许审阅他们创建的变更请求。
+ChangeRequest.Code.ConfigurationClass_minimumApprovers=最小显式批准者数量
+ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=定义变更请求所需的最低审批人数。注意，0 表示无最低要求。
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=启用渲染的差异视图
+ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=启用后可以查看页面更改的实际渲染差异。 
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=用于渲染差异的安全策略
+ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=默认策略最安全，但它会阻止所有脚本渲染，即使这些脚本属于底层文档表单。这种立场可以通过选择其他方法之一来放宽。
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers=仅接受具有审批权限的审批人
+ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=当选中时，提议为审批人的用户将系统性地进行验证，以确保他们拥有审批权限。
+changerequest.diffRender.name.default=默认策略
+changerequest.diffRender.description.default=渲染差异的最安全策略：它阻止任何脚本被执行。
+changerequest.diffRender.name.guestright=访客作者权利政策
+changerequest.diffRender.description.guestright=这项策略使用访客用户权限渲染页面：更改会以访客作为作者的方式呈现。
+changerequest.diffRender.name.authorright=更改作者权限策略
+changerequest.diffRender.description.authorright=该策略使用提出更改的用户的权限来渲染页面。请谨慎使用，因为如果作者具有脚本权限，此策略可能会允许未发布的脚本被执行。
+changerequest.diff.rendered.warningNotExact=这是文档发布后将呈现的大致效果。出于安全原因，富内容渲染可能会受限或不可用。富内容通常在宏中显示，因此这些内容元素在此视图中可能会被阻止。使用 JavaScript 或访问特定用户信息的宏尤其敏感。
+changerequest.moreactions.manageapprovers=管理审批人
+changerequest.moreactions.deletionrequest=删除请求
+changerequest.moreactions.splitcr=拆分此变更请求
+changerequest.moreactions.splitcr.confirm=您确定要拆分这个变更请求吗？这将为每个修改的文档创建新的变更请求，并删除当前的变更请求。此操作不可逆，并可能破坏传入的链接。
+ChangeRequest.Code.ApproversClass_usersApprovers=可以批准的用户
+ChangeRequest.Code.ApproversClass_usersApprovers_hint=能够批准针对此文档所做的任何更改的维基用户。
+ChangeRequest.Code.ApproversClass_groupsApprovers=可以批准的组
+ChangeRequest.Code.ApproversClass_groupsApprovers_hint=能够批准针对此文档所做的任何更改的维基用户组。
+ChangeRequest.Code.ApproversClass_manualEdition=手动编辑
+ChangeRequest.Code.ApproversClass_manualEdition_hint=如果不想在发布新变更时自动同步审批人，请勾选此框。
+changerequest.timeline.changerequest.create={0}创建了此变更请求，并针对&lt;a href="{1}"&gt;{2}&lt;/a&gt;进行了更改
+changerequest.timeline.changerequest.create.fromSplit={0}通过拆分现有的变更请求&lt;a href="{1}"&gt;{2}&lt;/a&gt;创建了此变更请求
+changerequest.timeline.changerequest.filechange.added={0}为&lt;a href="{1}"&gt;{2}&lt;/a&gt;添加了一个新的变更
+changerequest.timeline.changerequest.status.modified={0} 修改了变更请求的状态，从 {1} 变更为 {2}
+changerequest.timeline.changerequest.review.added.approval={0}添加了一个新的审批评审
+changerequest.timeline.changerequest.review.added.requestchanges={0}添加了一个新的请求变更的评审
+changerequest.timeline.changerequest.review.added.approval.delegate={0}代表{1}添加了一个新的审批审查
+changerequest.timeline.changerequest.review.added.requestchanges.delegate={0}代表{1}添加了一个新的请求变更的审查
+changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0}添加了{1}条新的通用评论{2}
+changerequest.timeline.changerequest.discussions.LINE_DIFF={0}添加了{1}一条新的文档评论{2}
+changerequest.timeline.changerequest.discussions.REVIEW={0}添加了{1}一条新的评论{2}
+changerequest.timeline.changerequest.updated={0} 编辑了变更请求的描述或标题
+changerequest.timeline.changerequest.stale={0} 将变更请求标记为过时
+changerequest.timeline.changerequest.rebased.all={0} 刷新了整个变更请求的内容
+changerequest.timeline.changerequest.rebased.filechange={0} 刷新了 &lt;a href="{1}"&gt;{2}&lt;/a&gt; 的更改
+changerequest.timeline.changerequest.rebased.conflictFixing={0} 修复了 &lt;a href="{1}"&gt;{2}&lt;/a&gt; 的冲突
+changerequest.sheet.description.placeholder=点击右侧的编辑链接来提供描述。
+changerequest.sheet.existingChangeRequestSameChanges=其他变更请求存在于此处修改的一个或多个页面：
+changerequest.sheet.checks.otherCR.title=针对部分这些文档，变更请求已经存在
+changerequest.sheet.ready.button.title=将此变更请求标记为已准备好审查
+changerequest.sheet.ready.button=标记为已准备好审核
+changerequest.sheet.draft.button.title=将此变更请求转换为草稿变更请求。
+changerequest.sheet.draft.button=转换为草稿
+changerequest.sheet.review.button.title=审查当前的变更请求
+changerequest.sheet.review.button.disabled.title=您无权审核当前的变更请求。
+changerequest.sheet.review.button=审核
+changerequest.sheet.diff.conflictLabel=冲突
+changerequest.sheet.diff.conflictLabel.title=部分更改与该文档最新发布的版本存在冲突。在将此内容合并到已发布文档之前，必须解决冲突。
+changerequest.sheet.message.outdated=过时的
+changerequest.sheet.message.outdated.title=此消息已过时：消息所指的文档内容自发布以来已更改。
+changerequest.sheet.diff.outdated=过时的
+changerequest.sheet.diff.outdated.title=该文档的发布版本自此变更请求创建以来已更改。在此变更请求刷新之前，此视图不会显示与发布版本相关的更改。
+changerequest.sheet.diff.nochange=无变化
+changerequest.sheet.diff.approverLabel=审批人
+changerequest.sheet.diff.approverLabel.title=您被提名为此文档的审批人。然而，在审查此变更请求期间，您可能需要审批/拒绝其他支持您所审批文档的文档变更。您的审批将适用于整个变更请求。
+changerequest.sheet.diff.delegateApproverLabel=代理审批人
+changerequest.sheet.diff.delegateApproverLabel.title=您是这个文档的代理审批人。但在审核这个变更请求时，您可能需要批准/拒绝其他支持您已代理审批文档的文档变更。您的审批将适用于整个变更请求。
+changerequest.sheet.diff.detailsButton=查看详情
+changerequest.sheet.diff.details.location.metadata=页面属性
+changerequest.sheet.diff.details.location.attachment=附件 {0} 的属性
+changerequest.sheet.diff.details.location.xobject=对象 {0} 的属性
+changerequest.sheet.diff.details.location.xclass=类 {0} 的属性
+changerequest.sheet.diff.details.propertyName=属性名称：{0}
+changerequest.sheet.message.collapse.button.title=点击收起消息。
+changerequest.sheet.message.expand.button.title=点击展开消息。
+changerequest.sheet.message.reply.button.title=回复此消息
+changerequest.sheet.message.reply.button=回复
+changerequest.minimumApprovers.warning=该文档未达到显式批准者的最小数量。
+changerequest.conflict.modal.title=解决冲突
+changerequest.conflict.modal.description=这个界面允许您手动解决与已发布文档无法自动合并的内容。您可以在选择结果之前在文档版本之间进行导航。
+changerequest.conflict.modal.description.EDITION=此文档存在冲突，因为您尝试修改的页面自本次变更请求创建以来已在文档的同一部分被修改。您可以使用此变更请求中的内容覆盖已发布的变更，或者可以让已发布的文档覆盖建议的变更。或者，您可以尝试手动定义内容，以便它能够捕获文档两个版本中的信息。
+changerequest.conflict.modal.description.CREATION=此文档存在冲突，因为您尝试创建的页面在您提交此变更请求时已被创建。您可以发布您的更改或使用已发布的版本。
+changerequest.conflict.modal.recommended=推荐
+changerequest.conflict.modal.options.keepcr.title=保留建议的更改
+changerequest.conflict.modal.options.keepcr.description=用建议的更改覆盖已发布的文档，在没有冲突的地方进行合并
+changerequest.conflict.modal.options.keeppublished.title=保留已发布版本
+changerequest.conflict.modal.options.keeppublished.description=放弃建议的更改，在没有冲突的地方合并
+changerequest.conflict.modal.custom.hint.disabled=此选项已禁用。文档的部分内容发生了冲突，无法通过自定义解决方式处理。
+changerequest.conflict.modal.diffoption.previous=原始文档（基准）
+changerequest.conflict.modal.diffoption.next=建议的更改
+changerequest.conflict.modal.diffoption.current=最新发布
+changerequest.conflict.modal.diffoption.merged=解决方案：优先级更新至最新发布版本
+changerequest.conflict.modal.diffoption.merged_crfallback=解决方案：优先考虑提案
+changerequest.conflict.modal.customchoices.current=已发布的变更
+changerequest.conflict.modal.customchoices.next=当前更改
+changerequest.conflict.modal.customchoices.previous=原始变更
+changerequest.conflict.modal.customchoices.custom=自定义变更
+changerequest.savemodal.approvers.edition.warning=一旦文档已发布，对审批者列表的任何更改必须先获得现有审批者列表的批准，然后更改才会影响任何开放的审核周期。如果您希望为此次变更请求添加或移除审批者，请以新的审批者列表开启一个新的变更请求。一旦对审批者的提议变更被接受，此变更请求将自动更新。
+changerequest.savemodal.approvers.header.title=管理审批人
+changerequest.savemodal.approvers.header.hint=指定允许审阅此文档更改的用户和/或组的列表。这些用户将随变更请求一起提交进行审阅。
+changerequest.savemodal.approvers.heading=定义审批人
+changerequest.savemodal.approvers.users=可以批准的用户
+changerequest.savemodal.approvers.groups=可以批准的组
+changerequest.savemodal.approvers.minimumUsers.hint=您必须至少选择 {0} 个用户。
+changerequest.savemodal.error.missingChangerequest=请输入一个新的变更请求标题，或选择一个现有的变更请求。
+changerequest.savemodal.error.minimumApprovers=您必须至少选择 {0} 位审批人。
+changerequest.savemodal.error.approversLackRight=部分或全部所选审批人对此文档没有查看权限。
+changerequest.savemodal.error.otherError=无法保存此变更请求。请尝试创建新的变更请求或将其更改添加到其他变更请求。遇到以下错误：
+changerequest.sheet.message.reply.header=回复来自{0}的消息，发送于{1}。
+changerequest.sheet.message.reply.link.title=点击导航到上一条消息。
+changerequest.livetable.approvers.reviews.performed=执行审查
+changerequest.livetable.approvers.reviews.alreadyReviewed=已审阅
+changerequest.review.modal.title=审阅此变更请求
+changerequest.review.modal.selectApprover.title=代表您进行审核：
+changerequest.review.modal.selectApprover.hint=选择您代表谁进行此审查的用户。
+changerequest.review.modal.selectApprover.themselves=代表你自己进行评审
+changerequest.review.modal.choice.approve=批准此变更请求
+changerequest.review.modal.choice.requestChanges=请求更改
+changerequest.review.modal.comment.label=提供一个评论
+changerequest.review.modal.warningConflict=您即将审阅的文档中至少有一个与已发布的版本存在冲突。如果在处理冲突过程中文档被刷新或修改，您的审阅将失效。
+changerequest.review.modal.warningReview=您已经审阅过此变更请求。此次审阅将使您现有的回复失效。
+changerequest.review.modal.warningReview.onBehalf=针对此变更请求已有有效的评审。该评审由{0}执行或代表其执行。此评审将使现有回复失效。
+</content>
+</xwikidoc>
