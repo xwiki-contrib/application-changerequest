@@ -1,1 +1,305 @@
+<?xml version="1.1" encoding="UTF-8"?>
 
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="">
+  <web>ChangeRequest.Code</web>
+  <name>ChangeRequestTranslations</name>
+  <language/>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Main.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ChangeRequestTranslations</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>changerequest.docextra.title=变更请求
+changerequest.homepage.title=变更请求
+changerequest.application.label=变更请求
+changerequest.picker.placeholder=为此次变更请求输入一个名称
+changerequest.editor.button.save=保存为变更请求
+changerequest.createascr.button=请求创建
+changerequest.savemodal.header.title=保存为变更请求
+changerequest.savemodal.header.hint=为保存您在新的或现有变更请求中的更改，请提供一些信息。
+changerequest.savemodal.create.heading=创建新的变更请求
+changerequest.savemodal.create.input.title=变更请求标题
+changerequest.savemodal.create.input.title.placeholder=代表建议变更的标题
+changerequest.savemodal.create.input.description=变更请求描述
+changerequest.savemodal.create.input.draft=将变更请求标记为草稿（防止正式审核和发布）
+changerequest.savemodal.edit.heading=向现有变更请求添加更改
+changerequest.savemodal.edit.input.selector=选择一个现有的变更请求
+changerequest.sheet.merge.button=发布
+changerequest.sheet.merge.button.title=发布请求的更改
+changerequest.sheet.rebase.button=刷新内容
+changerequest.sheet.rebase.button.title=使用最新发布的文档版本内容刷新此变更请求（所有建议的更改都将保留）。
+changerequest.sheet.rebase.confirm=此操作将使所有评审失效，您确定要继续吗？
+changerequest.sheet.editapprovers.button=编辑批准者
+changerequest.sheet.pagechanges=页面中请求的更改：
+changerequest.sheet.alldifftitle=所有变更
+changerequest.sheet.difftitle={0}的变化
+changerequest.sheet.difftitle.EDITION={0}的版本
+changerequest.sheet.difftitle.DELETION=删除{0}
+changerequest.sheet.difftitle.CREATION=创建{0}
+changerequest.sheet.difftitle.NO_CHANGE=未对{0}进行编辑
+changerequest.sheet.markready.button=准备审核
+changerequest.sheet.markready.button.title=将此变更请求标记为准备审核
+changerequest.sheet.markdraft.button=转为草稿
+changerequest.sheet.markdraft.button.title=将此变更请求标记为进行中。这将阻止正式审核和发布。
+changerequest.edit.button.value=使用变更请求编辑
+changerequest.edit.button.title=使用变更请求编辑
+changerequest.create.button.value=使用变更请求创建
+changerequest.create.button.title=使用变更请求创建
+changerequest.delete.nested.message=嵌套页面删除不受变更请求功能支持。如果您选择“影响子页面”，则无法使用变更请求执行此操作。
+changerequest.delete.button.disabled=使用变更请求功能无法将页面及其所有子页面一起删除。取消勾选“影响子页面”框，使用变更请求功能仅删除此页面。
+changerequest.sheet.tab.description.title=描述
+changerequest.sheet.tab.reviews.title=评论
+changerequest.sheet.tab.filechanges.title=建议变更
+changerequest.sheet.tab.checks.title=检查
+changerequest.sheet.tab.checks.conflicts.noconflict.title=未发现冲突
+changerequest.sheet.tab.checks.conflicts.title={0} 发现冲突
+changerequest.sheet.tab.checks.conflicts.noconflict.body=没有冲突需要显示。
+changerequest.sheet.tab.checks.conflicts.body=在建议的变更中发现了{0}个冲突。请检查{1}建议变更{2}标签来修复它们。
+changerequest.sheet.tab.checks.conflicts.needsrefresh.title=发现了一个未解决的文档冲突。
+changerequest.sheet.tab.checks.conflicts.needsrefresh.body=发现了一个未解决的文档冲突。这可能与已删除的文档或版本有关，请检查{0}建议的更改{1}选项卡并刷新文档内容。
+changerequest.sheet.fixconflict.button=修复冲突
+changerequest.sheet.tab.review.approvers.title=批准人
+changerequest.sheet.tab.review.approvers.noapprover=此变更请求尚未明确定义审批人。审批人将完全基于审批权限。
+changerequest.sheet.tab.review.approvers.approverslist=此变更请求的审批人：
+changerequest.sheet.tab.review.title.approved=由{0}批准
+changerequest.sheet.tab.review.title.notapproved={0}请求变更
+changerequest.sheet.tab.review.title.approved.onbehalf=由{0}代表{1}批准
+changerequest.sheet.tab.review.title.notapproved.onbehalf={0}代表{1}提出的变更请求
+changerequest.sheet.tab.review.title.outdated=过时的
+changerequest.sheet.tab.review.title.outdated.title=此评审不再有效，评审工作流将忽略它。
+changerequest.sheet.tab.review.button.markinvalid=使无效
+changerequest.sheet.tab.review.button.markinvalid.title=将此评审标记为过时
+changerequest.sheet.tab.review.button.markvalid=恢复
+changerequest.sheet.tab.review.button.markvalid.title=再次将此评审标记为有效
+changerequest.sheet.tab.review.button.add=新评审
+changerequest.sheet.tab.checks.approvalStrategy.title=审批策略
+changerequest.sheet.tab.checks.approvalStrategy.body.cannotBeLoaded=审批策略无法加载。
+changerequest.sheet.checks.button=尚未准备好发布
+changerequest.sheet.checks.button.title=未满足必要条件。点击查看在文档发布前需要修正的内容。
+changerequest.sheet.checks.status.ready.explanation=此变更请求已准备好进行审核。
+changerequest.sheet.checks.status.draft.explanation=此变更请求已被标记为草稿（进行中），只有当作者决定将其标记为“准备审查”时才能进行审查和发布。
+changerequest.sheet.checks.status.closed.explanation=此变更请求已被取消/关闭，在当前状态下无法编辑或审查。
+changerequest.sheet.close.button=关闭
+changerequest.sheet.close.button.title=不删除即关闭/取消变更请求。
+changerequest.sheet.open.button=打开
+changerequest.sheet.open.button.title=重新打开变更请求并将其状态设置为"准备审查"。
+changerequest.sheet.open_draft.button=作为草稿打开
+changerequest.sheet.open_draft.button.title=重新打开变更请求并将其状态设置为“草稿”。
+changerequest.filechange.type.EDITION=版
+changerequest.filechange.type.DELETION=删除
+changerequest.filechange.type.CREATION=创建
+changerequest.filechange.type.NO_CHANGE=无变化
+changerequest.livetable.filechange.doc.location=目标位置
+changerequest.livetable.filechange.doc.title=建议标题
+changerequest.livetable.filechange.filechange_type=变更类型
+changerequest.livetable.filechange.filechange_author=变更请求作者
+changerequest.livetable.filechange.filechange_version=临时版本
+changerequest.livetable.filechange.filechange_documentVersion=已发布版本
+changerequest.livetable.filechange.filechange_minorChange=小修改
+changerequest.livetable.filechange._actions=操作
+changerequest.sheet.tab.approvers.title=审批人
+changerequest.sheet.hide=隐藏
+changerequest.sheet.view=查看
+ChangeRequest.Code.ConfigurationClass_approvalStrategy=发布审批策略
+ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=用于确定是否可以发布变更请求的策略。
+ChangeRequest.Code.ConfigurationClass_changeRequestLocation=变更请求存储位置
+ChangeRequest.Code.ConfigurationClass_changeRequestLocation.hint=存储变更请求文档和数据的区域。
+### Missing: ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale=Stale Change Request timeout
+### Missing: ChangeRequest.Code.ConfigurationClass_durationBeforeClosingStale.hint=The number of days a Change Request is allowed to remain in a "stale" state. Once this period has elapsed, the system will change the state to "closed" and issue the relevant notifications. The elapsed time is either calculated from the time the Change Request was created or updated (see Use creation date for timeouts), or from the time the Change Request was set to a "stale" state (see Open Change Request timeout). Set the value to 0 to disable the feature.
+### Missing: ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale=Open Change Request timeout
+### Missing: ChangeRequest.Code.ConfigurationClass_durationBeforeNotifyingStale.hint=The number of days a Change Request is allowed to remain in an "open" state. Once this period has elapsed, the system will change the state to "stale" and issue the relevant notifications. The elapsed time is either calculated from the time the Change Request was last modified or from the time the Change Request was created. See the "Use creation date for timeouts" field to determine which one applies. Set the value to 0 to disable the feature.
+### Missing: ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations=Use creation date for timeouts
+### Missing: ChangeRequest.Code.ConfigurationClass_useCreationDateForStaleDurations.hint=Selecting Yes means that the creation date is only used to detect a stale Change Request. Selecting No means that the last activity of the Change Request will be used.
+### Missing: ChangeRequest.Code.ConfigurationClass_schedulerContextUser=Scheduled job user
+### Missing: ChangeRequest.Code.ConfigurationClass_schedulerContextUser.hint=This user will be used as the author when automatically setting a Change Request to "stale" or "closed" at the specified schedule. Notifications associated with these actions will also be issued by this user. If a user is not specified, the user who installed the extension is used.
+### Missing: ChangeRequest.Code.ConfigurationClass_mergeUser=Publication user
+### Missing: ChangeRequest.Code.ConfigurationClass_mergeUser.hint=If a user is specified, this user will always be used when publishing Change Requests. This user should have appropriate rights. If a user is not specified, the publication is performed by the user clicking the publish button.
+### Missing: ChangeRequest.Code.ConfigurationClass_delegateEnabled=Enable delegate approvers
+### Missing: ChangeRequest.Code.ConfigurationClass_delegateEnabled.hint=If enabled, allow the use of the delegate approval mechanism. Delegates are users that are allowed to perform reviews on behalf of the explicit approvers of a document.
+### Missing: ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList=User properties to use for computing delegates
+### Missing: ChangeRequest.Code.ConfigurationClass_delegateClassPropertyList.hint=Use this to specify the fields in a user's profile that should be taken into account when automatically computing delegate approvers. If the list is left empty, delegates will need to be set manually.
+### Missing: ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview=Prevent authors from reviewing Change Requests they create
+### Missing: ChangeRequest.Code.ConfigurationClass_preventAuthorsToReview.hint=If checked, authors will not be allowed to review Change Requests they create.
+### Missing: ChangeRequest.Code.ConfigurationClass_minimumApprovers=Minimum number of explicit approvers
+### Missing: ChangeRequest.Code.ConfigurationClass_minimumApprovers.hint=Define the minimum number of approvers required by a Change Request. Note that 0 means no minimum.
+### Missing: ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled=Enable the rendered diff view
+### Missing: ChangeRequest.Code.ConfigurationClass_renderedDiffEnabled.hint=When enabled allow to see a diff with the actual rendering of the page changes. 
+### Missing: ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=Security policy to use for the rendered diff
+### Missing: ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=The default policy is the safest but it prevents all scripts from being rendered, even if the scripts are part of the underlying document sheets. This posture can be relaxed by selecting one of the other approaches.
+### Missing: ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers=Only accept approvers that have the approval right
+### Missing: ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=When checked, users who are proposed as approvers are systematically validated to ensure they have approval right.
+### Missing: changerequest.diffRender.name.default=Default policy
+### Missing: changerequest.diffRender.description.default=Safest policy for the rendered diff: it prevents any script from being executed.
+### Missing: changerequest.diffRender.name.guestright=Guest author rights policy
+### Missing: changerequest.diffRender.description.guestright=This policy renders the page using the Guest user rights: the changes are rendered as if Guest was the author.
+### Missing: changerequest.diffRender.name.authorright=Change author rights policy
+### Missing: changerequest.diffRender.description.authorright=This policy renders the page using the rights of the user proposing the changes. Use with caution as this policy could allow unpublished scripts to be executed if the author has script rights.
+### Missing: changerequest.diff.rendered.warningNotExact=This is an approximation of how the document will be rendered once published. For security reasons, rendering of rich content may be limited or unavailable. Rich content is often displayed in macros, so these elements of content will likely be blocked in this view. Macros that make use of JavaScript or access specific user information are particularly sensitive.
+### Missing: changerequest.moreactions.manageapprovers=Manage Approvers
+### Missing: changerequest.moreactions.deletionrequest=Request Deletion
+### Missing: changerequest.moreactions.splitcr=Split this Change Request
+### Missing: changerequest.moreactions.splitcr.confirm=Are you sure you want to split this Change Request? It will create new Change Requests for each modified document and will delete the current Change Request. This operation is irreversible and may break incoming links.
+### Missing: ChangeRequest.Code.ApproversClass_usersApprovers=Users who can approve
+### Missing: ChangeRequest.Code.ApproversClass_usersApprovers_hint=Users of the wiki who are able to approve any change made for this document.
+### Missing: ChangeRequest.Code.ApproversClass_groupsApprovers=Groups who can approve
+### Missing: ChangeRequest.Code.ApproversClass_groupsApprovers_hint=Groups of users of the wiki who are able to approve any change made for this document.
+### Missing: ChangeRequest.Code.ApproversClass_manualEdition=Manually edited
+### Missing: ChangeRequest.Code.ApproversClass_manualEdition_hint=Check this box if you do not want approvers to be automatically synchronized when new changes are published.
+### Missing: changerequest.timeline.changerequest.create={0} created this Change Request with changes for &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+### Missing: changerequest.timeline.changerequest.create.fromSplit={0} created this Change Request by splitting an existing Change Request for &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+### Missing: changerequest.timeline.changerequest.filechange.added={0} added a new change for &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+### Missing: changerequest.timeline.changerequest.status.modified={0} changed the status of the Change Request from {1} to {2}
+### Missing: changerequest.timeline.changerequest.review.added.approval={0} added a new approval review
+### Missing: changerequest.timeline.changerequest.review.added.requestchanges={0} added a new review requesting changes
+### Missing: changerequest.timeline.changerequest.review.added.approval.delegate={0} added a new approval review on behalf of {1}
+### Missing: changerequest.timeline.changerequest.review.added.requestchanges.delegate={0} added a new review requesting changes on behalf of {1}
+### Missing: changerequest.timeline.changerequest.discussions.CHANGE_REQUEST_COMMENT={0} added {1}a new general comment{2}
+### Missing: changerequest.timeline.changerequest.discussions.LINE_DIFF={0} added {1}a new document comment{2}
+### Missing: changerequest.timeline.changerequest.discussions.REVIEW={0} added {1}a new review comment{2}
+### Missing: changerequest.timeline.changerequest.updated={0} edited the description or the title of the Change Request
+### Missing: changerequest.timeline.changerequest.stale={0} marked the Change Request as stale
+### Missing: changerequest.timeline.changerequest.rebased.all={0} refreshed the content of the whole Change Request
+### Missing: changerequest.timeline.changerequest.rebased.filechange={0} refreshed the changes for &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+### Missing: changerequest.timeline.changerequest.rebased.conflictFixing={0} fixed a conflict for &lt;a href="{1}"&gt;{2}&lt;/a&gt;
+### Missing: changerequest.sheet.description.placeholder=Click the edit link on the right to provide a description.
+### Missing: changerequest.sheet.existingChangeRequestSameChanges=Other Change Requests exist for one or several of the pages modified here:
+### Missing: changerequest.sheet.checks.otherCR.title=Change Requests already exist for some of these documents
+### Missing: changerequest.sheet.ready.button.title=Mark this Change Request as ready for review
+### Missing: changerequest.sheet.ready.button=Mark as ready for review
+### Missing: changerequest.sheet.draft.button.title=Convert this Change Request to a draft Change Request.
+### Missing: changerequest.sheet.draft.button=Convert to draft
+### Missing: changerequest.sheet.review.button.title=Review the current Change Request
+### Missing: changerequest.sheet.review.button.disabled.title=You are not allowed to review the current Change Request.
+### Missing: changerequest.sheet.review.button=Review
+### Missing: changerequest.sheet.diff.conflictLabel=conflicts
+### Missing: changerequest.sheet.diff.conflictLabel.title=Some changes are in conflict with the latest published version of this document. Conflicts must be resolved before this content can be merged into the published document.
+### Missing: changerequest.sheet.message.outdated=outdated
+### Missing: changerequest.sheet.message.outdated.title=This message is outdated: the document content the message referred to has changed since it was posted.
+### Missing: changerequest.sheet.diff.outdated=outdated
+### Missing: changerequest.sheet.diff.outdated.title=The published version of this document has changed since this Change Request was created. This view will not show changes relative to the published version until the Change Request is refreshed.
+### Missing: changerequest.sheet.diff.nochange=No change
+### Missing: changerequest.sheet.diff.approverLabel=approver
+### Missing: changerequest.sheet.diff.approverLabel.title=You are nominated as an approver for this document. However, during the review of this Change Request, you may be required to approve/reject other document changes that support the documents you are an approver for. Your approval will apply to the entire Change Request.
+### Missing: changerequest.sheet.diff.delegateApproverLabel=delegate approver
+### Missing: changerequest.sheet.diff.delegateApproverLabel.title=You are a delegate approver for this document. However, during the review of this Change Request, you may be required to approve/reject other document changes that support the documents you have delegated approval for. Your approval will apply to the entire Change Request.
+### Missing: changerequest.sheet.diff.detailsButton=View details
+### Missing: changerequest.sheet.diff.details.location.metadata=Page property
+### Missing: changerequest.sheet.diff.details.location.attachment=Property of attachment {0}
+### Missing: changerequest.sheet.diff.details.location.xobject=Property of object {0}
+### Missing: changerequest.sheet.diff.details.location.xclass=Property of class {0}
+### Missing: changerequest.sheet.diff.details.propertyName=Property name: {0}
+### Missing: changerequest.sheet.message.collapse.button.title=Click to collapse the message.
+### Missing: changerequest.sheet.message.expand.button.title=Click to expand the message.
+### Missing: changerequest.sheet.message.reply.button.title=Reply to this message
+### Missing: changerequest.sheet.message.reply.button=Reply
+### Missing: changerequest.minimumApprovers.warning=The minimum number of explicit approvers has not been met for this document.
+### Missing: changerequest.conflict.modal.title=Resolve Conflicts
+### Missing: changerequest.conflict.modal.description=This interface allows you to manually resolve content that cannot be automatically merged with the published document. You can navigate between document versions prior to selecting an outcome.
+### Missing: changerequest.conflict.modal.description.EDITION=This document is in conflict because the page you are trying to modify has been modified in the same part of the document since this Change Request was created. You can override the published changes with the content in this Change Request or you can let the published document override the proposed changes. Alternatively, you can attempt to manually define content so that it captures the information in both versions of the document.
+### Missing: changerequest.conflict.modal.description.CREATION=This document is in conflict because the page you are trying to create has been created while you were raising this Change Request. You can can publish your changes or use the published version.
+### Missing: changerequest.conflict.modal.recommended=Recommended
+### Missing: changerequest.conflict.modal.options.keepcr.title=Keep the proposed changes
+### Missing: changerequest.conflict.modal.options.keepcr.description=Overwrite the published document with the proposed changes, merging where there is no conflict
+### Missing: changerequest.conflict.modal.options.keeppublished.title=Keep the published version
+### Missing: changerequest.conflict.modal.options.keeppublished.description=Discard the proposed changes, merging where there is no conflict
+### Missing: changerequest.conflict.modal.custom.hint.disabled=This option is disabled. A conflict has occurred in part of the document that cannot be handled by custom resolution.
+### Missing: changerequest.conflict.modal.diffoption.previous=Original Document (Baseline)
+### Missing: changerequest.conflict.modal.diffoption.next=Proposed Changes
+### Missing: changerequest.conflict.modal.diffoption.current=Latest Publication
+### Missing: changerequest.conflict.modal.diffoption.merged=Resolution: Priority to Latest Publication
+### Missing: changerequest.conflict.modal.diffoption.merged_crfallback=Resolution: Priority to Proposal
+### Missing: changerequest.conflict.modal.customchoices.current=published changes
+### Missing: changerequest.conflict.modal.customchoices.next=current changes
+### Missing: changerequest.conflict.modal.customchoices.previous=original changes
+### Missing: changerequest.conflict.modal.customchoices.custom=custom changes
+### Missing: changerequest.savemodal.approvers.edition.warning=Once a document has been published, any change to the list of approvers must be approved by the existing list of approvers before the changes impact any open review cycles. If you are looking to add or remove approvers for the changes proposed in this Change Request, please open a new Change Request with a new set of approvers. This Change Request will be automatically updated once the proposed change to the approvers has been accepted.
+### Missing: changerequest.savemodal.approvers.header.title=Manage Approvers
+### Missing: changerequest.savemodal.approvers.header.hint=Specify the list of users and/or groups that are allowed to review changes for this document. These users will be submitted for review along with the Change Request.
+### Missing: changerequest.savemodal.approvers.heading=Define the approvers
+### Missing: changerequest.savemodal.approvers.users=Users who can approve
+### Missing: changerequest.savemodal.approvers.groups=Groups who can approve
+### Missing: changerequest.savemodal.approvers.minimumUsers.hint=You must select a minimum of {0} users.
+### Missing: changerequest.savemodal.error.missingChangerequest=Please enter a new Change Request title, or select an existing Change Request.
+### Missing: changerequest.savemodal.error.minimumApprovers=You must select a minimum of {0} approvers.
+### Missing: changerequest.savemodal.error.approversLackRight=Some or all of the selected approvers do not have view rights on this document.
+### Missing: changerequest.savemodal.error.otherError=This Change Request cannot be saved. Try creating a new Change Request or add your changes to another Change Request. The following errors were encountered:
+### Missing: changerequest.sheet.message.reply.header=Reply to message from {0} sent {1}.
+### Missing: changerequest.sheet.message.reply.link.title=Click to navigate to the previous message.
+### Missing: changerequest.livetable.approvers.reviews.performed=review(s) performed
+### Missing: changerequest.livetable.approvers.reviews.alreadyReviewed=already reviewed
+### Missing: changerequest.review.modal.title=Review this Change Request
+### Missing: changerequest.review.modal.selectApprover.title=Reviewing on behalf of:
+### Missing: changerequest.review.modal.selectApprover.hint=Select the user on behalf of whom you are performing this review.
+### Missing: changerequest.review.modal.selectApprover.themselves=Review on your own behalf
+### Missing: changerequest.review.modal.choice.approve=Approve this Change Request
+### Missing: changerequest.review.modal.choice.requestChanges=Request changes
+### Missing: changerequest.review.modal.comment.label=Provide a comment
+### Missing: changerequest.review.modal.warningConflict=At least one of the documents you are about to review is in conflict with the published version of the document. Your review will be invalidated if the document is refreshed or modified in the process of managing the conflicts.
+### Missing: changerequest.review.modal.warningReview=You have already reviewed this Change Request. This review will invalidate your existing response.
+### Missing: changerequest.review.modal.warningReview.onBehalf=A valid review for this Change Request already exists. It was performed by, or on behalf of {0}. This review will invalidate the existing response.
+</content>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestTranslations</name>
+    <number>0</number>
+    <className>XWiki.TranslationDocumentClass</className>
+    <guid>d47038b4-3a5e-4987-9491-25e967ae7643</guid>
+    <class>
+      <name>XWiki.TranslationDocumentClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>1</number>
+        <prettyName>Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>GLOBAL|WIKI|USER|ON_DEMAND</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <scope>WIKI</scope>
+    </property>
+  </object>
+</xwikidoc>
