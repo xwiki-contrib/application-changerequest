@@ -102,7 +102,7 @@
       #if ($diffBlockMetadata)
         #displayDiffBlockMetadata($diffBlockMetadata)
       #end
-      #if ($discussionError != '')
+      #if ("$!discussionError" != '')
       &lt;div&gt;
         &lt;span class="reference"&gt;$reference&lt;/span&gt;
         &lt;span class="stacktrace"&gt;$discussionError&lt;/span&gt;
