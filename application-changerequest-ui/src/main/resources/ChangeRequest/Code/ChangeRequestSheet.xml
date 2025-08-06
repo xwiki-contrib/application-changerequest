@@ -102,7 +102,7 @@
       #if ($diffBlockMetadata)
         #displayDiffBlockMetadata($diffBlockMetadata)
       #end
-      #if ("$!discussionError" != '')
+      #if ($discussionError != '')
       &lt;div&gt;
         &lt;span class="reference"&gt;$reference&lt;/span&gt;
         &lt;span class="stacktrace"&gt;$discussionError&lt;/span&gt;
@@ -1791,6 +1791,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
     
     self.submitAction = function () {
       var button = $(this);
+      button.prop('disabled', true);
       var form = button.parent('form');
       var url = form.attr('action');
       var notification = new XWiki.widgets.Notification('Submitting message...','inprogress');
@@ -1806,6 +1807,7 @@ define('CommentEditor', ['jquery', 'xwiki-meta', 'ChangeRequestDiscussionHandler
       }).fail(function (data) {
         console.error(data);
         notification.replace(new XWiki.widgets.Notification('Error while submitting message.','error'));
+        button.prop('disabled', false);
       });
     };
     
