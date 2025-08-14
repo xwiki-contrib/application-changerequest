@@ -4323,6 +4323,144 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
   </object>
   <object>
     <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>25</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>6f17e311-d687-49ce-9da0-d04bb61964bf</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var currentReference = xm.documentReference;
+  var renderedDiffPageRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestRenderedDiff");
+  var renderedDiffPageUrl = new XWiki.Document(renderedDiffPageRef).getURL('get');
+  var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
+  
+  var initPreview = function () {
+    var element = $(this);
+    var reference = element.data('reference');
+    // FIXME: only perform the call for images based on a file extension here. 
+    var filename = reference.substr(reference.lastIndexOf('@') + 1);
+    var container = element.parents('.changes-body');
+    var filechangeId = container.attr('data-filechangeid');
+    var data = {
+      form_token: xm.form_token,
+      changerequest: changeRequestId,
+      outputSyntax: 'plain',
+      filechangeId: filechangeId,
+      filename: filename,
+      action: 'previewImage'
+    };
+    $.post(renderedDiffPageUrl, data).success(function (data) {
+      // FIXME: chose where exactly to put the preview. 
+      var image = $('&lt;img&gt;').attr('src', data);
+      element.append(image);
+    }).fail(function (data) {
+      console.error("Error loading image preview", data);
+    });
+  };
+  
+  var initAllPreviews = function () {
+    $('.diff-group dt').filter(function () {
+      var ref = $(this).data('reference');
+      return ref &amp;&amp; ref.startsWith('ATTACHMENT');
+    }).each(initPreview);
+  };
+
+  (XWiki.isInitialized &amp;&amp; initAllPreviews()) || $(document).on('xwiki:dom:loading', initAllPreviews);
+});</code>
+    </property>
+    <property>
+      <name>handle image preview</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>573c678e-d12c-4ef9-a8ed-f8be4e011d1a</guid>
