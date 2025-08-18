@@ -4420,7 +4420,6 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
   var loadPreview = function (element) {
     element.addClass('loading');
     var reference = element.data('reference');
-    // FIXME: only perform the call for images based on a file extension here. 
     var filename = reference.substr(reference.lastIndexOf('@') + 1);
     var container = element.parents('.changes-body');
     var filechangeId = container.attr('data-filechangeid');
@@ -4433,7 +4432,6 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
       action: 'previewImage'
     };
     $.post(renderedDiffPageUrl, data).success(function (data) {
-      // FIXME: chose where exactly to put the preview. 
       var image = $('&lt;img&gt;').attr('src', data);
       var previewImage = $('&lt;div class="preview-image"&gt;&lt;/div&gt;');
       previewImage.append(image);
