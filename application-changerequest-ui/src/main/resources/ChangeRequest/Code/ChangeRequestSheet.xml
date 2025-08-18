@@ -69,6 +69,8 @@
 
 {{html clean="false"}}
  &lt;script id="changerequest-sheet-jsx-config" type="application/json"&gt;$jsontool.serialize($changeRequestSheetJSXConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+ &lt;span class="hidden preview-container"&gt;$services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.previewImage')&lt;/span&gt;
+ &lt;span class="hidden hide-preview-container"&gt;$services.icon.renderHTML('cross') $services.localization.render('changerequest.sheet.hidePreviewImage')&lt;/span&gt;
 #if ($canBeEdited)
 &lt;div class="edit-title"&gt;
 #set ($saveTitleUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
@@ -4414,9 +4416,9 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
   var renderedDiffPageRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestRenderedDiff");
   var renderedDiffPageUrl = new XWiki.Document(renderedDiffPageRef).getURL('get');
   var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
-  
-  var initPreview = function () {
-    var element = $(this);
+
+  var loadPreview = function (element) {
+    element.addClass('loading');
     var reference = element.data('reference');
     // FIXME: only perform the call for images based on a file extension here. 
     var filename = reference.substr(reference.lastIndexOf('@') + 1);
@@ -4433,16 +4435,58 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     $.post(renderedDiffPageUrl, data).success(function (data) {
       // FIXME: chose where exactly to put the preview. 
       var image = $('&lt;img&gt;').attr('src', data);
-      element.append(image);
+      var previewImage = $('&lt;div class="preview-image"&gt;&lt;/div&gt;');
+      previewImage.append(image);
+      previewImage.data('reference', reference);
+      element.append(previewImage);
+      element.removeClass('loading');
+      element.find('.preview-btn').addClass('hidden');
+      element.find('.hide-preview-btn').removeClass('hidden');
     }).fail(function (data) {
       console.error("Error loading image preview", data);
+      element.removeClass('loading');
     });
   };
   
+  var hidePreview = function () {
+    var element = $(this).parent();
+    element.find('.preview-image').addClass('hidden');
+    element.find('.preview-btn').removeClass('hidden');
+    element.find('.hide-preview-btn').addClass('hidden');
+  };
+  
+  var displayPreview = function () {
+    var element = $(this).parent();
+    var dataReference = element.data('reference');
+    var existingPreviewElement = element.find('.preview-image');
+    if (existingPreviewElement.length == 0) {
+      loadPreview(element);
+    } else {
+      existingPreviewElement.toggleClass('hidden');
+      element.find('.preview-btn').addClass('hidden');
+      element.find('.hide-preview-btn').removeClass('hidden');
+    }
+  };
+  
+  var initPreview = function () {
+    var element = $(this);
+    var previewElement = $('.preview-container');
+    var button = $('&lt;button class="btn btn-default preview-btn"&gt;&lt;/button&gt;');
+    button.append(previewElement.html());
+    button.on('click', displayPreview);
+    element.append(button);
+    
+    var buttonHide = $('&lt;button class="btn btn-default hide-preview-btn hidden"&gt;&lt;/button&gt;');
+    buttonHide.append($('.hide-preview-container').html());
+    buttonHide.on('click', hidePreview);
+    element.append(buttonHide);
+  };
+  
   var initAllPreviews = function () {
+    var acceptedExtensions = /^(ATTACHMENT).*\.(png|gif|jpg|jpeg|bmp)$/i;
     $('.diff-group dt').filter(function () {
       var ref = $(this).data('reference');
-      return ref &amp;&amp; ref.startsWith('ATTACHMENT');
+      return ref &amp;&amp; ref.search(acceptedExtensions) != -1;
     }).each(initPreview);
   };
 
