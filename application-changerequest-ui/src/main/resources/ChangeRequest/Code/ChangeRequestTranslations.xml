@@ -68,6 +68,8 @@ changerequest.sheet.markready.button=Ready for Review
 changerequest.sheet.markready.button.title=Mark this Change Request as ready for review
 changerequest.sheet.markdraft.button=Convert to Draft
 changerequest.sheet.markdraft.button.title=Mark this Change Request as work in progress. This will prevent formal review and publication.
+changerequest.sheet.previewImage=Preview the image
+changerequest.sheet.hidePreviewImage=Hide the preview
 
 changerequest.edit.button.value=Edit with Change Request
 changerequest.edit.button.title=Edit with Change Request

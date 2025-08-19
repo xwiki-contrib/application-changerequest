@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.xwiki.bridge.DocumentModelBridge;
@@ -81,6 +83,9 @@ import org.xwiki.wiki.user.WikiUserManager;
 import org.xwiki.wiki.user.WikiUserManagerException;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Script service for change request.
@@ -693,5 +698,35 @@ public class ChangeRequestScriptService implements ScriptService
     public String getPageTitle(String changeRequestId, String fileChangeId)
     {
         return this.changeRequestManager.getTitle(changeRequestId, fileChangeId);
+    }
+
+    /**
+     * Retrieve the base64 display of an image attachment contained in a filechange to be directly inserted inside an
+     * html img element. Note that this method returns a result only if the given filename exists and if its mimetype
+     * is an image.
+     *
+     * @param fileChange the filechange for which to get the attachment
+     * @param filename the name of the image file to display
+     * @return the full data string to be inserted in an html element containing the base64 data image
+     * @throws XWikiException in case of problem to access the attachment content
+     * @throws IOException in case of problem to read the content
+     * @since 1.19
+     */
+    public String getFileChangeImageAttachment(FileChange fileChange, String filename)
+        throws XWikiException, IOException
+    {
+        String result = null;
+        if (fileChange.getType() == FileChange.FileChangeType.EDITION
+            || fileChange.getType() == FileChange.FileChangeType.CREATION) {
+            XWikiContext context = this.contextProvider.get();
+            XWikiDocument modifiedDoc = (XWikiDocument) fileChange.getModifiedDocument();
+            XWikiAttachment attachment = modifiedDoc.getAttachment(filename);
+            String mimeType = attachment.getMimeType(context);
+            if (mimeType.startsWith("image/")) {
+                result = String.format("data:%s;base64,%s", mimeType,
+                        Base64.encodeBase64String(attachment.getContentInputStream(context).readAllBytes()));
+            }
+        }
+        return result;
     }
 }

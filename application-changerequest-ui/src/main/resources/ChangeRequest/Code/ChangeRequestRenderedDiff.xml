@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 #if ("$!request.get('changerequest')" != "" &amp;&amp; "$!request.get('filechangeId')" != "")
-  #if ($services.csrf.isTokenValid($request.get('form_token')) &amp;&amp; $services.changerequest.isRenderedDiffEnabled())
+  #if ($services.csrf.isTokenValid($request.get('form_token')))
     #set ($changeRequestOpt = $services.changerequest.getChangeRequest($request.get('changerequest')))
     #if ($changeRequestOpt.isPresent())
       #set ($fileChangeOpt = $services.changerequest.getFileChange($changeRequestOpt.get(), $request.get('filechangeId')))
@@ -63,15 +63,36 @@
         #elseif ($request.get('action') == 'cleanTemp')
           #set ($discard = $services.changerequest.cleanupDiffAttachments($fileChange))
           Cleanup ok.
+        #elseif ($request.get('action') == 'previewImage')
+          #if ("$!request.get('filename')" != "")
+            #set ($data = $services.changerequest.getFileChangeImageAttachment($fileChange, $request.get('filename')))
+            ## Code taken from #rawResponse macro introduced in XWiki 16.5.0RC1
+            #set ($contentType = 'text/plain')
+            #set ($characterEncoding = 'utf-8')
+            #set ($discard = $response.setContentType($contentType))
+            ## Make sure the Character Encoding response header matches the character encoding used to write the response and
+            ## compute its length.
+            #set ($discard = $response.setCharacterEncoding($characterEncoding))
+            ## We write the output directly to the response to avoid the execution of the Rendering Transformations.
+            #set ($discard = $response.writer.print($data))
+            ## The content length is measured in bytes and one character can use more than one byte.
+            #set ($discard = $response.setContentLength($data.getBytes($characterEncoding).size()))
+            ## Make sure the entire content is sent back to the client.
+            #set ($discard = $response.flushBuffer())
+            ## Make sure XWiki doesn't write any more content to the response.
+            #set ($discard = $xcontext.setFinished(true))
+          #else
+            #set ($discard = $response.sendError(400, 'Missing filename'))
+          #end
         #end
       #else
-        #set ($discard = $response.sendError(404, "Cannot find file change"))
+        #set ($discard = $response.sendError(404, 'Cannot find file change'))
       #end
     #else
-      #set ($discard = $response.sendError(404, "Cannot find change request"))
+      #set ($discard = $response.sendError(404, 'Cannot find change request'))
     #end
   #else
-    #set ($discard = $response.sendError(401, "Wrong CSRF token or rendered diff disabled."))
+    #set ($discard = $response.sendError(401, 'Wrong CSRF token.'))
   #end
 #else
 Utility page for computing and displaying the rendered diff.

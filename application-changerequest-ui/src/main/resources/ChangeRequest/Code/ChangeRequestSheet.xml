@@ -69,6 +69,8 @@
 
 {{html clean="false"}}
  &lt;script id="changerequest-sheet-jsx-config" type="application/json"&gt;$jsontool.serialize($changeRequestSheetJSXConfig).replace('&lt;', '\u003C')&lt;/script&gt;
+ &lt;span class="hidden preview-container"&gt;$services.icon.renderHTML('eye') $services.localization.render('changerequest.sheet.previewImage')&lt;/span&gt;
+ &lt;span class="hidden hide-preview-container"&gt;$services.icon.renderHTML('cross') $services.localization.render('changerequest.sheet.hidePreviewImage')&lt;/span&gt;
 #if ($canBeEdited)
 &lt;div class="edit-title"&gt;
 #set ($saveTitleUrl = $services.changerequest.getChangeRequestURL('save', $changeRequestId))
@@ -4319,6 +4321,184 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
     </property>
     <property>
       <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>ChangeRequest.Code.ChangeRequestSheet</name>
+    <number>25</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>6f17e311-d687-49ce-9da0-d04bb61964bf</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'xwiki-meta'], function ($, xm) {
+  var currentReference = xm.documentReference;
+  var renderedDiffPageRef = new XWiki.DocumentReference(currentReference.extractReference(XWiki.EntityType.WIKI).getName(), ["ChangeRequest", "Code"], "ChangeRequestRenderedDiff");
+  var renderedDiffPageUrl = new XWiki.Document(renderedDiffPageRef).getURL('get');
+  var changeRequestId = $('.cr-main-div').attr('data-changerequest-id');
+
+  var loadPreview = function (element) {
+    element.addClass('loading');
+    var reference = element.data('reference');
+    var filename = reference.substr(reference.lastIndexOf('@') + 1);
+    var container = element.parents('.changes-body');
+    var filechangeId = container.attr('data-filechangeid');
+    var data = {
+      form_token: xm.form_token,
+      changerequest: changeRequestId,
+      outputSyntax: 'plain',
+      filechangeId: filechangeId,
+      filename: filename,
+      action: 'previewImage'
+    };
+    $.post(renderedDiffPageUrl, data).success(function (data) {
+      var image = $('&lt;img&gt;').attr('src', data);
+      var previewImage = $('&lt;div class="preview-image"&gt;&lt;/div&gt;');
+      previewImage.append(image);
+      previewImage.data('reference', reference);
+      element.append(previewImage);
+      element.removeClass('loading');
+      element.find('.preview-btn').addClass('hidden');
+      element.find('.hide-preview-btn').removeClass('hidden');
+    }).fail(function (data) {
+      console.error("Error loading image preview", data);
+      element.removeClass('loading');
+    });
+  };
+  
+  var hidePreview = function () {
+    var element = $(this).parent();
+    element.find('.preview-image').addClass('hidden');
+    element.find('.preview-btn').removeClass('hidden');
+    element.find('.hide-preview-btn').addClass('hidden');
+  };
+  
+  var displayPreview = function () {
+    var element = $(this).parent();
+    var dataReference = element.data('reference');
+    var existingPreviewElement = element.find('.preview-image');
+    if (existingPreviewElement.length == 0) {
+      loadPreview(element);
+    } else {
+      existingPreviewElement.toggleClass('hidden');
+      element.find('.preview-btn').addClass('hidden');
+      element.find('.hide-preview-btn').removeClass('hidden');
+    }
+  };
+  
+  var initPreview = function () {
+    var element = $(this);
+    var previewElement = $('.preview-container');
+    var button = $('&lt;button class="btn btn-default preview-btn"&gt;&lt;/button&gt;');
+    button.append(previewElement.html());
+    button.on('click', displayPreview);
+    element.append(button);
+    
+    var buttonHide = $('&lt;button class="btn btn-default hide-preview-btn hidden"&gt;&lt;/button&gt;');
+    buttonHide.append($('.hide-preview-container').html());
+    buttonHide.on('click', hidePreview);
+    element.append(buttonHide);
+  };
+  
+  var initAllPreviews = function () {
+    var acceptedExtensions = /^(ATTACHMENT).*\.(png|gif|jpg|jpeg|bmp)$/i;
+    $('.diff-group dt').filter(function () {
+      var ref = $(this).data('reference');
+      return ref &amp;&amp; ref.search(acceptedExtensions) != -1;
+    }).each(initPreview);
+  };
+
+  (XWiki.isInitialized &amp;&amp; initAllPreviews()) || $(document).on('xwiki:dom:loading', initAllPreviews);
+});</code>
+    </property>
+    <property>
+      <name>handle image preview</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
     </property>
   </object>
   <object>
