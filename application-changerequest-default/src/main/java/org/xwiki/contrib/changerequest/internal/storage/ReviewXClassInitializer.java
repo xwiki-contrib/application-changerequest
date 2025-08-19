@@ -19,10 +19,14 @@
  */
 package org.xwiki.contrib.changerequest.internal.storage;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.model.reference.LocalDocumentReference;
 
 import com.xpn.xwiki.doc.AbstractMandatoryClassInitializer;
@@ -50,6 +54,7 @@ public class ReviewXClassInitializer extends AbstractMandatoryClassInitializer
     static final String DATE_PROPERTY = "reviewDate";
     static final String VALID_PROPERTY = "valid";
     static final String ORIGINAL_APPROVER_PROPERTY = "originalApprover";
+    static final String INVALIDATION_REASON_PROPERTY = "reviewInvalidationReason";
 
     /**
      * Default constructor.
@@ -67,5 +72,9 @@ public class ReviewXClassInitializer extends AbstractMandatoryClassInitializer
         xClass.addUsersField(AUTHOR_PROPERTY, AUTHOR_PROPERTY);
         xClass.addDateField(DATE_PROPERTY, DATE_PROPERTY);
         xClass.addUsersField(ORIGINAL_APPROVER_PROPERTY, ORIGINAL_APPROVER_PROPERTY);
+        xClass.addStaticListField(INVALIDATION_REASON_PROPERTY, INVALIDATION_REASON_PROPERTY,
+            Stream.of(ReviewInvalidationReason.values())
+                .map(ReviewInvalidationReason::name)
+                .collect(Collectors.joining("|")));
     }
 }

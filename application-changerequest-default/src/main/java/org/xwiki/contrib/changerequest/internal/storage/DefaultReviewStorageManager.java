@@ -33,6 +33,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -48,6 +49,7 @@ import com.xpn.xwiki.objects.BaseObject;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.APPROVED_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.AUTHOR_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.DATE_PROPERTY;
+import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.INVALIDATION_REASON_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.ORIGINAL_APPROVER_PROPERTY;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.REVIEW_XCLASS;
 import static org.xwiki.contrib.changerequest.internal.storage.ReviewXClassInitializer.VALID_PROPERTY;
@@ -142,6 +144,9 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
             xObject.set(ORIGINAL_APPROVER_PROPERTY,
                 this.userReferenceConverter.convert(review.getOriginalApprover()), context);
         }
+        if (review.getReviewInvalidationReason() != null) {
+            xObject.set(INVALIDATION_REASON_PROPERTY, review.getReviewInvalidationReason().name(), context);
+        }
     }
 
     @Override
@@ -163,12 +168,18 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
                     boolean isValid = StringUtils.equals(xObject.getStringValue(VALID_PROPERTY), "1");
                     String id = String.format(ID_FORMAT, xObject.getNumber());
                     String originalApproverSerialized = xObject.getStringValue(ORIGINAL_APPROVER_PROPERTY);
+                    String reviewInvalidationReasonSerialized = xObject.getStringValue(INVALIDATION_REASON_PROPERTY);
+                    ReviewInvalidationReason invalidationReason = null;
+                    if (!StringUtils.isEmpty(reviewInvalidationReasonSerialized)) {
+                        invalidationReason = ReviewInvalidationReason.valueOf(reviewInvalidationReasonSerialized);
+                    }
 
                     ChangeRequestReview review = new ChangeRequestReview(changeRequest, isApproved, author);
                     review
                         .setValid(isValid)
                         .setId(id)
                         .setReviewDate(reviewDate)
+                        .setReviewInvalidationReason(invalidationReason)
                         .setSaved(true);
 
                     if (!StringUtils.isEmpty(originalApproverSerialized)) {

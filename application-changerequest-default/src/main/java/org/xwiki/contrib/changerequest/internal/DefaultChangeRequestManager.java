@@ -43,6 +43,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ChangeRequestRebasedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestReviewAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
@@ -225,6 +226,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
             // if the review is already invalidated, we don't need to do anything.
             if (previousReview.isValid()) {
                 previousReview.setValid(false);
+                previousReview.setReviewInvalidationReason(ReviewInvalidationReason.NEW_REVIEW);
                 previousReview.setSaved(false);
                 this.reviewStorageManager.save(previousReview);
             }
@@ -347,11 +349,19 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     @Override
     public void invalidateReviews(ChangeRequest changeRequest) throws ChangeRequestException
     {
+        invalidateReviews(changeRequest, null);
+    }
+
+    @Override
+    public void invalidateReviews(ChangeRequest changeRequest, ReviewInvalidationReason invalidationReason)
+        throws ChangeRequestException
+    {
         List<ChangeRequestReview> reviews = changeRequest.getReviews();
         for (ChangeRequestReview review : reviews) {
             if (review.isApproved() && review.isValid()) {
                 review.setValid(false);
                 review.setSaved(false);
+                review.setReviewInvalidationReason(invalidationReason);
                 this.reviewStorageManager.save(review);
             }
         }

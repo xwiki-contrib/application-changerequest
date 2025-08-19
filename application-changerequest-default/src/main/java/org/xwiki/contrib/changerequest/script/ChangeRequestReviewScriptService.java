@@ -37,6 +37,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.DelegateApproverManager;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.storage.ReviewStorageManager;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
@@ -158,6 +159,9 @@ public class ChangeRequestReviewScriptService implements ScriptService
     {
         if (canEditReview(review)) {
             review.setValid(isValid);
+            if (!isValid) {
+                review.setReviewInvalidationReason(ReviewInvalidationReason.MANUAL);
+            }
             review.setSaved(false);
             this.reviewStorageManager.save(review);
             this.changeRequestManager.computeReadyForMergingStatus(review.getChangeRequest());

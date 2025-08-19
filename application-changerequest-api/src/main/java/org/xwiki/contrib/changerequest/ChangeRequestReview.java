@@ -44,6 +44,7 @@ public class ChangeRequestReview
     private boolean isValid;
     private boolean isSaved;
     private boolean isLastFromAuthor;
+    private ReviewInvalidationReason reviewInvalidationReason;
 
     private boolean isNew;
     private String id;
@@ -234,6 +235,28 @@ public class ChangeRequestReview
     }
 
     /**
+     * Define why a review is invalidated. This might return {@code null} if the reason is unknown.
+     * @return the reason for the review being not valid, or {@code null}.
+     * @since 1.19
+     */
+    public ReviewInvalidationReason getReviewInvalidationReason()
+    {
+        return reviewInvalidationReason;
+    }
+
+    /**
+     * @param reviewInvalidationReason See {@link #getReviewInvalidationReason()}.
+     * @return the current instance
+     * @since 1.19
+     */
+    public ChangeRequestReview setReviewInvalidationReason(
+        ReviewInvalidationReason reviewInvalidationReason)
+    {
+        this.reviewInvalidationReason = reviewInvalidationReason;
+        return this;
+    }
+
+    /**
      * Clone a review and assign it to the given change request. Note that the cloned review is marked as not saved by
      * default.
      *
@@ -246,6 +269,7 @@ public class ChangeRequestReview
         return new ChangeRequestReview(changeRequest, this.approved, this.author)
             .setReviewDate(this.reviewDate)
             .setValid(this.isValid)
+            .setReviewInvalidationReason(this.reviewInvalidationReason)
             .setSaved(false)
             .setNew(true);
     }
@@ -271,6 +295,7 @@ public class ChangeRequestReview
             .append(isValid, that.isValid)
             .append(id, that.id)
             .append(isNew, that.isNew)
+            .append(reviewInvalidationReason, that.reviewInvalidationReason)
             .isEquals();
     }
 
@@ -285,6 +310,7 @@ public class ChangeRequestReview
             .append(isValid)
             .append(id)
             .append(isNew)
+            .append(reviewInvalidationReason)
             .toHashCode();
     }
 
@@ -299,6 +325,7 @@ public class ChangeRequestReview
             .append("isSaved", isSaved)
             .append("id", id)
             .append("isNew", isNew)
+            .append("reviewInvalidationReason", reviewInvalidationReason)
             .toString();
     }
 }

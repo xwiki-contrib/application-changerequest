@@ -104,7 +104,7 @@
       #if ($diffBlockMetadata)
         #displayDiffBlockMetadata($diffBlockMetadata)
       #end
-      #if ($discussionError != '')
+      #if ("$!discussionError" != '')
       &lt;div&gt;
         &lt;span class="reference"&gt;$reference&lt;/span&gt;
         &lt;span class="stacktrace"&gt;$discussionError&lt;/span&gt;
@@ -427,6 +427,12 @@
       #set ($canEditReview = $services.changerequest.review.canEditReview($review))
       &lt;div class="panel $reviewPanelClass review panel-review" data-reviewid="$review.id" data-approved="$review.approved" data-valid="$review.valid" data-date="$review.reviewDate.time" data-author="$escapetool.xml($services.user.serialize($review.author))" #if($originalApprover)data-original-approver="$escapetool.xml($services.user.serialize($review.originalApprover))"#end&gt;
         &lt;div class="panel-heading"&gt;
+           #set ($invalidationReasonTranslationKeyPrefix = 'changerequest.sheet.review.invalidation.reason')
+           #if ("$!review.reviewInvalidationReason" == '')
+             #set ($invalidationReason = $services.localization.render("${invalidationReasonTranslationKeyPrefix}.unknown"))
+           #else
+             #set ($invalidationReason = $services.localization.render("${invalidationReasonTranslationKeyPrefix}.${review.reviewInvalidationReason.name}"))
+           #end
            #if ($canEditReview)
             #if ($review.valid)
               #set ($buttonTitle = $services.localization.render('changerequest.sheet.tab.review.button.markinvalid.title'))
@@ -438,8 +444,12 @@
               #set ($buttonClass = "btn-success")
             #end
             &lt;button class="btn $buttonClass badge outdated review-toggle-valid" data-review-id="$review.id" title="$buttonTitle"&gt;$buttonValue&lt;/button&gt;
-          #elseif (!$review.valid)
-            &lt;span class="label label-danger outdated" title="$services.localization.render('changerequest.sheet.tab.review.title.outdated.title')"&gt;$services.localization.render('changerequest.sheet.tab.review.title.outdated')&lt;/span&gt;
+          #end
+          #if (!$review.valid)
+            &lt;span class="label label-danger outdated" title="$services.localization.render('changerequest.sheet.tab.review.title.outdated.title') $invalidationReason"&gt;
+            $services.icon.renderHTML('info')
+            $services.localization.render('changerequest.sheet.tab.review.title.outdated')
+            &lt;/span&gt;
           #end
           &lt;span class="review-date"&gt;$datetool.format($review.reviewDate)&lt;/span&gt;
           &lt;h3 class="panel-title"&gt;$reviewPanelTitle&lt;/h3&gt;
@@ -4613,6 +4623,8 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
 .outdated {
   float: right;
   margin-left: 10px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .tab-content.change-request-sheet &gt; .tab-pane.active {
   margin-top: 1em;

@@ -43,6 +43,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ChangeRequestReview;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ApproversUpdatedEvent;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.internal.storage.ChangeRequestXClassInitializer;
@@ -206,6 +207,7 @@ public class ApproversUpdatedListener extends AbstractLocalEventListener
         for (ChangeRequestReview review : reviewsToInvalidate) {
             review.setValid(false);
             review.setSaved(false);
+            review.setReviewInvalidationReason(ReviewInvalidationReason.UPDATED_APPROVERS);
             this.reviewStorageManagerProvider.get().save(review);
         }
     }

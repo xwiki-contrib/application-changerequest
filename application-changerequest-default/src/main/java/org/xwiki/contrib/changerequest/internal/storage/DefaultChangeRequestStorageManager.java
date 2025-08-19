@@ -50,6 +50,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergeFailedEvent;
@@ -589,6 +590,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                     // we consider reviews as outdated for splitted change requests
                     // and we keep same id to avoid having to perform a mapping old/new reviews in discussions
                     clonedReview.setValid(false);
+                    clonedReview.setReviewInvalidationReason(ReviewInvalidationReason.SPLITTED_CR);
                     clonedReview.setId(review.getId());
 
                     splittedChangeRequest.addReview(clonedReview);

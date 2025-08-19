@@ -198,9 +198,26 @@ public interface ChangeRequestManager
      *
      * @param changeRequest the change request for which to invalidate reviews
      * @throws ChangeRequestException in case of problem for saving the reviews
+     * @deprecated Use {@link #invalidateReviews(ChangeRequest, ReviewInvalidationReason)}.
      */
+    @Deprecated(since = "1.19")
     default void invalidateReviews(ChangeRequest changeRequest) throws ChangeRequestException
     {
+    }
+
+    /**
+     * Invalidate all reviews of a change request. This method should be called whenever any content has been updated
+     * in a change request.
+     *
+     * @param changeRequest the change request for which to invalidate reviews
+     * @param invalidationReason the reason for performing the invalidation
+     * @throws ChangeRequestException in case of problem for saving the reviews
+     * @since 1.19
+     */
+    default void invalidateReviews(ChangeRequest changeRequest, ReviewInvalidationReason invalidationReason)
+        throws ChangeRequestException
+    {
+        invalidateReviews(changeRequest);
     }
 
     /**

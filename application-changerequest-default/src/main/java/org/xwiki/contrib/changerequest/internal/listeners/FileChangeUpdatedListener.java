@@ -30,6 +30,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
@@ -127,7 +128,8 @@ public class FileChangeUpdatedListener extends AbstractEventListener
     private void invalidateApprovals(ChangeRequest changeRequest)
     {
         try {
-            this.changeRequestManagerProvider.get().invalidateReviews(changeRequest);
+            this.changeRequestManagerProvider.get()
+                .invalidateReviews(changeRequest, ReviewInvalidationReason.NEW_CHANGE);
         } catch (ChangeRequestException e) {
             this.logger.error("Error while invalidating reviews of [{}]", changeRequest, e);
         }

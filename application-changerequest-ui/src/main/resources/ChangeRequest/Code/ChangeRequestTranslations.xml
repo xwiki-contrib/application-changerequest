@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="">
+<xwikidoc version="1.6" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestTranslations</name>
   <language/>
@@ -130,6 +130,14 @@ changerequest.livetable.filechange._actions=Actions
 changerequest.sheet.tab.approvers.title=Approvers
 changerequest.sheet.hide=Hide
 changerequest.sheet.view=View
+
+changerequest.sheet.review.invalidation.reason.unknown=Review invalidated for an unknown reason.
+changerequest.sheet.review.invalidation.reason.MANUAL=Review invalidated manually by a user.
+changerequest.sheet.review.invalidation.reason.NEW_REVIEW=Review invalidated automatically because a new review was added.
+changerequest.sheet.review.invalidation.reason.NEW_CHANGE=Review invalidated automatically because changes were performed on the content.
+changerequest.sheet.review.invalidation.reason.UPDATED_APPROVERS=Review invalidated automatically because approvers were updated.
+changerequest.sheet.review.invalidation.reason.SPLITTED_CR=Review invalidated automatically after the split of the original Change Request.
+
 
 ChangeRequest.Code.ConfigurationClass_approvalStrategy=Publication Approval Strategy
 ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=The strategy used to determine if a Change Request can be published.

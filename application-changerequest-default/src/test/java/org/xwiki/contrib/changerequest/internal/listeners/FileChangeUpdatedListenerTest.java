@@ -26,6 +26,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
@@ -84,7 +85,7 @@ class FileChangeUpdatedListenerTest
 
         verify(this.mergeCacheManager, times(2)).invalidate(data);
         verify(this.changeRequestCacheManager, times(2)).invalidate(crId);
-        verify(this.changeRequestManager).invalidateReviews(changeRequest);
+        verify(this.changeRequestManager).invalidateReviews(changeRequest, ReviewInvalidationReason.NEW_CHANGE);
         verify(this.changeRequestManager).computeReadyForMergingStatus(changeRequest);
     }
 
@@ -111,7 +112,7 @@ class FileChangeUpdatedListenerTest
         verify(this.mergeCacheManager, times(2)).invalidate(fileChange1);
         verify(this.mergeCacheManager, times(2)).invalidate(fileChange2);
         verify(this.changeRequestCacheManager, times(2)).invalidate(crId);
-        verify(this.changeRequestManager).invalidateReviews(data);
+        verify(this.changeRequestManager).invalidateReviews(data, ReviewInvalidationReason.NEW_CHANGE);
         verify(this.changeRequestManager).computeReadyForMergingStatus(data);
     }
 }
