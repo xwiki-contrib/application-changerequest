@@ -20,10 +20,10 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="zh_CN">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestTranslations" locale="zh">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestTranslations</name>
-  <language>zh_CN</language>
+  <language>zh</language>
   <defaultLanguage>en</defaultLanguage>
   <translation>1</translation>
   <creator>xwiki:XWiki.Admin</creator>
