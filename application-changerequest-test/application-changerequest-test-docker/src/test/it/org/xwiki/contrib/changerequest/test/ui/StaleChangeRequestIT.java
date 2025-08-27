@@ -113,7 +113,7 @@ public class StaleChangeRequestIT
             "durationUnit", "seconds"
         );
         // Force a bit the timeout for those tests as the scheduler each second might slow down everything.
-        setup.getDriver().setDriverImplicitWait(30);
+        setup.getDriver().setTimeout(30);
     }
 
     @AfterAll
