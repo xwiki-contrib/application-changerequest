@@ -68,7 +68,8 @@ public class StaleChangeRequestIT
 {
     /*
     Scenario:
-      - Stale duration set to 1 second so that the test is fast
+      - Stale duration set to 1 second so that the test is fast (done only when triggering the scheduler to avoid
+      slowing done the test because of schedulers triggered every second)
       - Creation of CRs Foo and Bar
       - wait 1 sec
       - Trigger stale notification CR scheduler
@@ -110,10 +111,8 @@ public class StaleChangeRequestIT
             "approvalStrategy", "onlyapproved",
             "durationBeforeClosingStale", 1,
             "durationBeforeNotifyingStale", 1,
-            "durationUnit", "seconds"
+            "durationUnit", "days"
         );
-        // Force a bit the timeout for those tests as the scheduler each second might slow down everything.
-        setup.getDriver().setTimeout(30);
     }
 
     @AfterAll
@@ -123,11 +122,6 @@ public class StaleChangeRequestIT
         // Ensure that the timeouts won't mess up other tests.
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
             "ChangeRequest.Code.ConfigurationClass", 0,
-            "minimumApprovers", 0,
-            "mergeUser", "",
-            "approvalStrategy", "onlyapproved",
-            "durationBeforeClosingStale", 1,
-            "durationBeforeNotifyingStale", 1,
             "durationUnit", "days"
         );
     }
@@ -379,25 +373,49 @@ public class StaleChangeRequestIT
 
     private void triggerNotifyStaleCRScheduler(TestUtils testUtils) throws InterruptedException
     {
+        // We only put the duration of the scheduler to seconds before triggering it, to avoid having the scheduler
+        // being triggered each second the test is running which slows down everything.
+        testUtils.loginAsSuperAdmin();
+        testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "durationUnit", "seconds"
+        );
+
         // Wait 1 sec since that's the minimum duration for the schedulers.
         Thread.sleep(1000);
 
-        testUtils.loginAsSuperAdmin();
-
         SchedulerHomePage schedulerHomePage = SchedulerHomePage.gotoPage();
         schedulerHomePage.clickJobActionTrigger("Stale Change Request Notifier");
+
+        testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "durationUnit", "days"
+        );
 
         testUtils.login(CR_USER, CR_USER);
     }
 
     private void triggerCloseStaleCRScheduler(TestUtils testUtils) throws InterruptedException
     {
+        // We only put the duration of the scheduler to seconds before triggering it, to avoid having the scheduler
+        // being triggered each second the test is running which slows down everything.
+        testUtils.loginAsSuperAdmin();
+        testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "durationUnit", "seconds"
+        );
+
         // Wait 1 sec since that's the minimum duration for the schedulers.
         Thread.sleep(1000);
 
         testUtils.loginAsSuperAdmin();
         SchedulerHomePage schedulerHomePage = SchedulerHomePage.gotoPage();
         schedulerHomePage.clickJobActionTrigger("Stale Change Request Closer");
+
+        testUtils.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "durationUnit", "days"
+        );
         testUtils.login(CR_USER, CR_USER);
     }
 }
