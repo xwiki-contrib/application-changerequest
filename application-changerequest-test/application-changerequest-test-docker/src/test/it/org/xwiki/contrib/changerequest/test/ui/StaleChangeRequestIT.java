@@ -112,8 +112,6 @@ public class StaleChangeRequestIT
             "durationBeforeNotifyingStale", 1,
             "durationUnit", "seconds"
         );
-        // Force a bit the timeout for those tests as the scheduler each second might slow down everything.
-        setup.getDriver().setTimeout(30);
     }
 
     @AfterAll
@@ -150,7 +148,13 @@ public class StaleChangeRequestIT
 
         ChangeRequestSaveModal changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.setChangeRequestTitle("Stale Foo");
+
+        // Force a long timeout: it's the first save performed on the CI so it's taking long to initialize everything
+        // other saves are then much faster
+        int timeout = testUtils.getDriver().getTimeout();
+        testUtils.getDriver().setTimeout(45);
         changeRequestSaveModal.clickSave();
+        testUtils.getDriver().setTimeout(timeout);
 
         String fooCRURL = testUtils.getDriver().getCurrentUrl();
 
