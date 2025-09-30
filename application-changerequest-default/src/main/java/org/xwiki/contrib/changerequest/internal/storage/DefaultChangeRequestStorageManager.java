@@ -407,7 +407,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public List<DocumentReference> getOpenChangeRequestMatchingName(String title) throws ChangeRequestException
     {
         String statement = String.format(", BaseObject as obj , StringProperty as obj_status where "
-            + "(doc.fullName like :reference or doc.title like :title) and obj_status.value in %s and "
+            + "(doc.fullName like :reference or lower(doc.title) like lower(:title)) and obj_status.value in %s and "
             + "doc.fullName=obj.name and obj.className='%s' and obj_status.id.id=obj.id and obj_status.id.name='%s'",
             getInOpenStatusesStatement(), this.entityReferenceSerializer.serialize(CHANGE_REQUEST_XCLASS),
             STATUS_FIELD);
