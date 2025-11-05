@@ -78,7 +78,8 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
      * @throws ChangeRequestException in case of errors.
      */
     @Override
-    public void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException
+    public void handle(ChangeRequestReference changeRequestReference)
+        throws ChangeRequestException, IOException, XWikiException
     {
         HttpServletRequest request = this.prepareRequest();
         FileChange fileChange = getFileChange(request);
@@ -88,15 +89,16 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
             ChangeRequest changeRequest = fileChange.getChangeRequest();
             this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), "", null);
             String saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.creation");
-            this.storageManager.save(changeRequest, saveComment);
-            this.changeRequestRightsManager.copyViewRights(changeRequest,
-                changeRequest.getModifiedDocuments().iterator().next());
-            this.copyApprovers(fileChange);
-            this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
-            this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
-            this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
-                fileChange);
-            this.responseSuccess(changeRequest);
+            if (this.saveChangeRequestWithErrorHandling(changeRequest, saveComment, this.contextProvider.get())) {
+                this.changeRequestRightsManager.copyViewRights(changeRequest,
+                    changeRequest.getModifiedDocuments().iterator().next());
+                this.copyApprovers(fileChange);
+                this.changeRequestManager.computeReadyForMergingStatus(changeRequest);
+                this.observationManager.notify(new ChangeRequestCreatedEvent(), changeRequest.getId(), changeRequest);
+                this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+                    fileChange);
+                this.responseSuccess(changeRequest);
+            }
         } else {
             this.reportError(HttpStatus.SC_PRECONDITION_FAILED, savingCheckerResult.getReason());
         }

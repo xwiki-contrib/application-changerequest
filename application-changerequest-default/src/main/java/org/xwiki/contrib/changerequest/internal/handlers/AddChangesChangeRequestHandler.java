@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest.internal.handlers;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -30,9 +29,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -45,10 +42,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestFileChangeAddedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
-import org.xwiki.localization.ContextualLocalizationManager;
-import org.xwiki.localization.LocalizationException;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.user.CurrentUserReference;
 import org.xwiki.user.UserReference;
@@ -59,7 +53,6 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.XWikiDocumentArchive;
 import com.xpn.xwiki.web.EditForm;
-import com.xpn.xwiki.web.Utils;
 
 /**
  * Handler for adding changes to an existing change request.
@@ -80,12 +73,6 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
 
     @Inject
     private ChangeRequestMergeManager changeRequestMergeManager;
-
-    @Inject
-    private ContextualLocalizationManager contextualLocalizationManager;
-
-    @Inject
-    private Logger logger;
 
     @Override
     public void handle(ChangeRequestReference changeRequestReference)
@@ -119,22 +106,17 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
                 changeRequest
                     .addFileChange(fileChange)
                     .updateDate();
-                Boolean isAjaxRequest = Utils.isAjaxRequest(context);
-                try {
-                    String saveComment =
-                        this.contextualLocalizationManager.getTranslationPlain("changerequest.save.newchange");
-                    this.storageManager.save(changeRequest, saveComment);
-                } catch (Exception e) {
-                    handleSaveException(isAjaxRequest, e, context);
+                String saveComment =
+                    this.contextualLocalizationManager.getTranslationPlain("changerequest.save.newchange");
+                if (this.saveChangeRequestWithErrorHandling(changeRequest, saveComment, context)) {
+                    this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
+                    this.copyApprovers(fileChange);
+                    this.observationManager
+                        .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
+                    this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+                        fileChange);
+                    this.responseSuccess(changeRequest);
                 }
-
-                this.changeRequestRightsManager.copyViewRights(changeRequest, fileChange.getTargetEntity());
-                this.copyApprovers(fileChange);
-                this.observationManager
-                    .notify(new ChangeRequestFileChangeAddedEvent(), changeRequest.getId(), fileChange);
-                this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
-                    fileChange);
-                this.responseSuccess(changeRequest);
             }
         }
     }
@@ -311,76 +293,6 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         } else {
             this.reportError(HttpStatus.SC_NOT_FOUND, "changerequest.save.error.notfound",
                 modifiedDocument.getDocumentReferenceWithLocale().toString());
-        }
-        return result;
-    }
-
-    /**
-     * @param isAjaxRequest Indicate if this is an ajax request.
-     * @param exception The exception to handle.
-     * @param context The XWiki context.
-     * @throws XWikiException unless it is an ajax request.
-     */
-    private void handleSaveException(boolean isAjaxRequest, Exception exception, XWikiContext context)
-        throws XWikiException
-    {
-        if (isAjaxRequest) {
-            String errorMessage =
-                localizePlainOrReturnKey("core.editors.saveandcontinue.exceptionWhileSaving", exception.getMessage());
-
-            writeAjaxErrorResponse(javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMessage,
-                context);
-
-            String logMessage = "Caught exception during save and continue";
-            if (exception instanceof XWikiException) {
-                logger.info(logMessage, exception);
-            } else {
-                logger.error(logMessage, exception);
-            }
-        } else {
-            if (exception instanceof XWikiException) {
-                throw (XWikiException) exception;
-            } else {
-                throw new XWikiException(XWikiException.MODULE_XWIKI_APP, XWikiException.ERROR_XWIKI_UNKNOWN,
-                    "Uncaught exception", exception);
-            }
-        }
-    }
-
-    /**
-     * Write an error response to an ajax request.
-     *
-     * @param httpStatusCode The status code to set on the response.
-     * @param message The message that should be displayed.
-     * @param context the context.
-     */
-    private void writeAjaxErrorResponse(int httpStatusCode, String message, XWikiContext context)
-    {
-        try {
-            context.getResponse().setContentType("text/plain");
-            context.getResponse().setStatus(httpStatusCode);
-            context.getResponse().setCharacterEncoding(context.getWiki().getEncoding());
-            context.getResponse().getWriter().print(message);
-        } catch (IOException e) {
-            logger.error("Failed to send error response to AJAX save and continue request.", e);
-        }
-    }
-
-    private String localizePlainOrReturnKey(String key, Object... parameters)
-    {
-        return localizeOrReturnKey(key, Syntax.PLAIN_1_0, parameters);
-    }
-
-    protected String localizeOrReturnKey(String key, Syntax syntax, Object... parameters)
-    {
-        String result;
-        try {
-            result = Objects.toString(contextualLocalizationManager.getTranslation(key, syntax, parameters), key);
-        } catch (LocalizationException e) {
-            // Return the key in case of error but log a warning
-            logger.warn("Error rendering the translation for key [{}] in syntax [{}]. Using the translation key "
-                + "instead. Root cause: [{}]", key, syntax.toIdString(), ExceptionUtils.getRootCauseMessage(e));
-            result = key;
         }
         return result;
     }

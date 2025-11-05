@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal.handlers;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +30,7 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -35,11 +38,15 @@ import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -59,9 +66,14 @@ import com.xpn.xwiki.web.XWikiResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -105,6 +117,9 @@ class CreateChangeRequestHandlerTest
     @MockComponent
     private ContextualLocalizationManager contextualLocalizationManager;
 
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.INFO);
+
     private XWikiContext context;
     private XWikiRequest httpServletRequest;
     private XWikiResponse httpServletResponse;
@@ -112,7 +127,7 @@ class CreateChangeRequestHandlerTest
     private XWikiVersioningStoreInterface versioningStore;
 
     @BeforeEach
-    void setup()
+    void setup() throws IOException
     {
         this.context = mock(XWikiContext.class);
         when(contextProvider.get()).thenReturn(context);
@@ -122,11 +137,6 @@ class CreateChangeRequestHandlerTest
 
         this.versioningStore = mock(XWikiVersioningStoreInterface.class);
         when(this.xWiki.getVersioningStore()).thenReturn(this.versioningStore);
-    }
-
-    @Test
-    void handle() throws Exception
-    {
         this.httpServletRequest = mock(XWikiRequest.class);
         when(this.context.getRequest()).thenReturn(this.httpServletRequest);
         this.httpServletResponse = mock(XWikiResponse.class);
@@ -134,6 +144,11 @@ class CreateChangeRequestHandlerTest
 
         when(this.requestParameterConverter.convert(this.httpServletRequest, this.httpServletResponse))
             .thenReturn(Optional.of(this.httpServletRequest));
+    }
+
+    @Test
+    void handle() throws Exception
+    {
         String serializedReference = "XWiki.SomeReference";
         when(this.httpServletRequest.getParameter("docReference")).thenReturn(serializedReference);
         DocumentReference documentReference = mock(DocumentReference.class, "editedDoc");
@@ -215,6 +230,61 @@ class CreateChangeRequestHandlerTest
         verify(this.observationManager)
             .notify(any(ChangeRequestCreatedEvent.class), eq(crId), eq(expectedChangeRequest));
         verify(this.httpServletResponse).sendRedirect(expectedURL);
+    }
+
+    @Test
+    void handleErrorWithSave() throws Exception
+    {
+        String serializedReference = "XWiki.SomeReference";
+        when(this.httpServletRequest.getParameter("docReference")).thenReturn(serializedReference);
+        DocumentReference documentReference = mock(DocumentReference.class, "editedDoc");
+        when(this.documentReferenceResolver.resolve(serializedReference)).thenReturn(documentReference);
+        XWikiDocument modifiedDocument = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(documentReference, this.context)).thenReturn(modifiedDocument);
+        when(modifiedDocument.clone()).thenReturn(modifiedDocument);
+        DocumentReference documentReferenceWithLocale = mock(DocumentReference.class);
+        when(modifiedDocument.getDocumentReferenceWithLocale()).thenReturn(documentReferenceWithLocale);
+
+        String title = "some title";
+        String description = "some description";
+        when(this.httpServletRequest.getParameter("crTitle")).thenReturn(title);
+        when(this.httpServletRequest.getParameter("crDescription")).thenReturn(description);
+
+        UserReference userReference = mock(UserReference.class, "currentUser");
+        when(this.userReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
+        String previousVersion = "3.2";
+        when(this.httpServletRequest.getParameter("previousVersion")).thenReturn(previousVersion);
+        XWikiDocumentArchive documentArchive = mock(XWikiDocumentArchive.class);
+        when(versioningStore.getXWikiDocumentArchive(modifiedDocument, context)).thenReturn(documentArchive);
+        XWikiDocument previousVersionDoc = mock(XWikiDocument.class);
+        when(documentArchive.loadDocument(new Version("3.2"), context)).thenReturn(previousVersionDoc);
+        when(previousVersionDoc.getDate()).thenReturn(new Date(458));
+
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.creation"))
+            .thenReturn("Creation of the change request");
+
+        doThrow(new ChangeRequestException("Error 42 when trying to save"))
+            .when(this.storageManager).save(any(), eq("Creation of the change request"));
+        when(this.contextualLocalizationManager.getTranslationPlain("core.editors.saveandcontinue"
+            + ".exceptionWhileSaving", "Error 42 when trying to save"))
+            .thenReturn("Translation error with original message");
+        when(this.httpServletRequest.get("ajax")).thenReturn("true");
+        PrintWriter printWriter = mock(PrintWriter.class);
+        when(this.httpServletResponse.getWriter()).thenReturn(printWriter);
+        when(this.changeRequestRightsManager.isEditWithChangeRequestAllowed(userReference, documentReference))
+            .thenReturn(true);
+
+        this.handler.handle(null);
+        verify(this.observationManager).notify(isA(ChangeRequestUpdatingFileChangeEvent.class), eq(""), isNull());
+        verify(this.observationManager, never()).notify(isA(ChangeRequestCreatedEvent.class), anyString(), any());
+        verify(this.observationManager, never())
+            .notify(isA(ChangeRequestUpdatedFileChangeEvent.class), anyString(), any());
+        verify(this.httpServletResponse).setContentType("text/plain");
+        verify(this.httpServletResponse).setStatus(500);
+        verify(printWriter).print("Translation error with original message");
+        verify(context).setResponseSent(true);
+        assertEquals("Caught exception when trying to save changes in a Change Request",
+            logCapture.getMessage(0));
     }
 
 }
