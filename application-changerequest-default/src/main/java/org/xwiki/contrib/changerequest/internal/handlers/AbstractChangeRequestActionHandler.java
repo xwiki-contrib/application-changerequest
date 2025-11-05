@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.xwiki.container.Container;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
@@ -133,6 +134,9 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 
     @Inject
     private ChangeRequestConfiguration configuration;
+
+    @Inject
+    private Logger logger;
 
     protected HttpServletRequest prepareRequest() throws ChangeRequestException
     {
@@ -335,5 +339,62 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
     {
         this.answerJSON(statusCode, Collections.singletonMap("changeRequestError",
             this.contextualLocalizationManager.getTranslationPlain(localizationKey, parameters)));
+    }
+
+    protected boolean saveChangeRequestWithErrorHandling(ChangeRequest changeRequest, String saveComment,
+        XWikiContext context) throws ChangeRequestException
+    {
+        boolean isAjaxRequest = Boolean.parseBoolean(String.valueOf(context.getRequest().get("ajax")));
+        try {
+            this.storageManager.save(changeRequest, saveComment);
+            return true;
+        } catch (ChangeRequestException e) {
+            handleSaveException(isAjaxRequest, e, context);
+            return false;
+        }
+    }
+
+    /**
+     * @param isAjaxRequest Indicate if this is an ajax request.
+     * @param exception The exception to handle.
+     * @param context The XWiki context.
+     * @throws XWikiException unless it is an ajax request.
+     */
+    private void handleSaveException(boolean isAjaxRequest, ChangeRequestException exception, XWikiContext context)
+        throws ChangeRequestException
+    {
+        if (isAjaxRequest) {
+            String errorMessage = this.contextualLocalizationManager.getTranslationPlain(
+                "core.editors.saveandcontinue.exceptionWhileSaving",
+                exception.getMessage());
+
+            writeAjaxErrorResponse(javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMessage,
+                context);
+
+            String logMessage = "Caught exception when trying to save changes in a Change Request";
+            logger.info(logMessage, exception);
+        } else {
+            throw exception;
+        }
+    }
+
+    /**
+     * Write an error response to an ajax request.
+     *
+     * @param httpStatusCode The status code to set on the response.
+     * @param message The message that should be displayed.
+     * @param context the context.
+     */
+    private void writeAjaxErrorResponse(int httpStatusCode, String message, XWikiContext context)
+    {
+        try {
+            context.getResponse().setContentType("text/plain");
+            context.getResponse().setStatus(httpStatusCode);
+            context.getResponse().setCharacterEncoding(context.getWiki().getEncoding());
+            context.getResponse().getWriter().print(message);
+            context.setResponseSent(true);
+        } catch (IOException e) {
+            logger.error("Failed to send error response to AJAX save and continue request.", e);
+        }
     }
 }
