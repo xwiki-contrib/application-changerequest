@@ -54,6 +54,7 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 
 /**
  * Default handler for all {@link ChangeRequestReference}.
@@ -144,7 +145,7 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
         } catch (ChangeRequestException e) {
             throw new ResourceReferenceHandlerException(
                 String.format("Error while trying to handle the reference [%s]", reference), e);
-        } catch (ComponentLookupException e) {
+        } catch (ComponentLookupException | XWikiException e) {
             throw new ResourceReferenceHandlerException(
                 String.format("Error while initializing action handler for the reference [%s]", reference), e);
         } catch (IOException e) {

@@ -25,6 +25,8 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 
+import com.xpn.xwiki.XWikiException;
+
 /**
  * Default interface for handling the various change request action.
  *
@@ -40,6 +42,8 @@ public interface ChangeRequestActionHandler
      * @param changeRequestReference the reference to handle.
      * @throws ChangeRequestException in case of problem when handling the request.
      * @throws IOException in case of problem to write the response.
+     * @throws XWikiException in case the documents in the change request cannot be handled.
      */
-    void handle(ChangeRequestReference changeRequestReference) throws ChangeRequestException, IOException;
+    void handle(ChangeRequestReference changeRequestReference)
+        throws ChangeRequestException, IOException, XWikiException;
 }
