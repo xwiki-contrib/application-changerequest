@@ -256,7 +256,7 @@
 &lt;/div&gt;
 #set ($conflictingFiles = {})
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
-&lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
+&lt;div class="panel-group" id="accordion"&gt;
 #set ($firstFileChange = true)
 #foreach ($ref in $modifiedFiles)
   #set ($crMergeDocumentResultOpt = $services.changerequest.merge.getMergeDocumentResult($changeRequest, $ref))
@@ -296,9 +296,9 @@
         #displayDocumentRawChanges($wrappedDocs.get(0), $wrappedDocs.get(1))
       #end
     #end
-    &lt;div class="panel-heading" role="tab" id="heading-$diffKey" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;
+    &lt;div class="panel-heading" id="heading-$diffKey" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;
       &lt;h4 class="panel-title"&gt;
-        &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
+        &lt;a role="button" data-toggle="collapse" href="#diff-$diffKey" aria-expanded="true" aria-controls="diff-$diffKey"&gt;
           &lt;span class="diff-labels"&gt;
             &lt;span class="label label-default commentcounter hidden"&gt;
               $services.icon.renderHTML('envelope') &lt;span class="counter" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;0&lt;/span&gt;
@@ -479,13 +479,13 @@
     &lt;/div&gt;&lt;!-- End reviews --&gt;
     #if ($isNotMerged)
     &lt;div role="tabpanel" class="tab-pane" id="checks"&gt;
-    &lt;div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true"&gt;
+    &lt;div class="panel-group" id="accordion"&gt;
     #set ($otherChangeRequestsWithSamePages = $services.changerequest.getOpenChangeRequestsTargetingSame($changeRequest))
     #if (!$otherChangeRequestsWithSamePages.isEmpty())
       &lt;div class="panel panel-info check-panel-other-cr"&gt;
-        &lt;div class="panel-heading" role="tab" id="headingOtherCRPanel"&gt;
+        &lt;div class="panel-heading" id="headingOtherCRPanel"&gt;
           &lt;h4 class="panel-title"&gt;
-            &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
+            &lt;a role="button" data-toggle="collapse" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
               $services.icon.renderHTML('info') $services.localization.render('changerequest.sheet.checks.otherCR.title')
             &lt;/a&gt;
           &lt;/h4&gt;
@@ -534,9 +534,9 @@
          #set ($statusIcon = $checkIconProblem)
        #end
        &lt;div class="panel check-panel-status $statusPanelClass"&gt;
-        &lt;div class="panel-heading" role="tab" id="headingStatusPanel"&gt;
+        &lt;div class="panel-heading" id="headingStatusPanel"&gt;
           &lt;h4 class="panel-title"&gt;
-            &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
+            &lt;a role="button" data-toggle="collapse" href="#statusPanel" aria-expanded="true" aria-controls="statusPanel"&gt;
               $statusIcon $doc.display('status')
             &lt;/a&gt;
           &lt;/h4&gt;
@@ -573,9 +573,9 @@
          #set ($conflictPanelBody = $services.localization.render('changerequest.sheet.tab.checks.conflicts.needsrefresh.body', ['&lt;a href="#filechanges" class="check-conflict-link"&gt;', '&lt;/a&gt;']))
        #end
        &lt;div class="panel check-panel-conflict $conflictPanelClass"&gt;
-        &lt;div class="panel-heading" role="tab" id="headingConflictPanel"&gt;
+        &lt;div class="panel-heading" id="headingConflictPanel"&gt;
           &lt;h4 class="panel-title"&gt;
-            &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#conflictPanel" aria-expanded="true" aria-controls="conflictPanel"&gt;
+            &lt;a role="button" data-toggle="collapse" href="#conflictPanel" aria-expanded="true" aria-controls="conflictPanel"&gt;
               $statusIcon $conflictPanelTitle
             &lt;/a&gt;
           &lt;/h4&gt;
@@ -597,9 +597,9 @@
       #end
       #set ($strategyPanelText = $approvalStrategy.getStatus($changeRequest))
       &lt;div class="panel check-panel-strategy $strategyPanelClass"&gt;
-        &lt;div class="panel-heading" role="tab" id="headingApprovalStrategyPanel"&gt;
+        &lt;div class="panel-heading" id="headingApprovalStrategyPanel"&gt;
           &lt;h4 class="panel-title"&gt;
-            &lt;a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#approvalStrategyPanel" aria-expanded="false" aria-controls="approvalStrategyPanel"&gt;
+            &lt;a class="collapsed" role="button" data-toggle="collapse" href="#approvalStrategyPanel" aria-expanded="false" aria-controls="approvalStrategyPanel"&gt;
               $statusIcon $services.localization.render('changerequest.sheet.tab.checks.approvalStrategy.title')
             &lt;/a&gt;
           &lt;/h4&gt;
@@ -4637,7 +4637,11 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
   float: right;
 }
 .description-placeholder {
-  color: #7b7b7b;
+  color: #707070;
+}
+/* Ensure proper contrast */
+.cr-status-label.label-info {
+  color: black;
 }
 h1.editable {
   /* Move the title heading a bit to the top and to the left in order to accomodate the input border and padding. */
@@ -5489,7 +5493,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 #end
 
 {{html}}
-&lt;span class="label label-$statusClass"&gt;$doc.display('status')&lt;/span&gt;
+&lt;span class="label label-$statusClass cr-status-label"&gt;$doc.display('status')&lt;/span&gt;
 {{/html}}
 #end
 {{/velocity}}</content>

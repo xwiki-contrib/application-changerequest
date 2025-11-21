@@ -69,7 +69,12 @@
 <div class="panel $!panelClass">
   <div class="panel-heading">
       $heading
-    <div class="pull-right"><a class="panel-collapse-carret" role="button" data-toggle="collapse" href="#$panelId" aria-expanded="false" aria-controls="$panelId"><span class="caret"></span></a></div>
+    <div class="pull-right">
+        <a class="panel-collapse-carret" role="button" data-toggle="collapse" href="#$panelId" aria-expanded="false" aria-controls="$panelId">
+            <span class="caret"></span>
+            <span class='sr-only'>$escapetool.xml($services.localization.render('changerequest.delete.affectChildren.dropDown.label'))</span>
+        </a>
+    </div>
   </div>
   <div class="panel-body collapse" id="$panelId">
       $body

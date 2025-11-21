@@ -108,7 +108,7 @@
                    &lt;/div&gt;
                  #end
                #end
-               &lt;div class="panel-group" id="reviewChoice" role="tablist" aria-multiselectable="false"&gt;
+               &lt;div class="panel-group" id="reviewChoice"&gt;
                 &lt;div class="panel panel-success"&gt;
                   &lt;div class="panel-radio"&gt;
                     &lt;input type="radio" id="approveReview" name="reviewChoice" value="approve" /&gt;
