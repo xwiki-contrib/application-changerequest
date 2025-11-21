@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.script;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -660,7 +661,8 @@ public class ChangeRequestScriptService implements ScriptService
 
         boolean isInstalled = false;
         if (installedExtension != null) {
-            isInstalled = installedExtension.getNamespaces().contains(wikiNamespace);
+            Collection<String> namespaces = installedExtension.getNamespaces();
+            isInstalled = namespaces == null || namespaces.contains(wikiNamespace);
         }
         return isInstalled;
     }

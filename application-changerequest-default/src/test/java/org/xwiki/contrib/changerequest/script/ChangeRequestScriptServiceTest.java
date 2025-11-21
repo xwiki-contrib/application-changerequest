@@ -415,7 +415,7 @@ class ChangeRequestScriptServiceTest
         when(this.installedExtensionRepository.getInstalledExtension(changeRequestUiModule,
             "wiki:" + mainWikiId))
             .thenReturn(mainWikiInstalledExtension);
-        when(mainWikiInstalledExtension.getNamespaces()).thenReturn(Collections.singleton(null));
+        when(mainWikiInstalledExtension.getNamespaces()).thenReturn(null);
 
         when(this.installedExtensionRepository.getInstalledExtension(changeRequestUiModule,
             "wiki:" + otherWikiId))
@@ -430,7 +430,7 @@ class ChangeRequestScriptServiceTest
         when(this.wikiUserManager.isMember(userId, userWikiId)).thenReturn(true);
         when(this.wikiUserManager.isMember(userId, currentWikiId)).thenReturn(true);
 
-        assertEquals(List.of(currentWikiDescriptor, userWikiDescriptor),
+        assertEquals(List.of(currentWikiDescriptor, mainWikiDescriptor, userWikiDescriptor),
             this.scriptService.getWikisWithChangeRequest(userReference));
 
         when(this.wikiUserManager.isMember(userId, userWikiId)).thenReturn(false);
@@ -442,17 +442,18 @@ class ChangeRequestScriptServiceTest
         when(this.wikiUserManager.getMembershipType(currentWikiId)).thenReturn(MembershipType.REQUEST);
         when(this.wikiUserManager.getUserScope(currentWikiId)).thenReturn(UserScope.GLOBAL_ONLY);
 
-        assertEquals(List.of(userWikiDescriptor), this.scriptService.getWikisWithChangeRequest(userReference));
+        assertEquals(List.of(mainWikiDescriptor, userWikiDescriptor),
+            this.scriptService.getWikisWithChangeRequest(userReference));
 
         when(this.wikiUserManager.getUserScope(userWikiId)).thenReturn(UserScope.GLOBAL_ONLY);
         when(this.wikiUserManager.getMembershipType(currentWikiId)).thenReturn(MembershipType.OPEN);
-        assertEquals(List.of(currentWikiDescriptor, userWikiDescriptor),
+        assertEquals(List.of(currentWikiDescriptor, mainWikiDescriptor, userWikiDescriptor),
             this.scriptService.getWikisWithChangeRequest(userReference));
 
         when(this.wikiUserManager.getMembershipType(userWikiId)).thenReturn(MembershipType.INVITE);
         when(this.wikiUserManager.getUserScope(currentWikiId)).thenReturn(UserScope.LOCAL_ONLY);
 
-        assertEquals(Collections.emptyList(), this.scriptService.getWikisWithChangeRequest(userReference));
+        assertEquals(List.of(mainWikiDescriptor), this.scriptService.getWikisWithChangeRequest(userReference));
     }
 
     @Test
