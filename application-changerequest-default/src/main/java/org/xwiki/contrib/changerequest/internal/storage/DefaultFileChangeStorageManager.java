@@ -42,8 +42,10 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent;
 import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavingEvent;
+import org.xwiki.contrib.changerequest.internal.FileChangeSaveCancelledException;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.localization.LocaleUtils;
@@ -142,6 +144,9 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     private ObservationManager observationManager;
 
     @Inject
+    private ChangeRequestStorageCacheManager changeRequestStorageCacheManager;
+
+    @Inject
     private Logger logger;
 
     private enum DocumentVersion
@@ -192,28 +197,20 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     Util.getHash(this.uidReferenceSerializer.serialize(fileChange.getTargetEntity())));
                 fileChange.setId(fileChangeId);
 
+                ChangeRequest changeRequest = fileChange.getChangeRequest();
                 String filename = this.getFileChangeFileName(fileChangeId);
-                XWikiDocument fileChangeDocument = this.getFileChangeStorageDocument(fileChange.getChangeRequest(),
+                XWikiDocument fileChangeDocument = this.getFileChangeStorageDocument(changeRequest,
                     fileChange.getTargetEntity()).clone();
                 fileChangeDocument.setHidden(true);
 
-                // Notify about the filechange about to be saved, before the modified document is attached and the
-                // xobject is created to allow listeners to modify them.
-                FileChangeDocumentSavingEvent fileChangeDocumentSavingEvent = new FileChangeDocumentSavingEvent();
-                this.observationManager.notify(fileChangeDocumentSavingEvent, fileChange, fileChangeDocument);
-
-                if (fileChangeDocumentSavingEvent.isCanceled()) {
-                    throw new ChangeRequestException(
-                        String.format("Saving of the filechange [%s] has been cancelled with following reason: [%s]",
-                            fileChange, fileChangeDocumentSavingEvent.getReason()));
-                }
+                triggerFileChangeSavingEventAndHandleCancellation(fileChange, fileChangeDocument, changeRequest);
 
                 this.createFileChangeObject(fileChange, fileChangeDocument);
 
                 DocumentAuthors authors = fileChangeDocument.getAuthors();
                 authors.setOriginalMetadataAuthor(fileChange.getAuthor());
                 // Use same creator as the CR creator to have some right consistency.
-                authors.setCreator(fileChange.getChangeRequest().getCreator());
+                authors.setCreator(changeRequest.getCreator());
 
                 if (fileChange.getModifiedDocument() != null) {
                     this.createAttachment(fileChange, fileChangeDocument, filename);
@@ -228,6 +225,29 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 throw new ChangeRequestException(
                     String.format("Error while storing filechange [%s]", fileChange), e);
             }
+        }
+    }
+
+    private void triggerFileChangeSavingEventAndHandleCancellation(FileChange fileChange,
+        XWikiDocument fileChangeDocument, ChangeRequest changeRequest)
+        throws FileChangeSaveCancelledException
+    {
+        // Notify about the filechange about to be saved, before the modified document is attached and the
+        // xobject is created to allow listeners to modify them.
+        FileChangeDocumentSavingEvent fileChangeDocumentSavingEvent = new FileChangeDocumentSavingEvent();
+        this.observationManager.notify(fileChangeDocumentSavingEvent, fileChange, fileChangeDocument);
+
+        if (fileChangeDocumentSavingEvent.isCanceled()) {
+            // try to remove the filechange from the CR in memory, and if it doesn't work for some reason
+            // (e.g. another parallel edition, then invalidate the cache itself)
+            if (!changeRequest.removeFileChange(fileChange)) {
+                this.changeRequestStorageCacheManager.invalidate(changeRequest.getId());
+            }
+            this.logger.debug("Cancellation of saving of filechange [{}] for reason [{}]", fileChange,
+                fileChangeDocumentSavingEvent.getReason());
+            throw new FileChangeSaveCancelledException(
+                String.format("Saving of the filechange has been cancelled with following reason: [%s]",
+                    fileChangeDocumentSavingEvent.getReason()));
         }
     }
 

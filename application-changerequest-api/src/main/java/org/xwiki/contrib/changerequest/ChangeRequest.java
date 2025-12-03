@@ -22,7 +22,6 @@ package org.xwiki.contrib.changerequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -55,7 +55,6 @@ public class ChangeRequest
     private Date updateDate;
     private ChangeRequestStatus status;
     private final Map<DocumentReference, Deque<FileChange>> fileChanges;
-    private Set<UserReference> authors;
     private final LinkedList<ChangeRequestReview> reviews;
     private Date staleDate;
 
@@ -68,7 +67,6 @@ public class ChangeRequest
         this.updateDate = new Date();
         this.status = ChangeRequestStatus.DRAFT;
         this.fileChanges = new LinkedHashMap<>();
-        this.authors = new HashSet<>();
         this.reviews = new LinkedList<>();
     }
 
@@ -125,10 +123,33 @@ public class ChangeRequest
                 fileChangeList = new LinkedList<>();
                 this.fileChanges.put(documentReference, fileChangeList);
             }
-            this.authors.add(fileChange.getAuthor());
             fileChangeList.add(fileChange);
         }
         return this;
+    }
+
+    /**
+     * Allow to remove an unsaved filechange from the list of filechanges (e.g. when the save is cancelled).
+     * @param fileChange the change to remove from the list of filechanges
+     * @return {@code true} if the filechange has been removed.
+     * @since 1.21
+     */
+    public boolean removeFileChange(FileChange fileChange)
+    {
+        boolean removed = false;
+        if (!fileChange.isSaved()) {
+            DocumentReference documentReference = fileChange.getTargetEntity();
+            synchronized (this.fileChanges) {
+                Deque<FileChange> fileChangeList = this.fileChanges.get(documentReference);
+                if (fileChangeList.getLast().equals(fileChange)) {
+                    removed = fileChangeList.remove(fileChange);
+                }
+                if (fileChangeList.isEmpty()) {
+                    this.fileChanges.remove(documentReference);
+                }
+            }
+        }
+        return removed;
     }
 
     /**
@@ -232,18 +253,7 @@ public class ChangeRequest
      */
     public Set<UserReference> getAuthors()
     {
-        return authors;
-    }
-
-    /**
-     * @param authors the authors of the change request.
-     * @return the current instance
-     * @since 0.7
-     */
-    public ChangeRequest setAuthors(Set<UserReference> authors)
-    {
-        this.authors = authors;
-        return this;
+        return getAllFileChanges().stream().map(FileChange::getAuthor).collect(Collectors.toSet());
     }
 
     /**
@@ -482,8 +492,7 @@ public class ChangeRequest
             .setTitle(this.title)
             .setStatus(this.status)
             .setCreator(this.creator)
-            .setDescription(this.description)
-            .setAuthors(this.authors);
+            .setDescription(this.description);
     }
 
     @Override

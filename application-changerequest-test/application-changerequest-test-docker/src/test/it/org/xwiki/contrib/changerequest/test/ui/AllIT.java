@@ -97,4 +97,10 @@ public class AllIT
     class NestedStaleChangeRequestIT extends StaleChangeRequestIT
     {
     }
+
+    @Nested
+    @DisplayName("Test cancellation of a save")
+    class NestedChangeRequestCancelSaveIT extends ChangeRequestCancelSaveIT
+    {
+    }
 }

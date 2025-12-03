@@ -297,7 +297,7 @@ class DelegateApproversIT
 
         editPage = fileChangeWithReference.clickEdit();
         editPage.getWrappedEditor().setContent("Some new content with some new change");
-        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR();
+        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR(true);
 
         reviewsPane = changeRequestPage.openReviewsPane();
         reviews = reviewsPane.getReviews();

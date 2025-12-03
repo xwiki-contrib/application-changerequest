@@ -156,10 +156,8 @@ public class ChangeRequestSaveModal extends BaseModal
     /**
      * Click on save button but expect some kind of failure: e.g. the form not properly filled or a check preventing to
      * save.
-     *
-     * @param async {@code true} if the expectation is that the failure happens after an async request.
      */
-    public void clickSaveExpectFailure(boolean async)
+    public void clickSaveExpectFailure()
     {
         getDriver().findElement(By.id(SAVE_BUTTON_ID)).click();
     }

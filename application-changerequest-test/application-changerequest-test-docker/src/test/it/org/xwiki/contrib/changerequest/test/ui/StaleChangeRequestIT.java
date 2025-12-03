@@ -332,7 +332,7 @@ public class StaleChangeRequestIT
         FilechangesLiveDataElement.FilechangesRowElement rowElement = fileChanges.get(0);
         extendedEditPage = rowElement.clickEdit();
         extendedEditPage.getWrappedEditor().setContent("Some other content for another edition");
-        extendedEditPage.clickSaveAsChangeRequestInExistingCR();
+        extendedEditPage.clickSaveAsChangeRequestInExistingCR(true);
 
         // Check Bar is open but marked as stale and add comment
         testUtils.login(CR_USER, CR_USER);

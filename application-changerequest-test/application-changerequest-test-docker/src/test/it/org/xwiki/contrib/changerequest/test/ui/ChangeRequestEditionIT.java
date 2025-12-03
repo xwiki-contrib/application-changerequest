@@ -132,7 +132,7 @@ public class ChangeRequestEditionIT
         assertEquals("Some new content.", wikiEditPageExtendedEditPage.getWrappedEditor().getContent());
 
         wikiEditPageExtendedEditPage.getWrappedEditor().setContent("Second edition");
-        changeRequestPage = wikiEditPageExtendedEditPage.clickSaveAsChangeRequestInExistingCR();
+        changeRequestPage = wikiEditPageExtendedEditPage.clickSaveAsChangeRequestInExistingCR(true);
 
         fileChangesPane = changeRequestPage.openFileChanges();
 
@@ -316,7 +316,7 @@ public class ChangeRequestEditionIT
         objectEditPane.setPropertyValue("code", ".foo { color: yellow; }");
 
         extendedEditPage = new ExtendedEditPage(objectEditPage);
-        changeRequestPage = extendedEditPage.clickSaveAsChangeRequestInExistingCR();
+        changeRequestPage = extendedEditPage.clickSaveAsChangeRequestInExistingCR(true);
 
         fileChangesPane = changeRequestPage.openFileChanges();
         fileChangesPane.getFileChangesListLiveData().getFileChangeWithReference(serializedReference);

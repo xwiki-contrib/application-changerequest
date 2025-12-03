@@ -124,7 +124,7 @@ public class MinimumApproversIT
         SuggestInputElement usersApproverSelector = changeRequestSaveModal.getUsersApproverSelector();
         usersApproverSelector.sendKeys("XWiki." + APPROVER_A).sendKeys(Keys.ENTER);
 
-        changeRequestSaveModal.clickSaveExpectFailure(false);
+        changeRequestSaveModal.clickSaveExpectFailure();
         assertTrue(changeRequestSaveModal.isMinimumApproverErrorDisplayed());
 
         usersApproverSelector.sendKeys("XWiki." + APPROVER_B).sendKeys(Keys.ENTER);

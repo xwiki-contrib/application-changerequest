@@ -280,7 +280,7 @@ class ChangeRequestDiscussionIT
         ExtendedEditPage<CKEditor> editPage = new ExtendedEditPage<>(new CKEditor("content"));
 
         editPage.getWrappedEditor().getRichTextArea().setContent("Change request content");
-        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR();
+        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR(true);
         descriptionPane = changeRequestPage.openDescription();
         descriptionPane.waitUntilEventsSize(5);
 
@@ -542,7 +542,7 @@ class ChangeRequestDiscussionIT
         editPage = new ExtendedEditPage<>(new CKEditor("content"));
 
         editPage.getWrappedEditor().getRichTextArea().setContent("A considerably different content");
-        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR();
+        changeRequestPage = editPage.clickSaveAsChangeRequestInExistingCR(true);
 
         descriptionPane = changeRequestPage.openDescription();
         // 12 events: we also have a status changed here

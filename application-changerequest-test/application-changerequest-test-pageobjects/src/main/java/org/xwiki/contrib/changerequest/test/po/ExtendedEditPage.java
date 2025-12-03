@@ -87,13 +87,20 @@ public class ExtendedEditPage<T> extends EditPage
      * Click on the save as change request button when editing an existing change request: in such case the modal
      * is not displayed and the changes are immediately saved.
      *
-     * @return a new instance of the change request page after reloading it.
+     * @param expectSuccess {@code true} if the save should work
+     * @return a new instance of the change request page after reloading it or {@code null} if a failure is expected.
      */
-    public ChangeRequestPage clickSaveAsChangeRequestInExistingCR()
+    public ChangeRequestPage clickSaveAsChangeRequestInExistingCR(boolean expectSuccess)
     {
-        this.getDriver().addPageNotYetReloadedMarker();
+        if (expectSuccess) {
+            this.getDriver().addPageNotYetReloadedMarker();
+        }
         this.getDriver().findElement(By.id(SAVE_CHANGE_REQUEST_ID)).click();
-        this.getDriver().waitUntilPageIsReloaded();
-        return new ChangeRequestPage();
+        if (expectSuccess) {
+            this.getDriver().waitUntilPageIsReloaded();
+            return new ChangeRequestPage();
+        } else {
+            return null;
+        }
     }
 }

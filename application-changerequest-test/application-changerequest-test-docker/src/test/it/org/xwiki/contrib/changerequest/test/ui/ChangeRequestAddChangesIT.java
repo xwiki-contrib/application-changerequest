@@ -118,7 +118,7 @@ public class ChangeRequestAddChangesIT
         changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.openAddChangesToExistingChangeRequestCollapse();
         changeRequestSaveModal.selectExistingChangeRequest(testReference.getLastSpaceReference().getName());
-        changeRequestSaveModal.clickSaveExpectFailure(false);
+        changeRequestSaveModal.clickSaveExpectFailure();
         changeRequestSaveModal = new ChangeRequestSaveModal();
         assertTrue(changeRequestSaveModal.hasErrorDisplayed());
         assertEquals("This Change Request cannot be saved. "
@@ -173,7 +173,7 @@ public class ChangeRequestAddChangesIT
         changeRequestSaveModal = extendedEditPage.clickSaveAsChangeRequest();
         changeRequestSaveModal.openAddChangesToExistingChangeRequestCollapse();
         changeRequestSaveModal.selectExistingChangeRequest(testReference.getLastSpaceReference().getName());
-        changeRequestSaveModal.clickSaveExpectFailure(false);
+        changeRequestSaveModal.clickSaveExpectFailure();
         assertTrue(changeRequestSaveModal.hasErrorDisplayed());
         assertEquals("This Change Request cannot be saved. "
             + "Try creating a new Change Request or add your changes to another Change Request. "
