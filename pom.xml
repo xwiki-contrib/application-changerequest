@@ -83,15 +83,16 @@
         <groupId>org.revapi</groupId>
         <artifactId>revapi-maven-plugin</artifactId>
         <configuration>
-          <analysisConfiguration>
+          <analysisConfiguration combine.children="append">
             <revapi.differences>
+              <justification>Authors are now computed directly from filechange information instead of being
+                stored in CR.</justification>
+              <criticality>highlight</criticality>
               <differences>
                 <item>
                   <ignore>true</ignore>
                   <code>java.method.removed</code>
                   <old>method org.xwiki.contrib.changerequest.ChangeRequest org.xwiki.contrib.changerequest.ChangeRequest::setAuthors(java.util.Set&lt;org.xwiki.user.UserReference&gt;)</old>
-                  <justification>Authors are now computed directly from filechange information instead
-                    of being stored in CR.</justification>
                 </item>
               </differences>
             </revapi.differences>
