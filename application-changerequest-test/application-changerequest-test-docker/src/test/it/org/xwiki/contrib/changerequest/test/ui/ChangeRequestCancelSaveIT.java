@@ -110,7 +110,8 @@ public class ChangeRequestCancelSaveIT
                 + "import org.xwiki.contrib.changerequest.FileChange;\n"
                 + "def event = xcontext.method.input.get(0)\n"
                 + "def fileChange = xcontext.method.input.get(1)\n"
-                + "if (!fileChange.isMinorChange()) {\n"
+                + "if (!fileChange.isMinorChange() "
+                + "&& fileChange.getTargetEntity().toString().contains(\"ChangeRequestCancelSaveIT\")) {\n"
                 + "  event.cancel(\"Cancelled by custom CR listener: use minor change to accept it.\");\n"
                 + "}\n"
                 + "{{/groovy}}")
@@ -124,7 +125,9 @@ public class ChangeRequestCancelSaveIT
     void afterAll(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
-        setup.rest().delete(LISTENER_REFERENCE);
+        // Clean up the page (note: apparently it's not enough to unregister the listener for other test, hence the
+        // entity check in the listener)
+        setup.deletePage(LISTENER_REFERENCE);
     }
 
     @Test
