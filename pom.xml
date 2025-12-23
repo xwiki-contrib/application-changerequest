@@ -68,6 +68,7 @@
     <module>application-changerequest-notifications</module>
     <module>application-changerequest-discussions</module>
     <module>application-changerequest-replication</module>
+    <module>application-changerequest-xip</module>
   </modules>
   <profiles>
     <profile>
