@@ -37,6 +37,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffManager;
 import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
+import org.xwiki.contrib.changerequest.diff.HtmlDiffResult;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.DiffException;
@@ -89,13 +90,16 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
     private ChangeRequestDiffRenderContent defaultDiffRenderContent;
 
     @Inject
+    private Provider<RequiredSkinExtensionsRecorder> requiredSkinExtensionsRecorderProvider;
+
+    @Inject
     private Logger logger;
 
     @Override
-    public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
+    public HtmlDiffResult getHtmlDiff(FileChange fileChange) throws ChangeRequestException
     {
-        String result = "";
-        Optional<String> renderedDiff = this.diffCacheManager.getRenderedDiff(fileChange);
+        HtmlDiffResult result = null;
+        Optional<HtmlDiffResult> renderedDiff = this.diffCacheManager.getRenderedDiff(fileChange);
         if (renderedDiff.isPresent()) {
             if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
                 this.handleAttachments((XWikiDocument)
@@ -103,53 +107,64 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
             }
             result = renderedDiff.get();
         } else {
-            XWikiDocument modifiedDoc;
-            Optional<DocumentModelBridge> previousDocumentFromFileChange;
-            XWikiDocument previousDoc;
-            switch (fileChange.getType()) {
-                case EDITION:
-                    modifiedDoc =
-                        (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
-                    previousDocumentFromFileChange =
-                        this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-                    if (previousDocumentFromFileChange.isEmpty()) {
-                        result = null;
-                    } else {
-                        previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
-                        this.handleAttachments(modifiedDoc);
-                        result = this.getHtmlDiff(previousDoc, modifiedDoc, fileChange);
-                        this.temporaryAttachmentSessionsManagerProvider.get()
-                            .removeUploadedAttachments(modifiedDoc.getDocumentReference());
-                    }
-                    break;
-
-                case CREATION:
-                    modifiedDoc =
-                        (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
-                    result = this.getHtmlDiff(null, modifiedDoc, fileChange);
-                    break;
-
-                case DELETION:
-                    previousDocumentFromFileChange =
-                        this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-                    if (previousDocumentFromFileChange.isEmpty()) {
-                        result = null;
-                    } else {
-                        previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
-                        result = this.getHtmlDiff(previousDoc, null, fileChange);
-                    }
-                    break;
-
-                case NO_CHANGE:
-                default:
-                    result = "";
-                    break;
-            }
-            if (result != null) {
+            RequiredSkinExtensionsRecorder requiredSkinExtensionsRecorder =
+                requiredSkinExtensionsRecorderProvider.get();
+            requiredSkinExtensionsRecorder.start();
+            String diffResult = getDiffResult(fileChange);
+            if (diffResult != null) {
+                result = new HtmlDiffResult(diffResult, requiredSkinExtensionsRecorder.stop());
                 this.diffCacheManager.setRenderedDiff(fileChange, result);
             }
         }
         return result;
+    }
+
+    private String getDiffResult(FileChange fileChange) throws ChangeRequestException
+    {
+        Optional<DocumentModelBridge> previousDocumentFromFileChange;
+        XWikiDocument modifiedDoc;
+        XWikiDocument previousDoc;
+        String diffResult;
+        switch (fileChange.getType()) {
+            case EDITION:
+                modifiedDoc =
+                    (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+                previousDocumentFromFileChange =
+                    this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                if (previousDocumentFromFileChange.isEmpty()) {
+                    diffResult = null;
+                } else {
+                    previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
+                    this.handleAttachments(modifiedDoc);
+                    diffResult = this.getHtmlDiff(previousDoc, modifiedDoc, fileChange);
+                    this.temporaryAttachmentSessionsManagerProvider.get()
+                        .removeUploadedAttachments(modifiedDoc.getDocumentReference());
+                }
+                break;
+
+            case CREATION:
+                modifiedDoc =
+                    (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+                diffResult = this.getHtmlDiff(null, modifiedDoc, fileChange);
+                break;
+
+            case DELETION:
+                previousDocumentFromFileChange =
+                    this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
+                if (previousDocumentFromFileChange.isEmpty()) {
+                    diffResult = null;
+                } else {
+                    previousDoc = (XWikiDocument) previousDocumentFromFileChange.get();
+                    diffResult = this.getHtmlDiff(previousDoc, null, fileChange);
+                }
+                break;
+
+            case NO_CHANGE:
+            default:
+                diffResult = "";
+                break;
+        }
+        return diffResult;
     }
 
     @Override

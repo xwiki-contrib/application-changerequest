@@ -37,6 +37,7 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.diff.HtmlDiffResult;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -52,7 +53,7 @@ public class DiffCacheManager implements Initializable, Disposable
     @Inject
     private CacheManager cacheManager;
 
-    private Cache<Map<DocumentReference, String>> renderedDiffCache;
+    private Cache<Map<DocumentReference, HtmlDiffResult>> renderedDiffCache;
 
     @Override
     public void initialize() throws InitializationException
@@ -77,11 +78,11 @@ public class DiffCacheManager implements Initializable, Disposable
      * @param fileChange the file change for which to retrieve the rendered diff.
      * @return an {@link Optional#empty()} if there's no diff in cache else the computed rendered diff.
      */
-    public Optional<String> getRenderedDiff(FileChange fileChange)
+    public Optional<HtmlDiffResult> getRenderedDiff(FileChange fileChange)
     {
-        Optional<String> result = Optional.empty();
+        Optional<HtmlDiffResult> result = Optional.empty();
         String changeRequestId = fileChange.getChangeRequest().getId();
-        Map<DocumentReference, String> map = this.renderedDiffCache.get(changeRequestId);
+        Map<DocumentReference, HtmlDiffResult> map = this.renderedDiffCache.get(changeRequestId);
 
         if (map != null && map.containsKey(fileChange.getTargetEntity())) {
             result = Optional.of(map.get(fileChange.getTargetEntity()));
@@ -95,10 +96,10 @@ public class DiffCacheManager implements Initializable, Disposable
      * @param fileChange the file change for which the diff has been computed.
      * @param renderedDiff the computed diff.
      */
-    public void setRenderedDiff(FileChange fileChange, String renderedDiff)
+    public void setRenderedDiff(FileChange fileChange, HtmlDiffResult renderedDiff)
     {
         String changeRequestId = fileChange.getChangeRequest().getId();
-        Map<DocumentReference, String> map = this.renderedDiffCache.get(changeRequestId);
+        Map<DocumentReference, HtmlDiffResult> map = this.renderedDiffCache.get(changeRequestId);
         if (map == null) {
             map = new HashMap<>();
             this.renderedDiffCache.set(changeRequestId, map);
@@ -124,7 +125,7 @@ public class DiffCacheManager implements Initializable, Disposable
     public void invalidate(FileChange fileChange)
     {
         String changeRequestId = fileChange.getChangeRequest().getId();
-        Map<DocumentReference, String> map = this.renderedDiffCache.get(changeRequestId);
+        Map<DocumentReference, HtmlDiffResult> map = this.renderedDiffCache.get(changeRequestId);
         if (map != null) {
             map.remove(fileChange.getTargetEntity());
         }

@@ -31,6 +31,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
+import org.xwiki.contrib.changerequest.diff.HtmlDiffResult;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
 import org.xwiki.diff.DiffException;
@@ -50,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -86,6 +88,9 @@ class DefaultChangeRequestDiffManagerTest
     @MockComponent
     private ChangeRequestDiffRenderContent diffRenderContent;
 
+    @MockComponent
+    private RequiredSkinExtensionsRecorder requiredSkinExtensionsRecorder;
+
     private XMLDiffConfiguration xmlDiffConfiguration;
 
     @BeforeComponent
@@ -106,7 +111,7 @@ class DefaultChangeRequestDiffManagerTest
     void getHtmlDiffForEdition() throws ChangeRequestException, XWikiException, DiffException
     {
         FileChange fileChange = mock(FileChange.class);
-        String expectedResult = "some changes";
+        HtmlDiffResult expectedResult = new HtmlDiffResult("some changes", "some required skins");
         when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.of(expectedResult));
 
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
@@ -133,11 +138,15 @@ class DefaultChangeRequestDiffManagerTest
         String previousDocHtml = "previous doc html";
         when(this.diffRenderContent.getRenderedContent(previousDoc, fileChange)).thenReturn(previousDocHtml);
 
-        expectedResult = "real diff";
+        String expectedDiffResult = "real diff";
         when(this.xmlDiffManager.diff(previousDocHtml, modifiedDocHtml, this.xmlDiffConfiguration))
-            .thenReturn(expectedResult);
+            .thenReturn(expectedDiffResult);
+        String expectedRequiredSkinResult = "skin extensions";
+        when(this.requiredSkinExtensionsRecorder.stop()).thenReturn(expectedRequiredSkinResult);
+        expectedResult = new HtmlDiffResult(expectedDiffResult, expectedRequiredSkinResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(this.requiredSkinExtensionsRecorder, times(2)).start();
     }
 
     @Test
@@ -148,7 +157,7 @@ class DefaultChangeRequestDiffManagerTest
         ChangeRequestDiffRenderContent customDiffRenderContent = mock(ChangeRequestDiffRenderContent.class);
         componentManager.registerComponent(ChangeRequestDiffRenderContent.class, "customHint", customDiffRenderContent);
         FileChange fileChange = mock(FileChange.class);
-        String expectedResult = "some changes";
+        HtmlDiffResult expectedResult = new HtmlDiffResult("some changes", "some required skins");
         when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.of(expectedResult));
 
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
@@ -175,19 +184,23 @@ class DefaultChangeRequestDiffManagerTest
         String previousDocHtml = "previous doc html";
         when(customDiffRenderContent.getRenderedContent(previousDoc, fileChange)).thenReturn(previousDocHtml);
 
-        expectedResult = "real diff";
+        String expectedDiffResult = "real diff";
         when(this.xmlDiffManager.diff(previousDocHtml, modifiedDocHtml, this.xmlDiffConfiguration))
-            .thenReturn(expectedResult);
+            .thenReturn(expectedDiffResult);
+        String expectedRequiredSkinResult = "skin extensions";
+        when(this.requiredSkinExtensionsRecorder.stop()).thenReturn(expectedRequiredSkinResult);
+        expectedResult = new HtmlDiffResult(expectedDiffResult, expectedRequiredSkinResult);
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
         verifyNoInteractions(this.diffRenderContent);
+        verify(this.requiredSkinExtensionsRecorder, times(2)).start();
     }
 
     @Test
     void getHtmlDiffForCreation() throws ChangeRequestException, XWikiException, DiffException
     {
         FileChange fileChange = mock(FileChange.class);
-        String expectedResult = "some changes";
+        HtmlDiffResult expectedResult = new HtmlDiffResult("some changes", "some required skins");
         when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.of(expectedResult));
 
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
@@ -202,18 +215,23 @@ class DefaultChangeRequestDiffManagerTest
         String modifiedDocHtml = "modified doc html";
         when(this.diffRenderContent.getRenderedContent(modifiedDoc, fileChange)).thenReturn(modifiedDocHtml);
 
-        expectedResult = "real diff";
+        String expectedDiffResult = "real diff";
         when(this.xmlDiffManager.diff("", modifiedDocHtml, this.xmlDiffConfiguration))
-            .thenReturn(expectedResult);
+            .thenReturn(expectedDiffResult);
+        String expectedRequiredSkinResult = "skin extensions";
+        when(this.requiredSkinExtensionsRecorder.stop()).thenReturn(expectedRequiredSkinResult);
+        expectedResult = new HtmlDiffResult(expectedDiffResult, expectedRequiredSkinResult);
+
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(this.requiredSkinExtensionsRecorder).start();
     }
 
     @Test
     void getHtmlDiffForDeletion() throws ChangeRequestException, XWikiException, DiffException
     {
         FileChange fileChange = mock(FileChange.class);
-        String expectedResult = "some changes";
+        HtmlDiffResult expectedResult = new HtmlDiffResult("some changes", "some required skins");
         when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.of(expectedResult));
 
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
@@ -235,17 +253,23 @@ class DefaultChangeRequestDiffManagerTest
         String previousDocHtml = "previous doc html";
         when(this.diffRenderContent.getRenderedContent(previousDoc, fileChange)).thenReturn(previousDocHtml);
 
-        expectedResult = "real diff";
-        when(this.xmlDiffManager.diff(previousDocHtml, "", this.xmlDiffConfiguration)).thenReturn(expectedResult);
+        String expectedDiffResult = "real diff";
+        when(this.xmlDiffManager.diff(previousDocHtml, "", this.xmlDiffConfiguration)).thenReturn(expectedDiffResult);
+        String expectedRequiredSkinResult = "skin extensions";
+        when(this.requiredSkinExtensionsRecorder.stop()).thenReturn(expectedRequiredSkinResult);
+        expectedResult = new HtmlDiffResult(expectedDiffResult, expectedRequiredSkinResult);
+
+
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
         verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(this.requiredSkinExtensionsRecorder, times(2)).start();
     }
 
     @Test
     void getHtmlDiffForNoChange() throws ChangeRequestException
     {
         FileChange fileChange = mock(FileChange.class);
-        String expectedResult = "some changes";
+        HtmlDiffResult expectedResult = new HtmlDiffResult("some changes", "some required skins");
         when(this.diffCacheManager.getRenderedDiff(fileChange)).thenReturn(Optional.of(expectedResult));
 
         assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
@@ -255,7 +279,10 @@ class DefaultChangeRequestDiffManagerTest
 
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.NO_CHANGE);
 
-        assertEquals("", this.diffManager.getHtmlDiff(fileChange));
-        verify(this.diffCacheManager).setRenderedDiff(fileChange, "");
+        when(this.requiredSkinExtensionsRecorder.stop()).thenReturn("");
+        expectedResult = new HtmlDiffResult("", "");
+        assertEquals(expectedResult, this.diffManager.getHtmlDiff(fileChange));
+        verify(this.diffCacheManager).setRenderedDiff(fileChange, expectedResult);
+        verify(requiredSkinExtensionsRecorder).start();
     }
 }

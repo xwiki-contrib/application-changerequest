@@ -68,6 +68,7 @@ org.xwiki.contrib.changerequest.internal.diff.DefaultChangeRequestDiffManager
 org.xwiki.contrib.changerequest.internal.diff.DefaultChangeRequestDiffRenderContent
 org.xwiki.contrib.changerequest.internal.diff.AuthorRightChangeRequestDiffRenderContent
 org.xwiki.contrib.changerequest.internal.diff.GuestRightChangeRequestDiffRenderContent
+org.xwiki.contrib.changerequest.internal.diff.RequiredSkinExtensionsRecorder
 org.xwiki.contrib.changerequest.internal.approvers.FileChangeDelegateApproversManager
 org.xwiki.contrib.changerequest.internal.handlers.ReviewChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.ui.ChangeRequestUserProfileUIExtension

@@ -57,6 +57,7 @@ import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
 import org.xwiki.contrib.changerequest.diff.ChangeRequestDiffRenderContent;
+import org.xwiki.contrib.changerequest.diff.HtmlDiffResult;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
@@ -559,7 +560,7 @@ public class ChangeRequestScriptService implements ScriptService
      * @since 1.3
      */
     @Unstable
-    public String getHtmlDiff(FileChange fileChange) throws ChangeRequestException
+    public HtmlDiffResult getHtmlDiff(FileChange fileChange) throws ChangeRequestException
     {
         if (this.configuration.isRenderedDiffEnabled()) {
             return this.diffManagerProvider.get().getHtmlDiff(fileChange);

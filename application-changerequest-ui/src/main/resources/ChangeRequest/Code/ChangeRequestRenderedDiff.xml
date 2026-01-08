@@ -46,19 +46,20 @@
         #set ($fileChange = $fileChangeOpt.get())
         #if ($request.get('action') == 'htmlDiff')
           #set ($htmlDiff = $services.changerequest.getHtmlDiff($fileChange))
-          #if ($htmlDiff == '')
-            &lt;div class="infomessage"&gt;
-              $escapetool.xml($services.localization.render('web.history.changes.noChanges'))
-            &lt;/div&gt;
-          #elseif ("$!htmlDiff" == '')
+          #if ("$!htmlDiff" == '')
             &lt;div class="errormessage"&gt;
               $escapetool.xml($services.localization.render('web.history.changes.failedToCompute'))
+            &lt;/div&gt;
+          #elseif ($htmlDiff.diff == '')
+            &lt;div class="infomessage"&gt;
+              $escapetool.xml($services.localization.render('web.history.changes.noChanges'))
             &lt;/div&gt;
           #else
             &lt;div class="alert alert-warning"&gt;
               $escapetool.xml($services.localization.render('changerequest.diff.rendered.warningNotExact'))
             &lt;/div&gt;
-            ${services.rendering.escape($htmlDiff, 'xwiki/2.1')}
+            #set ($discard = $response.setHeader('X-XWIKI-HTML-HEAD', $htmlDiff.requiredSkinExtensions))
+            ${services.rendering.escape($htmlDiff.diff, 'xwiki/2.1')}
           #end
         #elseif ($request.get('action') == 'cleanTemp')
           #set ($discard = $services.changerequest.cleanupDiffAttachments($fileChange))

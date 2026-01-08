@@ -43,7 +43,7 @@ public interface ChangeRequestDiffManager
      * @return a diff ready to be displayed
      * @throws ChangeRequestException in case of problem for rendering the documents or computing the diff.
      */
-    String getHtmlDiff(FileChange fileChange) throws ChangeRequestException;
+    HtmlDiffResult getHtmlDiff(FileChange fileChange) throws ChangeRequestException;
 
     /**
      * Cleanup any temporary attachments that were added for displaying the HTML diff.
