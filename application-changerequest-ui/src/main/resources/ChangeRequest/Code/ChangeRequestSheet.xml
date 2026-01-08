@@ -4625,6 +4625,9 @@ define('DiffSnippet', ['jquery', 'xwiki-meta'], function ($, xm) {
   margin-left: 10px;
   margin-top: 0;
   margin-bottom: 0;
+  height: 20px;
+  font-size: 12px;
+  padding: 3px 7px;
 }
 .tab-content.change-request-sheet &gt; .tab-pane.active {
   margin-top: 1em;
@@ -4840,7 +4843,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
   border-top-right-radius: @radius;
   margin: @spacing auto;  
   position: relative;
-  line-height: 1.4em;
+  line-height: 16px;
   padding: @spacing;   
   list-style: none;
   text-align: left;  
@@ -4886,6 +4889,7 @@ input#edit-title-input:focus, .edit-title-icon:hover {
     .content, .date {
       position: relative;
       left: (@avatar * 0.4) * -1;
+      top: 8px;
     }
 
     .user-event.user-avatar {
@@ -5200,6 +5204,9 @@ input#edit-title-input:focus, .edit-title-icon:hover {
 }
 .message-badges {
   float: right;
+}
+#reviewChoice .panel-heading {
+  padding-top: 15px;
 }
 .reply-to-header {
   padding: 1em;
