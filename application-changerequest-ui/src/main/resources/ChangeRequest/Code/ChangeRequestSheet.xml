@@ -431,7 +431,7 @@
            #if ("$!review.reviewInvalidationReason" == '')
              #set ($invalidationReason = $services.localization.render("${invalidationReasonTranslationKeyPrefix}.unknown"))
            #else
-             #set ($invalidationReason = $services.localization.render("${invalidationReasonTranslationKeyPrefix}.${review.reviewInvalidationReason.name}"))
+             #set ($invalidationReason = $services.localization.render("${invalidationReasonTranslationKeyPrefix}.${review.reviewInvalidationReason}"))
            #end
            #if ($canEditReview)
             #if ($review.valid)
