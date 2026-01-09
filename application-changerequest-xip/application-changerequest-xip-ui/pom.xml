@@ -24,7 +24,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.xwiki.contrib.changerequest</groupId>
-    <artifactId>application-changerequest</artifactId>
+    <artifactId>application-changerequest-xip</artifactId>
     <version>1.22-SNAPSHOT</version>
   </parent>
 
