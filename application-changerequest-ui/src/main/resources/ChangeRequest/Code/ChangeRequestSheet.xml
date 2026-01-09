@@ -50,7 +50,21 @@
 #set ($isNotMerged = $changeRequest.status != "MERGED")
 #set ($checkIconSuccess = $services.icon.renderHTML('check'))
 #set ($checkIconProblem = $services.icon.renderHTML('warning'))
-#set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
+#try("discussionException")
+  #set ($allDiscussions = $services.changerequest.discussion.getDiscussionsFromChangeRequest($changeRequest))
+#end
+#if ("$!discussionException" != '')
+  #set ($allDiscussions = [])
+  {{html}}
+  &lt;div class="box xwikirenderingerror"
+    title="$escapetool.xml($services.localization.render('changerequest.sheet.discussionerror.title'))"&gt;
+    $escapetool.xml($services.localization.render('changerequest.sheet.discussionerror.description'))
+  &lt;/div&gt;
+  &lt;div class="box xwikirenderingerrordescription hidden"&gt;
+    $escapetool.xml($exceptiontool.getStackTrace($discussionException))
+  &lt;/div&gt;
+  {{/html}}
+#end
 #set ($canBeEdited = $services.changerequest.authorization.isAuthorizedToEdit($changeRequest))
 ## We don't want to see comments and attachments tabs
 #set ($showcomments = false)
