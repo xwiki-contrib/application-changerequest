@@ -30,46 +30,9 @@
 
   <artifactId>application-changerequest-xip</artifactId>
   <name>Application Change Request - XIP</name>
-  <packaging>xip</packaging>
-  <description>Package containing the Change Request Application and its dependencies</description>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.xwiki.contrib.changerequest</groupId>
-      <artifactId>application-changerequest-ui</artifactId>
-      <version>${project.version}</version>
-      <type>xar</type>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
-  <build>
-    <extensions>
-      <!-- Needed to add support for the "xip" packaging -->
-      <extension>
-        <groupId>org.xwiki.commons</groupId>
-        <artifactId>xwiki-commons-tool-extension-plugin</artifactId>
-        <version>${commons.version}</version>
-      </extension>
-    </extensions>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.xwiki.commons</groupId>
-          <artifactId>xwiki-commons-tool-extension-plugin</artifactId>
-          <version>${commons.version}</version>
-          <configuration>
-            <coreExtensions>
-              <!-- We exclude what is already in the WAR -->
-              <coreExtension>
-                <groupId>org.xwiki.platform</groupId>
-                <artifactId>xwiki-platform-distribution-war-dependencies</artifactId>
-                <version>${platform.version}</version>
-                <type>pom</type>
-              </coreExtension>
-            </coreExtensions>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+  <packaging>pom</packaging>
+  <modules>
+    <module>application-changerequest-xip-replication</module>
+    <module>application-changerequest-xip-ui</module>
+  </modules>
 </project>
