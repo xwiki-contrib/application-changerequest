@@ -185,9 +185,13 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     public <T extends AbstractChangeRequestDiscussionContextReference> List<Discussion> getDiscussionsFrom(T reference)
         throws ChangeRequestDiscussionException
     {
-        DiscussionContext discussionContext = this.changeRequestDiscussionFactory.getOrCreateContextFor(reference);
-        return this.discussionService
-            .findByDiscussionContexts(Collections.singletonList(discussionContext.getReference()));
+        if (this.changeRequestDiscussionFactory.isContextExistingFor(reference)) {
+            DiscussionContext discussionContext = this.changeRequestDiscussionFactory.getOrCreateContextFor(reference);
+            return this.discussionService
+                .findByDiscussionContexts(Collections.singletonList(discussionContext.getReference()));
+        } else {
+            return List.of();
+        }
     }
 
     @Override

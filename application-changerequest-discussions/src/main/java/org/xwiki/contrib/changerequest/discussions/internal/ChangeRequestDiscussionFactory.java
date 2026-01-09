@@ -132,6 +132,18 @@ public class ChangeRequestDiscussionFactory
     }
 
     /**
+     * Check if the discussion context already exists for the given reference.
+     * @param reference the reference for which to check if the discussion context exists.
+     * @return {@code true} if the context already exists
+     * @param <T> the real type of the reference.
+     */
+    public <T extends AbstractChangeRequestDiscussionContextReference> boolean isContextExistingFor(T reference)
+    {
+        DiscussionContextEntityReference contextEntityReference = this.createContextEntityReferenceFor(reference);
+        return this.discussionContextService.existsFor(contextEntityReference);
+    }
+
+    /**
      * Create a context specifically for the given reference.
      *
      * @param reference the reference for which to create a context.

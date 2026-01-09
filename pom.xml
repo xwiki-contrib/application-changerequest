@@ -57,7 +57,8 @@
   <properties>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
-    <discussions.version>3.0.1</discussions.version>
+    <!-- FIXME: use 3.1.0 once released --> 
+    <discussions.version>3.0.2-SNAPSHOT</discussions.version>
     <rights-api.version>2.3</rights-api.version>
     <replication.version>2.2.4</replication.version>
   </properties>

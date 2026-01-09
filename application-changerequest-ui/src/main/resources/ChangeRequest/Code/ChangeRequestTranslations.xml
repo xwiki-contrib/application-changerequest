@@ -138,6 +138,8 @@ changerequest.sheet.review.invalidation.reason.NEW_CHANGE=Review invalidated aut
 changerequest.sheet.review.invalidation.reason.UPDATED_APPROVERS=Review invalidated automatically because approvers were updated.
 changerequest.sheet.review.invalidation.reason.SPLITTED_CR=Review invalidated automatically after the split of the original Change Request.
 
+changerequest.sheet.discussionerror.title=Read technical information related to this error
+changerequest.sheet.discussionerror.description=Error when trying to load discussions from this change request. No discussion will be displayed. Click on this message for details.
 
 ChangeRequest.Code.ConfigurationClass_approvalStrategy=Publication Approval Strategy
 ChangeRequest.Code.ConfigurationClass_approvalStrategy.hint=The strategy used to determine if a Change Request can be published.
