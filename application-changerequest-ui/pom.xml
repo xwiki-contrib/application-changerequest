@@ -25,10 +25,10 @@
   <parent>
     <groupId>org.xwiki.contrib.changerequest</groupId>
     <artifactId>application-changerequest</artifactId>
-    <version>1.22</version>
+    <version>1.23-SNAPSHOT</version>
   </parent>
   <artifactId>application-changerequest-ui</artifactId>
-  <version>1.22</version>
+  <version>1.23-SNAPSHOT</version>
   <name>Application Change Request - UI</name>
   <packaging>xar</packaging>
   <properties>
