@@ -29,9 +29,9 @@
   </parent>
 
   <artifactId>application-changerequest-xip-ui</artifactId>
-  <name>Application Change Request - XIP - replication</name>
+  <name>Application Change Request - XIP - UI</name>
   <packaging>xip</packaging>
-  <description>Package containing the Change Request replication and its dependencies</description>
+  <description>Package containing the Change Request Application and its dependencies</description>
 
   <dependencies>
     <dependency>
