@@ -25,7 +25,7 @@
     ###
     ### Link to the Page
     ###
-    #displayFileChangeNotificationPage($event)
+    #displayCRNotificationPage($event)
     ###
     ### Description, users and date
     ###
