@@ -68,7 +68,7 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
-    private ReplicationContext replicationContext;
+    private Provider<ReplicationContext> replicationContextProvider;
 
     @Inject
     private Provider<EntityReplicationBuilders> entityReplicationBuildersProvider;
@@ -99,10 +99,16 @@ public abstract class AbstractChangeRequestEventListener<T extends RecordableEve
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (!this.remoteObservationManagerContext.isRemoteState() && !this.replicationContext.isReplicationMessage()) {
-            String messageHint = getMessageHint();
-            XWikiDocument dataDoc = (XWikiDocument) data;
-            this.processMessage((T) event, messageHint, dataDoc.getDocumentReference());
+        if (this.componentManager.hasComponent(ReplicationContext.class)) {
+            if (!this.remoteObservationManagerContext.isRemoteState()
+                && !this.replicationContextProvider.get().isReplicationMessage())
+            {
+                String messageHint = getMessageHint();
+                XWikiDocument dataDoc = (XWikiDocument) data;
+                this.processMessage((T) event, messageHint, dataDoc.getDocumentReference());
+            }
+        } else {
+            logger.error("No ReplicationContext component found. Replication application must be installed.");
         }
     }
 

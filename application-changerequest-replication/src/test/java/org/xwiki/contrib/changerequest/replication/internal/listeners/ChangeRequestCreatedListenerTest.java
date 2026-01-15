@@ -22,6 +22,7 @@ package org.xwiki.contrib.changerequest.replication.internal.listeners;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.notifications.events.ChangeRequestCreatedRecordableEvent;
@@ -36,7 +37,9 @@ import org.xwiki.contrib.replication.entity.EntityReplicationSenderMessageBuilde
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -82,6 +85,9 @@ class ChangeRequestCreatedListenerTest
     @MockComponent
     private DocumentReferenceResolver<ChangeRequest> changeRequestDocumentReferenceResolver;
 
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.ERROR);
+
     @BeforeComponent
     void beforeComponent(MockitoComponentManager componentManager) throws Exception
     {
@@ -93,6 +99,21 @@ class ChangeRequestCreatedListenerTest
     {
         assertEquals(1, listener.getEvents().size());
         assertTrue(listener.getEvents().get(0) instanceof ChangeRequestCreatedRecordableEvent);
+    }
+
+    @Test
+    void onEventNoReplicationContext(MockitoComponentManager mockitoComponentManager)
+    {
+        String crId = "crFooBar";
+        String fileChangeId = "fileChangeId";
+        ChangeRequestCreatedRecordableEvent event = new ChangeRequestCreatedRecordableEvent(crId, fileChangeId);
+        XWikiDocument data = mock(XWikiDocument.class, "data");
+        mockitoComponentManager.unregisterComponent(ReplicationContext.class, "default");
+        this.listener.onEvent(event, null, data);
+        verifyNoInteractions(this.documentReplicationController);
+        assertEquals(1, logCapture.size());
+        assertEquals("No ReplicationContext component found. Replication application must be installed.",
+            logCapture.getMessage(0));
     }
 
     @Test
