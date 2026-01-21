@@ -47,7 +47,6 @@ import org.xwiki.resource.ResourceReferenceHandlerChain;
 import org.xwiki.resource.ResourceReferenceHandlerException;
 import org.xwiki.resource.ResourceType;
 import org.xwiki.resource.annotations.Authenticate;
-import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.UnableToRegisterRightException;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
@@ -96,12 +95,8 @@ public class ChangeRequestResourceHandler extends AbstractResourceReferenceHandl
     @Override
     public void dispose() throws ComponentLifecycleException
     {
-        try {
-            this.authorizationManager.unregister(ChangeRequestRight.getRight());
-            this.authorizationManager.unregister(ChangeRequestApproveRight.getRight());
-        } catch (AuthorizationException e) {
-            throw new ComponentLifecycleException("Error while unregistering rights", e);
-        }
+        // FIXME: We should unregister the rights, but until XWIKI-21012 is fixed we can't really as it's causing a
+        //  mess.
     }
 
     @Override

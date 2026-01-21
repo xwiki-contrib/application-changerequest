@@ -44,7 +44,6 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import com.xpn.xwiki.XWikiContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -92,13 +91,6 @@ class ChangeRequestResourceHandlerTest
         this.resourceHandler.initialize();
         verify(this.authorizationManager, times(2)).register(ChangeRequestRight.INSTANCE);
         verify(this.authorizationManager, times(2)).register(ChangeRequestApproveRight.INSTANCE);
-    }
-
-    @Test
-    void dispose() throws Exception
-    {
-        this.resourceHandler.dispose();
-        verify(this.authorizationManager, times(2)).unregister(any());
     }
 
     @Test
