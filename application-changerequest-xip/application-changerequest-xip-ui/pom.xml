@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib.changerequest</groupId>
     <artifactId>application-changerequest-xip</artifactId>
-    <version>1.23-SNAPSHOT</version>
+    <version>1.22.1</version>
   </parent>
 
   <artifactId>application-changerequest-xip-ui</artifactId>
