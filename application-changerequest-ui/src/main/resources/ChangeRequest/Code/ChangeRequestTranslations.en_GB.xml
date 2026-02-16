@@ -36,16 +36,16 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>### Missing: changerequest.docextra.title=
-### Missing: changerequest.homepage.title=
-### Missing: changerequest.application.label=
-### Missing: changerequest.picker.placeholder=
-### Missing: changerequest.editor.button.save=
-### Missing: changerequest.createascr.button=
-### Missing: changerequest.savemodal.header.title=
-### Missing: changerequest.savemodal.header.hint=
-### Missing: changerequest.savemodal.create.heading=
-### Missing: changerequest.savemodal.create.input.title=
+  <content>changerequest.docextra.title=Change Requests
+changerequest.homepage.title=Change Requests
+changerequest.application.label=Change Request
+changerequest.picker.placeholder=Enter a name for this Change Request
+changerequest.editor.button.save=Save as Change Request
+changerequest.createascr.button=Request Creation
+changerequest.savemodal.header.title=Save as Change Request
+changerequest.savemodal.header.hint=Provide some information to save your changes in a new or existing Change Request.
+changerequest.savemodal.create.heading=Create new Change Request
+changerequest.savemodal.create.input.title=Title of the Change Request
 ### Missing: changerequest.savemodal.create.input.title.placeholder=
 ### Missing: changerequest.savemodal.create.input.description=
 ### Missing: changerequest.savemodal.create.input.draft=
