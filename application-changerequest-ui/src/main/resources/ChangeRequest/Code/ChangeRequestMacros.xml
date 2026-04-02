@@ -184,11 +184,11 @@
 #macro(displayFileChangeTitle $fileChange $rawTitle)
   #if ("$!fileChange.modifiedDocument" != '')
     #set ($pageDoc = $fileChange.modifiedDocument.newDocument($xcontext.context))
-    #set ($title = $escapetool.xml($pageDoc.plainTitle))
+    #set ($title = $pageDoc.plainTitle)
     #if ($rawTitle)
       $title
     #else
-      &lt;a href="$pageDoc.URL"&gt;$title&lt;/a&gt;
+      &lt;a href="$pageDoc.URL"&gt;$escapetool.xml($title)&lt;/a&gt;
     #end
   #else
     #if ($rawTitle)
@@ -235,7 +235,7 @@
     #if ("$!title" == '')
       #set ($title = $actualDoc.displayTitle)
     #end
-    #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $escapetool.xml($title)])
+    #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $title])
     #set ($icon = 'space')
   #elseif ($event.type == 'changerequest.filechange.added')
     #set ($fileChangeId = $event.parameters.get('changerequest.filechange.id'))
@@ -248,7 +248,7 @@
       #if ("$!title" == '')
         #set ($title = $actualDoc.displayTitle)
       #end
-      #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $escapetool.xml($title)])
+      #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $title])
     #else
       #set ($skip = true)
     #end
@@ -308,7 +308,7 @@
         #if ("$!title" == '')
           #set ($title = $actualDoc.displayTitle)
         #end
-        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $escapetool.xml($title)])
+        #set ($localizationArguments = [$userArgument, $xwiki.getURL($eventDoc), $title])
       #else
         #set ($skip = true)
       #end

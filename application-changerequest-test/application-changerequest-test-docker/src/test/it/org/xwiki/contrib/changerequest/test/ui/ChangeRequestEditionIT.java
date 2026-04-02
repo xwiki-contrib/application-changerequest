@@ -95,7 +95,7 @@ public class ChangeRequestEditionIT
     {
         String serializedReference = testReference.getLocalDocumentReference().toString();
         testUtils.loginAsSuperAdmin();
-        testUtils.createPage(testReference, "Some content to the test page.");
+        testUtils.createPage(testReference, "Some content to the test page.", "Page & Test");
 
         testUtils.login(CR_EDITOR, CR_EDITOR);
         testUtils.gotoPage(testReference);
@@ -111,6 +111,7 @@ public class ChangeRequestEditionIT
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
 
+        assertEquals("Edition of Page & Test", fileChangesPane.getDiffContainerTitle(serializedReference));
         DocumentDiffSummary diffSummary = fileChangesPane.getDiffSummary(serializedReference);
         assertEquals("(2 modified, 0 added, 0 removed)", diffSummary.getPagePropertiesSummary());
 
@@ -125,6 +126,7 @@ public class ChangeRequestEditionIT
         assertEquals(1, fileChanges.size());
 
         FilechangesLiveDataElement.FilechangesRowElement rowElement = fileChanges.get(0);
+        assertEquals("Page & Test", rowElement.getTitle());
         assertEquals("filechange-2.1", rowElement.getVersion());
         assertEquals("1.1", rowElement.getPublishedDocumentVersion());
         assertTrue(rowElement.isEditActionAvailable());
@@ -166,8 +168,7 @@ public class ChangeRequestEditionIT
         TimelineEvent timelineEvent = events.get(1);
         assertTrue(timelineEvent.getDate().after(afterSave));
         assertTrue(timelineEvent.getDate().before(dateAfterNewChange));
-        assertEquals(CR_EDITOR + " added a new change for "
-                + "xwiki:" + serializedReference,
+        assertEquals(CR_EDITOR + " added a new change for Page & Test",
             timelineEvent.getContent().getText());
     }
 

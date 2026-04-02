@@ -56,6 +56,16 @@ public class FileChangesPane extends BaseElement
         return new FilechangesLiveDataElement("changerequest-filechanges");
     }
 
+    /**
+     * @param serializedReference the reference of the modified page
+     * @return the title of collapsing block containing the diff
+     * @since 1.22.2
+     */
+    public String getDiffContainerTitle(String serializedReference)
+    {
+        return getDiffHeading(serializedReference).findElement(By.className("panel-title")).getText();
+    }
+
     private WebElement getDiffHeading(String serializedReference)
     {
         String cssSelector = String.format("div.panel-heading[data-documentreference='%s']", serializedReference);

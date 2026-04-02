@@ -347,7 +347,7 @@
             $services.icon.renderHTML('caret-down')
           &lt;/span&gt;
           #set ($diffTitleTranslationKey = "changerequest.sheet.difftitle.$crMergeDocumentResult.type")
-          $services.localization.render($diffTitleTranslationKey, ["$escapetool.xml($renderedTitle)"])
+          $services.localization.render($diffTitleTranslationKey, ["$renderedTitle"])
         &lt;/a&gt;
       &lt;/h4&gt;
     &lt;/div&gt;
