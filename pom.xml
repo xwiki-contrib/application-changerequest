@@ -59,7 +59,7 @@
     <xwiki.issueManagement.jira.id>CRAPP</xwiki.issueManagement.jira.id>
     <discussions.version>3.1.0</discussions.version>
     <rights-api.version>2.3</rights-api.version>
-    <replication.version>2.2.4</replication.version>
+    <replication.version>2.3.8</replication.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
