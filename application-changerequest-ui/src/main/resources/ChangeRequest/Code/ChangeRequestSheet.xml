@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.6" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
+<xwikidoc version="1.5" reference="ChangeRequest.Code.ChangeRequestSheet" locale="">
   <web>ChangeRequest.Code</web>
   <name>ChangeRequestSheet</name>
   <language/>
@@ -3478,18 +3478,42 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     };
     var tabPanel = container.find('.tab-pane.html-diff');
     tabPanel.addClass('loading').load(renderedDiffPageUrl, data, function() {
-      tabPanel.removeClass('loading');
-      $(document).trigger('xwiki:dom:updated', {'elements': tabPanel.toArray()});
-      $.post(renderedDiffPageUrl, {
-        form_token: xm.form_token,
-        changerequest: changeRequestId,
-        outputSyntax: 'plain',
-        filechangeId: filechangeId,
-        action: 'cleanTemp'
-      }).fail(function(data) {
-        console.error('Error while performing request to clean up data');
-        console.debug(data);
-      });
+      let iterationsMax = 600; // we put a 1 min timeout for it.
+      let areAllImagesLoaded = function () {
+        let result = true;
+        iterationsMax--;
+        if (iterationsMax &lt;= 0) {
+          console.warn("Some images might have not been loaded in rendered diff but timeout is reached.");
+          processLoadFinished();
+          return;
+        }
+        let images = tabPanel.find('img');
+        for (let i = 0; i &lt; images.length; i++) {
+          if (images[i].complete === false) {
+            result = false;
+            break;
+          }
+        }
+        if (result) {
+          processLoadFinished();
+        }
+      }
+      let myInterval = setInterval(areAllImagesLoaded, 100);
+      let processLoadFinished = function () {
+        clearInterval(myInterval);
+        tabPanel.removeClass('loading');
+        $(document).trigger('xwiki:dom:updated', {'elements': tabPanel.toArray()});
+        $.post(renderedDiffPageUrl, {
+          form_token: xm.form_token,
+          changerequest: changeRequestId,
+          outputSyntax: 'plain',
+          filechangeId: filechangeId,
+          action: 'cleanTemp'
+        }).fail(function(data) {
+          console.error('Error while performing request to clean up data');
+          console.debug(data);
+        });
+      }
     });
   };
   

@@ -101,7 +101,8 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
         HtmlDiffResult result = null;
         Optional<HtmlDiffResult> renderedDiff = this.diffCacheManager.getRenderedDiff(fileChange);
         if (renderedDiff.isPresent()) {
-            if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
+            if (fileChange.getType() == FileChange.FileChangeType.EDITION
+                ||  fileChange.getType() == FileChange.FileChangeType.CREATION) {
                 this.handleAttachments((XWikiDocument)
                     this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange));
             }
@@ -145,7 +146,10 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
             case CREATION:
                 modifiedDoc =
                     (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
+                this.handleAttachments(modifiedDoc);
                 diffResult = this.getHtmlDiff(null, modifiedDoc, fileChange);
+                this.temporaryAttachmentSessionsManagerProvider.get()
+                    .removeUploadedAttachments(modifiedDoc.getDocumentReference());
                 break;
 
             case DELETION:
@@ -170,7 +174,8 @@ public class DefaultChangeRequestDiffManager implements ChangeRequestDiffManager
     @Override
     public void cleanupTemporaryAttachments(FileChange fileChange) throws ChangeRequestException
     {
-        if (fileChange.getType() == FileChange.FileChangeType.EDITION) {
+        if (fileChange.getType() == FileChange.FileChangeType.EDITION
+            || fileChange.getType() == FileChange.FileChangeType.CREATION) {
             XWikiDocument modifiedDoc =
                 (XWikiDocument) this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
             this.temporaryAttachmentSessionsManagerProvider.get()
