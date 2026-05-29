@@ -271,28 +271,34 @@ public class AddChangesChangeRequestHandler extends AbstractChangeRequestActionH
         throws ChangeRequestException, IOException
     {
         boolean result = false;
-        String previousVersion = getPreviousVersion(request);
-        String previousPublishedVersion = latestFileChange.getPreviousPublishedVersion();
-        Date previousPublishedVersionDate = latestFileChange.getPreviousPublishedVersionDate();
-        Optional<MergeDocumentResult> optionalMergeDocumentResult =
-            this.changeRequestMergeManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
-        if (optionalMergeDocumentResult.isPresent()) {
-            MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
-            String fileChangeVersion = this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, true);
-            if (!mergeDocumentResult.hasConflicts()) {
-                currentFileChange
-                    .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
-                    .setPreviousVersion(previousVersion)
-                    .setVersion(fileChangeVersion)
-                    .setModifiedDocument(mergeDocumentResult.getMergeResult())
-                    .setMinorChange(isMinorEdit);
-                result = true;
-            } else {
-                this.reportError(HttpStatus.SC_CONFLICT, "changerequest.save.error.conflict");
-            }
+        String conflictKey = "changerequest.save.error.conflict";
+        if (latestFileChange.getType() ==  FileChange.FileChangeType.DELETION) {
+            this.reportError(HttpStatus.SC_CONFLICT, conflictKey);
         } else {
-            this.reportError(HttpStatus.SC_NOT_FOUND, "changerequest.save.error.notfound",
-                modifiedDocument.getDocumentReferenceWithLocale().toString());
+            String previousVersion = getPreviousVersion(request);
+            String previousPublishedVersion = latestFileChange.getPreviousPublishedVersion();
+            Date previousPublishedVersionDate = latestFileChange.getPreviousPublishedVersionDate();
+            Optional<MergeDocumentResult> optionalMergeDocumentResult =
+                this.changeRequestMergeManager.mergeDocumentChanges(modifiedDocument, previousVersion, changeRequest);
+            if (optionalMergeDocumentResult.isPresent()) {
+                MergeDocumentResult mergeDocumentResult = optionalMergeDocumentResult.get();
+                String fileChangeVersion =
+                    this.fileChangeVersionManager.getNextFileChangeVersion(previousVersion, true);
+                if (!mergeDocumentResult.hasConflicts()) {
+                    currentFileChange
+                        .setPreviousPublishedVersion(previousPublishedVersion, previousPublishedVersionDate)
+                        .setPreviousVersion(previousVersion)
+                        .setVersion(fileChangeVersion)
+                        .setModifiedDocument(mergeDocumentResult.getMergeResult())
+                        .setMinorChange(isMinorEdit);
+                    result = true;
+                } else {
+                    this.reportError(HttpStatus.SC_CONFLICT, conflictKey);
+                }
+            } else {
+                this.reportError(HttpStatus.SC_NOT_FOUND, "changerequest.save.error.notfound",
+                    modifiedDocument.getDocumentReferenceWithLocale().toString());
+            }
         }
         return result;
     }
