@@ -148,7 +148,7 @@
 ## Check if other changerequest exists targeting same document
 #set ($otherChangeRequestsWithSamePage = $services.changerequest.getOpenChangeRequestWithChangesFor($request.get('docChange')))
 #if (!$otherChangeRequestsWithSamePage.isEmpty())
-#set ($id = "changerequests-samechanges")
+#set ($id = "changerequests-samechanges-modal")
 #set ($columns = ["doc.title", "authors", "status", "changedDocuments"])
 #set($columnsProperties = {
   "doc.title" : { "type" : "text", "link": "auto" },
@@ -166,14 +166,14 @@
 })
 #define ($otherChangeRequestLT)
 &lt;div class="panel panel-default check-panel-other-cr"&gt;
-  &lt;div class="panel-heading" role="tab" id="headingOtherCRPanel"&gt;
+  &lt;div class="panel-heading" role="tab" id="headingOtherCRPanelModal"&gt;
     &lt;h4 class="panel-title"&gt;
-      &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanel" aria-expanded="true" aria-controls="otherCRPanel"&gt;
+      &lt;a role="button" data-toggle="collapse" data-parent="#accordion" href="#otherCRPanelModal" aria-expanded="true" aria-controls="otherCRPanelModal"&gt;
         $services.icon.renderHTML('info') $services.localization.render('changerequest.sheet.checks.otherCR.title')
       &lt;/a&gt;
     &lt;/h4&gt;
   &lt;/div&gt; &lt;!-- End heading other CR panel --&gt;
-  &lt;div id="otherCRPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOtherCRPanel"&gt;
+  &lt;div id="otherCRPanelModal" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOtherCRPanelModal"&gt;
     &lt;div class="panel-body"&gt;
       $services.localization.render('changerequest.sheet.existingChangeRequestSameChanges')
       #livetable($id $columns $columnsProperties $options)
