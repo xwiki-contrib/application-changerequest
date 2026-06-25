@@ -68,11 +68,14 @@ class DefaultChangeRequestDiffRenderContentTest
     {
         XWikiDocument document = mock(XWikiDocument.class);
         XWikiDocument currentDoc = mock(XWikiDocument.class);
+        when(document.clone()).thenReturn(document);
         when(this.context.getDoc()).thenReturn(currentDoc);
         String expectedResult = "Some html";
-        when(document.displayDocument(Syntax.HTML_5_0, true, this.context)).thenReturn(expectedResult);
+        when(document.displayDocument(Syntax.HTML_5_0, false, this.context)).thenReturn(expectedResult);
         assertEquals(expectedResult, this.diffRenderContent.getRenderedContent(document, null));
         verify(this.context).setDoc(document);
         verify(this.context).setDoc(currentDoc);
+        verify(document).clone();
+        verify(document).setRestricted(true);
     }
 }

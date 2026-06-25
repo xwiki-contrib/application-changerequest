@@ -58,14 +58,15 @@ public class DefaultChangeRequestDiffRenderContent implements ChangeRequestDiffR
                 // Should never happen.
                 throw new ChangeRequestException("This API should only be used with XWikiDocument.");
             }
-            XWikiDocument xWikiDocument = (XWikiDocument) document;
+            XWikiDocument xWikiDocument = ((XWikiDocument) document).clone();
             XWikiContext context = contextProvider.get();
             XWikiDocument currentDoc = context.getDoc();
             context.setDoc(xWikiDocument);
             try {
                 // Note that we render the content in restricted mode to avoid any security issue:
                 // we cannot guarantee here that the provided changes are safe
-                result = xWikiDocument.displayDocument(Syntax.HTML_5_0, true, context);
+                xWikiDocument.setRestricted(true);
+                result = xWikiDocument.displayDocument(Syntax.HTML_5_0, false, context);
             } catch (XWikiException e) {
                 throw new ChangeRequestException("Error while rendering the document", e);
             } finally {
