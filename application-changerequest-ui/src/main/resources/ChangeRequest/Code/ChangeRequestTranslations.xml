@@ -137,6 +137,7 @@ changerequest.sheet.review.invalidation.reason.NEW_REVIEW=Review invalidated aut
 changerequest.sheet.review.invalidation.reason.NEW_CHANGE=Review invalidated automatically because changes were performed on the content.
 changerequest.sheet.review.invalidation.reason.UPDATED_APPROVERS=Review invalidated automatically because approvers were updated.
 changerequest.sheet.review.invalidation.reason.SPLITTED_CR=Review invalidated automatically after the split of the original Change Request.
+changerequest.sheet.review.invalidation.reason.REFACTORING=Review invalidated automatically after the refactoring due to a renamed page.
 
 changerequest.sheet.discussionerror.title=Read technical information related to this error
 changerequest.sheet.discussionerror.description=Error when trying to load discussions from this change request. No discussion will be displayed. Click on this message for details.

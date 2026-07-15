@@ -274,4 +274,22 @@ public interface ChangeRequestStorageManager
     default void delete(ChangeRequest changeRequest) throws ChangeRequestException
     {
     }
+
+    /**
+     * Perform a refactoring of the given change request when the given source is renamed to the given target.
+     * The refactoring imply to fix the stored filechanges and to modify the last modified document so that the
+     * references are correct. Note that this method throws exception if the change request doesn't contain the
+     * requested source, or if its status is closed.
+     *
+     * @param changeRequest the change request in which to perform the refactoring operation
+     * @param source the source reference before its rename
+     * @param target the target reference after its rename
+     * @throws ChangeRequestException if the change request is closed, or doesn't contain any filechange targeting
+     * the source, or in case of problem when performing the refactoring.
+     * @since 1.23
+     */
+    default void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target)
+        throws ChangeRequestException
+    {
+    }
 }

@@ -50,5 +50,11 @@ public enum ReviewInvalidationReason
     /**
      * To be used when a review is invalidated because a CR is split.
      */
-    SPLITTED_CR
+    SPLITTED_CR,
+
+    /**
+     * To be used when a change request has been refactored.
+     * @since 1.23
+     */
+    REFACTORING;
 }

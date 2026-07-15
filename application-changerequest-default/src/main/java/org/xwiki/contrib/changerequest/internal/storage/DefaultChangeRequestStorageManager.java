@@ -773,4 +773,48 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 e);
         }
     }
+
+    @Override
+    public void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target)
+        throws ChangeRequestException
+    {
+        if (!changeRequest.getStatus().isOpen()) {
+            throw new ChangeRequestException("Cannot refactor a closed change request.");
+        }
+        if (!changeRequest.getModifiedDocuments().contains(source)) {
+            throw new ChangeRequestException(String.format("Cannot find [%s] in change request [%s]", source,
+                changeRequest.getId()));
+        }
+
+        ChangeRequest clone = changeRequest.cloneWithoutFileChanges();
+        clone.setId(changeRequest.getId());
+        for (Map.Entry<DocumentReference, Deque<FileChange>> fileChangeEntry : changeRequest.getFileChanges()
+            .entrySet()) {
+            if (fileChangeEntry.getKey().equals(source)) {
+                Deque<FileChange> fileChangeDeque = fileChangeEntry.getValue();
+
+                do {
+                    FileChange latestFileChange = fileChangeDeque.pollLast();
+                    FileChange fileChangeClone = null;
+
+                    // We only perform a full refactor of the latest filechange to avoid performance issue:
+                    // since we do not offer real history capability in CR, it doesn't make sense for now to refactor
+                    // the whole history.
+                    if (fileChangeDeque.isEmpty()) {
+                        fileChangeClone = this.fileChangeStorageManager.refactorFileChangeEntity(latestFileChange,
+                            target);
+                    } else if (latestFileChange != null) {
+                        fileChangeClone = latestFileChange.clone();
+                    }
+                    if (fileChangeClone != null) {
+                        clone.addFileChange(fileChangeClone);
+                    }
+                } while (!fileChangeDeque.isEmpty());
+            } else {
+                fileChangeEntry.getValue().forEach(clone::addFileChange);
+            }
+        }
+        save(changeRequest, String.format("Refactor [%s] to [%s]", source, target));
+        this.fileChangeStorageManager.deleteFileChangeStorageDocumentFor(changeRequest, source);
+    }
 }

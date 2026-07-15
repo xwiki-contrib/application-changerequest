@@ -129,4 +129,30 @@ public interface FileChangeStorageManager
     {
         return null;
     }
+
+    /**
+     * Refactor the given filechange and its modified document to use the new target entity.
+     * @param fileChange the filechange to refactor
+     * @param targetEntity the new entity to to use
+     * @return a new filechange with the proper entity and modified document
+     * @throws ChangeRequestException in case of problem when performing the changes
+     * @since 1.23
+     */
+    default FileChange refactorFileChangeEntity(FileChange fileChange, DocumentReference targetEntity)
+        throws ChangeRequestException
+    {
+        return null;
+    }
+
+    /**
+     * Delete the filechange storage document for the given change request and target entity.
+     * @param changeRequest the targeted change request
+     * @param targetEntity the targeted entity
+     * @throws ChangeRequestException in case of problem to delete the document
+     * @since 1.23
+     */
+    default void deleteFileChangeStorageDocumentFor(ChangeRequest changeRequest, DocumentReference targetEntity)
+        throws ChangeRequestException
+    {
+    }
 }

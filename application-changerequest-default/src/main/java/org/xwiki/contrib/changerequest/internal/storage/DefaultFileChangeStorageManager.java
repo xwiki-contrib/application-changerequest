@@ -724,4 +724,42 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 fileChange, version), e);
         }
     }
+
+    @Override
+    public FileChange refactorFileChangeEntity(FileChange fileChange, DocumentReference targetEntity)
+        throws ChangeRequestException
+    {
+        FileChange fileChangeClone = fileChange.clone();
+
+        DocumentModelBridge modifiedDocument = fileChangeClone.getModifiedDocument();
+        if (modifiedDocument instanceof XWikiDocument) {
+            try {
+                XWikiDocument document = ((XWikiDocument) modifiedDocument).cloneRename(targetEntity,
+                    contextProvider.get());
+                fileChangeClone.setModifiedDocument(document);
+            } catch (XWikiException e) {
+                throw new ChangeRequestException(String.format("Error while trying to clone and rename document [%s] "
+                    + "to use new reference [%s]", fileChangeClone.getTargetEntity(), targetEntity), e);
+            }
+        }
+        fileChangeClone.setTargetEntity(targetEntity);
+        fileChangeClone.setPreviousVersion(fileChange.getVersion());
+        fileChangeClone.setVersion(
+            this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), true));
+        return fileChangeClone;
+    }
+
+    @Override
+    public void deleteFileChangeStorageDocumentFor(ChangeRequest changeRequest, DocumentReference targetEntity)
+        throws ChangeRequestException
+    {
+        XWikiDocument fileChangeStorageDocument = null;
+        try {
+            fileChangeStorageDocument = this.getFileChangeStorageDocument(changeRequest, targetEntity);
+            contextProvider.get().getWiki().deleteDocument(fileChangeStorageDocument, contextProvider.get());
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(String.format("Error while trying to delete file change storage document "
+                + "for change request [%s] and target entity [%s]", changeRequest.getId(), targetEntity), e);
+        }
+    }
 }
