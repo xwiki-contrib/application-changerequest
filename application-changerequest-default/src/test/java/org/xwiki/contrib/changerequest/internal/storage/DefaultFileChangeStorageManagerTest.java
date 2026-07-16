@@ -59,6 +59,7 @@ import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.properties.internal.DefaultBeanManager;
 import org.xwiki.properties.internal.DefaultConverterManager;
 import org.xwiki.properties.internal.converter.ConvertUtilsConverter;
@@ -308,9 +309,10 @@ class DefaultFileChangeStorageManagerTest
         String version = "filechange-3.3";
         when(this.fileChangeVersionManager.getDocumentVersion(version)).thenReturn(new Version("3.3"));
         when(modifiedDoc.getId()).thenReturn(4895L);
+
         String expectedId = version + "-102366739979450084";
 
-        when(fileChange.getId()).thenReturn(expectedId);
+        when(fileChange.getId()).thenReturn(null).thenReturn(expectedId);
         XWikiAttachmentStoreInterface storeInterface = mock(XWikiAttachmentStoreInterface.class);
         when(this.xWiki.getDefaultAttachmentContentStore()).thenReturn(storeInterface);
         when(storeInterface.getHint()).thenReturn("storeHint");

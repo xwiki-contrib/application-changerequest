@@ -82,7 +82,13 @@ public class ChangeRequestDiscussionFactory
     @Inject
     private Logger logger;
 
-    private <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContextEntityReference
+    /**
+     * Compute a discussion context entity reference, based on a change request discussion context reference.
+     * @param reference the reference to transform
+     * @return a reference that discussion application can consume
+     * @param <T> the actual type of the reference
+     */
+    public <T extends AbstractChangeRequestDiscussionContextReference> DiscussionContextEntityReference
         createContextEntityReferenceFor(T reference)
     {
         String entityReference;

@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest;
 
 import java.util.Date;
+import java.util.Locale;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -387,6 +388,21 @@ public class FileChange
     public FileChange cloneWithType(FileChangeType newType)
     {
         return this.cloneWithChangeRequestAndType(this.changeRequest, newType);
+    }
+
+    /**
+     * Normalize target entity to use the reference with locale.
+     * @param targetEntity the reference to normalize.
+     * @return a reference with a root locale if  the locale is missing.
+     * @since 1.23
+     */
+    public static DocumentReference normalizeTargetEntity(DocumentReference targetEntity)
+    {
+        DocumentReference result = targetEntity;
+        if (targetEntity.getLocale() == null) {
+            result = new DocumentReference(targetEntity, Locale.ROOT);
+        }
+        return result;
     }
 
     @Override

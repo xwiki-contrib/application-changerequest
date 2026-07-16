@@ -192,13 +192,15 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     modifiedDocument
                         .setRCSVersion(this.fileChangeVersionManager.getDocumentVersion(fileChange.getVersion()));
                 }
-                String fileChangeId = String.format("%s-%s",
-                    fileChange.getVersion(),
-                    Util.getHash(this.uidReferenceSerializer.serialize(fileChange.getTargetEntity())));
-                fileChange.setId(fileChangeId);
+                if (StringUtils.isEmpty(fileChange.getId())) {
+                    String fileChangeId = String.format("%s-%s",
+                        fileChange.getVersion(),
+                        Util.getHash(this.uidReferenceSerializer.serialize(fileChange.getTargetEntity())));
+                    fileChange.setId(fileChangeId);
+                }
 
                 ChangeRequest changeRequest = fileChange.getChangeRequest();
-                String filename = this.getFileChangeFileName(fileChangeId);
+                String filename = this.getFileChangeFileName(fileChange.getId());
                 XWikiDocument fileChangeDocument = this.getFileChangeStorageDocument(changeRequest,
                     fileChange.getTargetEntity()).clone();
                 fileChangeDocument.setHidden(true);
@@ -730,11 +732,11 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         throws ChangeRequestException
     {
         FileChange fileChangeClone = fileChange.clone();
-
+        DocumentReference normalizedTargetEntity = FileChange.normalizeTargetEntity(targetEntity);
         DocumentModelBridge modifiedDocument = fileChangeClone.getModifiedDocument();
         if (modifiedDocument instanceof XWikiDocument) {
             try {
-                XWikiDocument document = ((XWikiDocument) modifiedDocument).cloneRename(targetEntity,
+                XWikiDocument document = ((XWikiDocument) modifiedDocument).cloneRename(normalizedTargetEntity,
                     contextProvider.get());
                 fileChangeClone.setModifiedDocument(document);
             } catch (XWikiException e) {
@@ -742,7 +744,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     + "to use new reference [%s]", fileChangeClone.getTargetEntity(), targetEntity), e);
             }
         }
-        fileChangeClone.setTargetEntity(targetEntity);
+        fileChangeClone.setTargetEntity(normalizedTargetEntity);
         fileChangeClone.setPreviousVersion(fileChange.getVersion());
         fileChangeClone.setVersion(
             this.fileChangeVersionManager.getNextFileChangeVersion(fileChange.getVersion(), true));

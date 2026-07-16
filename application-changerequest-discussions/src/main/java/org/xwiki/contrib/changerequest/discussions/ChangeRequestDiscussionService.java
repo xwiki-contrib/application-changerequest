@@ -30,6 +30,7 @@ import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
 import org.xwiki.diff.display.UnifiedDiffBlock;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -52,6 +53,21 @@ public interface ChangeRequestDiscussionService
      * @since 1.5
      */
     String DIFF_CONTEXT_METADATA_KEY = "diffContext";
+
+    /**
+     * Refactor the discussions of the given change request to move the context related to the given source document
+     * to point to the target document.
+     * @param changeRequestId the change request for which to perform the refactoring of discussions.
+     * @param source the old document
+     * @param target the new document
+     * @throws ChangeRequestDiscussionException in case of problem when performing the refactoring
+     * @since 1.23
+     */
+    default void refactorDiscussionFileReference(String changeRequestId, DocumentReference source,
+        DocumentReference target)
+        throws ChangeRequestDiscussionException
+    {
+    }
 
     /**
      * Allow to get or create a discussion based on the given reference.

@@ -57,6 +57,8 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestMergeFailedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -778,43 +780,47 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     public void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target)
         throws ChangeRequestException
     {
+        DocumentReference normalizedSource = FileChange.normalizeTargetEntity(source);
+        DocumentReference normalizedTarget = FileChange.normalizeTargetEntity(target);
         if (!changeRequest.getStatus().isOpen()) {
             throw new ChangeRequestException("Cannot refactor a closed change request.");
         }
-        if (!changeRequest.getModifiedDocuments().contains(source)) {
-            throw new ChangeRequestException(String.format("Cannot find [%s] in change request [%s]", source,
+        if (!changeRequest.getModifiedDocuments().contains(normalizedSource)) {
+            throw new ChangeRequestException(String.format("Cannot find [%s] in change request [%s]", normalizedSource,
                 changeRequest.getId()));
         }
 
+        this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
+            changeRequest);
         ChangeRequest clone = changeRequest.cloneWithoutFileChanges();
         clone.setId(changeRequest.getId());
         for (Map.Entry<DocumentReference, Deque<FileChange>> fileChangeEntry : changeRequest.getFileChanges()
             .entrySet()) {
-            if (fileChangeEntry.getKey().equals(source)) {
+            if (fileChangeEntry.getKey().equals(normalizedSource)) {
                 Deque<FileChange> fileChangeDeque = fileChangeEntry.getValue();
+                FileChange latestFileChange = fileChangeDeque.getLast();
+                FileChange newFileChangeVersion =
+                    this.fileChangeStorageManager.refactorFileChangeEntity(latestFileChange,
+                    normalizedTarget);
 
-                do {
-                    FileChange latestFileChange = fileChangeDeque.pollLast();
-                    FileChange fileChangeClone = null;
+                // clone the deque and add again all filechanges with the proper target
+                Iterator<FileChange> descendingIterator = fileChangeDeque.descendingIterator();
+                while (descendingIterator.hasNext()) {
+                    FileChange fileChange = descendingIterator.next();
+                    FileChange fileChangeClone = fileChange.clone();
+                    fileChangeClone.setTargetEntity(normalizedTarget);
+                    clone.addFileChange(fileChangeClone);
+                }
 
-                    // We only perform a full refactor of the latest filechange to avoid performance issue:
-                    // since we do not offer real history capability in CR, it doesn't make sense for now to refactor
-                    // the whole history.
-                    if (fileChangeDeque.isEmpty()) {
-                        fileChangeClone = this.fileChangeStorageManager.refactorFileChangeEntity(latestFileChange,
-                            target);
-                    } else if (latestFileChange != null) {
-                        fileChangeClone = latestFileChange.clone();
-                    }
-                    if (fileChangeClone != null) {
-                        clone.addFileChange(fileChangeClone);
-                    }
-                } while (!fileChangeDeque.isEmpty());
+                // finally add the new version of the filechange with the modified doc
+                clone.addFileChange(newFileChangeVersion);
             } else {
                 fileChangeEntry.getValue().forEach(clone::addFileChange);
             }
         }
-        save(changeRequest, String.format("Refactor [%s] to [%s]", source, target));
-        this.fileChangeStorageManager.deleteFileChangeStorageDocumentFor(changeRequest, source);
+        save(clone, String.format("Refactor [%s] to [%s]", normalizedSource, normalizedTarget));
+        this.fileChangeStorageManager.deleteFileChangeStorageDocumentFor(clone, normalizedSource);
+        this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
+            clone);
     }
 }

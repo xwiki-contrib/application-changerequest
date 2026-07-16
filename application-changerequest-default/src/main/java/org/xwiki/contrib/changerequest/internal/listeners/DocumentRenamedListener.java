@@ -32,6 +32,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
+import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.job.event.status.JobProgressManager;
 import org.xwiki.model.reference.DocumentReference;
@@ -64,6 +65,9 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
     private ChangeRequestManager changeRequestManager;
 
     @Inject
+    private ChangeRequestDiscussionService changeRequestDiscussionService;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -92,26 +96,35 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
 
     private void updateChangeRequests(DocumentReference source, DocumentReference target)
     {
-        this.logger.info("Updating the change requests using document [{}].", source);
+        this.logger.info("Updating the change requests to refactor document [{}] to [{}].", source, target);
+
+        List<ChangeRequest> changeRequests = List.of();
 
         try {
-            List<ChangeRequest> changeRequests = this.storageManager.findChangeRequestTargeting(source);
+            changeRequests = this.storageManager.findChangeRequestTargeting(source);
             changeRequests =
                 changeRequests.stream()
                     .filter(changeRequest -> changeRequest.getStatus().isOpen())
                     .collect(Collectors.toList());
-            this.progressManager.pushLevelProgress(changeRequests.size(), this);
-
-            for (ChangeRequest changeRequest : changeRequests) {
-                this.progressManager.startStep(this);
-                this.storageManager.refactorTargetEntity(changeRequest, source, target);
-                this.changeRequestManager.invalidateReviews(changeRequest, ReviewInvalidationReason.REFACTORING);
-                this.progressManager.endStep(this);
-            }
-
-            this.progressManager.popLevelProgress(this);
         } catch (ChangeRequestException e) {
             this.logger.error("Failed to find change requests using document [{}].", source, e);
         }
+        this.progressManager.pushLevelProgress(changeRequests.size(), this);
+        for (ChangeRequest changeRequest : changeRequests) {
+            this.progressManager.startStep(this);
+            this.logger.info("Updating change request [{}].", changeRequest.getId());
+            try {
+                this.storageManager.refactorTargetEntity(changeRequest, source, target);
+                this.changeRequestManager.invalidateReviews(changeRequest, ReviewInvalidationReason.REFACTORING);
+                this.changeRequestDiscussionService.refactorDiscussionFileReference(changeRequest.getId(), source,
+                    target);
+            } catch (ChangeRequestException crE) {
+                this.logger.error("Error while refactoring change request [{}] to move document [{}].",
+                    changeRequest.getId(), source, crE);
+            } finally {
+                this.progressManager.endStep(this);
+            }
+        }
+        this.progressManager.popLevelProgress(this);
     }
 }

@@ -23,9 +23,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -47,13 +49,16 @@ import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestRefer
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewReference;
 import org.xwiki.contrib.changerequest.discussions.references.ChangeRequestReviewsReference;
 import org.xwiki.contrib.changerequest.discussions.references.difflocation.FileDiffLocation;
+import org.xwiki.contrib.changerequest.discussions.references.difflocation.LineDiffLocation;
 import org.xwiki.contrib.discussions.DiscussionContextService;
 import org.xwiki.contrib.discussions.DiscussionException;
 import org.xwiki.contrib.discussions.DiscussionService;
 import org.xwiki.contrib.discussions.domain.Discussion;
 import org.xwiki.contrib.discussions.domain.DiscussionContext;
+import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
 import org.xwiki.diff.display.UnifiedDiffBlock;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -123,6 +128,71 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 break;
         }
         return contextList;
+    }
+
+    @Override
+    public void refactorDiscussionFileReference(String changeRequestId, DocumentReference source,
+        DocumentReference target)
+        throws ChangeRequestDiscussionException
+    {
+        String serializedSource = this.stringEntityReferenceSerializer.serialize(source);
+        String serializedTarget = this.stringEntityReferenceSerializer.serialize(target);
+        ChangeRequestReference changeRequestReference = new ChangeRequestReference(changeRequestId);
+        DiscussionContext crDiscussionContext =
+            this.changeRequestDiscussionFactory.getOrCreateContextFor(changeRequestReference);
+        List<Discussion> allCRDiscussions =
+            this.discussionService.findByDiscussionContexts(List.of(crDiscussionContext.getReference()));
+        Set<DiscussionContext> contextSet = new HashSet<>();
+        for (Discussion crDiscussion : allCRDiscussions) {
+            List<DiscussionContext> discussionContexts =
+                this.discussionContextService.findByDiscussionReference(crDiscussion.getReference());
+            contextSet.addAll(discussionContexts);
+        }
+
+        for (DiscussionContext discussionContext : contextSet) {
+            AbstractChangeRequestDiscussionContextReference crDiscussionContextReference =
+                this.discussionReferenceUtils.computeReferenceFromContext(discussionContext, null);
+            String serializedReference = null;
+            AbstractChangeRequestDiscussionContextReference newContextReference = null;
+
+            if (crDiscussionContextReference instanceof ChangeRequestFileDiffReference) {
+                ChangeRequestFileDiffReference fileDiffReference =
+                    (ChangeRequestFileDiffReference) crDiscussionContextReference;
+                serializedReference = fileDiffReference.getFileDiffLocation().getTargetReference();
+                FileDiffLocation newFileDiffLocation =
+                    new FileDiffLocation(fileDiffReference.getFileDiffLocation().getDiffId(), serializedTarget);
+                newContextReference =
+                    new ChangeRequestFileDiffReference(fileDiffReference.getChangeRequestId(), newFileDiffLocation);
+            } else if (crDiscussionContextReference instanceof ChangeRequestLineDiffReference) {
+                ChangeRequestLineDiffReference lineDiffReference =
+                    (ChangeRequestLineDiffReference) crDiscussionContextReference;
+                LineDiffLocation lineDiffLocation = lineDiffReference.getLineDiffLocation();
+                serializedReference = lineDiffLocation.getFileDiffLocation().getTargetReference();
+                FileDiffLocation newFileDiffLocation =
+                    new FileDiffLocation(lineDiffLocation.getFileDiffLocation().getDiffId(), serializedTarget);
+                LineDiffLocation newLineDiffLocation = new LineDiffLocation(
+                    newFileDiffLocation,
+                    lineDiffLocation.getDocumentPart(),
+                    lineDiffLocation.getEntityReference(),
+                    lineDiffLocation.getDiffBlockId(),
+                    lineDiffLocation.getLineNumber(),
+                    lineDiffLocation.getLineChange());
+                newContextReference =
+                    new ChangeRequestLineDiffReference(lineDiffReference.getChangeRequestId(), newLineDiffLocation);
+            }
+            if (serializedSource.equals(serializedReference)) {
+                DiscussionContextEntityReference newContextEntityReference =
+                    this.changeRequestDiscussionFactory.createContextEntityReferenceFor(newContextReference);
+                try {
+                    this.discussionContextService.update(discussionContext, discussionContext.getName(),
+                        discussionContext.getDescription(), newContextEntityReference);
+                } catch (DiscussionException e) {
+                    throw new ChangeRequestDiscussionException(
+                        String.format("Error while trying to update discussion context [%s]",
+                            discussionContext.getReference()));
+                }
+            }
+        }
     }
 
     @Override
