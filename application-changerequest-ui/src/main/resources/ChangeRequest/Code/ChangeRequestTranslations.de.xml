@@ -135,6 +135,7 @@ changerequest.sheet.review.invalidation.reason.NEW_REVIEW=Die Überprüfung wurd
 changerequest.sheet.review.invalidation.reason.NEW_CHANGE=Die Überprüfung wurde automatisch für ungültig erklärt, weil Änderungen am Inhalt vorgenommen wurden.
 changerequest.sheet.review.invalidation.reason.UPDATED_APPROVERS=Die Überprüfung wurde automatisch ungültig, weil die Genehmigenden aktualisiert wurden.
 changerequest.sheet.review.invalidation.reason.SPLITTED_CR=Die Überprüfung wurde automatisch nach der Aufteilung der ursprünglichen Änderungsanforderung ungültig.
+changerequest.sheet.review.invalidation.reason.REFACTORING=Die Überprüfung wurde nach der Umstrukturierung aufgrund einer umbenannten Seite automatisch für ungültig erklärt.
 changerequest.sheet.discussionerror.title=Lies technische Infos zu diesem Fehler
 changerequest.sheet.discussionerror.description=Beim Versuch, Diskussionen aus dieser Änderungsanforderung zu laden, ist ein Fehler aufgetreten. Es werden keine Diskussionen angezeigt. Klick auf diese Meldung, um mehr zu erfahren.
 ChangeRequest.Code.ConfigurationClass_approvalStrategy=Strategie zur Genehmigung von Veröffentlichungen
