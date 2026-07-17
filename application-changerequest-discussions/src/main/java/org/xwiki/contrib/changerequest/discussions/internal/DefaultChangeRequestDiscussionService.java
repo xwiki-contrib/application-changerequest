@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -58,7 +59,10 @@ import org.xwiki.contrib.discussions.domain.DiscussionContext;
 import org.xwiki.contrib.discussions.domain.references.DiscussionContextEntityReference;
 import org.xwiki.contrib.discussions.domain.references.DiscussionReference;
 import org.xwiki.diff.display.UnifiedDiffBlock;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,6 +92,13 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
     @Inject
     @Named("compactwiki")
     private EntityReferenceSerializer<String> stringEntityReferenceSerializer;
+
+    @Inject
+    @Named("withtype")
+    private EntityReferenceSerializer<String> withTypeEntityReferenceSerializer;
+
+    @Inject
+    private EntityReferenceResolver<String> entityReferenceResolver;
 
     @Inject
     private ChangeRequestDiscussionDiffUtils changeRequestDiscussionDiffUtils;
@@ -132,11 +143,9 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
 
     @Override
     public void refactorDiscussionFileReference(String changeRequestId, DocumentReference source,
-        DocumentReference target)
+        DocumentReference target, boolean isDeep)
         throws ChangeRequestDiscussionException
     {
-        String serializedSource = this.stringEntityReferenceSerializer.serialize(source);
-        String serializedTarget = this.stringEntityReferenceSerializer.serialize(target);
         ChangeRequestReference changeRequestReference = new ChangeRequestReference(changeRequestId);
         DiscussionContext crDiscussionContext =
             this.changeRequestDiscussionFactory.getOrCreateContextFor(changeRequestReference);
@@ -152,35 +161,11 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
         for (DiscussionContext discussionContext : contextSet) {
             AbstractChangeRequestDiscussionContextReference crDiscussionContextReference =
                 this.discussionReferenceUtils.computeReferenceFromContext(discussionContext, null);
-            String serializedReference = null;
-            AbstractChangeRequestDiscussionContextReference newContextReference = null;
 
-            if (crDiscussionContextReference instanceof ChangeRequestFileDiffReference) {
-                ChangeRequestFileDiffReference fileDiffReference =
-                    (ChangeRequestFileDiffReference) crDiscussionContextReference;
-                serializedReference = fileDiffReference.getFileDiffLocation().getTargetReference();
-                FileDiffLocation newFileDiffLocation =
-                    new FileDiffLocation(fileDiffReference.getFileDiffLocation().getDiffId(), serializedTarget);
-                newContextReference =
-                    new ChangeRequestFileDiffReference(fileDiffReference.getChangeRequestId(), newFileDiffLocation);
-            } else if (crDiscussionContextReference instanceof ChangeRequestLineDiffReference) {
-                ChangeRequestLineDiffReference lineDiffReference =
-                    (ChangeRequestLineDiffReference) crDiscussionContextReference;
-                LineDiffLocation lineDiffLocation = lineDiffReference.getLineDiffLocation();
-                serializedReference = lineDiffLocation.getFileDiffLocation().getTargetReference();
-                FileDiffLocation newFileDiffLocation =
-                    new FileDiffLocation(lineDiffLocation.getFileDiffLocation().getDiffId(), serializedTarget);
-                LineDiffLocation newLineDiffLocation = new LineDiffLocation(
-                    newFileDiffLocation,
-                    lineDiffLocation.getDocumentPart(),
-                    lineDiffLocation.getEntityReference(),
-                    lineDiffLocation.getDiffBlockId(),
-                    lineDiffLocation.getLineNumber(),
-                    lineDiffLocation.getLineChange());
-                newContextReference =
-                    new ChangeRequestLineDiffReference(lineDiffReference.getChangeRequestId(), newLineDiffLocation);
-            }
-            if (serializedSource.equals(serializedReference)) {
+            AbstractChangeRequestDiscussionContextReference newContextReference =
+                computeNewContextEntityReference(crDiscussionContextReference, source, target, isDeep);
+
+            if (newContextReference != null) {
                 DiscussionContextEntityReference newContextEntityReference =
                     this.changeRequestDiscussionFactory.createContextEntityReferenceFor(newContextReference);
                 try {
@@ -193,6 +178,77 @@ public class DefaultChangeRequestDiscussionService implements ChangeRequestDiscu
                 }
             }
         }
+    }
+
+    private AbstractChangeRequestDiscussionContextReference computeNewContextEntityReference(
+        AbstractChangeRequestDiscussionContextReference oldReference, DocumentReference source,
+        DocumentReference target, boolean isDeep)
+    {
+        AbstractChangeRequestDiscussionContextReference result = null;
+        String serializedSource = this.stringEntityReferenceSerializer.serialize(source);
+        String serializedTarget = this.stringEntityReferenceSerializer.serialize(target);
+        String serializedReference = null;
+        if (oldReference instanceof ChangeRequestFileDiffReference) {
+            ChangeRequestFileDiffReference fileDiffReference =
+                (ChangeRequestFileDiffReference) oldReference;
+            serializedReference = fileDiffReference.getFileDiffLocation().getTargetReference();
+            FileDiffLocation newFileDiffLocation =
+                new FileDiffLocation(fileDiffReference.getFileDiffLocation().getDiffId(), serializedTarget);
+            result =
+                new ChangeRequestFileDiffReference(fileDiffReference.getChangeRequestId(), newFileDiffLocation);
+        } else if (oldReference instanceof ChangeRequestLineDiffReference) {
+            ChangeRequestLineDiffReference lineDiffReference =
+                (ChangeRequestLineDiffReference) oldReference;
+            LineDiffLocation lineDiffLocation = lineDiffReference.getLineDiffLocation();
+            serializedReference = lineDiffLocation.getFileDiffLocation().getTargetReference();
+            FileDiffLocation newFileDiffLocation =
+                new FileDiffLocation(lineDiffLocation.getFileDiffLocation().getDiffId(), serializedTarget);
+
+            LineDiffLocation newLineDiffLocation = new LineDiffLocation(
+                newFileDiffLocation,
+                lineDiffLocation.getDocumentPart(),
+                computeFixedEntityReference(lineDiffLocation.getEntityReference(),
+                    lineDiffLocation.getDocumentPart(), source, target, isDeep),
+                lineDiffLocation.getDiffBlockId(),
+                lineDiffLocation.getLineNumber(),
+                lineDiffLocation.getLineChange());
+            result =
+                new ChangeRequestLineDiffReference(lineDiffReference.getChangeRequestId(), newLineDiffLocation);
+        }
+        if (!serializedSource.equals(serializedReference)) {
+            result = null;
+        }
+        return result;
+    }
+
+    private String computeFixedEntityReference(String originalEntityReference,
+        LineDiffLocation.DiffDocumentPart documentPart, DocumentReference source,
+        DocumentReference target, boolean isDeep)
+    {
+        String result = originalEntityReference;
+        EntityReference resolvedReference = this.entityReferenceResolver.resolve(originalEntityReference, null);
+        EntityReference fixedReference = computedFixedReference(source, target, isDeep, resolvedReference);
+        if (fixedReference != null) {
+            result = this.withTypeEntityReferenceSerializer.serialize(fixedReference);
+        }
+        return result;
+    }
+
+    @Nullable
+    private static EntityReference computedFixedReference(DocumentReference source, DocumentReference target,
+        boolean isDeep, EntityReference resolvedReference)
+    {
+        EntityReference fixedReference = null;
+        if (resolvedReference.equals(source, EntityType.DOCUMENT)) {
+            fixedReference = target;
+        } else if (resolvedReference.hasParent(source)) {
+            fixedReference = resolvedReference.replaceParent(source, target);
+        } else if ("WebHome".equals(source.getName()) && isDeep
+            && resolvedReference.hasParent(source.getLastSpaceReference())) {
+            fixedReference =
+                resolvedReference.replaceParent(source.getLastSpaceReference(), target.getLastSpaceReference());
+        }
+        return fixedReference;
     }
 
     @Override

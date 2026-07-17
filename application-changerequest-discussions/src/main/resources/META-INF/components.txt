@@ -1,5 +1,6 @@
 org.xwiki.contrib.changerequest.discussions.internal.DefaultChangeRequestDiscussionService
 org.xwiki.contrib.changerequest.discussions.internal.DefaultChangeRequestDiscussionStoreConfiguration
+org.xwiki.contrib.changerequest.discussions.internal.FileChangeReferenceRenamedListener
 org.xwiki.contrib.changerequest.discussions.script.ChangeRequestDiscussionScriptService
 org.xwiki.contrib.changerequest.discussions.internal.MessageCreationListener
 org.xwiki.contrib.changerequest.discussions.internal.ChangeRequestDiscussionReferenceUtils

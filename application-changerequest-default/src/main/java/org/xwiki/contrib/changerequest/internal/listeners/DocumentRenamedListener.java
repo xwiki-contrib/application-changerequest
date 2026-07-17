@@ -39,7 +39,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.refactoring.event.DocumentRenamedEvent;
-import org.xwiki.refactoring.internal.job.MoveJob;
 import org.xwiki.refactoring.job.MoveRequest;
 
 /**
@@ -81,20 +80,16 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
     @Override
     public void processLocalEvent(Event event, Object source, Object data)
     {
-        boolean updateLinks = true;
-
-        if (source instanceof MoveJob) {
-            MoveRequest request = (MoveRequest) data;
-            updateLinks = request.isUpdateLinks();
-        }
+        MoveRequest request = (MoveRequest) data;
+        boolean updateLinks = request.isUpdateLinks();
 
         if (updateLinks) {
             DocumentRenamedEvent renameEvent = (DocumentRenamedEvent) event;
-            updateChangeRequests(renameEvent.getSourceReference(), renameEvent.getTargetReference());
+            updateChangeRequests(renameEvent.getSourceReference(), renameEvent.getTargetReference(), request.isDeep());
         }
     }
 
-    private void updateChangeRequests(DocumentReference source, DocumentReference target)
+    private void updateChangeRequests(DocumentReference source, DocumentReference target, boolean isDeep)
     {
         this.logger.info("Updating the change requests to refactor document [{}] to [{}].", source, target);
 
@@ -114,10 +109,10 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
             this.progressManager.startStep(this);
             this.logger.info("Updating change request [{}].", changeRequest.getId());
             try {
-                this.storageManager.refactorTargetEntity(changeRequest, source, target);
+                this.storageManager.refactorTargetEntity(changeRequest, source, target, isDeep);
                 this.changeRequestManager.invalidateReviews(changeRequest, ReviewInvalidationReason.REFACTORING);
                 this.changeRequestDiscussionService.refactorDiscussionFileReference(changeRequest.getId(), source,
-                    target);
+                    target, isDeep);
             } catch (ChangeRequestException crE) {
                 this.logger.error("Error while refactoring change request [{}] to move document [{}].",
                     changeRequest.getId(), source, crE);

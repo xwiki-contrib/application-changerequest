@@ -284,11 +284,13 @@ public interface ChangeRequestStorageManager
      * @param changeRequest the change request in which to perform the refactoring operation
      * @param source the source reference before its rename
      * @param target the target reference after its rename
+     * @param isDeep if {@code true} try to also refactor creation request matching the parent reference
      * @throws ChangeRequestException if the change request is closed, or doesn't contain any filechange targeting
      * the source, or in case of problem when performing the refactoring.
      * @since 1.23
      */
-    default void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target)
+    default void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target,
+        boolean isDeep)
         throws ChangeRequestException
     {
     }

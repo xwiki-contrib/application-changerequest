@@ -2241,7 +2241,7 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
     // if we did not find the diff about same document, then it's another issue, we log an error.
     if (mainContainer.length == 0) {
       console.error("Cannot attach the discussion {0} to the window since there's no diff about {1}. The discussion will remain hidden.", discussion, targetReference);
-      return;
+      return false;
     }
     
     // Now we have the main container, we need to find if it's about the main document metadata, its xclass or one of its xobject metadata.

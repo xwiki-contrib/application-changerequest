@@ -60,11 +60,12 @@ public interface ChangeRequestDiscussionService
      * @param changeRequestId the change request for which to perform the refactoring of discussions.
      * @param source the old document
      * @param target the new document
+     * @param isDeep if {@code true} try to refactor the space entity reference too
      * @throws ChangeRequestDiscussionException in case of problem when performing the refactoring
      * @since 1.23
      */
     default void refactorDiscussionFileReference(String changeRequestId, DocumentReference source,
-        DocumentReference target)
+        DocumentReference target, boolean isDeep)
         throws ChangeRequestDiscussionException
     {
     }

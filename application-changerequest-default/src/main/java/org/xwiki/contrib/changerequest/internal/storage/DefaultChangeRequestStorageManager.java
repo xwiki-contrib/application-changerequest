@@ -59,6 +59,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestMergingEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
+import org.xwiki.contrib.changerequest.events.FileChangeReferenceRenamedEvent;
 import org.xwiki.contrib.changerequest.events.SplitBeginChangeRequestEvent;
 import org.xwiki.contrib.changerequest.events.SplitEndChangeRequestEvent;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -777,7 +778,8 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     }
 
     @Override
-    public void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target)
+    public void refactorTargetEntity(ChangeRequest changeRequest, DocumentReference source, DocumentReference target,
+        boolean isDeep)
         throws ChangeRequestException
     {
         DocumentReference normalizedSource = FileChange.normalizeTargetEntity(source);
@@ -794,26 +796,15 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             changeRequest);
         ChangeRequest clone = changeRequest.cloneWithoutFileChanges();
         clone.setId(changeRequest.getId());
+
         for (Map.Entry<DocumentReference, Deque<FileChange>> fileChangeEntry : changeRequest.getFileChanges()
             .entrySet()) {
-            if (fileChangeEntry.getKey().equals(normalizedSource)) {
-                Deque<FileChange> fileChangeDeque = fileChangeEntry.getValue();
-                FileChange latestFileChange = fileChangeDeque.getLast();
-                FileChange newFileChangeVersion =
-                    this.fileChangeStorageManager.refactorFileChangeEntity(latestFileChange,
-                    normalizedTarget);
-
-                // clone the deque and add again all filechanges with the proper target
-                Iterator<FileChange> descendingIterator = fileChangeDeque.descendingIterator();
-                while (descendingIterator.hasNext()) {
-                    FileChange fileChange = descendingIterator.next();
-                    FileChange fileChangeClone = fileChange.clone();
-                    fileChangeClone.setTargetEntity(normalizedTarget);
-                    clone.addFileChange(fileChangeClone);
-                }
-
-                // finally add the new version of the filechange with the modified doc
-                clone.addFileChange(newFileChangeVersion);
+            DocumentReference documentReference = fileChangeEntry.getKey();
+            if (documentReference.equals(normalizedSource)) {
+                refactorFileChange(fileChangeEntry, normalizedTarget, clone, isDeep);
+            } else if (shouldRefactorFileChangeCreation(source, isDeep, fileChangeEntry, documentReference)) {
+                refactorFileChange(fileChangeEntry, documentReference.replaceParent(source.getLastSpaceReference(),
+                    target.getLastSpaceReference()), clone, isDeep);
             } else {
                 fileChangeEntry.getValue().forEach(clone::addFileChange);
             }
@@ -822,5 +813,41 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         this.fileChangeStorageManager.deleteFileChangeStorageDocumentFor(clone, normalizedSource);
         this.observationManager.notify(new ChangeRequestUpdatedFileChangeEvent(), changeRequest.getId(),
             clone);
+    }
+
+    private static boolean shouldRefactorFileChangeCreation(DocumentReference source, boolean isDeep,
+        Map.Entry<DocumentReference, Deque<FileChange>> fileChangeEntry, DocumentReference documentReference)
+    {
+        return isDeep && "WebHome".equals(source.getName())
+            && documentReference.hasParent(source.getLastSpaceReference())
+            && fileChangeEntry.getValue().getLast().getType() == FileChange.FileChangeType.CREATION;
+    }
+
+    private void refactorFileChange(Map.Entry<DocumentReference, Deque<FileChange>> fileChangeEntry,
+        DocumentReference normalizedTarget, ChangeRequest clone, boolean isDeep)
+        throws ChangeRequestException
+    {
+        Deque<FileChange> fileChangeDeque = fileChangeEntry.getValue();
+
+        FileChange latestFileChange = fileChangeDeque.getLast();
+        FileChange newFileChangeVersion =
+            this.fileChangeStorageManager.refactorFileChangeEntity(latestFileChange,
+                normalizedTarget);
+
+        // clone the deque and add again all filechanges with the proper target
+        Iterator<FileChange> descendingIterator = fileChangeDeque.descendingIterator();
+        while (descendingIterator.hasNext()) {
+            FileChange fileChange = descendingIterator.next();
+            FileChange fileChangeClone = fileChange.clone();
+            fileChangeClone.setTargetEntity(normalizedTarget);
+            clone.addFileChange(fileChangeClone);
+        }
+
+        // finally add the new version of the filechange with the modified doc
+        clone.addFileChange(newFileChangeVersion);
+
+        this.observationManager.notify(
+            new FileChangeReferenceRenamedEvent(fileChangeEntry.getKey(), normalizedTarget, isDeep),
+            clone.getId());
     }
 }
