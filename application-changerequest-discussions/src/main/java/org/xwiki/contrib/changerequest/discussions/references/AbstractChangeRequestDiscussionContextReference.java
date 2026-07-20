@@ -21,8 +21,8 @@ package org.xwiki.contrib.changerequest.discussions.references;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.xwiki.stability.Unstable;
+import org.xwiki.text.XWikiToStringBuilder;
 
 /**
  * Define references that are used for attaching discussions to change request UI elements.
@@ -124,7 +124,7 @@ public abstract class AbstractChangeRequestDiscussionContextReference
     @Override
     public String toString()
     {
-        return new ToStringBuilder(this)
+        return new XWikiToStringBuilder(this)
             .append("changeRequestId", changeRequestId)
             .append("type", type)
             .append("reference", reference)
