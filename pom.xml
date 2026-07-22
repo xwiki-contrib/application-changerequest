@@ -60,7 +60,7 @@
     <!-- RELEASE AND FIXME -->
     <discussions.version>3.1.1-SNAPSHOT</discussions.version>
     <rights-api.version>2.3</rights-api.version>
-    <replication.version>2.2.4</replication.version>
+    <replication.version>2.4.0</replication.version>
   </properties>
   <modules>
     <module>application-changerequest-api</module>
