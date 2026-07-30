@@ -36,14 +36,17 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
+import org.xwiki.contrib.changerequest.events.ChangeRequestRefactoringEvent;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.job.Job;
 import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
+import org.xwiki.refactoring.event.DocumentRenamingEvent;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -78,6 +81,9 @@ public class DocumentUpdatedListener extends AbstractLocalEventListener
     private Provider<MergeCacheManager> conflictCacheManager;
 
     @Inject
+    private ObservationContext observationContext;
+
+    @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Inject
@@ -97,8 +103,10 @@ public class DocumentUpdatedListener extends AbstractLocalEventListener
         XWikiDocument sourceDoc = (XWikiDocument) source;
         DocumentReference reference = sourceDoc.getDocumentReferenceWithLocale();
 
-        // We ignore all updates occurring during a wiki initialization.
-        if (isWikiReady(reference.getWikiReference())) {
+        // We ignore all updates occurring during a wiki initialization or during change request refactoring.
+        if (isWikiReady(reference.getWikiReference())
+            && !this.observationContext.isIn(new ChangeRequestRefactoringEvent())
+            && !this.observationContext.isIn(new DocumentRenamingEvent())) {
             try {
                 List<ChangeRequest> changeRequests = this.storageManager.get().findChangeRequestTargeting(reference);
                 for (ChangeRequest changeRequest : changeRequests) {

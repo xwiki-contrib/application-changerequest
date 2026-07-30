@@ -99,21 +99,22 @@ class DelegateApproversIT
 
         String serializedReference = testReference.getLocalDocumentReference().toString();
         setup.loginAsSuperAdmin();
-        setup.createUser(EDITOR, EDITOR, null);
-        setup.createUser(FOO_USER, FOO_USER, null);
-        setup.createUser(BAR_USER, BAR_USER, null);
-        setup.createUser(BUZ_USER, BUZ_USER, null);
-
+        setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
+            "ChangeRequest.Code.ConfigurationClass", 0,
+            "minimumApprovers", 0);
         setup.addClassProperty("XWiki", "XWikiUsers", "manager", "String");
-        // We also force the approvers to use WYSIWYG editor, to avoid any problem to display the review modal.
-        // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
-        setup.updateObject("XWiki", BAR_USER, "XWiki.XWikiUsers", 0,
-            "manager", "XWiki." + BUZ_USER,
-            "editor", "Wysiwyg");
-        setup.updateObject("XWiki", FOO_USER, "XWiki.XWikiUsers", 0,
-            "manager", "XWiki." + BAR_USER,
-            "editor", "Wysiwyg");
-        setup.updateObject("XWiki", BUZ_USER, "XWiki.XWikiUsers", 0,
+
+        setup.createUser(EDITOR, EDITOR, null, "usertype", "Advanced");
+        setup.createUser(FOO_USER, FOO_USER, null,
+            "usertype", "Advanced",
+            "editor", "Wysiwyg",
+            "manager", "XWiki." + BAR_USER);
+        setup.createUser(BAR_USER, BAR_USER, null,
+            "usertype", "Advanced",
+            "editor", "Wysiwyg",
+            "manager", "XWiki." + BUZ_USER);
+        setup.createUser(BUZ_USER, BUZ_USER, null,
+            "usertype", "Advanced",
             "editor", "Wysiwyg");
 
         setup.createPage(testReference, "Some content");

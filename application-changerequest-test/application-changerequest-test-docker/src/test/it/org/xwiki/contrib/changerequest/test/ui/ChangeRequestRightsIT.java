@@ -43,6 +43,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @UITest
 class ChangeRequestRightsIT
 {
+    private static final String TEST_USER_PREFIX = "ChangeRequestRightsIT";
+
+    private static final String CR_USER = TEST_USER_PREFIX + "CRUser";
+    private static final String EDITOR_USER = TEST_USER_PREFIX + "EditorUser";
+    
     @BeforeAll
     void setup(TestUtils testUtils)
     {
@@ -67,16 +72,16 @@ class ChangeRequestRightsIT
         // Edit right: denied for CRUser
         // Create CR right: not set (allowed by default)
         // Approve CR right: not set (denied by default)
-        testUtils.createUser("CRUser", "CRUser", null);
-        testUtils.setGlobalRights("", "CRUser", "edit", false);
+        testUtils.createUser(CR_USER, CR_USER, null, "usertype", "Advanced");
+        testUtils.setGlobalRights("", CR_USER, "edit", false);
 
         DocumentReference noCRPage = new DocumentReference("xwiki", "NoCRInPage", "WebHome");
 
         // Create a page and deny change request right in that space
         testUtils.createPage(noCRPage, "There won't be any CR done for pages in there.", "");
-        testUtils.setRights(noCRPage, "", "CRUser", "changerequest", false);
+        testUtils.setRights(noCRPage, "", CR_USER, "changerequest", false);
 
-        testUtils.login("CRUser", "CRUser");
+        testUtils.login(CR_USER, CR_USER);
 
         // go to a standard page: editing with CR should be enabled
         testUtils.gotoPage("Some", "Page");
@@ -97,14 +102,14 @@ class ChangeRequestRightsIT
         // Edit rights: allowed at wiki level
         // Create CR Rights: denied also for the NoCRInPage page
         testUtils.loginAsSuperAdmin();
-        testUtils.createUser("EditorUser", "EditorUser", null);
-        testUtils.setGlobalRights("", "EditorUser", "edit", true);
-        testUtils.setRights(noCRPage, "", "EditorUser", "changerequest", false);
+        testUtils.createUser(EDITOR_USER, EDITOR_USER, null, "usertype", "Advanced");
+        testUtils.setGlobalRights("", EDITOR_USER, "edit", true);
+        testUtils.setRights(noCRPage, "", EDITOR_USER, "changerequest", false);
 
         // remove lock on the page
         testUtils.gotoPage(noCRPage);
 
-        testUtils.login("EditorUser", "EditorUser");
+        testUtils.login(EDITOR_USER, EDITOR_USER);
         testUtils.gotoPage("Some", "Page");
         extendedViewPage = new ExtendedViewPage();
         assertFalse(extendedViewPage.hasChangeRequestEditButton());

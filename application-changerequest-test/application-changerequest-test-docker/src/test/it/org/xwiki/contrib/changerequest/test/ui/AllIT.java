@@ -103,4 +103,10 @@ public class AllIT
     class NestedChangeRequestCancelSaveIT extends ChangeRequestCancelSaveIT
     {
     }
+
+    @Nested
+    @DisplayName("Test refactoring of pages")
+    class NestedRefactoringChangeRequestIT extends RefactoringChangeRequestIT
+    {
+    }
 }

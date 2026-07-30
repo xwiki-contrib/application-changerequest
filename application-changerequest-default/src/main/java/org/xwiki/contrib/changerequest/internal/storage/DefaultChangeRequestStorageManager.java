@@ -784,9 +784,6 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     {
         DocumentReference normalizedSource = FileChange.normalizeTargetEntity(source);
         DocumentReference normalizedTarget = FileChange.normalizeTargetEntity(target);
-        if (!changeRequest.getStatus().isOpen()) {
-            throw new ChangeRequestException("Cannot refactor a closed change request.");
-        }
         if (!changeRequest.getModifiedDocuments().contains(normalizedSource)) {
             throw new ChangeRequestException(String.format("Cannot find [%s] in change request [%s]", normalizedSource,
                 changeRequest.getId()));
@@ -795,7 +792,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         this.observationManager.notify(new ChangeRequestUpdatingFileChangeEvent(), changeRequest.getId(),
             changeRequest);
         ChangeRequest clone = changeRequest.cloneWithoutFileChanges();
-        clone.setId(changeRequest.getId());
+        clone.setId(changeRequest.getId())
+            .setReviews(changeRequest.getReviews())
+            .setCreationDate(changeRequest.getCreationDate());
 
         for (Map.Entry<DocumentReference, Deque<FileChange>> fileChangeEntry : changeRequest.getFileChanges()
             .entrySet()) {

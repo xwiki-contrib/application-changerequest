@@ -17,38 +17,26 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.changerequest;
+package org.xwiki.contrib.changerequest.events;
+
+import org.xwiki.observation.event.BeginEvent;
 
 /**
- * Explain why a review has been invalidated.
+ * This event is triggered whenever a change request is about to be refactored.
+ *
+ * The event also send the following parameters:
+ * <ul>
+ *      <li>source: the change request identifier</li>
+ * </ul>
  *
  * @version $Id$
- * @since 1.19
+ * @since 1.23
  */
-public enum ReviewInvalidationReason
+public class ChangeRequestRefactoringEvent implements BeginEvent
 {
-    /**
-     * To be used when a review is manually invalidated through the UI.
-     */
-    MANUAL,
-
-    /**
-     * To be used when a review is invalidated because a new one is added.
-     */
-    NEW_REVIEW,
-
-    /**
-     * To be used when a review is invalidated because new change occurs.
-     */
-    NEW_CHANGE,
-
-    /**
-     * To be used when a review is invalidated because the approvers are updated.
-     */
-    UPDATED_APPROVERS,
-
-    /**
-     * To be used when a review is invalidated because a CR is split.
-     */
-    SPLITTED_CR
+    @Override
+    public boolean matches(Object otherEvent)
+    {
+        return otherEvent instanceof ChangeRequestRefactoringEvent;
+    }
 }

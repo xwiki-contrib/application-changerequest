@@ -81,13 +81,14 @@ public class ExtendedViewPage extends ViewPage
      */
     public ExtendedEditPage clickStandardEdit(boolean isWysiwyg)
     {
-        super.edit();
         ExtendedEditPage extendedEditPage;
         if (isWysiwyg) {
+            super.editWYSIWYG();
             CKEditor editor = new CKEditor("content");
             editor.waitToLoad();
             extendedEditPage = new ExtendedEditPage<>(editor);
         } else {
+            super.editWiki();
             WikiEditPage wikiEditPage = new WikiEditPage();
             extendedEditPage = new ExtendedEditPage<>(wikiEditPage);
             wikiEditPage.waitUntilPageIsReady();

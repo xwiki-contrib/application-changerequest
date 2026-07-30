@@ -145,7 +145,7 @@ class SplitChangeRequestIT
         changeRequestPage = saveModal.clickSave();
 
         FileChangesPane fileChangesPane = changeRequestPage.openFileChanges();
-        List<String> listOfChangedFiles = fileChangesPane.getListOfChangedFiles();
+        List<String> listOfChangedFiles = fileChangesPane.getListOfChangedFilesTitles();
 
         assertEquals(List.of(fooBarPageRef.toString(), buzBazPageRef.toString()), listOfChangedFiles);
 
@@ -206,7 +206,7 @@ class SplitChangeRequestIT
 
         changeRequestPage = crRow.gotoChangeRequest();
         fileChangesPane = changeRequestPage.openFileChanges();
-        listOfChangedFiles = fileChangesPane.getListOfChangedFiles();
+        listOfChangedFiles = fileChangesPane.getListOfChangedFilesTitles();
         assertEquals(Collections.singletonList(fooBarPageRef.toString()), listOfChangedFiles);
 
         reviewsPane = changeRequestPage.openReviewsPane();
@@ -236,7 +236,7 @@ class SplitChangeRequestIT
 
         changeRequestPage = crRow.gotoChangeRequest();
         fileChangesPane = changeRequestPage.openFileChanges();
-        listOfChangedFiles = fileChangesPane.getListOfChangedFiles();
+        listOfChangedFiles = fileChangesPane.getListOfChangedFilesTitles();
         assertEquals(Collections.singletonList(buzBazPageRef.toString()), listOfChangedFiles);
 
         reviewsPane = changeRequestPage.openReviewsPane();

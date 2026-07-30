@@ -91,24 +91,18 @@ class ChangeRequestConflictsIT
     void beforeAll(TestUtils setup)
     {
         setup.loginAsSuperAdmin();
-        setup.createUser(CR_USER, CR_USER, null);
+        setup.createUser(CR_USER, CR_USER, null, "usertype");
         setup.setGlobalRights("", CR_USER, "edit", false);
         setup.setGlobalRights("", CR_USER, "delete", false);
 
-        setup.createUser(FOO, FOO, null);
-        setup.createUser(BAR, BAR, null);
-        setup.createUser(BUZ, BUZ, null);
+        setup.createUser(FOO, FOO, null, "usertype", "Advanced", "editor", "Wysiwyg");
+        setup.createUser(BAR, BAR, null, "usertype", "Advanced", "editor", "Wysiwyg");
+        setup.createUser(BUZ, BUZ, null, "usertype", "Advanced", "editor", "Wysiwyg");
 
-        setup.createUser(MERGE_USER, MERGE_USER, null);
+        setup.createUser(MERGE_USER, MERGE_USER, null, "usertype", "Advanced");
         setup.setGlobalRights("", MERGE_USER, "admin", true);
 
-        setup.createUser(CR_APPROVER, CR_APPROVER, null);
-        // We force the approver to use WYSIWYG editor, to avoid any problem to display the review modal.
-        // This should be removed once https://jira.xwiki.org/browse/XWIKI-19281 is fixed
-        setup.updateObject("XWiki", CR_APPROVER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
-        setup.updateObject("XWiki", FOO, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
-        setup.updateObject("XWiki", BAR, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
-        setup.updateObject("XWiki", BUZ, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
+        setup.createUser(CR_APPROVER, CR_APPROVER, null, "usertype", "Advanced", "editor", "Wysiwyg");
 
         setup.setGlobalRights("", CR_APPROVER, "edit", false);
         setup.setGlobalRights("", CR_APPROVER, "crapprove", true);

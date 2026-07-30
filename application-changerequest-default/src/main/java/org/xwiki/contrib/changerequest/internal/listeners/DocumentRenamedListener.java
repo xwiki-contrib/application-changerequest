@@ -30,12 +30,14 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
-import org.xwiki.contrib.changerequest.ChangeRequestManager;
-import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
+import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
+import org.xwiki.contrib.changerequest.events.ChangeRequestRefactoredEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestRefactoringEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.job.event.status.JobProgressManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.refactoring.event.DocumentRenamedEvent;
@@ -61,7 +63,7 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
     private ChangeRequestStorageManager storageManager;
 
     @Inject
-    private ChangeRequestManager changeRequestManager;
+    private ObservationManager observationManager;
 
     @Inject
     private ChangeRequestDiscussionService changeRequestDiscussionService;
@@ -99,7 +101,7 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
             changeRequests = this.storageManager.findChangeRequestTargeting(source);
             changeRequests =
                 changeRequests.stream()
-                    .filter(changeRequest -> changeRequest.getStatus().isOpen())
+                    .filter(changeRequest -> changeRequest.getStatus() != ChangeRequestStatus.MERGED)
                     .collect(Collectors.toList());
         } catch (ChangeRequestException e) {
             this.logger.error("Failed to find change requests using document [{}].", source, e);
@@ -108,11 +110,12 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
         for (ChangeRequest changeRequest : changeRequests) {
             this.progressManager.startStep(this);
             this.logger.info("Updating change request [{}].", changeRequest.getId());
+            this.observationManager.notify(new ChangeRequestRefactoringEvent(), changeRequest.getId());
             try {
                 this.storageManager.refactorTargetEntity(changeRequest, source, target, isDeep);
-                this.changeRequestManager.invalidateReviews(changeRequest, ReviewInvalidationReason.REFACTORING);
                 this.changeRequestDiscussionService.refactorDiscussionFileReference(changeRequest.getId(), source,
                     target, isDeep);
+                this.observationManager.notify(new ChangeRequestRefactoredEvent(), changeRequest.getId());
             } catch (ChangeRequestException crE) {
                 this.logger.error("Error while refactoring change request [{}] to move document [{}].",
                     changeRequest.getId(), source, crE);

@@ -32,11 +32,13 @@ import org.xwiki.contrib.changerequest.ChangeRequestManager;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ChangeRequestMergedEvent;
+import org.xwiki.contrib.changerequest.events.ChangeRequestRefactoringEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.internal.cache.DiffCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.MergeCacheManager;
 import org.xwiki.contrib.changerequest.internal.cache.ChangeRequestStorageCacheManager;
 import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
 import org.xwiki.observation.remote.RemoteObservationManagerContext;
 
@@ -78,6 +80,9 @@ public class FileChangeUpdatedListener extends AbstractEventListener
     private RemoteObservationManagerContext remoteObservationManagerContext;
 
     @Inject
+    private ObservationContext observationContext;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -109,7 +114,8 @@ public class FileChangeUpdatedListener extends AbstractEventListener
         }
         // This only needs to be perform for local events.
         if (event instanceof ChangeRequestUpdatedFileChangeEvent && changeRequest != null
-            && !this.remoteObservationManagerContext.isRemoteState()) {
+            && !this.remoteObservationManagerContext.isRemoteState()
+            && !this.observationContext.isIn(new ChangeRequestRefactoringEvent())) {
             // Be careful of the order: approvals needs to be invalidated before the status is computed back.
             this.invalidateApprovals(changeRequest);
             this.computeStatus(changeRequest);

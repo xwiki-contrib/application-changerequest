@@ -155,11 +155,22 @@ public class FileChangesPane extends BaseElement
     /**
      * @return the list of modified documents.
      */
-    public List<String> getListOfChangedFiles()
+    public List<String> getListOfChangedFilesTitles()
     {
         return getFileChangesListLiveData().getFileChanges()
             .stream()
             .map(FilechangesLiveDataElement.FilechangesRowElement::getTitle)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * @return the list of modified documents.
+     */
+    public List<String> getListOfChangedFilesReferences()
+    {
+        return getFileChangesListLiveData().getFileChanges()
+            .stream()
+            .map(FilechangesLiveDataElement.FilechangesRowElement::getReference)
             .collect(Collectors.toList());
     }
 }

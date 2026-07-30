@@ -364,6 +364,19 @@ public class ChangeRequest
     }
 
     /**
+     * Replace the list of reviews with the given list.
+     * @param reviews the reviews to set to the change request.
+     * @return the current instance.
+     * @since 1.23
+     */
+    public ChangeRequest setReviews(List<ChangeRequestReview> reviews)
+    {
+        this.reviews.clear();
+        this.reviews.addAll(reviews);
+        return this;
+    }
+
+    /**
      * Retrieve the latest review performed by the given author.
      *
      * @param reviewer the author who performs the review.
@@ -480,8 +493,8 @@ public class ChangeRequest
     }
 
     /**
-     * Allow to clone the current change request instance, without the file changes information, and with a new
-     * creation date.
+     * Allow to clone the current change request instance, without the file changes information, without reviews, and
+     * with a new creation date.
      *
      * @return a clone of the current instance, without the file changes information.
      * @since 0.7

@@ -97,10 +97,8 @@ public class StaleChangeRequestIT
     void setupUsers(TestUtils setup)
     {
         setup.loginAsSuperAdmin();
-        setup.createUser(CR_CREATOR, CR_CREATOR, null);
-        setup.createUser(CR_USER, CR_USER, null);
-
-        setup.updateObject("XWiki", CR_USER, "XWiki.XWikiUsers", 0, "editor", "Wysiwyg");
+        setup.createUser(CR_CREATOR, CR_CREATOR, null, "usertype", "Advanced");
+        setup.createUser(CR_USER, CR_USER, null, "editor", "Wysiwyg", "usertype", "Advanced");
 
         // Ensure to use right strategy
         setup.updateObject(Arrays.asList("ChangeRequest", "Code"), "Configuration",
