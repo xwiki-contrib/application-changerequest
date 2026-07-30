@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -558,5 +559,20 @@ class ChangeRequestTest
         assertEquals(Optional.of(review3), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference4));
         assertEquals(Optional.of(review6), changeRequest.getLatestReviewFromOrOnBehalfOf(userReference5));
         assertEquals(Optional.empty(), changeRequest.getLatestReviewFromOrOnBehalfOf(mock(UserReference.class)));
+    }
+
+    @Test
+    void setReviews()
+    {
+        ChangeRequest changeRequest = new ChangeRequest();
+        ChangeRequestReview review1 = mock(ChangeRequestReview.class);
+        ChangeRequestReview review2 = mock(ChangeRequestReview.class);
+        changeRequest.addReview(review1);
+
+        assertEquals(Collections.singletonList(review1), changeRequest.getReviews());
+
+        ChangeRequestReview review3 = mock(ChangeRequestReview.class);
+        assertSame(changeRequest, changeRequest.setReviews(Arrays.asList(review2, review3)));
+        assertEquals(Arrays.asList(review2, review3), changeRequest.getReviews());
     }
 }
