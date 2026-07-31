@@ -147,10 +147,18 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public ChangeRequestPage clickSave()
     {
-        getDriver().addPageNotYetReloadedMarker();
-        getDriver().findElement(By.id(SAVE_BUTTON_ID)).click();
-        getDriver().waitUntilPageIsReloaded();
-        return new ChangeRequestPage();
+        // Increase the timeout as creating or updating a change request can be slow on the server side (e.g.
+        // diff computation, notifications).
+        int originalTimeout = getDriver().getTimeout();
+        getDriver().setTimeout(30);
+        try {
+            getDriver().addPageNotYetReloadedMarker();
+            getDriver().findElement(By.id(SAVE_BUTTON_ID)).click();
+            getDriver().waitUntilPageIsReloaded();
+            return new ChangeRequestPage();
+        } finally {
+            getDriver().setTimeout(originalTimeout);
+        }
     }
 
     /**
