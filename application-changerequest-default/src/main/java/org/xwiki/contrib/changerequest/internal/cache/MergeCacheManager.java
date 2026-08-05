@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
 import org.xwiki.cache.CacheManager;
@@ -61,35 +60,9 @@ public class MergeCacheManager implements Initializable, Disposable
     @Inject
     private EntityReferenceSerializer<String> entityReferenceSerializer;
 
-    private Cache<Pair<DocumentReference, Boolean>> hasConflictCache;
     private Cache<ChangeRequestMergeDocumentResult> crMergeDocumentResultCache;
 
     private final Map<DocumentReference, Set<String>> cacheKeysMap = new ConcurrentHashMap<>();
-
-    private final class ConflictCacheEntryListener implements CacheEntryListener<Pair<DocumentReference, Boolean>>
-    {
-        @Override
-        public void cacheEntryAdded(CacheEntryEvent<Pair<DocumentReference, Boolean>> event)
-        {
-            DocumentReference documentReference = event.getEntry().getValue().getLeft();
-            String key = event.getEntry().getKey();
-            MergeCacheManager.this.addCacheEntry(documentReference, key);
-        }
-
-        @Override
-        public void cacheEntryRemoved(CacheEntryEvent<Pair<DocumentReference, Boolean>> event)
-        {
-            DocumentReference documentReference = event.getEntry().getValue().getLeft();
-            String key = event.getEntry().getKey();
-            MergeCacheManager.this.removeCacheEntry(documentReference, key);
-        }
-
-        @Override
-        public void cacheEntryModified(CacheEntryEvent<Pair<DocumentReference, Boolean>> event)
-        {
-            // Nothing to do.
-        }
-    }
 
     private final class CRMergeDocumentResultCacheEntryListener
         implements CacheEntryListener<ChangeRequestMergeDocumentResult>
@@ -144,9 +117,6 @@ public class MergeCacheManager implements Initializable, Disposable
     public void initialize() throws InitializationException
     {
         try {
-            this.hasConflictCache =
-                this.cacheManager.createNewCache(new LRUCacheConfiguration("changerequest.hasConflictCache", 1000));
-            this.hasConflictCache.addCacheEntryListener(new ConflictCacheEntryListener());
             this.crMergeDocumentResultCache =
                 this.cacheManager.createNewCache(new LRUCacheConfiguration("changerequest.crMergeDocumentResult", 100));
             this.crMergeDocumentResultCache.addCacheEntryListener(new CRMergeDocumentResultCacheEntryListener());
@@ -158,41 +128,12 @@ public class MergeCacheManager implements Initializable, Disposable
     @Override
     public void dispose() throws ComponentLifecycleException
     {
-        this.hasConflictCache.dispose();
         this.crMergeDocumentResultCache.dispose();
     }
 
     private String getCacheKey(FileChange fileChange)
     {
         return String.format("%s-%s", fileChange.getId(), fileChange.getChangeRequest().getId());
-    }
-
-    /**
-     * Look in the cache if there is a conflict value for the given filechange.
-     *
-     * @param fileChange the filechange for which to check if there's a conflict.
-     * @return {@link Optional#empty()} if there's no value in cache, else an optional containing the boolean result.
-     */
-    public Optional<Boolean> hasConflict(FileChange fileChange)
-    {
-        Pair<DocumentReference, Boolean> pair =
-            this.hasConflictCache.get(this.getCacheKey(fileChange));
-        if (pair != null) {
-            return Optional.of(pair.getRight());
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Put in cache the conflict value of the given filechange.
-     *
-     * @param fileChange the filechange for which to put in cache the conflict value.
-     * @param status the conflict value of the given filechange.
-     */
-    public void setConflictStatus(FileChange fileChange, boolean status)
-    {
-        this.hasConflictCache.set(getCacheKey(fileChange), Pair.of(fileChange.getTargetEntity(), status));
     }
 
     /**
@@ -235,7 +176,6 @@ public class MergeCacheManager implements Initializable, Disposable
     {
         if (this.cacheKeysMap.containsKey(documentReference)) {
             for (String key : new HashSet<>(this.cacheKeysMap.get(documentReference))) {
-                this.hasConflictCache.remove(key);
                 this.crMergeDocumentResultCache.remove(key);
             }
         }
@@ -248,7 +188,6 @@ public class MergeCacheManager implements Initializable, Disposable
      */
     public void invalidate(FileChange fileChange)
     {
-        this.hasConflictCache.remove(getCacheKey(fileChange));
         this.crMergeDocumentResultCache.remove(getCacheKey(fileChange));
     }
 
@@ -258,6 +197,5 @@ public class MergeCacheManager implements Initializable, Disposable
     public void invalidateAll()
     {
         this.crMergeDocumentResultCache.removeAll();
-        this.hasConflictCache.removeAll();
     }
 }

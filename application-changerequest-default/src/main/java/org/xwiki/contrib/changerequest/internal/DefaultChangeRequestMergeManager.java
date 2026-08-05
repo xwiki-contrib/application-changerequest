@@ -119,31 +119,7 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
     @Override
     public boolean hasConflict(FileChange fileChange) throws ChangeRequestException
     {
-        boolean result;
-        Optional<Boolean> optional = this.mergeCacheManager.hasConflict(fileChange);
-        if (optional.isPresent()) {
-            result = optional.get();
-        } else {
-            switch (fileChange.getType()) {
-                case DELETION:
-                    result = deletionHasConflict(fileChange);
-                    break;
-
-                case CREATION:
-                    result = creationHasConflict(fileChange);
-                    break;
-
-                case EDITION:
-                    result = editionHasConflict(fileChange);
-                    break;
-
-                default:
-                case NO_CHANGE:
-                    result = false;
-            }
-            this.mergeCacheManager.setConflictStatus(fileChange, result);
-        }
-        return result;
+        return getMergeDocumentResult(fileChange).hasConflicts();
     }
 
     private boolean creationHasConflict(FileChange fileChange) throws ChangeRequestException
@@ -164,35 +140,6 @@ public class DefaultChangeRequestMergeManager implements ChangeRequestMergeManag
         //   - case 3: the page has been already deleted, the CR request for deletion with a previous version:
         //             the CR can be refreshed, and when doing so the CR shows no change for this file
         return false;
-    }
-
-    private boolean editionHasConflict(FileChange fileChange) throws ChangeRequestException
-    {
-        DocumentModelBridge modifiedDoc =
-            this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange);
-        DocumentModelBridge originalDoc =
-            this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange);
-
-        DocumentModelBridge previousDoc;
-        Optional<DocumentModelBridge> optionalPreviousDoc =
-            this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange);
-        if (!optionalPreviousDoc.isEmpty()) {
-            previousDoc = optionalPreviousDoc.get();
-            XWikiContext context = this.contextProvider.get();
-            MergeConfiguration mergeConfiguration = new MergeConfiguration();
-
-            // We need the reference of the user and the document in the config to retrieve
-            // the conflict decision in the MergeManager.
-            mergeConfiguration.setUserReference(context.getUserReference());
-            mergeConfiguration.setConcernedDocument(modifiedDoc.getDocumentReference());
-            mergeConfiguration.setProvidedVersionsModifiables(false);
-
-            MergeDocumentResult mergeDocumentResult =
-                mergeManager.mergeDocument(previousDoc, originalDoc, modifiedDoc, mergeConfiguration);
-            return mergeDocumentResult.hasConflicts();
-        } else {
-            return true;
-        }
     }
 
     @Override

@@ -26,7 +26,6 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestManager;
@@ -122,43 +121,17 @@ class DefaultChangeRequestMergeManagerTest
     void hasConflictWithEdition() throws ChangeRequestException
     {
         FileChange fileChange = mock(FileChange.class);
-        when(this.mergeCacheManager.hasConflict(fileChange)).thenReturn(Optional.of(false));
+        ChangeRequestMergeDocumentResult mergeDocumentResult = mock(ChangeRequestMergeDocumentResult.class);
+        when(this.mergeCacheManager.getChangeRequestMergeDocumentResult(fileChange))
+            .thenReturn(Optional.of(mergeDocumentResult));
+
+        when(mergeDocumentResult.hasConflicts()).thenReturn(false);
         assertFalse(this.crMergeManager.hasConflict(fileChange));
-        verifyNoInteractions(this.mergeManager);
-
-        when(this.mergeCacheManager.hasConflict(fileChange)).thenReturn(Optional.empty());
-        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
-        DocumentModelBridge modifiedDoc = mock(DocumentModelBridge.class);
-        DocumentModelBridge currentDoc = mock(DocumentModelBridge.class);
-        DocumentModelBridge previousDoc = mock(DocumentModelBridge.class);
-
-        when(this.fileChangeStorageManager.getModifiedDocumentFromFileChange(fileChange)).thenReturn(modifiedDoc);
-        when(this.fileChangeStorageManager.getCurrentDocumentFromFileChange(fileChange)).thenReturn(currentDoc);
-        when(this.fileChangeStorageManager.getPreviousDocumentFromFileChange(fileChange))
-            .thenReturn(Optional.of(previousDoc));
-
-        DocumentReference userDocReference = mock(DocumentReference.class);
-        when(context.getUserReference()).thenReturn(userDocReference);
-
-        DocumentReference modifiedDocReference = mock(DocumentReference.class);
-        when(modifiedDoc.getDocumentReference()).thenReturn(modifiedDocReference);
-
-        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
-        when(this.mergeManager
-            .mergeDocument(eq(previousDoc), eq(currentDoc), eq(modifiedDoc), any(MergeConfiguration.class)))
-            .thenAnswer(invocationOnMock -> {
-                MergeConfiguration mergeConfiguration = invocationOnMock.getArgument(3);
-                assertEquals(modifiedDocReference, mergeConfiguration.getConcernedDocument());
-                assertEquals(userDocReference, mergeConfiguration.getUserReference());
-                assertFalse(mergeConfiguration.isProvidedVersionsModifiables());
-                return mergeDocumentResult;
-            });
 
         when(mergeDocumentResult.hasConflicts()).thenReturn(true);
         assertTrue(this.crMergeManager.hasConflict(fileChange));
-        verify(this.mergeManager)
-            .mergeDocument(eq(previousDoc), eq(currentDoc), eq(modifiedDoc), any(MergeConfiguration.class));
-        verify(this.mergeCacheManager).setConflictStatus(fileChange, true);
+
+        verifyNoInteractions(this.mergeManager);
     }
 
     @Test
