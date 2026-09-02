@@ -25,6 +25,7 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
@@ -75,6 +76,9 @@ class DocumentRenamedListenerTest
 
     @MockComponent
     private ChangeRequestDiscussionService changeRequestDiscussionService;
+
+    @MockComponent
+    private ChangeRequestConfiguration configuration;
 
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.INFO);
@@ -137,6 +141,41 @@ class DocumentRenamedListenerTest
         assertEquals("Updating the change requests to refactor document [wiki:Space.Source] to "
             + "[wiki:Space.Target].", this.logCapture.getMessage(0));
         assertEquals("Updating change request [openCR].", this.logCapture.getMessage(1));
+    }
+
+    @Test
+    void processLocalEventRefactorsMergedChangeRequestsWhenEnabled() throws ChangeRequestException
+    {
+        when(this.configuration.isMergedChangeRequestRefactoringEnabled()).thenReturn(true);
+
+        MoveRequest moveRequest = mock(MoveRequest.class);
+        when(moveRequest.isUpdateLinks()).thenReturn(true);
+        when(moveRequest.isDeep()).thenReturn(true);
+
+        DocumentReference source = new DocumentReference("wiki", "Space", "Source");
+        DocumentReference target = new DocumentReference("wiki", "Space", "Target");
+        DocumentRenamedEvent event = new DocumentRenamedEvent(source, target);
+
+        ChangeRequest mergedChangeRequest = mock(ChangeRequest.class);
+        when(mergedChangeRequest.getStatus()).thenReturn(ChangeRequestStatus.MERGED);
+        when(mergedChangeRequest.getId()).thenReturn("mergedCR");
+
+        when(this.storageManager.findChangeRequestTargeting(source)).thenReturn(Collections.singletonList(
+            mergedChangeRequest));
+
+        this.listener.processLocalEvent(event, null, moveRequest);
+
+        verify(this.storageManager).refactorTargetEntity(mergedChangeRequest, source, target, true);
+        verify(this.changeRequestDiscussionService)
+            .refactorDiscussionFileReference("mergedCR", source, target, true);
+        verify(this.observationManager).notify(any(ChangeRequestRefactoringEvent.class), eq("mergedCR"));
+        verify(this.observationManager).notify(any(ChangeRequestRefactoredEvent.class), eq("mergedCR"));
+
+        verify(this.progressManager).pushLevelProgress(1, this.listener);
+
+        assertEquals("Updating the change requests to refactor document [wiki:Space.Source] to "
+            + "[wiki:Space.Target].", this.logCapture.getMessage(0));
+        assertEquals("Updating change request [mergedCR].", this.logCapture.getMessage(1));
     }
 
     @Test

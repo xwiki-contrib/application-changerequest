@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.discussions.ChangeRequestDiscussionService;
@@ -69,6 +70,9 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
     private ChangeRequestDiscussionService changeRequestDiscussionService;
 
     @Inject
+    private ChangeRequestConfiguration configuration;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -99,10 +103,12 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
 
         try {
             changeRequests = this.storageManager.findChangeRequestTargeting(source);
-            changeRequests =
-                changeRequests.stream()
-                    .filter(changeRequest -> changeRequest.getStatus() != ChangeRequestStatus.MERGED)
-                    .collect(Collectors.toList());
+            if (!this.configuration.isMergedChangeRequestRefactoringEnabled()) {
+                changeRequests =
+                    changeRequests.stream()
+                        .filter(changeRequest -> changeRequest.getStatus() != ChangeRequestStatus.MERGED)
+                        .collect(Collectors.toList());
+            }
         } catch (ChangeRequestException e) {
             this.logger.error("Failed to find change requests using document [{}].", source, e);
         }

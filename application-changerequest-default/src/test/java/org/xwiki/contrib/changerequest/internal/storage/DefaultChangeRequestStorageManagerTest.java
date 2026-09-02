@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -85,6 +86,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -233,6 +235,57 @@ class DefaultChangeRequestStorageManagerTest
         verify(this.wiki).saveDocument(document, "Creation of change request", this.context);
         verify(this.changeRequestStorageCacheManager).invalidate("id42");
         verify(document).clone();
+    }
+
+    @Test
+    void refactorTargetEntityPreservesStatusOfMergedChangeRequest() throws Exception
+    {
+        DocumentReference source = new DocumentReference("wiki", "Space", "Source", Locale.ROOT);
+        DocumentReference target = new DocumentReference("wiki", "Space", "Target", Locale.ROOT);
+
+        ChangeRequest changeRequest = new ChangeRequest()
+            .setId("mergedCR")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(12));
+
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getTargetEntity()).thenReturn(source);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        FileChange fileChangeClone = mock(FileChange.class);
+        when(fileChange.clone()).thenReturn(fileChangeClone);
+        when(fileChangeClone.getTargetEntity()).thenReturn(target);
+        changeRequest.addFileChange(fileChange);
+
+        FileChange newFileChangeVersion = mock(FileChange.class);
+        when(newFileChangeVersion.getTargetEntity()).thenReturn(target);
+        when(this.fileChangeStorageManager.refactorFileChangeEntity(fileChange, target))
+            .thenReturn(newFileChangeVersion);
+
+        DocumentReference crDocumentReference = mock(DocumentReference.class);
+        when(this.changeRequestDocumentReferenceResolver.resolve(any(ChangeRequest.class)))
+            .thenReturn(crDocumentReference);
+        XWikiDocument document = mock(XWikiDocument.class);
+        when(document.clone()).thenReturn(document);
+        when(this.wiki.getDocument(crDocumentReference, this.context)).thenReturn(document);
+        when(document.isNew()).thenReturn(false);
+        DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
+        when(document.getAuthors()).thenReturn(documentAuthors);
+        DocumentReference userDocRef = mock(DocumentReference.class);
+        when(this.context.getUserReference()).thenReturn(userDocRef);
+        UserReference userReference = mock(UserReference.class);
+        when(this.userReferenceResolver.resolve(userDocRef)).thenReturn(userReference);
+        BaseObject xobject = mock(BaseObject.class);
+        when(document.getXObject(CHANGE_REQUEST_XCLASS, 0, true, this.context)).thenReturn(xobject);
+        when(document.isMetaDataDirty()).thenReturn(true);
+
+        this.storageManager.refactorTargetEntity(changeRequest, source, target, false);
+
+        // The status of a merged change request must remain "merged" even though its file changes are rewritten
+        // to point to the new document reference.
+        verify(xobject).set("status", "merged", this.context);
+        verify(xobject, never()).set(eq("status"), eq("draft"), any());
+        verify(xobject, never()).set(eq("status"), eq("ready_for_review"), any());
+        verify(this.wiki).saveDocument(eq(document), any(String.class), eq(this.context));
     }
 
     @Test

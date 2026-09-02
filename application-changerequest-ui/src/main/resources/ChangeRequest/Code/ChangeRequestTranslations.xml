@@ -169,6 +169,8 @@ ChangeRequest.Code.ConfigurationClass_renderedDiffComponent=Security policy to u
 ChangeRequest.Code.ConfigurationClass_renderedDiffComponent.hint=The default policy is the safest but it prevents all scripts from being rendered, even if the scripts are part of the underlying document sheets. This posture can be relaxed by selecting one of the other approaches.
 ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers=Only accept approvers that have the approval right
 ChangeRequest.Code.ConfigurationClass_acceptOnlyAllowedApprovers.hint=When checked, users who are proposed as approvers are systematically validated to ensure they have approval right.
+ChangeRequest.Code.ConfigurationClass_refactorMergedChangeRequests=Refactor references in merged Change Requests
+ChangeRequest.Code.ConfigurationClass_refactorMergedChangeRequests.hint=When checked, renaming or moving a page will also update the reference of that page in Change Requests that have already been merged. Only the reference is updated: the content of the merged Change Request is never modified.
 
 changerequest.diffRender.name.default=Default policy
 changerequest.diffRender.description.default=Safest policy for the rendered diff: it prevents any script from being executed.
