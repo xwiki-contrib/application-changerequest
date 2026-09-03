@@ -74,6 +74,8 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
 {
     private static final String TDOC = "tdoc";
 
+    private static final String EDIT = "edit";
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -126,7 +128,10 @@ public class EditChangeRequestResourceHandler extends AbstractResourceReferenceH
             // We pretend to be in edit action to avoid getting redirection in templates that checks the action
             // we need to call that only after the documents are prepared though to avoid getting blocked by the
             // security checks.
-            context.setAction("edit");
+            context.setAction(EDIT);
+            // Make sure object property fields are displayed in edit mode.
+            // See XWikiDocument#display(String, BaseObject, XWikiContext)
+            context.put("display", EDIT);
             String template = Utils.getPage(context.getRequest(), "changerequest/editcr");
             // We are directly relying on Utils#parseTemplate because we want the plugin manager to properly
             // handle the javascript placeholders and it avoids duplicating code.
