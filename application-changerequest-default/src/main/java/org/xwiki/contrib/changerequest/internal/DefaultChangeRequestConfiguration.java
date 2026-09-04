@@ -232,4 +232,10 @@ public class DefaultChangeRequestConfiguration implements ChangeRequestConfigura
     {
         return this.configurationSource.getProperty("acceptOnlyAllowedApprovers", false);
     }
+
+    @Override
+    public boolean isMergedChangeRequestRefactoringEnabled()
+    {
+        return this.configurationSource.getProperty("refactorMergedChangeRequests", false);
+    }
 }

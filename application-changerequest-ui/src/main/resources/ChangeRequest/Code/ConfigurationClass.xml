@@ -270,6 +270,21 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
     </preventAuthorsToReview>
+    <refactorMergedChangeRequests>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>refactorMergedChangeRequests</name>
+      <number>17</number>
+      <prettyName>refactorMergedChangeRequests</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </refactorMergedChangeRequests>
     <renderedDiffComponent>
       <customDisplay>{{velocity}}
 #if ($type == 'edit')
