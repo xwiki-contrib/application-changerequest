@@ -64,7 +64,7 @@
     &lt;/div&gt;
   #end
 #end
-#macro (displayMessage $message $changeRequest)
+#macro (displayMessage $message $changeRequest $canComment)
 #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.ChangeRequestMacros'))
 #set ($messageReference = $escapetool.xml($services.discussions.serialize($message.reference)))
 &lt;div class="message" data-reference="$messageReference" data-xwiki-lightbox="false"&gt;
@@ -77,7 +77,7 @@
           $services.icon.renderHTML('clock') $services.localization.render('changerequest.sheet.message.outdated')
         &lt;/span&gt;
       &lt;/span&gt;
-      #if ($services.changerequest.authorization.isAuthorizedToComment($changeRequest))
+      #if ($canComment)
       &lt;span class="reply"&gt;
         &lt;button class="btn btn-xs btn-primary reply-button" type="button" title="$escapetool.xml($services.localization.render('changerequest.sheet.message.reply.button.title'))"&gt;
           $services.icon.renderHTML('comments') $services.localization.render('changerequest.sheet.message.reply.button')

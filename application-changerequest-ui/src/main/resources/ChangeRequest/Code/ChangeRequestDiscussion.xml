@@ -101,7 +101,8 @@
     #if ($diffBlockMetadata)
       #displayDiffBlockMetadata($diffBlockMetadata)
     #end
-    #displayMessage($message $changeRequest)
+    #set ($hasCommentRight = $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
+    #displayMessage($message $changeRequest $hasCommentRight)
     &lt;/div&gt;
     {{/html}}
   #end

@@ -74,8 +74,10 @@
 #set ($showhistory = false)
 ## We don't want to see the tab for change requests in change requests
 #set ($showChangeRequestTab = false)
+## Computed once: it is used for the JSX config, for the comment button and for every displayed message.
+#set ($hasCommentRight = $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
 #set ($changeRequestSheetJSXConfig = {
-  'hasCommentRight': $services.changerequest.authorization.isAuthorizedToComment($changeRequest),
+  'hasCommentRight': $hasCommentRight,
   'hasValidReviews': $services.changerequest.review.hasValidReviews($changeRequest),
   'confirmRefreshTranslation': $services.localization.render('changerequest.sheet.rebase.confirm'),
   'confirmSplitTranslation': $services.localization.render('changerequest.moreactions.splitcr.confirm')
@@ -125,7 +127,7 @@
       &lt;/div&gt;
       #end
       #foreach ($message in $messages)
-        #displayMessage($message $changeRequest)
+        #displayMessage($message $changeRequest $hasCommentRight)
       #end
     &lt;/div&gt;
   #end
@@ -170,7 +172,7 @@
         #displayAllEvents($changeRequest.id)
       &lt;/div&gt;&lt;!-- End timeline --&gt;
       &lt;div id="discussion-comments"&gt;
-        #if ($xcontext.action == 'view' &amp;&amp; $services.changerequest.authorization.isAuthorizedToComment($changeRequest))
+        #if ($xcontext.action == 'view' &amp;&amp; $hasCommentRight)
         &lt;div class="add-comment"&gt;
           &lt;button type="button" class="btn btn-default open-editor"&gt;
           $services.icon.renderHTML('comment') Comment
