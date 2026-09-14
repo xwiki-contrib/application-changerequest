@@ -271,6 +271,7 @@
 #set ($discard = $xwiki.jsx.use('ChangeRequest.Code.SaveChangeRequestModal'))
 &lt;/div&gt;
 #set ($conflictingFiles = {})
+#set ($renderedDiffEnabled = $services.changerequest.isRenderedDiffEnabled())
 &lt;h3&gt;$services.localization.render('changerequest.sheet.alldifftitle')&lt;/h3&gt;
 &lt;div class="panel-group" id="accordion"&gt;
 #set ($firstFileChange = true)
@@ -355,7 +356,6 @@
     &lt;/div&gt;
     &lt;div id="diff-$diffKey" class="panel-collapse collapse diff-panel #if($firstFileChange)in#end" role="tabpanel" aria-labelledby="heading-$diffKey"&gt;
       &lt;div class="panel-body diff-body" data-diffId="$escapetool.xml($diffKey)" data-documentReference="$escapetool.xml($services.model.serialize($ref))"&gt;
-        #set ($renderedDiffEnabled = $services.changerequest.isRenderedDiffEnabled())
         &lt;div class="changes-body" data-filechangeid="$escapetool.xml($filechangeId)"&gt;
           &lt;div class="changes-body-header"&gt;
             &lt;div class="row"&gt;
