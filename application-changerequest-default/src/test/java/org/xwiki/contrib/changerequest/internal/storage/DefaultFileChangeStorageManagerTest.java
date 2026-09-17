@@ -23,7 +23,10 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -601,8 +604,18 @@ class DefaultFileChangeStorageManagerTest
     @Test
     void mergeCreation() throws XWikiException, ChangeRequestException
     {
+        DocumentReference targetEntity = new DocumentReference("xwiki", "Space", "NewDocument");
+        UserReference creatorUser = mock(UserReference.class, "creator");
+        UserReference lastAuthorUser = mock(UserReference.class, "lastAuthor");
+
+        FileChange creationFileChange = mock(FileChange.class, "creationFileChange");
+        when(creationFileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(creationFileChange.getAuthor()).thenReturn(creatorUser);
+
         FileChange fileChange = mock(FileChange.class);
         when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+        when(fileChange.getAuthor()).thenReturn(lastAuthorUser);
         UserReference mergerUser = mock(UserReference.class, "merger");
         when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(mergerUser);
 
@@ -619,18 +632,60 @@ class DefaultFileChangeStorageManagerTest
         when(fileChange.getChangeRequest()).thenReturn(changeRequest);
         when(changeRequest.getId()).thenReturn(crID);
         when(changeRequest.getTitle()).thenReturn(crTitle);
+        Deque<FileChange> fileChanges = new LinkedList<>(Arrays.asList(creationFileChange, fileChange));
+        when(changeRequest.getFileChanges()).thenReturn(Collections.singletonMap(targetEntity, fileChanges));
         when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment", crTitle, crID))
             .thenReturn(SAVE_MESSAGE);
 
         this.fileChangeStorageManager.merge(fileChange);
         verify(targetDoc).clone();
         verify(targetDoc).setRCSVersion(null);
-        verify(authors).setCreator(mergerUser);
+        // The creator is the author of the first creation filechange, not the user performing the merge: see
+        // CRAPP-437: The creator of a page created through a change request is the user who published it, not the
+        // user who created it.
+        verify(authors).setCreator(creatorUser);
         verify(authors).setContentAuthor(mergerUser);
         verify(authors).setEffectiveMetadataAuthor(mergerUser);
         verify(targetDoc).setContentUpdateDate(any());
         verify(targetDoc).setDate(any());
         verify(targetDoc).setCreationDate(any());
+        verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
+    }
+
+    @Test
+    void mergeCreationWithoutKnownCreationFileChange() throws XWikiException, ChangeRequestException
+    {
+        DocumentReference targetEntity = new DocumentReference("xwiki", "Space", "NewDocument");
+        UserReference authorUser = mock(UserReference.class, "author");
+
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.CREATION);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+        when(fileChange.getAuthor()).thenReturn(authorUser);
+        UserReference mergerUser = mock(UserReference.class, "merger");
+        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(mergerUser);
+
+        XWikiDocument targetDoc = mock(XWikiDocument.class);
+        when(fileChange.getModifiedDocument()).thenReturn(targetDoc);
+        when(targetDoc.clone()).thenReturn(targetDoc);
+
+        DocumentAuthors authors = mock(DocumentAuthors.class);
+        when(targetDoc.getAuthors()).thenReturn(authors);
+
+        String crTitle = "Some title";
+        String crID = "someId";
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+        when(changeRequest.getId()).thenReturn(crID);
+        when(changeRequest.getTitle()).thenReturn(crTitle);
+        when(changeRequest.getFileChanges()).thenReturn(Collections.emptyMap());
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.comment", crTitle, crID))
+            .thenReturn(SAVE_MESSAGE);
+
+        this.fileChangeStorageManager.merge(fileChange);
+        verify(authors).setCreator(authorUser);
+        verify(authors).setContentAuthor(mergerUser);
+        verify(authors).setEffectiveMetadataAuthor(mergerUser);
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
     }
 
