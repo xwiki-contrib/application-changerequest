@@ -579,11 +579,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWikiDocument modifiedDoc = ((XWikiDocument) fileChange.getModifiedDocument()).clone();
 
         // The user performing the merge only publishes the document: the one who actually created it is the author
-        // of the filechange that created it in the change request. So the creator is that author, while the other
-        // authors, except the original metadata author, are the merge user.
+        // of the filechange that created it in the change request, and the one who actually wrote the changes being
+        // published is the author of the merged filechange. So the creator and the original metadata author are
+        // those, while the effective metadata author and the content author are the merge user.
         DocumentAuthors authors = modifiedDoc.getAuthors();
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         authors.setCreator(getCreationAuthor(fileChange));
+        authors.setOriginalMetadataAuthor(fileChange.getAuthor());
         authors.setEffectiveMetadataAuthor(currentUser);
         authors.setContentAuthor(currentUser);
 
@@ -662,6 +664,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             }
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = ((XWikiDocument) mergeDocumentResult.getMergeResult()).clone();
+                // The user performing the merge only publishes the changes: the one who actually wrote them is the
+                // author of the merged filechange.
                 document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
                 wiki.saveDocument(document, getMergeSaveMessage(fileChange), fileChange.isMinorChange(), context);
             }

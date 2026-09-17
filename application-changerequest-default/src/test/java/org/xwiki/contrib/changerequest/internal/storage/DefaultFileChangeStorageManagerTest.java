@@ -640,10 +640,11 @@ class DefaultFileChangeStorageManagerTest
         this.fileChangeStorageManager.merge(fileChange);
         verify(targetDoc).clone();
         verify(targetDoc).setRCSVersion(null);
-        // The creator is the author of the first creation filechange, not the user performing the merge: see
-        // CRAPP-437: The creator of a page created through a change request is the user who published it, not the
-        // user who created it.
+        // The creator is the author of the first creation filechange and the original metadata author is the author
+        // of the merged filechange, neither of them being the user performing the merge: see CRAPP-437: The creator
+        // of a page created through a change request is the user who published it, not the user who created it.
         verify(authors).setCreator(creatorUser);
+        verify(authors).setOriginalMetadataAuthor(lastAuthorUser);
         verify(authors).setContentAuthor(mergerUser);
         verify(authors).setEffectiveMetadataAuthor(mergerUser);
         verify(targetDoc).setContentUpdateDate(any());
@@ -684,6 +685,7 @@ class DefaultFileChangeStorageManagerTest
 
         this.fileChangeStorageManager.merge(fileChange);
         verify(authors).setCreator(authorUser);
+        verify(authors).setOriginalMetadataAuthor(authorUser);
         verify(authors).setContentAuthor(mergerUser);
         verify(authors).setEffectiveMetadataAuthor(mergerUser);
         verify(this.xWiki).saveDocument(targetDoc, SAVE_MESSAGE, this.context);
