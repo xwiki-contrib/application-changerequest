@@ -97,7 +97,7 @@
           <artifactId>sonar-maven-plugin</artifactId>
           <!-- Use a scanner version supported by the SonarQube server, more recent than the one inherited. This one
                also takes care of running the analysis with the right Java version. -->
-          <version>5.7.0.6970</version>
+          <version>5.8.0.7211</version>
         </plugin>
       </plugins>
     </pluginManagement>
