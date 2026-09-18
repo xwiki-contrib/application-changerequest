@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -577,10 +578,14 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         XWiki wiki = context.getWiki();
         XWikiDocument modifiedDoc = ((XWikiDocument) fileChange.getModifiedDocument()).clone();
 
-        // the different authors, except the original metadata author, should be the merge user.
+        // The user performing the merge only publishes the document: the one who actually created it is the author
+        // of the filechange that created it in the change request, and the one who actually wrote the changes being
+        // published is the author of the merged filechange. So the creator and the original metadata author are
+        // those, while the effective metadata author and the content author are the merge user.
         DocumentAuthors authors = modifiedDoc.getAuthors();
         UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
-        authors.setCreator(currentUser);
+        authors.setCreator(getCreationAuthor(fileChange));
+        authors.setOriginalMetadataAuthor(fileChange.getAuthor());
         authors.setEffectiveMetadataAuthor(currentUser);
         authors.setContentAuthor(currentUser);
 
@@ -597,6 +602,31 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             throw new ChangeRequestException(
                 String.format("Error while saving the new document [%s]", fileChange), e);
         }
+    }
+
+    /**
+     * Retrieve the user who actually created the document handled by the given creation filechange: it's the author
+     * of the first creation filechange performed on that document in the change request, since all changes performed
+     * on a document that does not exist yet are creation filechanges.
+     *
+     * @param fileChange the creation filechange being merged
+     * @return the author of the first creation filechange of the same document, or the author of the given filechange
+     *         if it cannot be found
+     */
+    private UserReference getCreationAuthor(FileChange fileChange)
+    {
+        UserReference result = fileChange.getAuthor();
+        Deque<FileChange> fileChanges =
+            fileChange.getChangeRequest().getFileChanges().get(fileChange.getTargetEntity());
+        if (fileChanges != null) {
+            for (FileChange currentFileChange : fileChanges) {
+                if (currentFileChange.getType() == FileChange.FileChangeType.CREATION) {
+                    result = currentFileChange.getAuthor();
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     private void mergeEdition(FileChange fileChange) throws ChangeRequestException
@@ -634,6 +664,8 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             }
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = ((XWikiDocument) mergeDocumentResult.getMergeResult()).clone();
+                // The user performing the merge only publishes the changes: the one who actually wrote them is the
+                // author of the merged filechange.
                 document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
                 wiki.saveDocument(document, getMergeSaveMessage(fileChange), fileChange.isMinorChange(), context);
             }
