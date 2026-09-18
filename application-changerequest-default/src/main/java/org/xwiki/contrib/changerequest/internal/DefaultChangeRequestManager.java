@@ -29,7 +29,6 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -107,9 +106,6 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
 
     @Inject
     private ContextualLocalizationManager localizationManager;
-
-    @Inject
-    private Logger logger;
 
     private XarExtensionScriptService xarExtensionScriptService;
 
@@ -216,12 +212,7 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
         // is served by a cache whose entry can be outdated, and a missing review there would silently skip the
         // invalidation below and let a superseded approval stay valid. The merging status computed at the end of this
         // method relies on the same list, so it benefits from the refresh too.
-        int knownReviewsCount = changeRequest.getReviews().size();
-        int storedReviewsCount = this.reviewStorageManager.load(changeRequest).size();
-        if (knownReviewsCount != storedReviewsCount) {
-            this.logger.warn("The change request [{}] held [{}] reviews while [{}] are stored: it has been loaded "
-                + "from an outdated cache entry.", changeRequest.getId(), knownReviewsCount, storedReviewsCount);
-        }
+        this.reviewStorageManager.load(changeRequest);
 
         Optional<ChangeRequestReview> optionalLatestReview;
         ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, reviewer);

@@ -32,7 +32,6 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
@@ -58,9 +57,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
-import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
-import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectComponentManager;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -95,9 +92,6 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class DefaultChangeRequestManagerTest
 {
-    @RegisterExtension
-    LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
-
     @InjectMockComponents
     private DefaultChangeRequestManager manager;
 
@@ -290,10 +284,6 @@ class DefaultChangeRequestManagerTest
         verify(this.reviewStorageManager).save(previousReview);
         verify(this.reviewStorageManager).save(review);
         assertEquals(Arrays.asList(review, previousReview), changeRequest.getReviews());
-
-        assertEquals(1, this.logCapture.size());
-        assertEquals("The change request [crId] held [0] reviews while [1] are stored: it has been loaded from an "
-            + "outdated cache entry.", this.logCapture.getMessage(0));
     }
 
     @Test
