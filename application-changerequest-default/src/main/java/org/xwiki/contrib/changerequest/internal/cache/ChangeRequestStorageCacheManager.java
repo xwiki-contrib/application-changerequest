@@ -145,6 +145,10 @@ public class ChangeRequestStorageCacheManager implements Initializable, Disposab
     {
         String id = changeRequest.getId();
         CacheEntry entry = this.changeRequestCache.get(id);
+        // Nothing is stored when the generation moved on, or when the entry is gone from an eviction or from
+        // invalidateAll: another save invalidated the change request while it was being loaded, so what has been read
+        // is already outdated. This is expected under concurrency and needs no fallback, since the change request
+        // stays usable for the request that loaded it, and dropping it only costs a reload on the next one.
         if (entry != null && entry.generation == generation) {
             this.changeRequestCache.set(id, new CacheEntry(generation, changeRequest));
         }
