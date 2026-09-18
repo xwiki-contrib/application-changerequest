@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.internal.storage;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -159,6 +160,10 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
         try {
             XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context);
             List<BaseObject> xObjects = changeRequestDoc.getXObjects(REVIEW_XCLASS);
+
+            // The reviews already held by the change request are dropped first: this method replaces them with what
+            // the storage contains, so that loading twice refreshes them instead of duplicating them.
+            changeRequest.setReviews(Collections.emptyList());
             for (BaseObject xObject : xObjects) {
                 // Some objects might be null after deletion.
                 if (xObject != null) {

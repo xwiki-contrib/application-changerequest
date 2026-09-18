@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedHashMap;
@@ -30,6 +32,7 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.changerequest.ApproversManager;
@@ -41,6 +44,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -54,7 +58,9 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.store.merge.MergeDocumentResult;
 import org.xwiki.store.merge.MergeManager;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectComponentManager;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -89,6 +95,9 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class DefaultChangeRequestManagerTest
 {
+    @RegisterExtension
+    LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+
     @InjectMockComponents
     private DefaultChangeRequestManager manager;
 
@@ -252,7 +261,39 @@ class DefaultChangeRequestManagerTest
         when(changeRequest.addReview(review)).thenReturn(changeRequest);
         assertEquals(review, this.manager.addReview(changeRequest, userReference, false));
         verify(this.reviewStorageManager).save(review);
+        verify(this.reviewStorageManager).load(changeRequest);
         verify(changeRequest).updateDate();
+    }
+
+    @Test
+    void addReviewInvalidatesPreviousReviewMissingFromTheChangeRequest() throws ChangeRequestException
+    {
+        UserReference reviewer = mock(UserReference.class);
+        ChangeRequest changeRequest = new ChangeRequest().setId("crId");
+
+        ChangeRequestReview previousReview = new ChangeRequestReview(changeRequest, true, reviewer);
+        previousReview.setSaved(true);
+
+        // The change request does not hold the review that the storage contains: this is what an outdated cache entry
+        // looks like. Loading the reviews is what brings it back, and it must then be invalidated.
+        doAnswer(invocationOnMock -> {
+            changeRequest.addReview(previousReview);
+            return Collections.singletonList(previousReview);
+        }).when(this.reviewStorageManager).load(changeRequest);
+        assertTrue(changeRequest.getReviews().isEmpty());
+
+        ChangeRequestReview review = this.manager.addReview(changeRequest, reviewer, true, null);
+
+        assertFalse(previousReview.isValid());
+        assertFalse(previousReview.isLastFromAuthor());
+        assertEquals(ReviewInvalidationReason.NEW_REVIEW, previousReview.getReviewInvalidationReason());
+        verify(this.reviewStorageManager).save(previousReview);
+        verify(this.reviewStorageManager).save(review);
+        assertEquals(Arrays.asList(review, previousReview), changeRequest.getReviews());
+
+        assertEquals(1, this.logCapture.size());
+        assertEquals("The change request [crId] held [0] reviews while [1] are stored: it has been loaded from an "
+            + "outdated cache entry.", this.logCapture.getMessage(0));
     }
 
     @Test
