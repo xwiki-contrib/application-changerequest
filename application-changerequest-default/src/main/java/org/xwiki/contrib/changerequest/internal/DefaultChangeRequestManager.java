@@ -208,6 +208,12 @@ public class DefaultChangeRequestManager implements ChangeRequestManager, Initia
     public ChangeRequestReview addReview(ChangeRequest changeRequest, UserReference reviewer, boolean approved,
         UserReference originalApprover) throws ChangeRequestException
     {
+        // The reviews are reloaded from the storage before looking for the previous one: the change request instance
+        // is served by a cache whose entry can be outdated, and a missing review there would silently skip the
+        // invalidation below and let a superseded approval stay valid. The merging status computed at the end of this
+        // method relies on the same list, so it benefits from the refresh too.
+        this.reviewStorageManager.load(changeRequest);
+
         Optional<ChangeRequestReview> optionalLatestReview;
         ChangeRequestReview review = new ChangeRequestReview(changeRequest, approved, reviewer);
         review.setNew(true);
