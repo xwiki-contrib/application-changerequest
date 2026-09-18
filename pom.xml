@@ -92,6 +92,13 @@
             </systemPropertyVariables>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <!-- Use a scanner version supported by the SonarQube server, more recent than the one inherited. This one
+               also takes care of running the analysis with the right Java version. -->
+          <version>5.7.0.6970</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -100,25 +107,6 @@
         <artifactId>revapi-maven-plugin</artifactId>
         <configuration>
           <analysisConfiguration combine.children="append">
-            <revapi.differences>
-              <justification>The diff manager was missing an important piece of information to properly
-                display diff.</justification>
-              <criticality>highlight</criticality>
-              <differences>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.returnTypeChanged</code>
-                  <old>method java.lang.String org.xwiki.contrib.changerequest.diff.ChangeRequestDiffManager::getHtmlDiff(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <new>method org.xwiki.contrib.changerequest.diff.HtmlDiffResult org.xwiki.contrib.changerequest.diff.ChangeRequestDiffManager::getHtmlDiff(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                </item>
-                <item>
-                  <ignore>true</ignore>
-                  <code>java.method.returnTypeChanged</code>
-                  <old>method java.lang.String org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::getHtmlDiff(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</old>
-                  <new>method org.xwiki.contrib.changerequest.diff.HtmlDiffResult org.xwiki.contrib.changerequest.script.ChangeRequestScriptService::getHtmlDiff(org.xwiki.contrib.changerequest.FileChange) throws org.xwiki.contrib.changerequest.ChangeRequestException</new>
-                </item>
-              </differences>
-            </revapi.differences>
           </analysisConfiguration>
         </configuration>
       </plugin>
