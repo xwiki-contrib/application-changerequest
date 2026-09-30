@@ -39,6 +39,8 @@ public class ChangeRequestSaveModal extends BaseModal
     private static final String SAVE_BUTTON_ID = "saveChangeRequest";
     private static final String APPROVERS_SELECTION_CONTAINER_ID = "approversSelection";
 
+    private static final String ACTIVE_DROPDOWN_SELECTOR = ".selectize-dropdown.active";
+
     /**
      * Default constructor.
      */
@@ -192,15 +194,49 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public SuggestInputElement getUsersApproverSelector()
     {
+        return new SuggestInputElement(getUsersApproverSelect());
+    }
+
+    private WebElement getUsersApproverSelect()
+    {
         WebElement approversSelectionContainer =
             getDriver().findElementWithoutWaiting(this.container, By.id(APPROVERS_SELECTION_CONTAINER_ID));
         for (WebElement input : getDriver().findElementsWithoutWaiting(approversSelectionContainer,
             By.tagName("select"))) {
             if (input.getAttribute("name").contains("user")) {
-                return new SuggestInputElement(input);
+                return input;
             }
         }
         throw new NoSuchElementException("Can't find input element for user approvers selection");
+    }
+
+    /**
+     * Add the given user to the users approvers and close the suggestions panel, so that it doesn't hide the other
+     * elements of the modal (e.g. the save button).
+     *
+     * @param userReference the serialized reference of the user to add (e.g. {@code XWiki.Foo})
+     */
+    public void addUserApprover(String userReference)
+    {
+        WebElement usersApproverSelect = getUsersApproverSelect();
+        SuggestInputElement usersApproverSelector = new SuggestInputElement(usersApproverSelect);
+        usersApproverSelector.sendKeys(userReference);
+        // The suggestions are fetched after a delay, and the panel might still display the previous suggestions
+        // meanwhile: wait for the suggestion of the typed user before selecting it.
+        getDriver().waitUntilElementIsVisible(By.cssSelector(
+            String.format("%s .xwiki-selectize-option[data-value='%s']", ACTIVE_DROPDOWN_SELECTOR, userReference)));
+        usersApproverSelector.selectByValue(userReference);
+        getDriver().waitUntilCondition(driver -> usersApproverSelector.getValues().contains(userReference));
+
+        // Remove the focus from the text input rather than pressing Escape: the widget opens the suggestions panel
+        // again whenever a suggestion request completes while it has the focus, and pressing Escape when the panel is
+        // already closed would close the modal.
+        WebElement textInput = getDriver().findElementWithoutWaiting(usersApproverSelect,
+            By.xpath("following-sibling::*[contains(@class, 'selectize-control')][1]"
+                + "//*[contains(@class, 'selectize-input')]/input"));
+        getDriver().executeScript("arguments[0].blur()", textInput);
+        getDriver().waitUntilCondition(
+            driver -> driver.findElements(By.cssSelector(ACTIVE_DROPDOWN_SELECTOR)).isEmpty());
     }
 
     private WebElement getErrorContainer()
