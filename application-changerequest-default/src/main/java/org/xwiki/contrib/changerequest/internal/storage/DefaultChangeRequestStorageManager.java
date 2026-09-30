@@ -323,6 +323,10 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         Optional<ChangeRequest> result = this.changeRequestStorageCacheManager.getChangeRequest(changeRequestId);
 
         if (result.isEmpty()) {
+            // The generation is read before anything else: an invalidation happening while the documents below are
+            // being read concerns data this instance has already loaded, and handing the generation back to the cache
+            // is what allows such an instance to be dropped instead of served to every later request.
+            long cacheGeneration = this.changeRequestStorageCacheManager.startLoading(changeRequestId);
             ChangeRequest changeRequest = new ChangeRequest();
             changeRequest.setId(changeRequestId);
             DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
@@ -357,7 +361,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
 
                     this.reviewStorageManager.load(changeRequest);
                     result = Optional.of(changeRequest);
-                    this.changeRequestStorageCacheManager.cacheChangeRequest(changeRequest);
+                    this.changeRequestStorageCacheManager.cacheChangeRequest(changeRequest, cacheGeneration);
                 }
             } catch (XWikiException e) {
                 throw new ChangeRequestException(

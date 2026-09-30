@@ -37,6 +37,14 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 
 /**
  * Dedicated cache for change request, to avoid having to reload them from xobjects all the time.
+ * <p>
+ * Loading a change request is not atomic: the data is read from the documents, the instance is built, and only then
+ * handed over to this cache. An invalidation occurring in between concerns data that the instance being built has
+ * already read, so storing it would serve that outdated state to every later request until the next invalidation.
+ * Each identifier therefore carries a generation, incremented by every invalidation: a loader reads it through
+ * {@link #startLoading(String)} before reading the documents and hands it back to
+ * {@link #cacheChangeRequest(ChangeRequest, long)}, which only stores the change request when the generation is
+ * unchanged.
  *
  * @version $Id$
  * @since 0.11
@@ -49,7 +57,25 @@ public class ChangeRequestStorageCacheManager implements Initializable, Disposab
     @Inject
     private CacheManager cacheManager;
 
-    private Cache<ChangeRequest> changeRequestCache;
+    private Cache<CacheEntry> changeRequestCache;
+
+    /**
+     * An entry of the cache: either a cached change request, or a tombstone left behind by an invalidation. Both
+     * carry the generation of their identifier, which is what allows an outdated load to be detected. A tombstone is
+     * kept instead of removing the entry so that a load started before an invalidation can see that it happened.
+     */
+    private static final class CacheEntry
+    {
+        private final long generation;
+
+        private final ChangeRequest changeRequest;
+
+        CacheEntry(long generation, ChangeRequest changeRequest)
+        {
+            this.generation = generation;
+            this.changeRequest = changeRequest;
+        }
+    }
 
     @Override
     public void initialize() throws InitializationException
@@ -76,22 +102,56 @@ public class ChangeRequestStorageCacheManager implements Initializable, Disposab
      */
     public Optional<ChangeRequest> getChangeRequest(String id)
     {
-        ChangeRequest changeRequest = this.changeRequestCache.get(id);
-        if (changeRequest == null) {
+        CacheEntry entry = this.changeRequestCache.get(id);
+        if (entry == null || entry.changeRequest == null) {
             return Optional.empty();
         } else {
-            return Optional.of(changeRequest);
+            return Optional.of(entry.changeRequest);
         }
     }
 
     /**
-     * Cache the given change request so that it's quickly loaded later.
+     * Declare that the change request with the given identifier is about to be loaded, and return the generation to
+     * hand back to {@link #cacheChangeRequest(ChangeRequest, long)} once it is loaded. This must be called before
+     * reading the data the change request is built from, otherwise an invalidation concurrent with that reading
+     * cannot be detected.
+     *
+     * @param id the identifier of the change request about to be loaded.
+     * @return the current generation of that identifier.
+     * @since 1.24
+     */
+    public synchronized long startLoading(String id)
+    {
+        CacheEntry entry = this.changeRequestCache.get(id);
+        if (entry == null) {
+            // The entry is created right away so that its later absence, be it from an eviction or from
+            // invalidateAll, is enough to tell that the generation cannot be trusted anymore.
+            entry = new CacheEntry(0, null);
+            this.changeRequestCache.set(id, entry);
+        }
+        return entry.generation;
+    }
+
+    /**
+     * Cache the given change request so that it's quickly loaded later, unless it has been invalidated since the
+     * given generation was obtained from {@link #startLoading(String)}, in which case it is dropped: it has been
+     * built from data that is already outdated.
      *
      * @param changeRequest the change request to be cached.
+     * @param generation the generation obtained from {@link #startLoading(String)} before loading it.
+     * @since 1.24
      */
-    public void cacheChangeRequest(ChangeRequest changeRequest)
+    public synchronized void cacheChangeRequest(ChangeRequest changeRequest, long generation)
     {
-        this.changeRequestCache.set(changeRequest.getId(), changeRequest);
+        String id = changeRequest.getId();
+        CacheEntry entry = this.changeRequestCache.get(id);
+        // Nothing is stored when the generation moved on, or when the entry is gone from an eviction or from
+        // invalidateAll: another save invalidated the change request while it was being loaded, so what has been read
+        // is already outdated. This is expected under concurrency and needs no fallback, since the change request
+        // stays usable for the request that loaded it, and dropping it only costs a reload on the next one.
+        if (entry != null && entry.generation == generation) {
+            this.changeRequestCache.set(id, new CacheEntry(generation, changeRequest));
+        }
     }
 
     /**
@@ -99,15 +159,17 @@ public class ChangeRequestStorageCacheManager implements Initializable, Disposab
      *
      * @param id the identifier of the change request to be cleared from the cache.
      */
-    public void invalidate(String id)
+    public synchronized void invalidate(String id)
     {
-        this.changeRequestCache.remove(id);
+        CacheEntry entry = this.changeRequestCache.get(id);
+        long generation = (entry == null) ? 1 : entry.generation + 1;
+        this.changeRequestCache.set(id, new CacheEntry(generation, null));
     }
 
     /**
      * Remove all entries from the cache.
      */
-    public void invalidateAll()
+    public synchronized void invalidateAll()
     {
         this.changeRequestCache.removeAll();
     }

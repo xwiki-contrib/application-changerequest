@@ -37,6 +37,7 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
@@ -85,6 +86,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -294,6 +296,7 @@ class DefaultChangeRequestStorageManagerTest
         String id = "myId";
         ChangeRequest changeRequest = new ChangeRequest();
         changeRequest.setId(id);
+        when(this.changeRequestStorageCacheManager.startLoading(id)).thenReturn(42L);
 
         DocumentReference documentReference = mock(DocumentReference.class);
 
@@ -359,6 +362,13 @@ class DefaultChangeRequestStorageManagerTest
             .setUpdateDate(new Date(85));
         assertEquals(Optional.of(changeRequest), this.storageManager.load(id));
         verify(this.changeRequestStorageCacheManager, times(3)).getChangeRequest(id);
+
+        // The generation must be obtained before the documents are read, and handed back untouched, otherwise an
+        // invalidation concurrent with the loading cannot be detected and an outdated change request gets cached.
+        InOrder inOrder = inOrder(this.changeRequestStorageCacheManager, this.wiki);
+        inOrder.verify(this.changeRequestStorageCacheManager).startLoading(id);
+        inOrder.verify(this.wiki).getDocument(documentReference, this.context);
+        verify(this.changeRequestStorageCacheManager).cacheChangeRequest(changeRequest, 42L);
     }
 
     @Test
