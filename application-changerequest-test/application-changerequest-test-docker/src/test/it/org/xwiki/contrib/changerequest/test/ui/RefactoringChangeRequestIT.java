@@ -298,8 +298,8 @@ public class RefactoringChangeRequestIT
      * request must also have its page reference refactored when that page is renamed, while its status and content
      * remain untouched. The merged change request also contains a page creation and a page deletion, none of which
      * should be impacted by the refactoring of the unrelated edited page. The published page is also further edited
-     * after the merge, to check that the file change diff of the merged and refactored change request correctly
-     * reports it as outdated, while still displaying the actual change performed by the change request itself.
+     * after the merge, to check that the file change diff of the merged and refactored change request still
+     * displays the actual change performed by the change request itself, and isn't flagged as outdated.
      */
     @Test
     void refactoringMergedChangeRequestWhenConfigurationEnabled(TestUtils testUtils, TestReference testReference)
@@ -317,6 +317,9 @@ public class RefactoringChangeRequestIT
             DocumentReference pageToDelete = new DocumentReference("MergedRefactoringPageToDelete",
                 testReference.getLastSpaceReference());
             testUtils.createPage(pageToDelete, "Page to be deleted.");
+            // Merging a deletion requires the delete right on the deleted page, which the user doesn't have on a
+            // page created by someone else.
+            testUtils.setRights(pageToDelete, "", CR_USER, "delete", true);
 
             // Create a change request editing the page, approve it and merge it.
             testUtils.login(CR_USER, CR_USER);
@@ -343,10 +346,11 @@ public class RefactoringChangeRequestIT
             DocumentReference createdPage = new DocumentReference("WebHome",
                 new SpaceReference("MergedRefactoringPageCreated", testReference.getLastSpaceReference()));
 
-            // Add a page deletion request to the same change request.
+            // Add a page deletion request to the same change request. Since the user has the delete right, the
+            // "request for deletion" menu entry is not displayed: the request is made from the standard delete page.
             testUtils.gotoPage(pageToDelete);
             extendedViewPage = new ExtendedViewPage();
-            ExtendedDeleteConfirmationPage extendedDeleteConfirmationPage = extendedViewPage.clickRequestForDeletion();
+            ExtendedDeleteConfirmationPage extendedDeleteConfirmationPage = extendedViewPage.clickStandardDelete();
             changeRequestSaveModal = extendedDeleteConfirmationPage.clickChangeRequestDelete();
             changeRequestSaveModal.openAddChangesToExistingChangeRequestCollapse();
             changeRequestSaveModal.selectExistingChangeRequest("Refactoring_MergedCR").select();
@@ -356,6 +360,8 @@ public class RefactoringChangeRequestIT
             ReviewContainer reviewContainer = changeRequestPage.clickReviewButton();
             reviewContainer.selectApprove();
             changeRequestPage = reviewContainer.save();
+            assertEquals("Ready for publication", changeRequestPage.getStatusLabel());
+            assertTrue(changeRequestPage.isMergeButtonEnabled());
             changeRequestPage = changeRequestPage.clickMergeButton();
             assertEquals("Published", changeRequestPage.getStatusLabel());
 
@@ -426,9 +432,12 @@ public class RefactoringChangeRequestIT
             assertFalse(contentDiff.isEmpty());
             assertTrue(contentDiff.stream().anyMatch(line -> line.contains("Some change")),
                 String.format("Diff [%s] doesn't contain the expected change.", contentDiff));
+            assertFalse(contentDiff.stream().anyMatch(line -> line.contains("Direct edit after merge")),
+                String.format("Diff [%s] contains the edit performed after the merge.", contentDiff));
 
-            // The refactored file change is outdated since the published page was edited after the merge.
-            assertTrue(fileChangesPane.isDiffOutdated(renamedPage.getLocalDocumentReference().toString()));
+            // The diff of a merged change request is a record of what was published, so it's never flagged as
+            // outdated, even though the published page was edited after the merge.
+            assertFalse(fileChangesPane.isDiffOutdated(renamedPage.getLocalDocumentReference().toString()));
         } finally {
             // Restore the default configuration so it doesn't leak onto other tests.
             testUtils.loginAsSuperAdmin();

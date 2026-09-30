@@ -36,7 +36,7 @@ public class ExtendedViewPage extends ViewPage
 {
     private static final String CR_EDIT_ID = "crEdit";
     private static final String STANDARD_EDIT_ID = "tmEdit";
-    private static final String STANDARD_DELETE_ID = "tmDelete";
+    private static final String STANDARD_DELETE_ID = "tmActionDelete";
     private static final String CR_DELETE_ID = "deletecr";
     private static final String STANDARD_CREATE_ID = "tmCreate";
     private static final String CR_CREATE_ID = "crCreate";
