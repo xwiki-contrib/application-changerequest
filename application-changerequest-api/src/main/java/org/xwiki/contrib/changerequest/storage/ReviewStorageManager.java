@@ -47,7 +47,9 @@ public interface ReviewStorageManager
 
     /**
      * Load all reviews related to the given change request. Note that the method should also set the reviews in
-     * the change request object so that {@link ChangeRequest#getReviews()} then returns the loaded reviews.
+     * the change request object so that {@link ChangeRequest#getReviews()} then returns the loaded reviews: the
+     * reviews the change request already held are replaced, so calling this method again refreshes them from the
+     * storage.
      *
      * @param changeRequest the change request for which to load the reviews.
      * @return a list of loaded reviews.

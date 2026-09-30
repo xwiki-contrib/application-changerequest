@@ -20,6 +20,7 @@
 package org.xwiki.contrib.changerequest.internal.storage;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -199,7 +200,46 @@ class DefaultReviewStorageManagerTest
 
         when(changeRequest.getReviews()).thenReturn(expectedResult);
         assertEquals(expectedResult, this.storageManager.load(changeRequest));
+        verify(changeRequest).setReviews(Collections.emptyList());
         verify(changeRequest).addReview(review1);
         verify(changeRequest).addReview(review2);
+    }
+
+    @Test
+    void loadRefreshesAlreadyLoadedReviews() throws Exception
+    {
+        ChangeRequest changeRequest = new ChangeRequest();
+        DocumentReference changeRequestDocRef = mock(DocumentReference.class);
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocRef);
+
+        XWikiDocument xWikiDocument = mock(XWikiDocument.class);
+        XWiki xWiki = mock(XWiki.class);
+        when(this.context.getWiki()).thenReturn(xWiki);
+        when(xWiki.getDocument(changeRequestDocRef, this.context)).thenReturn(xWikiDocument);
+
+        BaseObject obj1 = mock(BaseObject.class);
+        when(obj1.getStringValue(ReviewXClassInitializer.APPROVED_PROPERTY)).thenReturn("1");
+        when(obj1.getStringValue(ReviewXClassInitializer.AUTHOR_PROPERTY)).thenReturn("author1");
+        when(obj1.getDateValue(ReviewXClassInitializer.DATE_PROPERTY)).thenReturn(new Date(45));
+        when(obj1.getStringValue(ReviewXClassInitializer.VALID_PROPERTY)).thenReturn("1");
+        when(obj1.getNumber()).thenReturn(13);
+
+        when(xWikiDocument.getXObjects(ReviewXClassInitializer.REVIEW_XCLASS))
+            .thenReturn(Collections.singletonList(obj1));
+
+        UserReference author1 = mock(UserReference.class);
+        when(this.userReferenceResolver.resolve("author1")).thenReturn(author1);
+
+        ChangeRequestReview expectedReview = new ChangeRequestReview(changeRequest, true, author1)
+            .setReviewDate(new Date(45))
+            .setSaved(true)
+            .setValid(true)
+            .setId("xobject_13");
+
+        assertEquals(Collections.singletonList(expectedReview), this.storageManager.load(changeRequest));
+
+        // Loading again must refresh the reviews, not append them a second time.
+        assertEquals(Collections.singletonList(expectedReview), this.storageManager.load(changeRequest));
+        assertEquals(1, changeRequest.getReviews().size());
     }
 }

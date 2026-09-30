@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.changerequest.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedHashMap;
@@ -41,6 +43,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestReview;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
 import org.xwiki.contrib.changerequest.MergeApprovalStrategy;
+import org.xwiki.contrib.changerequest.ReviewInvalidationReason;
 import org.xwiki.contrib.changerequest.events.ChangeRequestStatusChangedEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.contrib.changerequest.storage.FileChangeStorageManager;
@@ -252,7 +255,35 @@ class DefaultChangeRequestManagerTest
         when(changeRequest.addReview(review)).thenReturn(changeRequest);
         assertEquals(review, this.manager.addReview(changeRequest, userReference, false));
         verify(this.reviewStorageManager).save(review);
+        verify(this.reviewStorageManager).load(changeRequest);
         verify(changeRequest).updateDate();
+    }
+
+    @Test
+    void addReviewInvalidatesPreviousReviewMissingFromTheChangeRequest() throws ChangeRequestException
+    {
+        UserReference reviewer = mock(UserReference.class);
+        ChangeRequest changeRequest = new ChangeRequest().setId("crId");
+
+        ChangeRequestReview previousReview = new ChangeRequestReview(changeRequest, true, reviewer);
+        previousReview.setSaved(true);
+
+        // The change request does not hold the review that the storage contains: this is what an outdated cache entry
+        // looks like. Loading the reviews is what brings it back, and it must then be invalidated.
+        doAnswer(invocationOnMock -> {
+            changeRequest.addReview(previousReview);
+            return Collections.singletonList(previousReview);
+        }).when(this.reviewStorageManager).load(changeRequest);
+        assertTrue(changeRequest.getReviews().isEmpty());
+
+        ChangeRequestReview review = this.manager.addReview(changeRequest, reviewer, true, null);
+
+        assertFalse(previousReview.isValid());
+        assertFalse(previousReview.isLastFromAuthor());
+        assertEquals(ReviewInvalidationReason.NEW_REVIEW, previousReview.getReviewInvalidationReason());
+        verify(this.reviewStorageManager).save(previousReview);
+        verify(this.reviewStorageManager).save(review);
+        assertEquals(Arrays.asList(review, previousReview), changeRequest.getReviews());
     }
 
     @Test
