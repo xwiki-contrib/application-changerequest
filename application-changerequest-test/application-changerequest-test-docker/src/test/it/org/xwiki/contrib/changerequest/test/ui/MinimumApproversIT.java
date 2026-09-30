@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.Keys;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestSaveModal;
 import org.xwiki.contrib.changerequest.test.po.ExtendedCreatePage;
@@ -121,13 +120,12 @@ public class MinimumApproversIT
 
         assertTrue(changeRequestSaveModal.isApproversSelectionDisplayed());
         changeRequestSaveModal.setChangeRequestTitle("CR1");
-        SuggestInputElement usersApproverSelector = changeRequestSaveModal.getUsersApproverSelector();
-        usersApproverSelector.sendKeys("XWiki." + APPROVER_A).sendKeys(Keys.ENTER);
+        changeRequestSaveModal.addUserApprover("XWiki." + APPROVER_A);
 
         changeRequestSaveModal.clickSaveExpectFailure();
         assertTrue(changeRequestSaveModal.isMinimumApproverErrorDisplayed());
 
-        usersApproverSelector.sendKeys("XWiki." + APPROVER_B).sendKeys(Keys.ENTER);
+        changeRequestSaveModal.addUserApprover("XWiki." + APPROVER_B);
         ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
         String changeRequestURL = testUtils.getDriver().getCurrentUrl();
 
@@ -152,10 +150,10 @@ public class MinimumApproversIT
 
         assertTrue(changeRequestSaveModal.isApproversSelectionDisplayed());
         assertFalse(changeRequestSaveModal.isCreateChangeRequestDisplayed());
-        usersApproverSelector = changeRequestSaveModal.getUsersApproverSelector();
+        SuggestInputElement usersApproverSelector = changeRequestSaveModal.getUsersApproverSelector();
 
         assertEquals(List.of("XWiki." + APPROVER_A, "XWiki." + APPROVER_B), usersApproverSelector.getValues());
-        usersApproverSelector.sendKeys("XWiki." + APPROVER_C).sendKeys(Keys.ENTER);
+        changeRequestSaveModal.addUserApprover("XWiki." + APPROVER_C);
         changeRequestPage = changeRequestSaveModal.clickSave();
 
         reviewsPane = changeRequestPage.openReviewsPane();
