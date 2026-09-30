@@ -223,4 +223,19 @@ public interface ChangeRequestConfiguration
     {
         return false;
     }
+
+    /**
+     * Define if the reference of the pages impacted by a change request should also be refactored when that change
+     * request already has the status {@link ChangeRequestStatus#MERGED}, in case those pages get renamed or moved.
+     * Note that this only updates the reference of the impacted pages stored in the change request: the content of
+     * the change request itself is never modified.
+     *
+     * @return {@code true} if merged change requests should also be refactored when one of their pages is renamed
+     *          or moved.
+     * @since 1.24
+     */
+    default boolean isMergedChangeRequestRefactoringEnabled()
+    {
+        return false;
+    }
 }

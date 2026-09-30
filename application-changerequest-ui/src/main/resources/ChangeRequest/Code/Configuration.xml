@@ -275,6 +275,21 @@ $escapetool.xml($services.localization.render("changerequest.mergeApprovalStrate
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
       </preventAuthorsToReview>
+      <refactorMergedChangeRequests>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <hint/>
+        <name>refactorMergedChangeRequests</name>
+        <number>17</number>
+        <prettyName>refactorMergedChangeRequests</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </refactorMergedChangeRequests>
       <renderedDiffComponent>
         <customDisplay>{{velocity}}
 #if ($type == 'edit')
@@ -394,6 +409,9 @@ $escapetool.xml($services.localization.render("changerequest.diffRender.name.$va
     </property>
     <property>
       <mergeUser/>
+    </property>
+    <property>
+      <refactorMergedChangeRequests>0</refactorMergedChangeRequests>
     </property>
     <property>
       <schedulerContextUser/>
@@ -667,6 +685,7 @@ $escapetool.xml($services.localization.render("changerequest.diffRender.name.$va
         <value>renderedDiffEnabled</value>
         <value>renderedDiffComponent</value>
         <value>acceptOnlyAllowedApprovers</value>
+        <value>refactorMergedChangeRequests</value>
       </propertiesToShow>
     </property>
     <property>
