@@ -220,6 +220,15 @@ public class ChangeRequestSaveModal extends BaseModal
     {
         WebElement usersApproverSelect = getUsersApproverSelect();
         SuggestInputElement usersApproverSelector = new SuggestInputElement(usersApproverSelect);
+        WebElement textInput = getDriver().findElementWithoutWaiting(usersApproverSelect,
+            By.xpath("following-sibling::*[contains(@class, 'selectize-control')][1]"
+                + "//*[contains(@class, 'selectize-input')]/input"));
+        // Open the suggestions panel before typing. Opening the panel focuses the picker asynchronously, and getting
+        // the focus requests the first users without any filter. The picker only sends the last search it's been
+        // asked for, so when the panel is opened by the first typed key, this request, handled once all the keys are
+        // typed, replaces the search of the typed user: the user would then be suggested only if part of these first
+        // users.
+        usersApproverSelector.click().waitForSuggestions();
         usersApproverSelector.sendKeys(userReference);
         // The suggestions are fetched after a delay, and the panel might still display the previous suggestions
         // meanwhile: wait for the suggestion of the typed user before selecting it.
@@ -231,9 +240,6 @@ public class ChangeRequestSaveModal extends BaseModal
         // Remove the focus from the text input rather than pressing Escape: the widget opens the suggestions panel
         // again whenever a suggestion request completes while it has the focus, and pressing Escape when the panel is
         // already closed would close the modal.
-        WebElement textInput = getDriver().findElementWithoutWaiting(usersApproverSelect,
-            By.xpath("following-sibling::*[contains(@class, 'selectize-control')][1]"
-                + "//*[contains(@class, 'selectize-input')]/input"));
         getDriver().executeScript("arguments[0].blur()", textInput);
         getDriver().waitUntilCondition(
             driver -> driver.findElements(By.cssSelector(ACTIVE_DROPDOWN_SELECTOR)).isEmpty());
