@@ -226,7 +226,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                 this.observationManager.notify(new FileChangeDocumentSavedEvent(), fileChange, fileChangeDocument);
             } catch (XWikiException | IOException e) {
                 throw new ChangeRequestException(
-                    String.format("Error while storing filechange [%s]", fileChange), e);
+                    String.format("Error while storing filechange [%s]. Reason: [%s]", fileChange, e.getMessage()), e);
             }
         }
     }
