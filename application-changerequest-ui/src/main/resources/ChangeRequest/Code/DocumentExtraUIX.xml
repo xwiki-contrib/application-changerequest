@@ -202,7 +202,7 @@ itemnumber=-1
 name=cr
 shortcut=alt+t
 order=1000
-show=#if("$!showChangeRequestTab" != 'false')true#else{false}#end</parameters>
+show=#if("$!showChangeRequestTab" == 'false' || ("$!showcomments" == 'false' &amp;&amp; "$!showattachments" == 'false' &amp;&amp; "$!showhistory" == 'false' &amp;&amp; "$!showinformation" == 'false'))false#else{true}#end</parameters>
     </property>
     <property>
       <scope>wiki</scope>
