@@ -52,6 +52,38 @@ public interface FileChangeStorageManager
     void save(FileChange fileChange) throws ChangeRequestException;
 
     /**
+     * Save the given file change like {@link #save(FileChange)}, but without triggering the
+     * {@link org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent}: the caller is responsible for
+     * triggering it afterwards with {@link #notifySaved(FileChange)}. This allows to save the change request
+     * document holding the file change before notifying listeners, which might need to load the change request
+     * (e.g. listeners on other nodes of a cluster).
+     * The default implementation calls {@link #save(FileChange)}, which already triggers the event.
+     *
+     * @param fileChange the file change to save.
+     * @return {@code true} if the file change has been saved by this call and {@link #notifySaved(FileChange)}
+     *         should then be called, {@code false} if it was already saved.
+     * @throws ChangeRequestException in case of problem to convert the file change.
+     * @since 1.26
+     */
+    default boolean saveWithoutSavedEvent(FileChange fileChange) throws ChangeRequestException
+    {
+        save(fileChange);
+        return false;
+    }
+
+    /**
+     * Trigger the {@link org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent} for a file change saved
+     * with {@link #saveWithoutSavedEvent(FileChange)}.
+     *
+     * @param fileChange the file change that has been saved.
+     * @throws ChangeRequestException in case of problem to retrieve the document holding the file change.
+     * @since 1.26
+     */
+    default void notifySaved(FileChange fileChange) throws ChangeRequestException
+    {
+    }
+
+    /**
      * Load the given file change related to the given change request.
      *
      * @param changeRequest the change request that owns the given file change.

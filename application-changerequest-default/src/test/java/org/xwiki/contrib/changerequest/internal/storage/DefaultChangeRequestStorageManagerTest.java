@@ -224,6 +224,8 @@ class DefaultChangeRequestStorageManagerTest
         when(document.isMetaDataDirty()).thenReturn(true);
         when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.creation"))
             .thenReturn("Creation of change request");
+        // fileChange2 is considered as already saved
+        when(this.fileChangeStorageManager.saveWithoutSavedEvent(fileChange1)).thenReturn(true);
 
         this.storageManager.save(changeRequest);
         verify(changeRequest).setId("id42");
@@ -232,10 +234,16 @@ class DefaultChangeRequestStorageManagerTest
         verify(documentAuthors).setCreator(userReference);
         verify(documentAuthors).setOriginalMetadataAuthor(userReference);
         verify(xobject).set("status", "draft", this.context);
-        verify(this.fileChangeStorageManager).save(fileChange1);
-        verify(this.fileChangeStorageManager).save(fileChange2);
-        verify(this.wiki).saveDocument(document, "Creation of change request", this.context);
-        verify(this.changeRequestStorageCacheManager).invalidate("id42");
+        // The FileChangeDocumentSavedEvent must only be sent once the change request document is saved, so that
+        // listeners (e.g. on other cluster nodes) are able to load the change request.
+        InOrder inOrder = inOrder(this.fileChangeStorageManager, this.wiki, this.changeRequestStorageCacheManager);
+        inOrder.verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange1);
+        inOrder.verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange2);
+        inOrder.verify(this.wiki).saveDocument(document, "Creation of change request", this.context);
+        inOrder.verify(this.changeRequestStorageCacheManager).invalidate("id42");
+        inOrder.verify(this.fileChangeStorageManager).notifySaved(fileChange1);
+        verify(this.fileChangeStorageManager, never()).notifySaved(fileChange2);
+        verify(this.fileChangeStorageManager, never()).save(any());
         verify(document).clone();
     }
 
@@ -930,17 +938,17 @@ class DefaultChangeRequestStorageManagerTest
         verify(this.wiki).saveDocument(cr2Doc, "Creation by splitting", this.context);
         verify(this.wiki).saveDocument(cr3Doc, "Creation by splitting", this.context);
 
-        verify(this.fileChangeStorageManager).save(fileChange1Doc1Clone);
-        verify(this.fileChangeStorageManager).save(fileChange2Doc1Clone);
-        verify(this.fileChangeStorageManager).save(fileChange3Doc1Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange1Doc1Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange2Doc1Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange3Doc1Clone);
 
-        verify(this.fileChangeStorageManager).save(fileChange1Doc2Clone);
-        verify(this.fileChangeStorageManager).save(fileChange2Doc2Clone);
-        verify(this.fileChangeStorageManager).save(fileChange3Doc2Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange1Doc2Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange2Doc2Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange3Doc2Clone);
 
-        verify(this.fileChangeStorageManager).save(fileChange1Doc3Clone);
-        verify(this.fileChangeStorageManager).save(fileChange2Doc3Clone);
-        verify(this.fileChangeStorageManager).save(fileChange3Doc3Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange1Doc3Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange2Doc3Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange3Doc3Clone);
 
         // verify reviews handling
         // CR1
@@ -1286,13 +1294,13 @@ class DefaultChangeRequestStorageManagerTest
         verify(this.wiki).saveDocument(cr1Doc, "Creation by splitting", this.context);
         verify(this.wiki).saveDocument(cr3Doc, "Creation by splitting", this.context);
 
-        verify(this.fileChangeStorageManager).save(fileChange1Doc1Clone);
-        verify(this.fileChangeStorageManager).save(fileChange2Doc1Clone);
-        verify(this.fileChangeStorageManager).save(fileChange3Doc1Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange1Doc1Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange2Doc1Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange3Doc1Clone);
 
-        verify(this.fileChangeStorageManager).save(fileChange1Doc3Clone);
-        verify(this.fileChangeStorageManager).save(fileChange2Doc3Clone);
-        verify(this.fileChangeStorageManager).save(fileChange3Doc3Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange1Doc3Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange2Doc3Clone);
+        verify(this.fileChangeStorageManager).saveWithoutSavedEvent(fileChange3Doc3Clone);
 
         // verify reviews handling
         // CR1

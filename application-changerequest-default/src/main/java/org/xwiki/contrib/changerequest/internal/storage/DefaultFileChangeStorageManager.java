@@ -182,6 +182,41 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
     @Override
     public void save(FileChange fileChange) throws ChangeRequestException
     {
+        Optional<XWikiDocument> fileChangeDocument = this.saveFileChangeDocument(fileChange);
+        if (fileChangeDocument.isPresent()) {
+            this.observationManager.notify(new FileChangeDocumentSavedEvent(), fileChange, fileChangeDocument.get());
+        }
+    }
+
+    @Override
+    public boolean saveWithoutSavedEvent(FileChange fileChange) throws ChangeRequestException
+    {
+        return this.saveFileChangeDocument(fileChange).isPresent();
+    }
+
+    @Override
+    public void notifySaved(FileChange fileChange) throws ChangeRequestException
+    {
+        try {
+            XWikiDocument fileChangeDocument =
+                this.getFileChangeStorageDocument(fileChange.getChangeRequest(), fileChange.getTargetEntity());
+            this.observationManager.notify(new FileChangeDocumentSavedEvent(), fileChange, fileChangeDocument);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(
+                String.format("Error while loading the document of filechange [%s]", fileChange), e);
+        }
+    }
+
+    /**
+     * Store the file change in its storage document, without triggering {@link FileChangeDocumentSavedEvent}.
+     *
+     * @param fileChange the file change to store
+     * @return the document holding the file change, or {@link Optional#empty()} if the file change was already saved
+     * @throws ChangeRequestException in case of problem to store the file change
+     */
+    private Optional<XWikiDocument> saveFileChangeDocument(FileChange fileChange) throws ChangeRequestException
+    {
+        Optional<XWikiDocument> result = Optional.empty();
         if (!fileChange.isSaved()) {
             XWikiContext context = this.contextProvider.get();
             XWiki wiki = context.getWiki();
@@ -223,12 +258,13 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     wiki.saveDocument(fileChangeDocument, "Creation of the filechange", context);
                 }
                 fileChange.setSaved(true);
-                this.observationManager.notify(new FileChangeDocumentSavedEvent(), fileChange, fileChangeDocument);
+                result = Optional.of(fileChangeDocument);
             } catch (XWikiException | IOException e) {
                 throw new ChangeRequestException(
                     String.format("Error while storing filechange [%s]. Reason: [%s]", fileChange, e.getMessage()), e);
             }
         }
+        return result;
     }
 
     private void triggerFileChangeSavingEventAndHandleCancellation(FileChange fileChange,

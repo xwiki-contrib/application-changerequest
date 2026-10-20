@@ -44,6 +44,7 @@ import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
+import org.xwiki.contrib.changerequest.events.FileChangeDocumentSavedEvent;
 import org.xwiki.contrib.changerequest.internal.FileChangeVersionManager;
 import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
 import org.xwiki.environment.Environment;
@@ -63,6 +64,7 @@ import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.properties.internal.DefaultBeanManager;
 import org.xwiki.properties.internal.DefaultConverterManager;
 import org.xwiki.properties.internal.converter.ConvertUtilsConverter;
@@ -206,6 +208,9 @@ class DefaultFileChangeStorageManagerTest
     @MockComponent
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
 
+    @MockComponent
+    private ObservationManager observationManager;
+
     @RegisterExtension
     LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
@@ -278,6 +283,7 @@ class DefaultFileChangeStorageManagerTest
         when(fileChange.isSaved()).thenReturn(true);
         this.fileChangeStorageManager.save(fileChange);
         verify(this.xWiki, never()).saveDocument(any(), any());
+        verify(this.observationManager, never()).notify(any(FileChangeDocumentSavedEvent.class), any(), any());
 
         when(fileChange.isSaved()).thenReturn(false);
         XWikiDocument modifiedDoc = mock(XWikiDocument.class);
@@ -357,6 +363,70 @@ class DefaultFileChangeStorageManagerTest
             .set(FileChangeXClassInitializer.REFERENCE_LOCALE_PROPERTY, Locale.FRENCH, this.context);
         verify(modifiedDoc).setRCSVersion(new Version("3.3"));
         verify(fileChangeDoc).clone();
+        verify(this.observationManager)
+            .notify(any(FileChangeDocumentSavedEvent.class), eq(fileChange), eq(fileChangeDoc));
+    }
+
+    @Test
+    void saveWithoutSavedEvent() throws Exception
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.isSaved()).thenReturn(true);
+        assertFalse(this.fileChangeStorageManager.saveWithoutSavedEvent(fileChange));
+        verify(this.xWiki, never()).saveDocument(any(), any(), any());
+
+        when(fileChange.isSaved()).thenReturn(false);
+        when(fileChange.getId()).thenReturn("filechange-1.1-42");
+        when(fileChange.getVersion()).thenReturn("filechange-1.1");
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.DELETION);
+        when(fileChange.getTargetEntity()).thenReturn(new DocumentReference("xwiki", "Space", "Doc", Locale.ROOT));
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+
+        DocumentReference changeRequestDocReference = new DocumentReference("xwiki", "ChangeRequest", "Doc");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
+        DocumentReference fileStorageDocRef = new DocumentReference("5:xwiki5:Space3:Doc0:",
+            changeRequestDocReference.getLastSpaceReference());
+        XWikiDocument fileChangeDoc = mock(XWikiDocument.class);
+        when(fileChangeDoc.clone()).thenReturn(fileChangeDoc);
+        when(this.xWiki.getDocument(fileStorageDocRef, this.context)).thenReturn(fileChangeDoc);
+        when(fileChangeDoc.getAuthors()).thenReturn(mock(DocumentAuthors.class));
+        when(fileChangeDoc.createXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, this.context))
+            .thenReturn(0);
+        when(fileChangeDoc.getXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, 0))
+            .thenReturn(mock(BaseObject.class));
+        when(fileChangeDoc.isMetaDataDirty()).thenReturn(true);
+
+        assertTrue(this.fileChangeStorageManager.saveWithoutSavedEvent(fileChange));
+        verify(fileChange).setSaved(true);
+        verify(this.xWiki).saveDocument(fileChangeDoc, "Creation of the filechange", this.context);
+        verify(this.observationManager, never()).notify(any(FileChangeDocumentSavedEvent.class), any(), any());
+    }
+
+    @Test
+    void notifySaved() throws Exception
+    {
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getTargetEntity()).thenReturn(new DocumentReference("xwiki", "Space", "Doc", Locale.ROOT));
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+
+        DocumentReference changeRequestDocReference = new DocumentReference("xwiki", "ChangeRequest", "Doc");
+        when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocReference);
+        DocumentReference fileStorageDocRef = new DocumentReference("5:xwiki5:Space3:Doc0:",
+            changeRequestDocReference.getLastSpaceReference());
+        XWikiDocument fileChangeDoc = mock(XWikiDocument.class);
+        when(this.xWiki.getDocument(fileStorageDocRef, this.context)).thenReturn(fileChangeDoc);
+
+        this.fileChangeStorageManager.notifySaved(fileChange);
+        verify(this.observationManager)
+            .notify(any(FileChangeDocumentSavedEvent.class), eq(fileChange), eq(fileChangeDoc));
+
+        XWikiException exception = mock(XWikiException.class);
+        when(this.xWiki.getDocument(fileStorageDocRef, this.context)).thenThrow(exception);
+        ChangeRequestException changeRequestException =
+            assertThrows(ChangeRequestException.class, () -> this.fileChangeStorageManager.notifySaved(fileChange));
+        assertEquals(exception, changeRequestException.getCause());
     }
 
     @Test
