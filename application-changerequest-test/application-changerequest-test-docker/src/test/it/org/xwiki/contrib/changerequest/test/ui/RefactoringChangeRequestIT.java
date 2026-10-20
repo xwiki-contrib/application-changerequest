@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.xwiki.ckeditor.test.po.CKEditor;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestLiveDataElement;
 import org.xwiki.contrib.changerequest.test.po.ChangeRequestPage;
@@ -43,8 +44,10 @@ import org.xwiki.contrib.changerequest.test.po.reviews.ReviewElement;
 import org.xwiki.contrib.changerequest.test.po.reviews.ReviewsPane;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.WikisSource;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.CopyOrRenameOrDeleteStatusPage;
 import org.xwiki.test.ui.po.RenamePage;
@@ -81,15 +84,43 @@ public class RefactoringChangeRequestIT
         setup.setGlobalRights("", CR_USER, "crapprove", true);
     }
 
-    @Test
-    void refactoringSpace(TestUtils testUtils, TestReference testReference)
+    /**
+     * Rename a space containing pages targeted by change requests and check that the open change requests follow.
+     * The scenario is executed both on the main wiki and on a subwiki, since the rename job doesn't run in the context
+     * of the subwiki.
+     */
+    @ParameterizedTest
+    // The subwiki is created empty: the extensions the test relies on, which are installed on the main wiki only,
+    // need to be installed on it too.
+    @WikisSource(extensions = {
+        "org.xwiki.contrib.changerequest:application-changerequest-ui",
+        "org.xwiki.platform:xwiki-platform-edit-ui/${platform.version}",
+        "org.xwiki.commons:xwiki-commons-diff-script/${commons.version}"
+    })
+    void refactoringSpace(WikiReference wiki, TestUtils testUtils, TestReference testReference)
+    {
+        // TestUtils builds the URL of a page with its current wiki, whatever the wiki of the given page reference.
+        String mainWiki = testUtils.getCurrentWiki();
+        testUtils.setCurrentWiki(wiki.getName());
+        try {
+            refactoringSpaceInCurrentWiki(wiki, mainWiki, testUtils, testReference);
+        } finally {
+            testUtils.setCurrentWiki(mainWiki);
+        }
+    }
+
+    private void refactoringSpaceInCurrentWiki(WikiReference wiki, String mainWiki, TestUtils testUtils,
+        TestReference testReference)
     {
         testUtils.loginAsSuperAdmin();
-        DocumentReference mainPage = new DocumentReference(testReference);
-        DocumentReference subPage = new DocumentReference("WebHome", new SpaceReference("SubPage",
-            testReference.getLastSpaceReference()));
-        DocumentReference subPageTerminal = new DocumentReference("SubPageTerminal",
-            testReference.getLastSpaceReference());
+        if (!wiki.getName().equals(mainWiki)) {
+            // The user is a global one: it needs to be fully referenced in the rights of the subwiki.
+            testUtils.setGlobalRights("", mainWiki + ":XWiki." + CR_USER, "crapprove", true);
+        }
+        DocumentReference mainPage = new DocumentReference(testReference.getLocalDocumentReference(), wiki);
+        SpaceReference testSpace = mainPage.getLastSpaceReference();
+        DocumentReference subPage = new DocumentReference("WebHome", new SpaceReference("SubPage", testSpace));
+        DocumentReference subPageTerminal = new DocumentReference("SubPageTerminal", testSpace);
 
         testUtils.createPage(mainPage, "Main space page.");
         testUtils.createPage(subPage, "A sub page.");
@@ -150,7 +181,7 @@ public class RefactoringChangeRequestIT
         changeRequestPage = changeRequestSaveModal.clickSave();
 
         DocumentReference createdPageReference = new DocumentReference("WebHome", new SpaceReference("MyNewPage",
-            testReference.getLastSpaceReference()));
+            testSpace));
 
         reviewContainer = changeRequestPage.clickReviewButton();
         reviewContainer.selectApprove();
@@ -217,9 +248,7 @@ public class RefactoringChangeRequestIT
         renameStatusPage = renameStatusPage.waitUntilFinished();
         assertEquals("Done.", renameStatusPage.getInfoMessage());
 
-        SpaceReference testLastSpaceReference = testReference.getLastSpaceReference();
-        SpaceReference refactoredSpaceReference =
-            new SpaceReference("RefactoredSpace", testLastSpaceReference.getParent());
+        SpaceReference refactoredSpaceReference = new SpaceReference("RefactoredSpace", testSpace.getParent());
         DocumentReference mainPageRefactored = new DocumentReference("WebHome", refactoredSpaceReference);
         DocumentReference subPageRefactored = new DocumentReference("WebHome", new SpaceReference("SubPage",
             refactoredSpaceReference));
@@ -293,7 +322,7 @@ public class RefactoringChangeRequestIT
     }
 
     /**
-     * Same kind of scenario as {@link #refactoringSpace(TestUtils, TestReference)} but with the
+     * Same kind of scenario as {@link #refactoringSpace(WikiReference, TestUtils, TestReference)} but with the
      * {@code refactorMergedChangeRequests} configuration enabled: contrary to the default behavior, a merged change
      * request must also have its page reference refactored when that page is renamed, while its status and content
      * remain untouched. The merged change request also contains a page creation and a page deletion, none of which
