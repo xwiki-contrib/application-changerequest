@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -64,6 +65,9 @@ class FileChangeApproversManagerTest
 
     @MockComponent
     private ApproversManager<DocumentReference> documentReferenceApproversManager;
+
+    @MockComponent
+    private ProvidedApproversValidator providedApproversValidator;
 
     @Mock
     private FileChange fileChange;
@@ -158,6 +162,24 @@ class FileChangeApproversManagerTest
         assertSame(expectedSet, this.approversManager.getGroupsApprovers(this.fileChange));
 
         verify(this.documentReferenceApproversManager, times(3)).getGroupsApprovers(this.documentReference);
+    }
+
+    @Test
+    void approversOfEditionWhenProvidedApproversListUsed() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        Set<UserReference> usersApprovers = Set.of(userReference);
+        Set<DocumentReference> groupsApprovers = Set.of(mock(DocumentReference.class));
+        when(this.fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(this.providedApproversValidator.isProvidedApproversListUsed(this.documentReference)).thenReturn(true);
+        when(this.documentApproversManager.isApprover(userReference, this.xWikiDocument, false)).thenReturn(true);
+        when(this.documentApproversManager.getAllApprovers(this.xWikiDocument, false)).thenReturn(usersApprovers);
+        when(this.documentApproversManager.getGroupsApprovers(this.xWikiDocument)).thenReturn(groupsApprovers);
+
+        assertTrue(this.approversManager.isApprover(userReference, this.fileChange, false));
+        assertSame(usersApprovers, this.approversManager.getAllApprovers(this.fileChange, false));
+        assertSame(groupsApprovers, this.approversManager.getGroupsApprovers(this.fileChange));
+        verifyNoInteractions(this.documentReferenceApproversManager);
     }
 
     @Test

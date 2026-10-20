@@ -25,6 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker.SavingCheckerResult;
+import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.internal.approvers.ProvidedApproversValidator;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -36,6 +39,7 @@ import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,6 +65,12 @@ class ChangeRequestAuthorizationScriptServiceTest
 
     @MockComponent
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    @MockComponent
+    private ProvidedApproversValidator providedApproversValidator;
+
+    @MockComponent
+    private UserReferenceConverter userReferenceConverter;
 
     @Test
     void isAuthorizedToMerge() throws ChangeRequestException
@@ -112,5 +122,27 @@ class ChangeRequestAuthorizationScriptServiceTest
 
         when(this.authorizationManager.hasAccess(Right.VIEW, userDoc2, changedDoc)).thenReturn(true);
         assertTrue(this.scriptService.haveApproversViewRights(changedDoc, List.of(userDoc1, userDoc2, userDoc3)));
+    }
+
+    @Test
+    void checkProvidedApprovers() throws ChangeRequestException
+    {
+        UserReference userReference = mock(UserReference.class);
+        DocumentReference userDocReference = mock(DocumentReference.class, "currentUser");
+        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(userReference);
+        when(this.userReferenceConverter.convert(userReference)).thenReturn(userDocReference);
+
+        DocumentReference concernedDoc = mock(DocumentReference.class, "concernedDoc");
+        List<DocumentReference> usersApprovers = List.of(mock(DocumentReference.class, "approver"));
+        List<DocumentReference> groupsApprovers = List.of(mock(DocumentReference.class, "group"));
+        SavingCheckerResult result = new SavingCheckerResult("reason");
+        when(this.providedApproversValidator.validate(concernedDoc, userDocReference, usersApprovers,
+            groupsApprovers)).thenReturn(result);
+        assertSame(result, this.scriptService.checkProvidedApprovers(concernedDoc, usersApprovers, groupsApprovers));
+
+        SavingCheckerResult emptyResult = new SavingCheckerResult();
+        when(this.providedApproversValidator.validate(concernedDoc, userDocReference, List.of(), List.of()))
+            .thenReturn(emptyResult);
+        assertSame(emptyResult, this.scriptService.checkProvidedApprovers(concernedDoc, null, null));
     }
 }

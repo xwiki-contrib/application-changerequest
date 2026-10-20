@@ -220,9 +220,6 @@ public class ChangeRequestSaveModal extends BaseModal
     {
         WebElement usersApproverSelect = getUsersApproverSelect();
         SuggestInputElement usersApproverSelector = new SuggestInputElement(usersApproverSelect);
-        WebElement textInput = getDriver().findElementWithoutWaiting(usersApproverSelect,
-            By.xpath("following-sibling::*[contains(@class, 'selectize-control')][1]"
-                + "//*[contains(@class, 'selectize-input')]/input"));
         // Open the suggestions panel before typing. Opening the panel focuses the picker asynchronously, and getting
         // the focus requests the first users without any filter. The picker only sends the last search it's been
         // asked for, so when the panel is opened by the first typed key, this request, handled once all the keys are
@@ -237,6 +234,36 @@ public class ChangeRequestSaveModal extends BaseModal
         usersApproverSelector.selectByValue(userReference);
         getDriver().waitUntilCondition(driver -> usersApproverSelector.getValues().contains(userReference));
 
+        closeUsersApproverSuggestions(usersApproverSelect);
+    }
+
+    /**
+     * Remove the given user from the users approvers and close the suggestions panel, so that it doesn't hide the other
+     * elements of the modal (e.g. the save button).
+     *
+     * @param userReference the serialized reference of the user to remove (e.g. {@code XWiki.Foo})
+     * @since 1.26
+     */
+    public void removeUserApprover(String userReference)
+    {
+        WebElement usersApproverSelect = getUsersApproverSelect();
+        SuggestInputElement usersApproverSelector = new SuggestInputElement(usersApproverSelect);
+        usersApproverSelector.getSelectedSuggestions().stream()
+            .filter(suggestion -> userReference.equals(suggestion.getValue()))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format("User [%s] is not part of the selected approvers", userReference)))
+            .delete();
+        getDriver().waitUntilCondition(driver -> !usersApproverSelector.getValues().contains(userReference));
+
+        closeUsersApproverSuggestions(usersApproverSelect);
+    }
+
+    private void closeUsersApproverSuggestions(WebElement usersApproverSelect)
+    {
+        WebElement textInput = getDriver().findElementWithoutWaiting(usersApproverSelect,
+            By.xpath("following-sibling::*[contains(@class, 'selectize-control')][1]"
+                + "//*[contains(@class, 'selectize-input')]/input"));
         // Remove the focus from the text input rather than pressing Escape: the widget opens the suggestions panel
         // again whenever a suggestion request completes while it has the focus, and pressing Escape when the panel is
         // already closed would close the modal.
@@ -280,5 +307,21 @@ public class ChangeRequestSaveModal extends BaseModal
     public boolean isMinimumApproverErrorDisplayed()
     {
         return getDriver().findElementWithoutWaiting(getErrorContainer(), By.id("minimumApprovers")).isDisplayed();
+    }
+
+    /**
+     * Click on save button when the selected approvers are expected to be refused, because the page doesn't have
+     * enough approvers yet and the selected ones don't respect the conditions to be used.
+     *
+     * @return the displayed message explaining why the selected approvers cannot be used
+     * @since 1.26
+     */
+    public String clickSaveExpectSelectedApproversError()
+    {
+        clickSaveExpectFailure();
+        WebElement error =
+            getDriver().findElementWithoutWaiting(getErrorContainer(), By.id("providedApproversError"));
+        getDriver().waitUntilCondition(driver -> error.isDisplayed());
+        return error.getText();
     }
 }
