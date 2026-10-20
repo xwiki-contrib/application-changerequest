@@ -390,11 +390,12 @@ class DefaultFileChangeStorageManagerTest
         XWikiDocument fileChangeDoc = mock(XWikiDocument.class);
         when(fileChangeDoc.clone()).thenReturn(fileChangeDoc);
         when(this.xWiki.getDocument(fileStorageDocRef, this.context)).thenReturn(fileChangeDoc);
-        when(fileChangeDoc.getAuthors()).thenReturn(mock(DocumentAuthors.class));
+        DocumentAuthors fileChangeAuthors = mock(DocumentAuthors.class);
+        when(fileChangeDoc.getAuthors()).thenReturn(fileChangeAuthors);
         when(fileChangeDoc.createXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, this.context))
             .thenReturn(0);
-        when(fileChangeDoc.getXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, 0))
-            .thenReturn(mock(BaseObject.class));
+        BaseObject fileChangeObj = mock(BaseObject.class);
+        when(fileChangeDoc.getXObject(FileChangeXClassInitializer.FILECHANGE_XCLASS, 0)).thenReturn(fileChangeObj);
         when(fileChangeDoc.isMetaDataDirty()).thenReturn(true);
 
         assertTrue(this.fileChangeStorageManager.saveWithoutSavedEvent(fileChange));
