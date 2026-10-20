@@ -22,8 +22,12 @@ package org.xwiki.contrib.changerequest.internal.listeners;
 import java.util.Arrays;
 import java.util.Collections;
 
+import javax.inject.Provider;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.InOrder;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
@@ -34,6 +38,7 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestRefactoringEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.job.event.status.JobProgressManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.refactoring.event.DocumentRenamedEvent;
 import org.xwiki.refactoring.job.MoveRequest;
@@ -43,11 +48,14 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWikiContext;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -80,8 +88,21 @@ class DocumentRenamedListenerTest
     @MockComponent
     private ChangeRequestConfiguration configuration;
 
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.INFO);
+
+    private XWikiContext context;
+
+    @BeforeEach
+    void setup()
+    {
+        this.context = mock(XWikiContext.class);
+        when(this.contextProvider.get()).thenReturn(this.context);
+        when(this.context.getWikiReference()).thenReturn(new WikiReference("wiki"));
+    }
 
     @Test
     void processLocalEventWhenUpdateLinksDisabled() throws ChangeRequestException
@@ -237,5 +258,44 @@ class DocumentRenamedListenerTest
         assertEquals("Updating change request [crId].", this.logCapture.getMessage(1));
         assertEquals("Error while refactoring change request [crId] to move document [wiki:Space.Source].",
             this.logCapture.getMessage(2));
+    }
+
+    @Test
+    void processLocalEventInWikiOfRenamedDocument() throws ChangeRequestException
+    {
+        MoveRequest moveRequest = mock(MoveRequest.class);
+        when(moveRequest.isUpdateLinks()).thenReturn(true);
+        when(moveRequest.isDeep()).thenReturn(false);
+
+        WikiReference mainWiki = new WikiReference("xwiki");
+        WikiReference subWiki = new WikiReference("subwiki");
+        when(this.context.getWikiReference()).thenReturn(mainWiki);
+
+        DocumentReference source = new DocumentReference("subwiki", "Space", "Source");
+        DocumentReference target = new DocumentReference("subwiki", "Space", "Target");
+        DocumentRenamedEvent event = new DocumentRenamedEvent(source, target);
+
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_REVIEW);
+        when(changeRequest.getId()).thenReturn("crId");
+
+        when(this.storageManager.findChangeRequestTargeting(source)).thenReturn(Collections.singletonList(
+            changeRequest));
+
+        this.listener.processLocalEvent(event, null, moveRequest);
+
+        // Change requests are searched, loaded and refactored in the current wiki: it must be the wiki of the renamed
+        // document, and the previous one must be restored afterwards.
+        InOrder inOrder = inOrder(this.context, this.storageManager, this.changeRequestDiscussionService);
+        inOrder.verify(this.context).setWikiReference(subWiki);
+        inOrder.verify(this.storageManager).findChangeRequestTargeting(source);
+        inOrder.verify(this.storageManager).refactorTargetEntity(changeRequest, source, target, false);
+        inOrder.verify(this.changeRequestDiscussionService)
+            .refactorDiscussionFileReference("crId", source, target, false);
+        inOrder.verify(this.context).setWikiReference(mainWiki);
+
+        assertEquals("Updating the change requests to refactor document [subwiki:Space.Source] to "
+            + "[subwiki:Space.Target].", this.logCapture.getMessage(0));
+        assertEquals("Updating change request [crId].", this.logCapture.getMessage(1));
     }
 }

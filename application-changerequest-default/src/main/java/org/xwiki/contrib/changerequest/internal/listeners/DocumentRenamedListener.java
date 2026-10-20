@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -38,11 +39,14 @@ import org.xwiki.contrib.changerequest.events.ChangeRequestRefactoringEvent;
 import org.xwiki.contrib.changerequest.storage.ChangeRequestStorageManager;
 import org.xwiki.job.event.status.JobProgressManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.AbstractLocalEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.refactoring.event.DocumentRenamedEvent;
 import org.xwiki.refactoring.job.MoveRequest;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Listener in charge of refactoring change requests whenever a document is renamed.
@@ -73,6 +77,9 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
     private ChangeRequestConfiguration configuration;
 
     @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Inject
     private Logger logger;
 
     /**
@@ -91,7 +98,17 @@ public class DocumentRenamedListener extends AbstractLocalEventListener
 
         if (updateLinks) {
             DocumentRenamedEvent renameEvent = (DocumentRenamedEvent) event;
-            updateChangeRequests(renameEvent.getSourceReference(), renameEvent.getTargetReference(), request.isDeep());
+            DocumentReference sourceReference = renameEvent.getSourceReference();
+            XWikiContext context = this.contextProvider.get();
+            WikiReference currentWiki = context.getWikiReference();
+            try {
+                // The rename job doesn't necessarily run in the wiki of the renamed document (it's executed on the
+                // main wiki by default), while change requests are stored, searched and loaded in the current wiki.
+                context.setWikiReference(sourceReference.getWikiReference());
+                updateChangeRequests(sourceReference, renameEvent.getTargetReference(), request.isDeep());
+            } finally {
+                context.setWikiReference(currentWiki);
+            }
         }
     }
 
