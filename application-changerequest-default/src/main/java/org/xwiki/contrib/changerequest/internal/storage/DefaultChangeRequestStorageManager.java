@@ -223,11 +223,18 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
             changeRequest.setId(this.getIdGenerator().generateId(changeRequest));
         }
         DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
+        // The file changes are stored before the change request document so that a cancelled file change save
+        // doesn't leave a change request document referencing it. However, FileChangeDocumentSavedEvent is only
+        // triggered once the change request document is saved: listeners, in particular the ones of other cluster
+        // nodes, need to load the change request from the database when receiving it.
+        List<FileChange> savedFileChanges = new ArrayList<>();
         try {
             XWikiDocument document = wiki.getDocument(reference, context).clone();
             this.prepareChangeRequestDocument(changeRequest, document);
             for (FileChange fileChange : changeRequest.getAllFileChanges()) {
-                this.fileChangeStorageManager.save(fileChange);
+                if (this.fileChangeStorageManager.saveWithoutSavedEvent(fileChange)) {
+                    savedFileChanges.add(fileChange);
+                }
             }
             // Only save the doc if the data actually changed.
             String saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.update");
@@ -246,6 +253,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
                 String.format("Error while saving the change request [%s]", changeRequest), e);
         }
         this.changeRequestStorageCacheManager.invalidate(changeRequest.getId());
+        for (FileChange fileChange : savedFileChanges) {
+            this.fileChangeStorageManager.notifySaved(fileChange);
+        }
     }
 
     private void prepareChangeRequestDocument(ChangeRequest changeRequest, XWikiDocument document) throws XWikiException
