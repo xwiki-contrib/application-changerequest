@@ -245,6 +245,7 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
 
         ChangeRequest otherChangeRequest = new ChangeRequest()
@@ -253,6 +254,7 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
         assertEquals(changeRequest, otherChangeRequest);
 
@@ -262,6 +264,7 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
         assertNotEquals(changeRequest, otherChangeRequest);
 
@@ -271,6 +274,7 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
         assertNotEquals(changeRequest, otherChangeRequest);
 
@@ -280,6 +284,7 @@ class ChangeRequestTest
             .setId("4342")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
         assertNotEquals(changeRequest, otherChangeRequest);
 
@@ -289,6 +294,7 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.DRAFT)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
         assertNotEquals(changeRequest, otherChangeRequest);
 
@@ -298,6 +304,7 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(49))
+            .setUpdateDate(new Date(52))
             .setTitle("A title");
         assertNotEquals(changeRequest, otherChangeRequest);
 
@@ -307,7 +314,18 @@ class ChangeRequestTest
             .setId("4242")
             .setStatus(ChangeRequestStatus.MERGED)
             .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(52))
             .setTitle("Another title");
+        assertNotEquals(changeRequest, otherChangeRequest);
+
+        otherChangeRequest = new ChangeRequest()
+            .setCreator(userReference)
+            .setDescription("Some description")
+            .setId("4242")
+            .setStatus(ChangeRequestStatus.MERGED)
+            .setCreationDate(new Date(48))
+            .setUpdateDate(new Date(53))
+            .setTitle("A title");
         assertNotEquals(changeRequest, otherChangeRequest);
     }
 
