@@ -206,7 +206,13 @@
 
 #macro (displayEvent $event $changeRequest)
   #set ($escapedUserName = "$escapetool.xml($xwiki.getPlainUserName($event.user))")
-  #set ($userArgument = "&lt;a class=""user-name"" href=""$escapetool.xml($xwiki.getURL($event.user))""&gt;$escapedUserName&lt;/a&gt;")
+  ## Events performed by guest (e.g. the scheduler jobs when no context user is set) don't have any user: there's no
+  ## profile page to link to in that case.
+  #if ("$!event.user" == '')
+    #set ($userArgument = "&lt;span class=""user-name""&gt;$escapedUserName&lt;/span&gt;")
+  #else
+    #set ($userArgument = "&lt;a class=""user-name"" href=""$escapetool.xml($xwiki.getURL($event.user))""&gt;$escapedUserName&lt;/a&gt;")
+  #end
   #set ($localizationKey = "changerequest.timeline.$event.type")
   #set ($localizationArguments = [])
   #set ($discussionClass = $NULL)

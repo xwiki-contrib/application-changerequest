@@ -144,7 +144,7 @@
       <contextLang/>
     </property>
     <property>
-      <contextUser>XWiki.XWikiGuest</contextUser>
+      <contextUser/>
     </property>
     <property>
       <cron>0 0 12 * * ?</cron>

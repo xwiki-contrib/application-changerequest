@@ -301,7 +301,8 @@ public class StaleChangeRequestIT
 
         timelineEvent = events.get(4);
         assertEquals("changerequest.status.modified", timelineEvent.getEventType());
-        assertEquals("Unknown User changed the status of the Change Request from ready for review to closed (stale)",
+        // No scheduler context user is configured: the user who installed the extension is used.
+        assertEquals("superadmin changed the status of the Change Request from ready for review to closed (stale)",
             timelineEvent.getContent().getText());
 
         changeRequestPage.clickOpen();
