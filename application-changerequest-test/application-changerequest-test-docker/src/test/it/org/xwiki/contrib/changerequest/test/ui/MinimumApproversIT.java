@@ -169,4 +169,45 @@ public class MinimumApproversIT
                 String.format("+XWiki.%s,XWiki.%s,XWiki.%s", APPROVER_A, APPROVER_B, APPROVER_C)),
             usersApproversDiff);
     }
+
+    @Test
+    @Order(1)
+    void editPageWithoutApprovers(TestUtils testUtils, TestReference testReference)
+    {
+        testUtils.loginAsSuperAdmin();
+        testUtils.createPage(testReference, "Some content", "Page without approvers");
+        // Only ApproverA and ApproverB are allowed to approve change requests on the page.
+        testUtils.setRights(testReference, "", "XWiki." + APPROVER_A, "crapprove", true);
+        testUtils.setRights(testReference, "", "XWiki." + APPROVER_B, "crapprove", true);
+
+        testUtils.login(EDITOR, EDITOR);
+        testUtils.gotoPage(testReference);
+        ExtendedEditPage<WikiEditPage> editPage = new ExtendedViewPage().clickChangeRequestEdit();
+        editPage.getWrappedEditor().setContent("Some new content");
+        ChangeRequestSaveModal changeRequestSaveModal = editPage.clickSaveAsChangeRequest();
+
+        // The page doesn't have enough approvers, so the ones selected in the modal are used for the change request
+        // and must respect some conditions.
+        assertTrue(changeRequestSaveModal.isApproversSelectionDisplayed());
+        changeRequestSaveModal.setChangeRequestTitle("CR on page without approvers");
+        changeRequestSaveModal.addUserApprover("XWiki." + APPROVER_A);
+        changeRequestSaveModal.addUserApprover("XWiki." + APPROVER_C);
+        assertEquals("Some of the approvers you selected (users or groups) are not allowed to approve change requests "
+            + "on this page. Ask an administrator to grant them the right to approve change requests, or select "
+            + "other approvers.", changeRequestSaveModal.clickSaveExpectSelectedApproversError());
+
+        changeRequestSaveModal.removeUserApprover("XWiki." + APPROVER_C);
+        changeRequestSaveModal.addUserApprover("XWiki." + EDITOR);
+        assertEquals("You cannot be one of the approvers you selected, either directly or as a member of a selected "
+            + "group: this page does not have enough approvers yet, so the approvers you select will review your own "
+            + "change request.", changeRequestSaveModal.clickSaveExpectSelectedApproversError());
+
+        changeRequestSaveModal.removeUserApprover("XWiki." + EDITOR);
+        changeRequestSaveModal.addUserApprover("XWiki." + APPROVER_B);
+        ChangeRequestPage changeRequestPage = changeRequestSaveModal.clickSave();
+
+        ReviewsPane reviewsPane = changeRequestPage.openReviewsPane();
+        assertTrue(reviewsPane.hasListOfApprovers());
+        assertEquals(List.of(APPROVER_A, APPROVER_B), reviewsPane.getListOfApprovers());
+    }
 }

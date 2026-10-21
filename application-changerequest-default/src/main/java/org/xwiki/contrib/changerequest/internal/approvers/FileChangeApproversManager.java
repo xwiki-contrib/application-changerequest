@@ -39,7 +39,9 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#CREATION} this manager will read in the modified
  * document, the approvers information. Else it will rely on the existing published document. We use that strategy
  * on purpose because we don't want to rely on an edited list of approvers that would override the already existing list
- * of approvers.
+ * of approvers. The only exception is for a {@link org.xwiki.contrib.changerequest.FileChange.FileChangeType#EDITION}
+ * of a published document which doesn't respect the minimum number of approvers: in such case the approvers of the
+ * modified document are used (see {@link ProvidedApproversValidator}).
  * Note that calling the setters with this implementation will automatically trigger an exception.
  *
  * @version $Id$
@@ -58,12 +60,15 @@ public class FileChangeApproversManager implements ApproversManager<FileChange>
     @Inject
     private ApproversManager<DocumentReference> documentReferenceApproversManager;
 
+    @Inject
+    private ProvidedApproversValidator providedApproversValidator;
+
     @Override
     public boolean isApprover(UserReference user, FileChange entity, boolean explicitOnly)
         throws ChangeRequestException
     {
         boolean result;
-        if (entity.getType() == FileChange.FileChangeType.CREATION) {
+        if (this.isModifiedDocumentUsed(entity)) {
             result = this.documentApproversManager.isApprover(user, (XWikiDocument) entity.getModifiedDocument(),
                 explicitOnly);
         } else {
@@ -90,7 +95,7 @@ public class FileChangeApproversManager implements ApproversManager<FileChange>
         throws ChangeRequestException
     {
         Set<UserReference> result;
-        if (entity.getType() == FileChange.FileChangeType.CREATION) {
+        if (this.isModifiedDocumentUsed(entity)) {
             result = this.documentApproversManager
                 .getAllApprovers((XWikiDocument) entity.getModifiedDocument(), recursive);
         } else {
@@ -103,7 +108,7 @@ public class FileChangeApproversManager implements ApproversManager<FileChange>
     public Set<DocumentReference> getGroupsApprovers(FileChange entity) throws ChangeRequestException
     {
         Set<DocumentReference> result;
-        if (entity.getType() == FileChange.FileChangeType.CREATION) {
+        if (this.isModifiedDocumentUsed(entity)) {
             result = this.documentApproversManager.getGroupsApprovers((XWikiDocument) entity.getModifiedDocument());
         } else {
             result = this.documentReferenceApproversManager.getGroupsApprovers(entity.getTargetEntity());
@@ -115,5 +120,12 @@ public class FileChangeApproversManager implements ApproversManager<FileChange>
     public boolean wasManuallyEdited(FileChange entity) throws ChangeRequestException
     {
         return this.documentApproversManager.wasManuallyEdited((XWikiDocument) entity.getModifiedDocument());
+    }
+
+    private boolean isModifiedDocumentUsed(FileChange entity) throws ChangeRequestException
+    {
+        return entity.getType() == FileChange.FileChangeType.CREATION
+            || (entity.getType() == FileChange.FileChangeType.EDITION
+            && this.providedApproversValidator.isProvidedApproversListUsed(entity.getTargetEntity()));
     }
 }

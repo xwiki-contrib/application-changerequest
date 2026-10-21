@@ -82,3 +82,5 @@ org.xwiki.contrib.changerequest.internal.ChangeRequestIdDocumentReferenceResolve
 org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader
 org.xwiki.contrib.changerequest.internal.handlers.SplitChangeRequestHandler
 org.xwiki.contrib.changerequest.internal.checkers.ApproversRightChecker
+org.xwiki.contrib.changerequest.internal.approvers.ProvidedApproversValidator
+org.xwiki.contrib.changerequest.internal.checkers.ProvidedApproversSavingChecker

@@ -249,6 +249,7 @@
           &lt;div id="missingChangeRequest" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.missingChangerequest')&lt;/div&gt;
           &lt;div id="minimumApprovers" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.minimumApprovers', ["$minimumApprovers"])&lt;/div&gt;
           &lt;div id="approversLackRight" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.approversLackRight')&lt;/div&gt;
+          &lt;div id="providedApproversError" class="hidden text-danger"&gt;&lt;/div&gt;
           &lt;div id="crSelectorIncompatibilityReason" class="hidden text-danger"&gt;&lt;/div&gt;
           &lt;div id="otherError" class="hidden text-danger"&gt;$services.localization.render('changerequest.savemodal.error.otherError') &lt;span class="details"&gt;&lt;/span&gt;&lt;/div&gt;
         &lt;/div&gt;
@@ -276,8 +277,19 @@
   })
 #elseif ($request.get('action') == 'checkApproversRight')
   #set ($allApproversHaveViewRight = $services.changerequest.authorization.haveApproversViewRights($request.get('docChange'), $request.getParameterValues('approvers[]')))
+  ## The approvers selected when editing an existing page are only used if the page doesn't respect the minimum number
+  ## of approvers, and in such case they need to be validated.
+  #set ($providedApproversReason = '')
+  #set ($approversCheckDocReference = $services.model.resolveDocument($request.get('docChange')))
+  #if ($xwiki.exists($approversCheckDocReference))
+    #set ($providedApproversResult = $services.changerequest.authorization.checkProvidedApprovers($approversCheckDocReference, $request.getParameterValues('approvers[]'), $request.getParameterValues('groupsApprovers[]')))
+    #if ("$!providedApproversResult" != '' &amp;&amp; !$providedApproversResult.canBeSaved())
+      #set ($providedApproversReason = $services.localization.render($providedApproversResult.reason))
+    #end
+  #end
   #jsonResponse({
-    'allApproversHaveViewRight': $allApproversHaveViewRight
+    'allApproversHaveViewRight': $allApproversHaveViewRight,
+    'providedApproversReason': $providedApproversReason
   })
 #end
 {{/velocity}}</content>
@@ -528,6 +540,7 @@
       var crTitleField = $('#crTitle');
       var crSelectorField = $('#existingCRSelector');
       $('#otherError').addClass('hidden');
+      $('#providedApproversError').addClass('hidden');
       
       var isValid = crTitleField.val() || crSelectorField.val();
       if (!isValid) {
@@ -591,17 +604,22 @@
       if ($('#approversSelection') &amp;&amp; $('#approversSelection').is(':visible')) {
         var checkApproversRightUrl = saveChangeRequestModalDoc.getURL('get');
         var approversUsersFieldName = "ChangeRequest\\.Code\\.ApproversClass_0_usersApprovers";
+        var approversGroupsFieldName = "ChangeRequest\\.Code\\.ApproversClass_0_groupsApprovers";
         var data = {
           'action': 'checkApproversRight',
           'outputSyntax': 'plain',
           'docChange': xm.documentReference.toString(),
-          'approvers': $('#'+ approversUsersFieldName).val()
+          'approvers': $('#'+ approversUsersFieldName).val(),
+          'groupsApprovers': $('#'+ approversGroupsFieldName).val()
         }
         $.post(checkApproversRightUrl, data).done(function (data) {
+          $('#approversLackRight').addClass('hidden');
           if (!data.allApproversHaveViewRight) {
             $('#approversLackRight').removeClass('hidden');
+          } else if (data.providedApproversReason) {
+            $('#providedApproversError').text(data.providedApproversReason);
+            $('#providedApproversError').removeClass('hidden');
           } else {
-            $('#approversLackRight').addClass('hidden');
             finalCallback();
           }
         }).fail(function (data) {

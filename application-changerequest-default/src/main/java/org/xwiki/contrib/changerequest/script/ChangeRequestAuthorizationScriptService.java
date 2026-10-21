@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.changerequest.script;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -29,6 +30,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ChangeRequest;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestRightsManager;
+import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
+import org.xwiki.contrib.changerequest.internal.UserReferenceConverter;
+import org.xwiki.contrib.changerequest.internal.approvers.ProvidedApproversValidator;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AuthorizationManager;
@@ -59,6 +63,12 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
 
     @Inject
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
+
+    @Inject
+    private ProvidedApproversValidator providedApproversValidator;
+
+    @Inject
+    private UserReferenceConverter userReferenceConverter;
 
     /**
      * Check if the current user can edit the change request.
@@ -242,6 +252,31 @@ public class ChangeRequestAuthorizationScriptService implements ScriptService
             }
         }
         return result;
+    }
+
+    /**
+     * Check if the approvers selected by the current user when editing the given document can be used for the change
+     * request. Those approvers are only used, and thus checked, when the document doesn't respect the minimum number
+     * of approvers: in such case, unless the current user has admin right on the document, the added approvers must not
+     * contain the current user, and must have both view and approve rights on the document.
+     *
+     * @param concernedDoc the existing document for which approvers are selected
+     * @param usersApprovers the selected user approvers
+     * @param groupsApprovers the selected group approvers
+     * @return a successful result if the selected approvers can be used, else a result holding the translation key of
+     *     the reason why they cannot be used
+     * @throws ChangeRequestException in case of problem to retrieve the approvers of the document
+     * @since 1.26
+     */
+    @Unstable
+    public FileChangeSavingChecker.SavingCheckerResult checkProvidedApprovers(DocumentReference concernedDoc,
+        List<DocumentReference> usersApprovers, List<DocumentReference> groupsApprovers) throws ChangeRequestException
+    {
+        DocumentReference currentUser = this.userReferenceConverter.convert(
+            this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE));
+        return this.providedApproversValidator.validate(concernedDoc, currentUser,
+            (usersApprovers != null) ? usersApprovers : Collections.emptyList(),
+            (groupsApprovers != null) ? groupsApprovers : Collections.emptyList());
     }
 
     /**
