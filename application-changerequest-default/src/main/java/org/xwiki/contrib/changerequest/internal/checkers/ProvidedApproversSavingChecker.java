@@ -96,14 +96,18 @@ public class ProvidedApproversSavingChecker implements FileChangeSavingChecker
         if (fileChange.getType() == FileChange.FileChangeType.EDITION && fileChange.getModifiedDocument() != null) {
             XWikiDocument modifiedDocument = (XWikiDocument) fileChange.getModifiedDocument();
             try {
-                List<DocumentReference> usersApprovers = new ArrayList<>();
-                for (UserReference userApprover : this.documentApproversManager.getAllApprovers(modifiedDocument,
-                    false)) {
-                    usersApprovers.add(this.userReferenceConverter.convert(userApprover));
+                // The provided approvers only need to be checked when they are used, which only happens when the
+                // targeted document doesn't respect the minimum number of approvers.
+                if (this.providedApproversValidator.isProvidedApproversListUsed(fileChange.getTargetEntity())) {
+                    List<DocumentReference> usersApprovers = new ArrayList<>();
+                    for (UserReference userApprover : this.documentApproversManager.getAllApprovers(modifiedDocument,
+                        false)) {
+                        usersApprovers.add(this.userReferenceConverter.convert(userApprover));
+                    }
+                    result = this.providedApproversValidator.validate(fileChange.getTargetEntity(),
+                        this.userReferenceConverter.convert(fileChange.getAuthor()), usersApprovers,
+                        this.documentApproversManager.getGroupsApprovers(modifiedDocument));
                 }
-                result = this.providedApproversValidator.validate(fileChange.getTargetEntity(),
-                    this.userReferenceConverter.convert(fileChange.getAuthor()), usersApprovers,
-                    this.documentApproversManager.getGroupsApprovers(modifiedDocument));
             } catch (ChangeRequestException e) {
                 this.logger.error("Error while checking the approvers provided in filechange [{}]: [{}]", fileChange,
                     ExceptionUtils.getRootCauseMessage(e));

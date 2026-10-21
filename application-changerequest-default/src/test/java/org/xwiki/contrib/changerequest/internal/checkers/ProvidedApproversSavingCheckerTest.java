@@ -43,7 +43,10 @@ import org.xwiki.user.UserReference;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -108,6 +111,7 @@ class ProvidedApproversSavingCheckerTest
         this.groupsApprovers = Set.of(mock(DocumentReference.class, "group"));
         when(this.documentApproversManager.getGroupsApprovers(this.modifiedDocument))
             .thenReturn(this.groupsApprovers);
+        when(this.providedApproversValidator.isProvidedApproversListUsed(this.targetReference)).thenReturn(true);
     }
 
     @Test
@@ -133,6 +137,16 @@ class ProvidedApproversSavingCheckerTest
 
         assertEquals(new SavingCheckerResult(),
             this.checker.canChangeOnDocumentBeAdded(mock(ChangeRequest.class), this.fileChange));
+    }
+
+    @Test
+    void checkWhenProvidedApproversListNotUsed() throws ChangeRequestException
+    {
+        when(this.providedApproversValidator.isProvidedApproversListUsed(this.targetReference)).thenReturn(false);
+
+        assertEquals(new SavingCheckerResult(), this.checker.canChangeRequestBeCreatedWith(this.fileChange));
+        verifyNoInteractions(this.documentApproversManager);
+        verify(this.providedApproversValidator, never()).validate(any(), any(), any(), any());
     }
 
     @Test
