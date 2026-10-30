@@ -79,6 +79,9 @@ class DefaultReviewStorageManagerTest
     @MockComponent
     private UserReferenceConverter userReferenceConverter;
 
+    @MockComponent
+    private UncachedDocumentLoader uncachedDocumentLoader;
+
     private XWikiContext context;
 
     @BeforeEach
@@ -101,10 +104,9 @@ class DefaultReviewStorageManagerTest
         when(this.changeRequestDocumentReferenceResolver.resolve(changeRequest)).thenReturn(changeRequestDocRef);
 
         XWikiDocument xWikiDocument = mock(XWikiDocument.class);
-        when(xWikiDocument.clone()).thenReturn(xWikiDocument);
         XWiki xWiki = mock(XWiki.class);
         when(this.context.getWiki()).thenReturn(xWiki);
-        when(xWiki.getDocument(changeRequestDocRef, this.context)).thenReturn(xWikiDocument);
+        when(this.uncachedDocumentLoader.loadForUpdate(changeRequestDocRef)).thenReturn(xWikiDocument);
 
         when(review.getId()).thenReturn("");
         when(xWikiDocument.createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context)).thenReturn(42);
@@ -143,7 +145,7 @@ class DefaultReviewStorageManagerTest
         verify(xWikiDocument).createXObject(ReviewXClassInitializer.REVIEW_XCLASS, this.context);
         verify(xWiki).saveDocument(xWikiDocument, "Update existing review", this.context);
         verify(baseObject).set(ReviewXClassInitializer.VALID_PROPERTY, 0, this.context);
-        verify(xWikiDocument, times(2)).clone();
+        verify(this.uncachedDocumentLoader, times(2)).loadForUpdate(changeRequestDocRef);
     }
 
     @Test

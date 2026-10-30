@@ -120,6 +120,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
     private Provider<XWikiContext> contextProvider;
 
     @Inject
+    private UncachedDocumentLoader uncachedDocumentLoader;
+
+    @Inject
     private FileChangeStorageManager fileChangeStorageManager;
 
     @Inject
@@ -229,7 +232,9 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         // nodes, need to load the change request from the database when receiving it.
         List<FileChange> savedFileChanges = new ArrayList<>();
         try {
-            XWikiDocument document = wiki.getDocument(reference, context).clone();
+            // The cached document can be older than the stored one, and saving it would revert the changes saved
+            // since, such as the invalidation of a review.
+            XWikiDocument document = this.uncachedDocumentLoader.loadForUpdate(reference);
             this.prepareChangeRequestDocument(changeRequest, document);
             for (FileChange fileChange : changeRequest.getAllFileChanges()) {
                 if (this.fileChangeStorageManager.saveWithoutSavedEvent(fileChange)) {
@@ -308,7 +313,7 @@ public class DefaultChangeRequestStorageManager implements ChangeRequestStorageM
         } else {
             DocumentReference reference = this.changeRequestDocumentReferenceResolver.resolve(changeRequest);
             try {
-                XWikiDocument document = wiki.getDocument(reference, context);
+                XWikiDocument document = this.uncachedDocumentLoader.loadForUpdate(reference);
                 BaseObject xObject = document.getXObject(CHANGE_REQUEST_XCLASS, 0, false, context);
                 if (xObject != null) {
                     xObject.set(STALE_DATE_FIELD, changeRequest.getStaleDate(), context);
