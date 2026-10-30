@@ -36,6 +36,7 @@ import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestReference;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleChecker;
 import org.xwiki.csrf.CSRFToken;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.wysiwyg.converter.RequestParameterConversionResult;
@@ -132,11 +133,15 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
     private boolean handleDescriptionOrTitleUpdate(HttpServletRequest request, HttpServletResponse response,
         ChangeRequest changeRequest) throws ChangeRequestException, IOException
     {
+        boolean result = false;
         if (this.changeRequestRightsManager.isAuthorizedToEdit(getCurrentUser(), changeRequest)) {
             String changeType = request.getParameter(CHANGE_TYPE_PARAMETER);
 
             String saveComment;
-            if (StringUtils.equals(changeType, "settitle")) {
+            boolean isTitleUpdate = StringUtils.equals(changeType, "settitle");
+            if (isTitleUpdate && ChangeRequestTitleChecker.containsScript(request.getParameter(TITLE_PARAMETER))) {
+                this.reportError(HttpServletResponse.SC_BAD_REQUEST, TITLE_SCRIPT_ERROR);
+            } else if (isTitleUpdate) {
                 String title = request.getParameter(TITLE_PARAMETER);
                 changeRequest
                     .setTitle(title)
@@ -144,6 +149,7 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
                 saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.title");
                 this.storageManager.save(changeRequest, saveComment);
                 this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
+                result = true;
             } else {
                 String content = getContent(request);
                 changeRequest
@@ -167,13 +173,13 @@ public class SaveChangeRequestHandler extends AbstractChangeRequestActionHandler
                 saveComment = this.contextualLocalizationManager.getTranslationPlain("changerequest.save.description");
                 this.storageManager.save(changeRequest, saveComment);
                 this.observationManager.notify(new ChangeRequestUpdatedEvent(), changeRequest.getId(), changeRequest);
+                result = true;
             }
-            return true;
         } else {
             response
                 .sendError(HttpServletResponse.SC_FORBIDDEN, AUTHORIZATION_ERROR);
-            return false;
         }
+        return result;
     }
 
     // Code inspired from DiscussionsResourceReferenceHandler

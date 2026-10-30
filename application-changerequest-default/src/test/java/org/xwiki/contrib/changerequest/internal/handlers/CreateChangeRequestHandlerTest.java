@@ -287,4 +287,21 @@ class CreateChangeRequestHandlerTest
             logCapture.getMessage(0));
     }
 
+    @Test
+    void handleWithScriptInTitle() throws Exception
+    {
+        when(this.httpServletRequest.getParameter("crTitle")).thenReturn("Title #set ($a = 1)$a");
+        when(this.contextualLocalizationManager.getTranslationPlain("changerequest.save.error.titleScript"))
+            .thenReturn("Title error");
+        when(this.xWiki.getEncoding()).thenReturn("UTF-8");
+        PrintWriter printWriter = mock(PrintWriter.class);
+        when(this.httpServletResponse.getWriter()).thenReturn(printWriter);
+
+        this.handler.handle(null);
+
+        verify(this.httpServletResponse).setStatus(400);
+        verify(printWriter).print("{\"changeRequestError\":\"Title error\"}");
+        verify(this.storageManager, never()).save(any(), anyString());
+        verify(this.observationManager, never()).notify(any(), any(), any());
+    }
 }

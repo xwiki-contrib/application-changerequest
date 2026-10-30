@@ -77,6 +77,7 @@ public abstract class AbstractChangeRequestActionHandler implements ChangeReques
 {
     static final String PREVIOUS_VERSION_PARAMETER = "previousVersion";
     static final String FROM_CHANGE_REQUEST_PARAMETER = "fromchangerequest";
+    static final String TITLE_SCRIPT_ERROR = "changerequest.save.error.titleScript";
     private static final String ASYNC_PARAMETER = "async";
 
     @Inject

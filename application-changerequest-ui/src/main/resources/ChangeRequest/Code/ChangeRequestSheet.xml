@@ -2858,6 +2858,9 @@ require(['jquery', 'xwiki-meta'], function ($, xm) {
           'new-title': $('input#edit-title-input').val()
         }).done(function (data) {
           location.reload();
+        }).fail(function (response) {
+          var error = response.responseJSON &amp;&amp; response.responseJSON.changeRequestError;
+          new XWiki.widgets.Notification(error || response.statusText, 'error');
         });
       });
     }

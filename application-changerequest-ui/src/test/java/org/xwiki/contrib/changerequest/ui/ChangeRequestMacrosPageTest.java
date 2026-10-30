@@ -85,6 +85,29 @@ class ChangeRequestMacrosPageTest extends PageTest
     }
 
     @Test
+    void displayDescription() throws Exception
+    {
+        XWikiDocument changeRequestDocument = new XWikiDocument(CHANGE_REQUEST_REFERENCE);
+        changeRequestDocument.setSyntax(Syntax.XWIKI_2_1);
+        changeRequestDocument.setContent("Some **description**\n\n"
+            + "{{velocity}}#set ($x = 'EXEC')${x}UTED{{/velocity}}");
+        this.xwiki.saveDocument(changeRequestDocument, this.context);
+        changeRequestDocument = this.xwiki.getDocument(CHANGE_REQUEST_REFERENCE, this.context);
+        this.context.setDoc(changeRequestDocument);
+
+        // Display the description the way the change request sheet does: in the context of the change request
+        // document, with the macros page as the secure document.
+        String sheet = this.macrosDocument.getContent()
+            + "\n\n{{velocity}}\n{{html clean=\"false\"}}\n#displayDescription()\n{{/html}}\n{{/velocity}}";
+        String result =
+            changeRequestDocument.getRenderedContent(sheet, Syntax.XWIKI_2_1, this.macrosDocument, true, this.context);
+
+        assertThat(result, containsString("<span class=\"description-content\">"));
+        assertThat(result, containsString("<strong>description</strong>"));
+        assertThat(result, not(containsString("EXECUTED")));
+    }
+
+    @Test
     void displayDiffBlockMetadataWithSpecialCharacters() throws Exception
     {
         String attachmentName =

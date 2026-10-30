@@ -436,6 +436,60 @@ public class ChangeRequestPage extends ViewPage
     }
 
     /**
+     * @return the title of the change request, as displayed in its title field
+     * @since 1.26
+     */
+    public String getChangeRequestTitle()
+    {
+        return getTitleInput().getAttribute("value");
+    }
+
+    private WebElement getTitleInput()
+    {
+        return getDriver().findElement(By.id("edit-title-input"));
+    }
+
+    private void submitTitle(String title)
+    {
+        WebElement titleInput = getTitleInput();
+        titleInput.click();
+        titleInput.clear();
+        titleInput.sendKeys(title);
+        WebElement saveButton = getDriver().findElement(By.id("save-title"));
+        getDriver().waitUntilCondition(driver -> saveButton.isDisplayed());
+        saveButton.click();
+    }
+
+    /**
+     * Change the title of the change request and wait for the change request page to be reloaded.
+     *
+     * @param title the new title
+     * @return a new instance of the change request page after reload
+     * @since 1.26
+     */
+    public ChangeRequestPage setChangeRequestTitle(String title)
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        submitTitle(title);
+        getDriver().waitUntilPageIsReloaded();
+        return new ChangeRequestPage();
+    }
+
+    /**
+     * Change the title of the change request when the change is expected to be refused, and wait for the error
+     * notification.
+     *
+     * @param title the new title
+     * @param expectedError the error message expected to be notified
+     * @since 1.26
+     */
+    public void setChangeRequestTitleExpectError(String title, String expectedError)
+    {
+        submitTitle(title);
+        waitForNotificationErrorMessage(expectedError);
+    }
+
+    /**
      * Perform a wait until the timeline is refreshed.
      */
     public void waitForTimelineRefresh()

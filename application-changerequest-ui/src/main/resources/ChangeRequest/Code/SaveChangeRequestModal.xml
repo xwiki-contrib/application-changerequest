@@ -418,6 +418,7 @@
       } else if (isNewCR) {
         var crTitleField = $("&lt;input&gt;", {
           'type': 'hidden',
+          'class': 'changerequest-generated-field',
           'name': 'crTitle',
           'value': $('#crTitle').val()
         });
@@ -425,6 +426,7 @@
 
         var crDraftField = $("&lt;input&gt;", {
           'type': 'hidden',
+          'class': 'changerequest-generated-field',
           'name': 'crDraft',
           'value': $('#crDraft:checked').val()
         });
@@ -448,6 +450,7 @@
       } else {
         var docField = $("&lt;input&gt;", {
           'type': 'hidden',
+          'class': 'changerequest-generated-field',
           'name': 'docReference',
           'value': xm.documentReference
         });
@@ -479,6 +482,9 @@
               if (wasAsync) {
                 form.find('input[name=async]').val('true');
               }
+              // Remove the fields added for this save so that the next save sends the values filled in the modal
+              // instead of the ones of this save.
+              form.find('input.changerequest-generated-field').remove();
           }
       }
 

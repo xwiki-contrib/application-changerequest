@@ -43,6 +43,7 @@ import org.xwiki.contrib.changerequest.FileChangeSavingChecker;
 import org.xwiki.contrib.changerequest.events.ChangeRequestCreatedEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatedFileChangeEvent;
 import org.xwiki.contrib.changerequest.events.ChangeRequestUpdatingFileChangeEvent;
+import org.xwiki.contrib.changerequest.internal.ChangeRequestTitleChecker;
 import org.xwiki.contrib.changerequest.internal.checkers.FileChangeSavingCheckersLoader;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.CurrentUserReference;
@@ -66,6 +67,8 @@ import com.xpn.xwiki.web.EditForm;
 @Singleton
 public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandler
 {
+    private static final String TITLE_PARAMETER = "crTitle";
+
     @Inject
     private UserReferenceResolver<CurrentUserReference> userReferenceResolver;
 
@@ -82,6 +85,16 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         throws ChangeRequestException, IOException, XWikiException
     {
         HttpServletRequest request = this.prepareRequest();
+        if (ChangeRequestTitleChecker.containsScript(request.getParameter(TITLE_PARAMETER))) {
+            this.reportError(HttpStatus.SC_BAD_REQUEST, TITLE_SCRIPT_ERROR);
+        } else {
+            createChangeRequest(request);
+        }
+    }
+
+    private void createChangeRequest(HttpServletRequest request)
+        throws ChangeRequestException, IOException, XWikiException
+    {
         FileChange fileChange = getFileChange(request);
 
         FileChangeSavingChecker.SavingCheckerResult savingCheckerResult = this.canChangeRequestBeCreated(fileChange);
@@ -154,7 +167,7 @@ public class CreateChangeRequestHandler extends AbstractChangeRequestActionHandl
         XWikiDocument modifiedDocument = getModifiedDocument(request, isDeletion, context);
         DocumentReference documentReference = modifiedDocument.getDocumentReferenceWithLocale();
 
-        String title = request.getParameter("crTitle");
+        String title = request.getParameter(TITLE_PARAMETER);
         String description = request.getParameter("crDescription");
         boolean isDraft = "1".equals(request.getParameter("crDraft"));
         boolean isMinorEdit = "1".equals(request.getParameter("isMinorChange"));

@@ -38,6 +38,7 @@ public class ChangeRequestSaveModal extends BaseModal
 {
     private static final String SAVE_BUTTON_ID = "saveChangeRequest";
     private static final String APPROVERS_SELECTION_CONTAINER_ID = "approversSelection";
+    private static final String OTHER_ERROR_ID = "otherError";
 
     private static final String ACTIVE_DROPDOWN_SELECTOR = ".selectize-dropdown.active";
 
@@ -109,7 +110,9 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public void setChangeRequestTitle(String title)
     {
-        this.getDriver().findElement(By.id("crTitle")).sendKeys(title);
+        WebElement titleInput = this.getDriver().findElement(By.id("crTitle"));
+        titleInput.clear();
+        titleInput.sendKeys(title);
     }
 
     /**
@@ -298,7 +301,7 @@ public class ChangeRequestSaveModal extends BaseModal
      */
     public String getOtherErrorMessage()
     {
-        return getDriver().findElementWithoutWaiting(getErrorContainer(), By.id("otherError")).getText();
+        return getDriver().findElementWithoutWaiting(getErrorContainer(), By.id(OTHER_ERROR_ID)).getText();
     }
 
     /**
@@ -321,6 +324,20 @@ public class ChangeRequestSaveModal extends BaseModal
         clickSaveExpectFailure();
         WebElement error =
             getDriver().findElementWithoutWaiting(getErrorContainer(), By.id("providedApproversError"));
+        getDriver().waitUntilCondition(driver -> error.isDisplayed());
+        return error.getText();
+    }
+
+    /**
+     * Click on save button when the server is expected to refuse the change request, e.g. because of its title.
+     *
+     * @return the displayed message explaining why the change request cannot be saved
+     * @since 1.26
+     */
+    public String clickSaveExpectOtherError()
+    {
+        clickSaveExpectFailure();
+        WebElement error = getDriver().findElementWithoutWaiting(getErrorContainer(), By.id(OTHER_ERROR_ID));
         getDriver().waitUntilCondition(driver -> error.isDisplayed());
         return error.getText();
     }
