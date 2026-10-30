@@ -77,6 +77,9 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
     private Provider<XWikiContext> contextProvider;
 
     @Inject
+    private UncachedDocumentLoader uncachedDocumentLoader;
+
+    @Inject
     @Named("current")
     private UserReferenceResolver<String> userReferenceResolver;
 
@@ -96,8 +99,9 @@ public class DefaultReviewStorageManager implements ReviewStorageManager
 
             XWikiContext context = contextProvider.get();
             try {
-                XWikiDocument changeRequestDoc = context.getWiki().getDocument(changeRequestDocReference, context)
-                    .clone();
+                // The document is saved several times in a row when reviews are added or invalidated: it's modified
+                // from its stored version since the cached one can be older and saving it would revert those changes.
+                XWikiDocument changeRequestDoc = this.uncachedDocumentLoader.loadForUpdate(changeRequestDocReference);
                 BaseObject xObject;
                 // FIXME: use localization
                 String saveComment = "Add new review";

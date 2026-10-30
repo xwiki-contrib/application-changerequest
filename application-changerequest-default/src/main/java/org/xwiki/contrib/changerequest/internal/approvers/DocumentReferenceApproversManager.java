@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.changerequest.ApproversManager;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
+import org.xwiki.contrib.changerequest.internal.storage.UncachedDocumentLoader;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.user.UserReference;
 
@@ -46,11 +47,16 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DocumentReferenceApproversManager implements ApproversManager<DocumentReference>
 {
+    private static final String LOADING_ERROR_MESSAGE = "Error while loading document [%s]";
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Inject
     private ApproversManager<XWikiDocument> documentApproversManager;
+
+    @Inject
+    private UncachedDocumentLoader uncachedDocumentLoader;
 
     private XWikiDocument getDocument(DocumentReference documentReference) throws ChangeRequestException
     {
@@ -58,7 +64,18 @@ public class DocumentReferenceApproversManager implements ApproversManager<Docum
         try {
             return context.getWiki().getDocument(documentReference, context);
         } catch (XWikiException e) {
-            throw new ChangeRequestException(String.format("Error while loading document [%s]", documentReference), e);
+            throw new ChangeRequestException(String.format(LOADING_ERROR_MESSAGE, documentReference), e);
+        }
+    }
+
+    private XWikiDocument getDocumentForUpdate(DocumentReference documentReference) throws ChangeRequestException
+    {
+        // The approvers are saved in the document: it's modified from its stored version since the cached one can be
+        // older and saving it would revert the changes saved since.
+        try {
+            return this.uncachedDocumentLoader.loadForUpdate(documentReference);
+        } catch (XWikiException e) {
+            throw new ChangeRequestException(String.format(LOADING_ERROR_MESSAGE, documentReference), e);
         }
     }
 
@@ -73,14 +90,14 @@ public class DocumentReferenceApproversManager implements ApproversManager<Docum
     public void setUsersApprovers(Set<UserReference> users, DocumentReference entity)
         throws ChangeRequestException
     {
-        this.documentApproversManager.setUsersApprovers(users, getDocument(entity));
+        this.documentApproversManager.setUsersApprovers(users, getDocumentForUpdate(entity));
     }
 
     @Override
     public void setGroupsApprovers(Set<DocumentReference> groups, DocumentReference entity)
         throws ChangeRequestException
     {
-        this.documentApproversManager.setGroupsApprovers(groups, getDocument(entity));
+        this.documentApproversManager.setGroupsApprovers(groups, getDocumentForUpdate(entity));
     }
 
     @Override
