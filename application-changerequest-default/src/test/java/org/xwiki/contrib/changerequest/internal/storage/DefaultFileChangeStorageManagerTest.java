@@ -41,6 +41,7 @@ import org.suigeneris.jrcs.rcs.Version;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.context.Execution;
 import org.xwiki.contrib.changerequest.ChangeRequest;
+import org.xwiki.contrib.changerequest.ChangeRequestConfiguration;
 import org.xwiki.contrib.changerequest.ChangeRequestException;
 import org.xwiki.contrib.changerequest.ChangeRequestStatus;
 import org.xwiki.contrib.changerequest.FileChange;
@@ -82,6 +83,7 @@ import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.test.mockito.MockitoComponentManager;
 import org.xwiki.user.CurrentUserReference;
+import org.xwiki.user.GuestUserReference;
 import org.xwiki.user.UserReference;
 import org.xwiki.user.UserReferenceResolver;
 import org.xwiki.user.UserReferenceSerializer;
@@ -209,6 +211,9 @@ class DefaultFileChangeStorageManagerTest
     private UserReferenceResolver<CurrentUserReference> currentUserReferenceResolver;
 
     @MockComponent
+    private ChangeRequestConfiguration configuration;
+
+    @MockComponent
     private ObservationManager observationManager;
 
     @RegisterExtension
@@ -235,6 +240,7 @@ class DefaultFileChangeStorageManagerTest
         when(this.context.getWiki()).thenReturn(this.xWiki);
 
         when(this.environment.getTemporaryDirectory()).thenReturn(new File(System.getProperty("java.io.tmpdir")));
+        when(this.configuration.getMergeUser()).thenReturn(GuestUserReference.INSTANCE);
     }
 
     @Test
@@ -641,8 +647,10 @@ class DefaultFileChangeStorageManagerTest
         DocumentAuthors documentAuthors = mock(DocumentAuthors.class);
         when(currentDocument.getAuthors()).thenReturn(documentAuthors);
 
-        UserReference author = mock(UserReference.class);
+        UserReference author = mock(UserReference.class, "author");
         when(fileChange.getAuthor()).thenReturn(author);
+        UserReference mergerUser = mock(UserReference.class, "merger");
+        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(mergerUser);
         String crTitle = "Some title";
         String crID = "someId";
         when(fileChange.getChangeRequest()).thenReturn(changeRequest);
@@ -653,8 +661,69 @@ class DefaultFileChangeStorageManagerTest
 
         this.fileChangeStorageManager.merge(fileChange);
         verify(this.xWiki).saveDocument(currentDocument, SAVE_MESSAGE, false, this.context);
+        // The merged changes are written by the filechange author but published by the merge user, who is thus the
+        // content author and the effective metadata author, whoever was the content author of the target before.
         verify(documentAuthors).setOriginalMetadataAuthor(author);
+        verify(documentAuthors).setEffectiveMetadataAuthor(mergerUser);
+        verify(documentAuthors).setContentAuthor(mergerUser);
         verify(currentDocument).clone();
+    }
+
+    @Test
+    void mergeEditionWithMergeUser() throws Exception
+    {
+        DocumentReference targetEntity = new DocumentReference("xwiki", "Space", "Page");
+        UserReference author = mock(UserReference.class, "author");
+        UserReference currentUser = mock(UserReference.class, "current");
+        UserReference mergeUser = mock(UserReference.class, "mergeUser");
+        DocumentReference currentUserDocReference = new DocumentReference("xwiki", "XWiki", "Current");
+        DocumentReference mergeUserDocReference = new DocumentReference("xwiki", "XWiki", "MergeUser");
+        when(this.configuration.getMergeUser()).thenReturn(mergeUser);
+        when(this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE)).thenReturn(currentUser);
+        when(this.converter.convert(mergeUser)).thenReturn(mergeUserDocReference);
+        when(this.converter.convert(currentUser)).thenReturn(currentUserDocReference);
+
+        FileChange fileChange = mock(FileChange.class);
+        when(fileChange.getType()).thenReturn(FileChange.FileChangeType.EDITION);
+        when(fileChange.getTargetEntity()).thenReturn(targetEntity);
+        when(fileChange.getAuthor()).thenReturn(author);
+        when(fileChange.getPreviousPublishedVersion()).thenReturn("1.3");
+        when(fileChange.getPreviousPublishedVersionDate()).thenReturn(new Date(42));
+        ChangeRequest changeRequest = mock(ChangeRequest.class);
+        when(fileChange.getChangeRequest()).thenReturn(changeRequest);
+        when(changeRequest.getStatus()).thenReturn(ChangeRequestStatus.READY_FOR_MERGING);
+
+        XWikiDocument modifiedDocument = mock(XWikiDocument.class, "modified");
+        when(fileChange.getModifiedDocument()).thenReturn(modifiedDocument);
+        when(modifiedDocument.clone()).thenReturn(modifiedDocument);
+        when(modifiedDocument.getRCSVersion()).thenReturn(new Version("2.1"));
+        when(modifiedDocument.getDocumentReference()).thenReturn(targetEntity);
+        XWikiDocument previousDocument = mock(XWikiDocument.class, "previous");
+        when(this.documentRevisionProvider.getRevision(targetEntity, "1.3")).thenReturn(previousDocument);
+        when(previousDocument.getDate()).thenReturn(new Date(42));
+        XWikiDocument currentDocument = mock(XWikiDocument.class, "current");
+        when(this.xWiki.getDocument(targetEntity, this.context)).thenReturn(currentDocument);
+
+        MergeDocumentResult mergeDocumentResult = mock(MergeDocumentResult.class);
+        when(this.mergeManager.mergeDocument(eq(previousDocument), eq(modifiedDocument), eq(currentDocument), any()))
+            .thenReturn(mergeDocumentResult);
+        when(mergeDocumentResult.isModified()).thenReturn(true);
+        XWikiDocument mergedDocument = mock(XWikiDocument.class, "merged");
+        when(mergeDocumentResult.getMergeResult()).thenReturn(mergedDocument);
+        when(mergedDocument.clone()).thenReturn(mergedDocument);
+        DocumentAuthors authors = mock(DocumentAuthors.class);
+        when(mergedDocument.getAuthors()).thenReturn(authors);
+
+        this.fileChangeStorageManager.merge(fileChange);
+
+        // The configured merge user publishes the changes, so it's the content and effective metadata author, not
+        // the user who triggered the merge.
+        verify(authors).setOriginalMetadataAuthor(author);
+        verify(authors).setEffectiveMetadataAuthor(mergeUser);
+        verify(authors).setContentAuthor(mergeUser);
+        verify(this.xWiki).saveDocument(eq(mergedDocument), any(), eq(false), eq(this.context));
+        verify(this.context).setUserReference(mergeUserDocReference);
+        verify(this.context).setUserReference(currentUserDocReference);
     }
 
     @Test

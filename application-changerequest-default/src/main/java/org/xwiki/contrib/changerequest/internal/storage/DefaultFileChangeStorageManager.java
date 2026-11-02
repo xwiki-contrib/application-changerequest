@@ -427,15 +427,16 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         UserReference mergeUser = this.configuration.getMergeUser();
 
         boolean changeUser = mergeUser != GuestUserReference.INSTANCE;
-        UserReference currentUserReference = null;
+        UserReference currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
+        // The merger is the user publishing the changes: the configured merge user if any, the current user otherwise.
+        UserReference mergerUser = (changeUser) ? mergeUser : currentUserReference;
         if (changeUser) {
-            currentUserReference = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
             this.contextProvider.get().setUserReference(this.userReferenceConverter.convert(mergeUser));
         }
         try {
             switch (fileChange.getType()) {
                 case EDITION:
-                    this.mergeEdition(fileChange);
+                    this.mergeEdition(fileChange, mergerUser);
                     break;
 
                 case DELETION:
@@ -443,7 +444,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
                     break;
 
                 case CREATION:
-                    this.mergeCreation(fileChange);
+                    this.mergeCreation(fileChange, mergerUser);
                     break;
 
                 case NO_CHANGE:
@@ -608,7 +609,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             changeRequest.getTitle(), changeRequest.getId());
     }
 
-    private void mergeCreation(FileChange fileChange) throws ChangeRequestException
+    private void mergeCreation(FileChange fileChange, UserReference mergerUser) throws ChangeRequestException
     {
         XWikiContext context = contextProvider.get();
         XWiki wiki = context.getWiki();
@@ -619,11 +620,10 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         // published is the author of the merged filechange. So the creator and the original metadata author are
         // those, while the effective metadata author and the content author are the merge user.
         DocumentAuthors authors = modifiedDoc.getAuthors();
-        UserReference currentUser = this.currentUserReferenceResolver.resolve(CurrentUserReference.INSTANCE);
         authors.setCreator(getCreationAuthor(fileChange));
         authors.setOriginalMetadataAuthor(fileChange.getAuthor());
-        authors.setEffectiveMetadataAuthor(currentUser);
-        authors.setContentAuthor(currentUser);
+        authors.setEffectiveMetadataAuthor(mergerUser);
+        authors.setContentAuthor(mergerUser);
 
         // we set the date corresponding to the actual merge date.
         Date now = new Date();
@@ -665,7 +665,7 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
         return result;
     }
 
-    private void mergeEdition(FileChange fileChange) throws ChangeRequestException
+    private void mergeEdition(FileChange fileChange, UserReference mergerUser) throws ChangeRequestException
     {
         XWikiContext context = contextProvider.get();
         XWiki wiki = context.getWiki();
@@ -701,8 +701,12 @@ public class DefaultFileChangeStorageManager implements FileChangeStorageManager
             if (mergeDocumentResult.isModified()) {
                 XWikiDocument document = ((XWikiDocument) mergeDocumentResult.getMergeResult()).clone();
                 // The user performing the merge only publishes the changes: the one who actually wrote them is the
-                // author of the merged filechange.
-                document.getAuthors().setOriginalMetadataAuthor(fileChange.getAuthor());
+                // author of the merged filechange, so it's the original metadata author, while the effective metadata
+                // author and the content author are the merge user.
+                DocumentAuthors authors = document.getAuthors();
+                authors.setOriginalMetadataAuthor(fileChange.getAuthor());
+                authors.setEffectiveMetadataAuthor(mergerUser);
+                authors.setContentAuthor(mergerUser);
                 wiki.saveDocument(document, getMergeSaveMessage(fileChange), fileChange.isMinorChange(), context);
             }
         } catch (XWikiException e) {
