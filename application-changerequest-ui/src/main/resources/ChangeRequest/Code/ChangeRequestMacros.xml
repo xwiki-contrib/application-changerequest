@@ -147,10 +147,12 @@
               #set ($blockReference = $services.changerequest.discussion.getDiffBlockReference($crDiscussionDiffBlock))
               #set ($translationArgument = [$blockReference.name])
             #end
-            $services.localization.render($translationKey, $translationArgument)
+            ## The reference names can contain any character: display them as text.
+            $escapetool.xml($services.localization.render($translationKey, $translationArgument))
             &lt;/div&gt;
             &lt;div class="diff-reference-detail-property"&gt;
-              $services.localization.render('changerequest.sheet.diff.details.propertyName', $diffLocation.diffBlockId)
+              $escapetool.xml($services.localization.render('changerequest.sheet.diff.details.propertyName',
+                [$diffLocation.diffBlockId]))
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;/th&gt;
