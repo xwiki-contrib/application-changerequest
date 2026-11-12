@@ -58,6 +58,15 @@
       <artifactId>application-changerequest-discussions</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- The listeners of this module use components implemented in the default module. It must be a runtime
+         dependency so that the default module is always loaded first, including when the JAR extensions are reloaded
+         at the end of an extension upgrade: otherwise the listeners can fail to be instantiated and are then ignored
+         by the observation manager. -->
+    <dependency>
+      <groupId>org.xwiki.contrib.changerequest</groupId>
+      <artifactId>application-changerequest-default</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-notifications-notifiers-api</artifactId>
@@ -123,12 +132,6 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-web-templates</artifactId>
       <version>${platform.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.contrib.changerequest</groupId>
-      <artifactId>application-changerequest-default</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
